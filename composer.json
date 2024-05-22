@@ -1,0 +1,25 @@
+{
+    "name": "condoedge/finance",
+    "description": "Finance and accouning module to your kompo application",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Condoedge\\Finance\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.3|^8.0",
+        "laravel/framework": ">=5.6.0",
+        "kompo/auth": "^0.3"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Condoedge\\Finance\\CondoedgeFinanceServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
