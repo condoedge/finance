@@ -19,7 +19,6 @@ class CreateInvoicesTable extends Migration
             addMetaData($table);
 
             $table->foreignId('team_id')->constrained();
-            $table->foreignId('union_id')->constrained();
             $table->foreignId('customer_id')->constrained();
             $table->nullableMorphs('invoiceable');
             $table->tinyInteger('type')->default(Invoice::TYPE_PAYMENT);

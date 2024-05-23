@@ -21,7 +21,7 @@ class CreateTransactionsTable extends Migration
             $table->decimal('amount', 14, 2);
             $table->string('type');
             $table->tinyInteger('void')->nullable();
-            $table->foreignId('union_id')->constrained();
+            $table->foreignId('team_id')->constrained();
             $table->foreignId('user_id')->nullable()->constrained();
             $table->foreignId('invoice_id')->nullable()->constrained();
             $table->foreignId('bill_id')->nullable()->constrained();

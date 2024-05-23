@@ -3,12 +3,11 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\GlAccount;
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 
 class Tax extends Model
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
-    use \Kompo\Auth\Models\Teams\BelongsToTeam;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
     use \Kompo\Database\HasTranslations;
     protected $translatable = [

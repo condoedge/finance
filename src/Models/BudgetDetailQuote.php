@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use App\Models\Condo\Unit;
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 
 class BudgetDetailQuote extends Model
 {

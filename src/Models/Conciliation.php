@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Entry;
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Conciliation extends Model

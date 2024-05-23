@@ -8,7 +8,7 @@ use App\Models\Traits\MorphRelations;
 
 class Bill extends Charge
 {
-    use \App\Models\Market\BelongsToSupplierTrait;
+    use \Condoedge\Finance\Models\BelongsToSupplierTrait;
     //use MorphRelations;
 
     protected $casts = [

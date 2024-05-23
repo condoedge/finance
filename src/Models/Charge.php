@@ -3,16 +3,15 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Transaction;
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 use App\Models\User;
 
 abstract class Charge extends Model
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
-    use \Kompo\Auth\Models\Teams\BelongsToTeam;
-    use \App\Models\Crm\BelongsToUnion;
-    use \App\Models\Tags\MorphToManyTagsTrait;
-    use \App\Models\Library\MorphManyFiles;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    //use \App\Models\Tags\MorphToManyTagsTrait;
+    use \Kompo\Auth\Models\Files\MorphManyFilesTrait;
 
     protected static $mainTransactionTypes = [];
 

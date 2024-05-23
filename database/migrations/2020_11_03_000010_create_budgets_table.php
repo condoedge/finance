@@ -17,7 +17,7 @@ class CreateBudgetsTable extends Migration
             
             addMetaData($table);
 
-            $table->foreignId('union_id')->constrained('unions');
+            $table->foreignId('team_id')->constrained();
             $table->smallInteger('status')->unsigned()->default(1);
             $table->string('name');
             $table->text('description')->nullable();

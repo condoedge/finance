@@ -2,14 +2,11 @@
 
 namespace Condoedge\Finance\Models;
 
-use App\Models\Model;
-use App\Models\Crm\BelongsToUnion;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Kompo\Auth\Models\Model;
 
 class BillItem extends Model
 {
-    use SoftDeletes, 
-        BelongsToUnion;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
     /* RELATIONSHIPS */
     public function account()

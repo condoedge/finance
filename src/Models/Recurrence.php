@@ -2,19 +2,13 @@
 
 namespace Condoedge\Finance\Models;
 
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 use Condoedge\Finance\Models\Bill;
-use App\Models\Teams\BelongsToTeam;
-use App\Models\Crm\BelongsToUnion;
-use App\Models\Traits\BelongsToUser;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Recurrence extends Model
 {
-    use BelongsToUnion,
-        BelongsToUser;
-
-    use \Kompo\Auth\Models\Teams\BelongsToTeam;
+    use \Kompo\Auth\Models\Traits\BelongsToUserTrait;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
     public const CHILD_BILL = 1;
 

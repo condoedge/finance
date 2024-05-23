@@ -17,7 +17,7 @@ class CreateGlAccountsTable extends Migration
 
             addMetaData($table);
 
-            $table->foreignId('union_id')->constrained();
+            $table->foreignId('team_id')->constrained();
             $table->foreignId('bank_id')->nullable()->constrained();
             $table->foreignId('fund_id')->nullable()->constrained();
             $table->foreignId('fund2_id')->nullable()->constrained('funds');

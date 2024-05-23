@@ -74,7 +74,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     protected function loadConfig()
     {
         $dirs = [
-            'kompo-finance' => __DIR__.'/../config/kompo-finance.php',
+            
         ];
 
         foreach ($dirs as $key => $path) {

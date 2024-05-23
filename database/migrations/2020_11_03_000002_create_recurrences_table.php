@@ -19,7 +19,6 @@ class CreateRecurrencesTable extends Migration
             addMetaData($table);
             
             $table->foreignId('team_id')->constrained();
-            $table->foreignId('union_id')->nullable()->constrained();
             $table->foreignId('user_id')->index()->nullable();
             
             $table->integer('recu_period')->nullable();

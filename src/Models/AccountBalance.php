@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AccountBalance extends Model

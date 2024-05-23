@@ -3,12 +3,12 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Acompte;
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 
 class Transaction extends Model
 {
-    use \App\Models\Traits\BelongsToUser;
-    use \App\Models\Crm\BelongsToUnion;
+    use \Kompo\Auth\Models\Traits\BelongsToUserTrait;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
     use \App\Models\Tags\MorphToManyTagsTrait;
     use \Condoedge\Finance\Models\BelongsToInvoiceTrait;

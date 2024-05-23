@@ -5,18 +5,16 @@ namespace Condoedge\Finance\Models;
 use App\Models\Condo\Unit;
 use Condoedge\Finance\Models\Fund;
 use Condoedge\Finance\Models\Invoice;
-use App\Models\Model;
-use App\Models\Crm\BelongsToUnion;
+use Kompo\Auth\Models\Model;
 use App\Models\Traits\MorphManyNotifications;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 
 class Budget extends Model
 {
-    use SoftDeletes,
-        MorphManyNotifications,
-        BelongsToUnion;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+
+    use MorphManyNotifications;
 
     protected $casts = [
         'fiscal_year_start' => 'datetime'

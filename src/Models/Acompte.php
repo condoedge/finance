@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Models;
 use App\Models\Condo\Unit;
 use Condoedge\Finance\Models\Entry;
 use Condoedge\Finance\Models\Transaction;
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 use App\Models\Traits\BelongsToUnit;
 use Illuminate\Database\Eloquent\SoftDeletes;
 

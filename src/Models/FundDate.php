@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-use App\Models\Model;
+use Kompo\Auth\Models\Model;
 
 class FundDate extends Model
 {

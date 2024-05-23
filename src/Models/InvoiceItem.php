@@ -2,14 +2,12 @@
 
 namespace Condoedge\Finance\Models;
 
-use App\Models\Model;
-use App\Models\Crm\BelongsToUnion;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Kompo\Auth\Models\Model;
 
 class InvoiceItem extends Model
 {
-    use SoftDeletes, 
-        BelongsToUnion;
+    use \Kompo\Auth\Models\Traits\BelongsToUserTrait;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
     /* RELATIONSHIPS */
     public function account()

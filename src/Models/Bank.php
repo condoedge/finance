@@ -3,16 +3,12 @@
 namespace Condoedge\Finance\Models;
 
 use App\Models\Condo\Unit;
-use App\Models\Model;
-use App\Models\Crm\BelongsToUnion;
-use App\Models\Traits\BelongsToUser;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Kompo\Auth\Models\Model;
 
 class Bank extends Model
 {
-    use SoftDeletes,
-        BelongsToUnion,
-        BelongsToUser;
+    use \Kompo\Auth\Models\Traits\BelongsToUserTrait;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
     /* RELATIONSHIPS */
     public function account()

@@ -3,16 +3,14 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\GlAccount;
-use App\Models\Model;
-use App\Models\Crm\BelongsToUnion;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Kompo\Auth\Models\Model;
 use Kompo\Database\HasTranslations;
 
 class Fund extends Model
 {
-    use SoftDeletes,
-        HasTranslations,
-        BelongsToUnion;
+    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+
+    use HasTranslations;
 
     protected $translatable = [
         'name',
