@@ -10,7 +10,6 @@ abstract class Charge extends Model
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
-    //use \App\Models\Tags\MorphToManyTagsTrait;
     use \Kompo\Auth\Models\Files\MorphManyFilesTrait;
 
     protected static $mainTransactionTypes = [];
@@ -108,9 +107,9 @@ abstract class Charge extends Model
         return $this->isReimbursment() ? -1 : 1;
     }
 
-    public static function getIncrement($prefix, $unionId = null)
+    public static function getIncrement($prefix, $teamId = null)
     {
-        $maxNumber = static::where('union_id', $unionId ?: currentUnion()->id)
+        $maxNumber = static::where('team_id', $teamId ?: currentTeam()->id)
             ->whereRaw('LEFT('.static::NUMBER_COLUMN.','.strlen($prefix).') = ?', [$prefix])
             ->whereRaw('LENGTH('.static::NUMBER_COLUMN.') = ?', [strlen($prefix)+6])
             ->max(static::NUMBER_COLUMN);
@@ -119,7 +118,7 @@ abstract class Charge extends Model
 
         $number = $prefix.sprintf('%06d', $nextNumber);
         for ($i=0; $i < 10; $i++) {
-            if (!static::where('union_id', $unionId ?: currentUnion()->id)->where(static::NUMBER_COLUMN, $number)->count()) {
+            if (!static::where('team_id', $teamId ?: currentTeam()->id)->where(static::NUMBER_COLUMN, $number)->count()) {
                 return $number;
             } else {
                 $nextNumber += 1;

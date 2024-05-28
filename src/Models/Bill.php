@@ -4,13 +4,9 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Entry;
 use Condoedge\Finance\Models\Transaction;
-use App\Models\Traits\MorphRelations;
 
 class Bill extends Charge
 {
-    use \Condoedge\Finance\Models\BelongsToSupplierTrait;
-    //use MorphRelations;
-
     protected $casts = [
         'billed_at' => 'datetime',
         'due_at' => 'datetime',

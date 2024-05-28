@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Mail;
 
 class Invoice extends Charge
 {
-    use \Condoedge\Finance\Models\BelongsToCustomerTrait;
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
     protected $casts = [

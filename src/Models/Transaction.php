@@ -10,7 +10,6 @@ class Transaction extends Model
     use \Kompo\Auth\Models\Traits\BelongsToUserTrait;
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
-    use \App\Models\Tags\MorphToManyTagsTrait;
     use \Condoedge\Finance\Models\BelongsToInvoiceTrait;
 
     public const TYPE_MANUAL_ENTRY = 1;
