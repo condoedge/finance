@@ -19,7 +19,7 @@ class CreateBillsTable extends Migration
             addMetaData($table);
 
             $table->foreignId('team_id')->constrained();
-            $table->foreignId('supplier_id')->constrained();
+            $table->foreignId('person_id')->nullable()->constrained('persons');
             $table->string('bill_number')->nullable();
             $table->tinyInteger('type')->default(Bill::TYPE_PAYMENT);
             $table->string('status')->default(Bill::STATUS_RECEIVED);

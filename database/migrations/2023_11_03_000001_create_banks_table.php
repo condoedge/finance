@@ -17,9 +17,9 @@ class CreateBanksTable extends Migration
             
             addMetaData($table);
 
-            $table->foreignId('team_id')->nullable()->constrained(); //For union accounting reconciliation
-            $table->foreignId('user_id')->nullable()->constrained(); //owner contribution withdrawal - self registration
-            $table->foreignId('customer_id')->nullable()->constrained(); //in case we need it => owner contribution withdrawal - registered by management team
+            $table->foreignId('team_id')->nullable()->constrained();
+            $table->foreignId('user_id')->nullable()->constrained();
+            $table->foreignId('person_id')->nullable()->constrained('persons');
             $table->string('name');
             $table->string('institution')->nullable();
             $table->string('branch')->nullable();

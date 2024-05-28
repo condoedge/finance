@@ -19,7 +19,7 @@ class CreateInvoicesTable extends Migration
             addMetaData($table);
 
             $table->foreignId('team_id')->constrained();
-            $table->foreignId('customer_id')->constrained();
+            $table->foreignId('person_id')->nullable()->constrained('persons');
             $table->nullableMorphs('invoiceable');
             $table->tinyInteger('type')->default(Invoice::TYPE_PAYMENT);
             $table->decimal('calc_total_amount', 14, 2)->nullable();
