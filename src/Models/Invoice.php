@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 class Invoice extends Charge
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    use \Condoedge\Crm\Models\BelongsToPersonTrait;
 
     protected $casts = [
         'invoiced_at' => 'datetime',

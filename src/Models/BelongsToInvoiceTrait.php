@@ -9,4 +9,16 @@ trait BelongsToInvoiceTrait
 	{
 		return $this->belongsTo(Invoice::class);
 	}
+
+    /* SCOPES */
+    public function scopeForInvoice($query, $idOrIds)
+    {
+        scopeWhereBelongsTo($query, 'invoice_id', $idOrIds);
+    }
+
+	/* CALCULATED FIELDS */
+
+	/* ACTIONS */
+
+	/* ELEMENTS */
 }

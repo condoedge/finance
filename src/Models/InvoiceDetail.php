@@ -4,12 +4,9 @@ namespace Condoedge\Finance\Models;
 
 class InvoiceDetail extends ChargeDetail
 {
+	protected $table = 'charge_details';
+
     /* RELATIONSHIPS */
-    public function invoice()
-    {
-    	return $this->belongsTo(Invoice::class);
-    }
-    
     public function fund()
     {
         return $this->belongsTo(Fund::class);
