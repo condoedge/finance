@@ -12,4 +12,10 @@ class InvoiceDetail extends ChargeDetail
         return $this->belongsTo(Fund::class);
     }
 
+    /* CALCULATED FIELDS */
+    public function deletable()
+    {
+        return $this->chargeable?->deletable();
+    }
+
 }
