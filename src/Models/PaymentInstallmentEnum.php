@@ -45,6 +45,13 @@ enum PaymentInstallmentEnum: int
         };
     }
 
+    public function getNextDate($date)
+    {
+        return match($this) {
+            default => $date->addMonths($this->getTimes() - 1),
+        };
+    }
+
     public function getTimes()
     {
         return match($this) {
