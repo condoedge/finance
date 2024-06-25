@@ -14,20 +14,20 @@ enum PaymentInstallmentEnum: int
     public function label()
     {
         return match($this) {
-            self::ONE_TIME => __('translate.finance.one-time'),
-            self::TWO_TIMES => __('translate.finance.two-times'),
-            self::THREE_TIMES => __('translate.finance.three-times'),
-            self::FOUR_TIMES => __('translate.finance.four-times'),
+            self::ONE_TIME => __('finance.one-time'),
+            self::TWO_TIMES => __('finance.two-times'),
+            self::THREE_TIMES => __('finance.three-times'),
+            self::FOUR_TIMES => __('finance.four-times'),
         };
     }
 
     public function labelWithAmount($amount)
     {
         return match($this) {
-            self::ONE_TIME => __('translate.with-values.finance.one-time', ['amount' => $this->getPartAmount($amount)]),
-            self::TWO_TIMES => __('translate.with-values.finance.two-times', ['amount' => $this->getPartAmount($amount)]),
-            self::THREE_TIMES => __('translate.with-values.finance.three-times', ['amount' => $this->getPartAmount($amount)]),
-            self::FOUR_TIMES => __('translate.with-values.finance.four-times', ['amount' => $this->getPartAmount($amount)]),
+            self::ONE_TIME => __('finance.one-time-values', ['amount' => $this->getPartAmount($amount)]),
+            self::TWO_TIMES => __('finance.two-times-values', ['amount' => $this->getPartAmount($amount)]),
+            self::THREE_TIMES => __('finance.three-times-values', ['amount' => $this->getPartAmount($amount)]),
+            self::FOUR_TIMES => __('finance.four-times-values', ['amount' => $this->getPartAmount($amount)]),
         };
     }
 
