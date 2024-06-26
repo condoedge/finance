@@ -217,7 +217,7 @@ class Invoice extends Charge
             static::STATUS_APPROVED => 'bg-info bg-opacity-30',
             static::STATUS_SENT => 'bg-level1 bg-opacity-30',
             static::STATUS_PARTIALLY_PAID => 'bg-warning bg-opacity-30',
-            static::STATUS_PAID => 'bg-positive bg-opacity-301',
+            static::STATUS_PAID => 'bg-positive bg-opacity-30',
             static::STATUS_VOIDED => 'bg-danger bg-opacity-30',
         ];
     }

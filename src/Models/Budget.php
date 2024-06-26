@@ -221,7 +221,7 @@ class Budget extends Model
     public function getPeriodLabelAttribute()
     {
         return $this->fiscal_year_start->format('Y-m-d').
-            ' '.__('to').' '.
+            ' '.__('general.to').' '.
             $this->fiscal_year_start->copy()->addYears(1)->addDays(-1)->format('Y-m-d');
     }
 
