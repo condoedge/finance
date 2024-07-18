@@ -11,6 +11,7 @@ abstract class Charge extends Model
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
     use \Kompo\Auth\Models\Files\MorphManyFilesTrait;
+    use \Kompo\Auth\Models\Tags\MorphToManyTagsTrait;
 
     protected static $mainTransactionTypes = [];
 
@@ -246,11 +247,11 @@ abstract class Charge extends Model
 
         $newNumber = request($numberName);
 
-        if(!$this->id && Bill::where('union_id', currentUnion()->id)->where('bill_number', $newNumber)->count()) {
+        if(!$this->id && Bill::where('team_id', currentTeamId())->where('bill_number', $newNumber)->count()) {
             throwValidationError($numberName, __('finance.there-already-has-a-bill-with-the-number').' '.$newNumber.' '.__('finance.in-the-system-choose-another-one'));
         }
 
-        if(!$this->id && Invoice::where('union_id', currentUnion()->id)->where('invoice_number', $newNumber)->count()) {
+        if(!$this->id && Invoice::where('team_id', currentTeamId())->where('invoice_number', $newNumber)->count()) {
             throwValidationError($numberName, __('finance.there-already-has-a-bill-with-the-number').' '.$newNumber.' '.__('finance.in-the-system-choose-another-one'));
         }
 

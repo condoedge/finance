@@ -228,7 +228,12 @@ class BillForm extends Form
 
 	public function getDueDate()
 	{
-		$billedAt = substr(request('billed_at'), 0, 10) ?: ($this->model->billed_at?->format('Y-m-d') ?: date('Y-m-d'));
+		$billedAtReq = request('billed_at'); 
+		if (substr($billedAtReq, 0, 2) == '= ') { //See BillRecurringForm 
+			$billedAtReq = '';
+		}
+
+		$billedAt = substr($billedAtReq, 0, 10) ?: ($this->model->billed_at?->format('Y-m-d') ?: date('Y-m-d'));
 		$supplierId = request('supplier_id') ?: ($this->model->supplier_id ?: $this->selectedSupplierId);
 
 		$dueDate = $this->getDueDateEl();

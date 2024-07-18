@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\ChargeDetail;
+use App\Models\Finance\ChargeDetail;
 use Kompo\Table;
 
 class ChargeDetailsTable extends Table

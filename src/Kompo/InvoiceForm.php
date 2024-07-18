@@ -2,8 +2,9 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\ChargeDetail;
-use Condoedge\Finance\Models\Invoice;
+use App\Models\Finance\ChargeDetail;
+use App\Models\Finance\Invoice;
+use App\Models\Crm\Person;
 use Kompo\Form;
 
 class InvoiceForm extends Form
@@ -16,7 +17,7 @@ class InvoiceForm extends Form
 
 	protected $customerTypePanelId = 'customer-type-panel';
 
-	protected $union;
+	protected $team;
 	protected $minDate;
 	protected $realModification;
 
@@ -26,7 +27,7 @@ class InvoiceForm extends Form
 
 	public function created()
 	{
-		$this->union = currentUnion();
+		$this->team = currentTeam();
 	}
 
 	public function authorizeBoot()
@@ -48,10 +49,10 @@ class InvoiceForm extends Form
         $this->model->checkUniqueNumber();
 
 		if ($this->realModification) {
-			$this->union->checkIfDateAcceptable($this->minDate);
+			$this->team->checkIfDateAcceptable($this->minDate);
 		}
 
-		$this->model->union_id = request('union_id');
+		$this->model->team_id = request('team_id');
 
 		$this->model->type = $this->formType;
 	}
@@ -70,7 +71,7 @@ class InvoiceForm extends Form
 
 	public function response()
 	{
-		return redirect()->route('invoice.page', ['id' => $this->model->id ]);
+		return redirect()->route('finance.invoice-page', ['id' => $this->model->id ]);
 	}
 
 	public function render()
@@ -97,14 +98,20 @@ class InvoiceForm extends Form
 
             _TitleMini($this->labelDetails)->class('mb-2'),
 
-            $this->sectionBox(
+            _CardWhiteP4(
 				_Columns(
-					_UnionSelect('finance.receiving-union')
+					_Select('finance.receiving-team')->name('team_id')
+						->options([
+							$this->team->id => $this->team->team_name,
+						])
 						->readonly()
-						->default($this->union->id),
-					_CustomerSelect('finance.invoiced-unit'),
+						->default($this->team->id),
+					_Select('finance.invoiced-person')->name('person_id')
+						->options(
+							Person::getOptionsForTeamWithFullName($this->team->id)
+						),
 					_Input($this->labelNumber)->name('invoice_number')
-						->default(Invoice::getInvoiceIncrement($this->union->id, $this->prefix)),
+						->default(Invoice::getInvoiceIncrement($this->team->id, $this->prefix)),
 				),
 				_Columns(
 					_DateTime('finance.invoice-date')->name('invoiced_at')->default(date('Y-m-d H:i')),
@@ -116,7 +123,7 @@ class InvoiceForm extends Form
 			_TitleMini($this->labelElements)->class('uppercase mb-2'),
 			_MultiForm()->noLabel()->name('chargeDetails')
 				->formClass(ChargeDetailForm::class, [
-					'union_id' => $this->union->id,
+					'team_id' => $this->team->id,
 					'default_accounts' => 'usableRevenue',
 				])
 				->asTable([
@@ -138,22 +145,21 @@ class InvoiceForm extends Form
                 _Columns(
 				_Rows(
 					_TitleMini('finance.invoice-notes')->class('mb-2'),
-					$this->sectionBox(
+					_CardWhiteP4(
 						_Textarea('general.notes')->name('notes'),
 						_TagsMultiSelect(),
 						_MultiFile('file.attachments')->name('files')
 							->extraAttributes([
-								'team_id' => $this->union->team_id,
-								'union_id' => $this->union->id,
+								'team_id' => $this->team->id,
 							])
 					)->class('p-6 bg-white rounded-2xl')
 				),
 				_Rows(
 					_TitleMini('finance.invoice-total')->class('mb-2'),
-					$this->sectionBox(
+					_CardWhiteP4(
 						_TotalCurrencyCols(__('finance.subtotal'), 'finance-subtotal', $this->model->amount, false),
 						_Rows(
-							$this->union->team->taxes->map(
+							$this->team->taxes->map(
 								fn($tax) => _TotalCurrencyCols($tax->name, 'finance-taxes-'.$tax->id, $this->model->getAmountForTax($tax->id))
 												 ->class('tax-summary')->attr(['data-id' => $tax->id])
 							)
@@ -169,26 +175,16 @@ class InvoiceForm extends Form
 		];
 	}
 
-	protected function sectionBox()
-	{
-		return _Rows(...func_get_args())->class('dashboard-card pt-6 px-8 pb-4 mb-6');
-	}
-
 	public function getTaxesInfoModal()
 	{
 		return new TaxesInfoModal();
 	}
 
-	public function js()
-	{
-		return file_get_contents(resource_path('views/scripts/finance.js'));
-	}
-
 	public function rules()
 	{
 		return [
-			'union_id' => 'required',
-			'customer_id' => 'required',
+			'team_id' => 'required',
+			'person_id' => 'required',
 			'due_at' => 'required',
 			'invoiced_at' => 'required',
 		];

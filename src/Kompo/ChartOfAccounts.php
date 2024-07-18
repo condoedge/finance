@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\GlAccount;
+use App\Models\Finance\GlAccount;
 use Kompo\Form;
 
 class ChartOfAccounts extends Form
@@ -16,8 +16,12 @@ class ChartOfAccounts extends Form
 
     public function created()
     {
-        $this->groupId = $this->parameter('group') ?: 1;
-        $this->allAccounts = $this->parameter('all');
+        $team = currentTeam();
+
+        GlAccount::createInitialAccountsIfNone($team);
+
+        $this->groupId = $this->prop('group') ?: 1;
+        $this->allAccounts = $this->prop('all');
     }
 
     public function render()
@@ -31,7 +35,7 @@ class ChartOfAccounts extends Form
                             ($this->allAccounts ? __('finance.show-active-accounts') : __('finance.show-inactive-accounts')).
                         '</span>'
                     )->icon('ban')->class('text-sm')
-                    ->href('chart-of-accounts', [
+                    ->href('finance.chart-of-accounts', [
                         'group' => $this->groupId,
                         'all' => $this->allAccounts ? 0 : 1,
                     ]),
@@ -66,10 +70,5 @@ class ChartOfAccounts extends Form
     public function getBalanceVerificationBox()
     {
         return GlAccount::groupBalances()->class('mb-4');
-    }
-
-    public function js()
-    {
-        return file_get_contents(resource_path('views/scripts/finance.js'));
     }
 }

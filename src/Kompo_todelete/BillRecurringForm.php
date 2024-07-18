@@ -125,7 +125,12 @@ class BillRecurringForm extends BillForm
 	protected function getBillDateEl()
 	{
 		return _Input('finance.bill-date')->name('billed_at', false)->readOnly()->icon(_SaxSvg('calendar'))
-			->default($this->recurrence->recu_start?->format('Y-m-d') ?: __('finance.equals-recurrence-start-date'));
+			->default($this->recurrence->recu_start?->format('Y-m-d') ?: ('= '.__('finance.equals-recurrence-start-date')));
+	}
+
+	protected function getDueDateEl()
+	{
+		return parent::getDueDateEl()->comment('Enter the first due date');
 	}
 
 	protected function getWorkDateEl()

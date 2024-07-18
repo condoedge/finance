@@ -2,17 +2,17 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Models\Entry;
+use App\Models\Finance\Bank;
+use App\Models\Finance\Entry;
+
 use Kompo\Auth\Models\Model;
-use Kompo\Database\HasTranslations;
 
 class GlAccount extends Model
 {
-    use \Kompo\Auth\Models\Traits\BelongsToUserTrait;
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    use \Condoedge\Finance\Models\GlAccountCreateActionsTrait;
     
-    use HasTranslations;
-
+    use \Kompo\Database\HasTranslations;
     protected $translatable = [
         'type',
         'name',
@@ -48,10 +48,6 @@ class GlAccount extends Model
     public const CODE_BNR_SPECIAL = '3400';
     public const CODE_BNR_INSURANCE = '3500';
 
-    public const LEVEL_SIMPLE = 1;
-    public const LEVEL_MEDIUM = 2;
-    public const LEVEL_FULL = 3;
-
     /* RELATIONSHIPS */
     public function bank()
     {
@@ -68,11 +64,6 @@ class GlAccount extends Model
         return $this->belongsTo(Tax::class);
     }
 
-    public function budgetDetails()
-    {
-        return $this->hasMany(BudgetDetail::class);
-    }
-
     public function accountBalances()
     {
         return $this->hasMany(AccountBalance::class);
@@ -80,9 +71,9 @@ class GlAccount extends Model
 
     public function latestBalance($union = null)
     {
+        /* TODO RECONNECT
         $union = $union ?: currentUnion();
 
-        /* TODO RECONNECT
         if ($latestBalanceDate = $union->latestBalanceDate()) {
             return $this->hasOne(AccountBalance::class)->where('from_date', $latestBalanceDate);
         }*/
@@ -97,9 +88,9 @@ class GlAccount extends Model
 
     public function unbalancedEntries($union = null)
     {
+        /* TODO RECONNECT
         $union = $union ?: currentUnion();
 
-        /* TODO RECONNECT
         if ($latestBalanceDate = $union->latestBalanceDate()) {
             return $this->entries()->where('transacted_at', '>=', $latestBalanceDate);
         }*/
@@ -154,15 +145,6 @@ class GlAccount extends Model
         ];
     }
 
-    public static function allLevels()
-    {
-        return [
-            //static::LEVEL_SIMPLE => __('finance.accounts-simplest'), //Disabled because chart of accounts is incomplete (link with funds)
-            static::LEVEL_MEDIUM => __('finance.accounts-medium'),
-            static::LEVEL_FULL => __('finance.accounts-complete'),
-        ];
-    }
-
     public static function bnrCodes()
     {
         return array_merge(
@@ -190,7 +172,7 @@ class GlAccount extends Model
 
     public static function getUnionOptions()
     {
-        $unionAccounts = static::inUnionGl(currentUnion())->get();
+        $unionAccounts = static::forTeam()->enabledInGl()->get();
 
         return collect(static::allGroups())->mapWithKeys(function ($group, $groupKey) use ($unionAccounts) {
             return $unionAccounts->filter(fn ($account) => $account->group == $groupKey)
@@ -206,12 +188,12 @@ class GlAccount extends Model
         });
     }
 
-    public static function getLastSibling($code, $unionId = null)
+    public static function getLastSibling($code, $teamId = null)
     {
         $category = substr($code, 0, 2); //works with 26 or 2600 for ex.
-        $unionId = $unionId ?: currentUnion()->id;
+        $teamId = $teamId ?: currentTeam()->id;
 
-        return static::where('union_id', $unionId)
+        return static::where('team_id', $teamId)
             ->whereRaw('LEFT(code,2) = ?', [$category])
             ->orderByDesc('code')->first();
     }
@@ -317,10 +299,11 @@ class GlAccount extends Model
 
     protected static function getGroupBalance($groupId = null, $initial = false)
     {
-        $qAccounts = static::inUnionGl();
+        $qAccounts = static::forTeam()->enabledInGl();
         $qAccounts = $groupId ? $qAccounts->forGroup($groupId) : $qAccounts;
 
-        $latestBalanceDate = currentUnion()->latestBalanceDate();
+        //$latestBalanceDate = currentUnion()->latestBalanceDate();
+        $latestBalanceDate = '2024-01-01'; //Todo change
 
         $balance = AccountBalance::where('from_date', $latestBalanceDate)->whereIn('gl_account_id', $qAccounts->pluck('id'));
 
@@ -458,9 +441,9 @@ class GlAccount extends Model
     }
 
     /* SCOPES */
-    public function scopeForUnionAll($query, $unionId = null)
+    public function scopeForUnionAll($query, $teamId = null)
     {
-        return $query->where('union_id', $unionId ?: currentUnionId());
+        return $query->where('team_id', $teamId ?: currentTeamId());
     }
 
     public function scopeEnabledInGl($query)
@@ -646,36 +629,6 @@ class GlAccount extends Model
         $this->conciliations()->delete();
 
         parent::delete();
-    }
-
-    public static function getOrCreateInterfundAccount($code, $fundFromId, $fundToId)
-    {
-        $account = GlAccount::inUnionGl()->where('code', $code)->where('fund_id', $fundFromId)->where('fund2_id', $fundToId)->first();
-
-        if (!$account) {
-            $fundA = Fund::findOrFail($fundFromId);
-            $fundB = Fund::findOrFail($fundToId);
-
-            $account = new GlAccount();
-            $account->setUnionId();
-            $account->fund_id = $fundFromId;
-            $account->fund2_id = $fundToId;
-            $account->level = GlAccount::LEVEL_MEDIUM;
-            $account->group = substr($code, 0, 1);
-            $account->code = $code;
-            $account->type = [ //Benoit ne traduit pas!!
-                'fr' => 'Transfert interfond ' . $code,
-                'en' => 'Interfund transfer ' . $code,
-            ];
-            $account->name = [ //Benoit ne traduit pas!!
-                'fr' => $fundA->name . ' vers ' . $fundB->name,
-                'en' => $fundA->name . ' to ' . $fundB->name,
-            ];
-
-            $account->save();
-        }
-
-        return $account;
     }
 
     /* ELEMENTS */

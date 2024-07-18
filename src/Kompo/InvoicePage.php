@@ -2,8 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use App\Models\Condo\Unit;
-use Condoedge\Finance\Models\Invoice;
+use App\Models\Finance\Invoice;
 use Kompo\Form;
 
 class InvoicePage extends Form
@@ -25,7 +24,7 @@ class InvoicePage extends Form
 		return [
 			_FlexBetween(
 				_Breadcrumbs(
-	                _Link('finance.all-receivables')->href('invoices.table'),
+	                _Link('finance.all-receivables')->href('finance.invoices-table'),
 	                _Html($this->model->invoice_number),
 	            ),
 				_FlexEnd4(

@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\GlAccount;
+use App\Models\Finance\GlAccount;
 use Kompo\Query;
 
 class AccountsList extends Query
@@ -34,10 +34,13 @@ class AccountsList extends Query
 
     public function query()
     {
-        $query = $this->allAccounts ? GlAccount::forUnionAll() : GlAccount::inUnionGl();
+        $query = GlAccount::forTeam();
+        
+        if ($this->allAccounts) {
+            $query = $query->enabledInGl();
+        }
 
-        return $query->with('bank', /*'latestBalance', 'unbalancedEntries'*/)
-            ->where('type', $this->accountType);
+        return $query->with('bank')->where('type', $this->accountType);
     }
 
     public function top()

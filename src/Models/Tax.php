@@ -59,27 +59,6 @@ class Tax extends Model
     }
 
     /* ACTIONS */
-    public function createTaxAccount($unionId)
-    {
-        $lastSibling = GlAccount::getLastSibling(static::ACCOUNT_CODE, $unionId);
-
-        if ($lastSibling) {
-            $nextCode = GlAccount::getNextCode($lastSibling);
-        } else {
-            $nextCode = static::ACCOUNT_CODE + 1;
-        }
-
-        GlAccount::forceCreate([
-            'union_id' => $unionId,
-            'level' => GlAccount::LEVEL_MEDIUM,
-            'group' => GlAccount::GROUP_EXPENSE,
-            'type' => translationsArr('finance.sales-tax'),
-            'name' => $this->getTranslations('name'),
-            'subname' => null,
-            'code' => $nextCode,
-            'tax_id' => $this->id,
-        ]);
-    }
 
     /* ELEMENTS */
     public static function getTaxesOptions()

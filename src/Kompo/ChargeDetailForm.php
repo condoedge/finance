@@ -2,10 +2,9 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use App\Models\Crm\Union;
-use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\ChargeDetail;
-use Condoedge\Finance\Models\Tax;
+use App\Models\Finance\GlAccount;
+use App\Models\Finance\ChargeDetail;
+use App\Models\Finance\Tax;
 use Kompo\Form;
 
 class ChargeDetailForm extends Form
@@ -18,8 +17,7 @@ class ChargeDetailForm extends Form
 	protected $chargeableType;
 	protected $chargeable;
 
-	protected $unionId;
-	protected $union;
+	protected $teamId;
 
 	protected $defaultAccounts;
 
@@ -29,8 +27,7 @@ class ChargeDetailForm extends Form
 		$this->chargeableId = $this->chargeable?->id;
 		$this->chargeableType = $this->chargeable ? $this->chargeable::getRelationType() : null;
 
-		$this->unionId = $this->store('union_id');
-		$this->union = Union::find($this->unionId);
+		$this->teamId = $this->store('team_id');
 
 		$this->defaultAccounts = $this->prop('default_accounts');
 	}
@@ -48,14 +45,14 @@ class ChargeDetailForm extends Form
 	public function render()
 	{
 		$defaultAccounts = $this->defaultAccounts;
-		$usableAccounts = GlAccount::{$defaultAccounts}($this->unionId)->get();
+		$usableAccounts = GlAccount::{$defaultAccounts}($this->teamId)->get();
 
 		if ($this->chargeableId) {
 			$name = $this->chargeable->{$this->chargeable::SEARCHABLE_NAME_ATTRIBUTE};
 			$price = $this->chargeable->getMainPricePerUnit();
 			$quantity = 1;
 			$taxes = Tax::getDefaultTaxes();
-			$defaultAccountId = GlAccount::inUnionGl($this->unionId)->where('code', $this->chargeable->gl_account_code)->value('id');
+			$defaultAccountId = GlAccount::forTeam($this->teamId)->where('code', $this->chargeable->gl_account_code)->value('id');
 		} else {
 			$name = $this->model->name_chd;
 			$price = $this->model->price_chd;

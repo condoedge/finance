@@ -23,7 +23,6 @@ class CreateGlAccountsTable extends Migration
             $table->foreignId('fund2_id')->nullable()->constrained('funds');
             $table->foreignId('tax_id')->nullable()->constrained();
             
-            $table->integer('level');
             $table->integer('group');
             $table->string('code');
             $table->string('type');

@@ -2,9 +2,9 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\Entry;
-use Condoedge\Finance\Models\Transaction;
+use App\Models\Finance\GlAccount;
+use App\Models\Finance\Entry;
+use App\Models\Finance\Transaction;
 use Kompo\Table;
 
 class TransactionsTable extends Table
@@ -25,7 +25,7 @@ class TransactionsTable extends Table
 
     public function query()
     {
-        $query = Transaction::with('mainEntry')->where('union_id', currentUnion()->id);
+        $query = Transaction::where('team_id', currentTeamId());
 
         if ($this->selectedAccountId) {
             $query = $query->whereHas('entries', fn($q) => $q->where('account_id', $this->selectedAccountId));
@@ -43,7 +43,7 @@ class TransactionsTable extends Table
             $query = $query->whereRaw('LEFT(transacted_at, 7) = ?', [$yearMonth]);
         }
 
-        return $query->orderByDesc('transacted_at')->orderByDesc('id');
+        return $query->with('mainEntry')->orderByDesc('transacted_at')->orderByDesc('id');
     }
 
     public function top()
@@ -157,7 +157,7 @@ class TransactionsTable extends Table
     {
         $labelFunc = $year ? 'LEFT(transacted_at,7)' : 'YEAR(transacted_at)';
 
-        $query = Transaction::selectRaw($labelFunc.' as label, COUNT(*) as cn')->where('union_id', currentUnion()->id)
+        $query = Transaction::selectRaw($labelFunc.' as label, COUNT(*) as cn')->where('team_id', currentTeamId())
             ->groupByRaw($labelFunc)->orderByRaw($labelFunc.' DESC');
 
         return ($year ? $query->whereRaw('YEAR(transacted_at) = ?', [$year]) : $query )->get();

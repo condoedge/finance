@@ -293,7 +293,7 @@ class Bill extends Charge
     {
         $tx = new Transaction();
         $tx->amount = $amount;
-        $tx->union_id = $this->union_id;
+        $tx->team_id = $this->team_id;
         $tx->transacted_at = $date ?: $this->billed_at;
         $tx->setUserId();
         $tx->type = $type;

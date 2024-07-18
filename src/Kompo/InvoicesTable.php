@@ -2,7 +2,8 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\Invoice;
+use App\Models\Finance\Invoice;
+use App\Models\Crm\Person;
 use Kompo\Table;
 use Illuminate\Support\Carbon;
 use Kompo\Elements\Element;
@@ -12,20 +13,16 @@ class InvoicesTable extends Table
     public $containerClass = 'container-fluid';
     public $itemsWrapperClass = 'bg-white rounded-2xl p-4';
 
-    protected $budgetId;
-    protected $unitId;
-    protected $unionId;
+    protected $teamId;
 
     public $perPage = 50;
 
     public function created()
     {
-        $this->budgetId = $this->parameter('budget_id') ?: request('budget_id');
-        $this->unitId = $this->prop('unit_id');
-        $this->unionId = currentUnionId();
+        $this->teamId = currentTeamId();
 
         Element::macro('gotoInvoice', function($invoiceId){
-            return $this->href('invoice.page', [
+            return $this->href('finance.invoice-page', [
                 'id' => $invoiceId,
             ]);
         });
@@ -33,21 +30,10 @@ class InvoicesTable extends Table
 
     public function query()
     {
-        $query = Invoice::with('tags', 'customer', 'payments')->where('union_id', $this->unionId);
-
-        if ($this->budgetId) {
-            $query = $query->where('budget_id', $this->budgetId);
-        } else {
-            //Auto-generated contributions invoiced more than one week in the future are hidden by default!
-            $query = $query->where(fn($q) => $q->whereNull('budget_id')->orWhere('invoiced_at', '<', Carbon::now()->addDays(28)->format('Y-m-d')));
-        }
+        $query = Invoice::forTeam($this->teamId)->with('tags', 'person', 'payments');
 
         if (request('month_year')) {
             $query = $query->whereRaw('LEFT(invoiced_at, 7) = ?', [request('month_year')]);
-        }
-
-        if ($unitId = (request('customer') ?: $this->unitId)) {
-            $query = $query->where('customer_type', 'unit')->where('customer_id', $unitId);
         }
 
         return $query->orderByDesc('invoiced_at')->orderByDesc('id');
@@ -62,15 +48,7 @@ class InvoicesTable extends Table
                     _Dropdown('Actions')->togglerClass('vlBtn')->rIcon('icon-down')
                         ->content(
                             _DropdownLink('finance.new-invoice-contribution')->icon(_Sax('add',20))
-                                ->href('invoice.form'),
-                            _DropdownLink('finance.new-credit-note')->icon(_Sax('card-add',20))
-                                ->href('invoice-credit.form'),
-                            /*_DropdownLink('finance.grouped-payments-per-unit')->icon(_Sax('moneys',20))
-                                ->selfCreate('getPaymentPrepayInvoiceModal')->inModal(),
-                            _DropdownLink('finance.advance-payments-per-unit')->icon(_Sax('money-time',20))
-                                ->selfGet('getPaymentAllAccomptesModal')->inModal(),
-                            _DropdownLink('finance.send-contributions')->icon(_Sax('sms',20))
-                                ->selfCreate('getContributionSendingModal')->inModal(),*/
+                                ->href('finance.invoice-form'),
                         )
                         ->alignRight()
                         ->class('relative z-10')
@@ -88,14 +66,13 @@ class InvoicesTable extends Table
                             ->config(['withCheckedItemIds' => true])
                             ->browse(),
                     ),
-                _Select()->placeholder('finance.client')
-                    ->name('customer', false)->options(/* TODO */)
-                    ->default($this->unitId)
+                _Select()->placeholder('finance.client')->name('person_id')
+                    ->options(Person::getOptionsForTeamWithFullName($this->teamId))
                     ->filter(),
                 _Select()->placeholder('general.filter-by-month')
                     ->name('month_year', false)
                     ->options(
-                        Invoice::where('union_id', $this->unionId)
+                        Invoice::forTeam($this->teamId)
                             ->selectRaw("DATE_FORMAT(invoiced_at, '%Y-%m') as value, DATE_FORMAT(invoiced_at, '%M %Y') as label")->distinct()
                             ->orderByDesc('value')
                             ->pluck('label', 'value')
@@ -104,10 +81,6 @@ class InvoicesTable extends Table
 
                 _Select()->placeholder('general.filter-by-status')
                     ->name('status')->options(Invoice::statuses())
-                    ->filter(),
-                _Select()->placeholder('finance.select-specific-budget')
-                    ->name('budget_id')->options(/* TODO */)
-                    ->default($this->budgetId)
                     ->filter(),
             )->alignCenter()
         );
@@ -156,8 +129,7 @@ class InvoicesTable extends Table
 
                 $this->dropdownLink('general.view')->gotoInvoice($invoice->id),
 
-                !$invoice->formOpenable(currentUnion()) ? null :
-                    $this->dropdownLink('general.edit')->href($invoice->getEditRoute(), ['id' => $invoice->id,]),
+                $this->dropdownLink('general.edit')->href($invoice->getEditRoute(), ['id' => $invoice->id,]),
 
                 !$invoice->canApprove() ? null : $this->dropdownLink('Approve')->selfPost('approveInvoice', ['id' => $invoice->id])->browse(),
 
@@ -201,10 +173,5 @@ class InvoicesTable extends Table
     public function getContributionSendingModal()
     {
         return new ContributionSendingModal();
-    }
-
-    public function js()
-    {
-        return file_get_contents(resource_path('views/scripts/finance.js'));
     }
 }

@@ -278,14 +278,14 @@ class Invoice extends Charge
         $tx = $this->createTransaction($amount, Transaction::TYPE_INTEREST, $description, $date);
 
         $tx->createEntry(
-            $this->union->accounts()->receivables()->value('id'),
+            $this->team->accounts()->receivables()->value('id'),
             $date,
             0,
             $amount,
         );
 
         $tx->createEntry(
-            $this->union->accounts()->interest()->value('id'),
+            $this->team->accounts()->interest()->value('id'),
             $date,
             $amount,
             0,
@@ -295,7 +295,7 @@ class Invoice extends Charge
     protected function createMainEntry($tx, $accountId = null)
     {
         $tx->createEntry(
-            $accountId ?: $this->union->glAccounts()->receivables()->value('id'),
+            $accountId ?: $this->team->glAccounts()->receivables()->value('id'),
             $this->invoiced_at,
             $this->isReimbursment() ? $this->total_amount : 0,
             $this->isReimbursment() ? 0 : $this->total_amount,
@@ -315,13 +315,13 @@ class Invoice extends Charge
             )
         );
 
-        if (!$withTaxes || !$this->union->tax_accounts_enabled) {
+        if (!$withTaxes || !$this->team->tax_accounts_enabled) {
             return;
         }
 
-        $this->union->team->taxes->each(
+        $this->team->team->taxes->each(
             fn($tax) => $tx->createOptionalEntry(
-                $this->union->accounts()->forTax($tax->id)->value('id'),
+                $this->team->accounts()->forTax($tax->id)->value('id'),
                 $this->invoiced_at,
                 $this->isReimbursment() ? 0 : $this->getAmountForTax($tax->id),
                 $this->isReimbursment() ? $this->getAmountForTax($tax->id) : 0,
@@ -460,7 +460,7 @@ class Invoice extends Charge
     {
         $tx = new Transaction();
         $tx->amount = $amount;
-        $tx->union_id = $this->union_id;
+        $tx->team_id = $this->team_id;
         $tx->transacted_at = $date ?: $this->invoiced_at;
         $tx->setUserId();
         $tx->type = $type ?: Transaction::TYPE_INVOICE;
