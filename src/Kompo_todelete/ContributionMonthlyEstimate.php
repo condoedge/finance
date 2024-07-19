@@ -60,7 +60,7 @@ class ContributionMonthlyEstimate extends Table
 				_UnionUnitOwnersCard($this->union, $this->unit),
 				_Rows(
 					_FlexBetween(
-						_Html()->icon(_sax('dollar-circle',50))->class('text-level3 text-opacity-50'),
+						_Html()->icon(_sax('dollar-circle',50))->class('text-greenmain text-opacity-50'),
 						_Rows(
 							_Html($this->contributionLabel)->class('text-xs'),
 							_Currency($this->total)

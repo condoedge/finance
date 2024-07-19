@@ -57,7 +57,7 @@ class BankReconcialationEntries extends BaseExportableReport
     public function top()
     {
         return _Rows(
-            //_Html($this->reportTitle)->class('text-xl font-bold text-level3 text-opacity-50 mr-4 mb-4'),
+            //_Html($this->reportTitle)->class('text-xl font-bold text-greenmain text-opacity-50 mr-4 mb-4'),
             _FlexBetween(
                 _Flex4(
                     _Button('finance.interest-revenue')->icon(_Sax('dollar-circle'))

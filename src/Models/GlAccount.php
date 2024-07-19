@@ -177,7 +177,7 @@ class GlAccount extends Model
         return collect(static::allGroups())->mapWithKeys(function ($group, $groupKey) use ($unionAccounts) {
             return $unionAccounts->filter(fn ($account) => $account->group == $groupKey)
                 ->mapWithKeys(fn ($account) => [
-                    $account->id => _Html($account->display)->class('text-level3 pl-2 -mt-1 -mb-1')
+                    $account->id => _Html($account->display)->class('text-greenmain pl-2 -mt-1 -mb-1')
                 ])
                 ->prepend(
                     _Html($group)

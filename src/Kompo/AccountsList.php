@@ -50,7 +50,7 @@ class AccountsList extends Query
         }
 
         return _FlexBetween(
-            _Link($this->mainAccount->type)->class('font-bold text-level3 text-sm my-2')
+            _Link($this->mainAccount->type)->class('font-bold text-greenmain text-sm my-2')
                 ->icon('icon-up')->id('subgroup-toggle'.$this->subCodeId)
                 ->run('() => { toggleSubGroup('.$this->subCodeId.') }'),
             _AddLink('finance.add-new-account')->class('text-sm mt-1 text-level2 subgroup-add'.$this->subCodeId)
@@ -120,7 +120,7 @@ class AccountsList extends Query
 
     public static function toggleAccountKomponent($account)
     {
-        return _Toggle('Enabled')->name('enabled')->value($account->enabled)->class('mb-0')
+        return _Toggle('finance.enabled')->name('enabled')->value($account->enabled)->class('mb-0')
             ->selfPost('toggleEnabled', [
                 'account_id' => $account->id,
             ])->onSuccess(fn($e) => $e->browse())
@@ -134,7 +134,7 @@ class AccountsList extends Query
 
     protected function acomptesLink()
     {
-        return $this->configurationLink('finance.view-advance-payments-per-units')
+        return $this->configurationLink('finance.view-advance-payments-per-client')
             ->selfGet('showAcomptes')->inModal();
     }
 

@@ -41,17 +41,17 @@ class InvoicePage extends Form
 			_FlexBetween(
 				_FlexEnd(
 					_Rows(
-						_TitleMini('general.status'),
+						_TitleMini('finance.status'),
 						$this->model->statusBadge()->class('text-sm !py-2')
 					),
 					_Rows(
-						_TitleMini('crm.customer.customer'),
+						_TitleMini('finance.client'),
 						_Html($this->model->customer_label)->class($this->bigClass),
 					),
 				)->class('space-x-8'),
 				_FlexEnd4(
 					_MiniLabelDate('finance.invoice-date', $this->model->invoiced_at, $this->bigClass),
-					_MiniLabelCcy('Total', $this->model->total_amount, $this->bigClass)->class('border-l border-level3 pl-4'),
+					_MiniLabelCcy('finance.total', $this->model->total_amount, $this->bigClass)->class('border-l border-level3 pl-4'),
 				)->class('text-right'),
 			)->class('space-x-8 mb-4 p-6 bg-white rounded-2xl'),
 			$this->stepBox(
@@ -60,13 +60,13 @@ class InvoicePage extends Form
 					$this->model->approvedBy ?
 						$this->model->approvalEls() :
 						_Flex(
-							_Html(__('finance.created').':')->class('font-bold'),
+							_Html(__('finance.created').' :')->class('font-bold'),
 							_HtmlDate($this->model->created_at)->class('ml-4')
 						)
 				),
 				_FlexEnd4(
 					!$this->model->canApprove() ? null :
-						_Button('finance.approve-draft')->class('bg-info')
+						_Button('finance.approve-draft')
 							->selfPost('approveInvoice', ['id' => $this->model->id])
 							->inAlert()->refresh(),
 				)->class('text-right')
@@ -119,7 +119,7 @@ class InvoicePage extends Form
 			]))->class('p-6 bg-white rounded-2xl mb-6'),
 
 			!$this->model->notes ? null : _Rows(
-				_TitleMini('Note')->class('uppercase mb-2'),
+				_TitleMini('finance.notes')->class('uppercase mb-2'),
 				_Html($this->model->notes)->class('p-6 bg-white rounded-2xl mb-6'),
 			),
 

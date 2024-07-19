@@ -55,7 +55,7 @@ class BudgetDetailsForm extends Form
                 '',
             ]);
 
-        return $fundAlreadyIncluded ? $multiForm->noAdding() : $multiForm->addLabel('finance.add-budget-item', 'icon-plus', 'mt-2 text-sm text-level3');
+        return $fundAlreadyIncluded ? $multiForm->noAdding() : $multiForm->addLabel('finance.add-budget-item', 'icon-plus', 'mt-2 text-sm text-greenmain');
     }
 
 

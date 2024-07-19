@@ -45,9 +45,9 @@ class InvoicesTable extends Table
             _FlexBetween(
                 _TitleMain('finance.receivables')->class('mb-4'),
                 _FlexEnd4(
-                    _Dropdown('Actions')->togglerClass('vlBtn')->rIcon('icon-down')
+                    _Dropdown('finance.actions')->togglerClass('vlBtn')->rIcon('icon-down')
                         ->content(
-                            _DropdownLink('finance.new-invoice-contribution')->icon(_Sax('add',20))
+                            _DropdownLink('finance.new-invoice')
                                 ->href('finance.invoice-form'),
                         )
                         ->alignRight()
@@ -55,8 +55,8 @@ class InvoicesTable extends Table
                 )->class('mb-4')
             )->class('flex-wrap'),
             _Columns(
-                _Dropdown('finance.selection')->rIcon('icon-down')
-                    ->togglerClass('vlBtn bg-info')->class('relative z-10 mb-4')
+                _Dropdown('finance.grouped-action')->rIcon('icon-down')
+                    ->togglerClass('vlBtn')->class('relative z-10 mb-4')
                     ->submenu(
                         _DropdownLink('finance.record-payment')
                             ->get('payment-entries', ['type' => 'invoice'])->inModal()
@@ -69,7 +69,7 @@ class InvoicesTable extends Table
                 _Select()->placeholder('finance.client')->name('person_id')
                     ->options(Person::getOptionsForTeamWithFullName($this->teamId))
                     ->filter(),
-                _Select()->placeholder('general.filter-by-month')
+                _Select()->placeholder('finance.filter-by-month')
                     ->name('month_year', false)
                     ->options(
                         Invoice::forTeam($this->teamId)
@@ -79,7 +79,7 @@ class InvoicesTable extends Table
                     )
                     ->filter(),
 
-                _Select()->placeholder('general.filter-by-status')
+                _Select()->placeholder('finance.filter-by-status')
                     ->name('status')->options(Invoice::statuses())
                     ->filter(),
             )->alignCenter()
@@ -90,11 +90,11 @@ class InvoicesTable extends Table
     {
         return [
             _CheckAllItems()->class('w-1/12'),
-            _Th('general.date')->sort('invoiced_at')->class('w-1/6'),
-            _Th('Invoice number')->sort('invoice_number')->class('w-1/6'),
-            _Th('Type')->class('w-1/6'),
-            _Th('general.customer')->sort('customer_id')->class('w-1/4'),
-            _Th('general.status')->sort('status')->class('w-1/6'),
+            _Th('finance.date')->sort('invoiced_at')->class('w-1/6'),
+            _Th('finance.invoice-number')->sort('invoice_number')->class('w-1/6'),
+            _Th('finance.type')->class('w-1/6'),
+            _Th('finance.client')->sort('customer_id')->class('w-1/4'),
+            _Th('finance.status')->sort('status')->class('w-1/6'),
             _Th('finance.amount-due')->class('text-right')->class('w-1/12'),
             _Th()->class('w-1/12'),
         ];

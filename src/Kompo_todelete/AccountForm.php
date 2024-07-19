@@ -66,7 +66,7 @@ class AccountForm extends Modal
 						->get('banks.form', ['id' => $this->model->bank_id])->inModal(),
 				),
 			_FlexBetween(
-				_Toggle('Enabled')->name('enabled')->default(1),
+				_Toggle('finance.enabled')->name('enabled')->default(1),
 				_InputNumber()->name('code')->icon('<span class="text-gray-300">code:</span>')->class('flex-1 ml-4')->inputClass('text-right')
 					->default(GlAccount::getNextCode($this->lastSibling)),
 			),

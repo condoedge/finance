@@ -40,5 +40,5 @@ function _MiniLabelCcy($label, $date, $class = '')
 
 function _MiniLabel($label)
 {
-    return _Html($label)->class('text-level1 text-opacity-50 text-xs font-bold');
+    return _Html($label)->class('text-level1 text-opacity-50 text-xs');
 }

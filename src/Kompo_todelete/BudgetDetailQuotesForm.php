@@ -99,7 +99,7 @@ class BudgetDetailQuotesForm extends Modal
 		            ->formClass(BudgetDetailQuoteForm::class, [
 		                'total_fractions' => $totalFractions,
 		            ])
-		            ->addLabel('finance.add-custom-quote', 'icon-plus', 'mt-2 text-sm text-level3 pb-20')
+		            ->addLabel('finance.add-custom-quote', 'icon-plus', 'mt-2 text-sm text-greenmain pb-20')
 		            ->class('overflow-y-auto mini-scroll')
 		            ->style('max-height: calc(95vh - 240px)'),
 				$this->multiFormDecorators(

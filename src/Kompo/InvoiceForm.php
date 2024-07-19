@@ -86,10 +86,10 @@ class InvoiceForm extends Form
 			_FlexBetween(
 				_Breadcrumbs(
 	                _Link('finance.all-receivables')->href('invoices.table'),
-	                _Html('general.edit'),
+	                _Html('finance.edit'),
 	            ),
 				_FlexEnd4(
-					$this->model->id ? _DeleteLink('Delete')->outlined()->byKey($this->model)->redirect('invoices.table') : null,
+					$this->model->id ? _DeleteLink('general.delete')->outlined()->byKey($this->model)->redirect('invoices.table') : null,
 					_SubmitButton('general.save'),
 				)
 			)->class('mb-6'),
@@ -106,7 +106,7 @@ class InvoiceForm extends Form
 						])
 						->readonly()
 						->default($this->team->id),
-					_Select('finance.invoiced-person')->name('person_id')
+					_Select('finance.client')->name('person_id')
 						->options(
 							Person::getOptionsForTeamWithFullName($this->team->id)
 						),
@@ -135,7 +135,7 @@ class InvoiceForm extends Form
 							_Th('finance.price'),
 						)->class('space-x-4'),
 						_Th('finance.total')->class('text-right'),
-					)->class('text-level2 text-sm font-medium border-b'),
+					)->class('text-sm font-medium'),
 				])->addLabel(
 					$this->getChargeablesSelect(),
 				)
@@ -146,9 +146,9 @@ class InvoiceForm extends Form
 				_Rows(
 					_TitleMini('finance.invoice-notes')->class('mb-2'),
 					_CardWhiteP4(
-						_Textarea('general.notes')->name('notes'),
+						_Textarea('finance.notes')->name('notes'),
 						_TagsMultiSelect(),
-						_MultiFile('file.attachments')->name('files')
+						_MultiFile('finance.files')->name('files')
 							->extraAttributes([
 								'team_id' => $this->team->id,
 							])
@@ -164,7 +164,7 @@ class InvoiceForm extends Form
 												 ->class('tax-summary')->attr(['data-id' => $tax->id])
 							)
 						),
-						_TotalCurrencyCols(__('Total'), 'finance-total', $this->model->total_amount)->class('!font-bold text-xl'),
+						_TotalCurrencyCols(__('finance.total'), 'finance-total', $this->model->total_amount)->class('!font-bold text-xl'),
 						_TaxesInfoLink()->class('left-4 bottom-6'),
 					)->class('relative p-6 bg-white rounded-2xl'),
 					_FlexEnd(

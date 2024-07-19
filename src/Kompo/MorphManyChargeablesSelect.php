@@ -25,7 +25,7 @@ trait MorphManyChargeablesSelect
         ]);
 
         return collect([
-            0 => _Html('create-new-item')->icon(_Sax('add',20))->class('text-level3 font-medium text-opacity-75')
+            0 => _Html('create-new-item')->icon(_Sax('add',20))->class('text-greenmain font-medium text-opacity-75')
         ])->union($products)->union($services);
     }
 }

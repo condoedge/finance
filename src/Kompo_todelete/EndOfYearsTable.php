@@ -49,8 +49,8 @@ class EndOfYearsTable extends Table
     {
         return [
             _Th('finance.fiscal-year'),
-            _Th('Status'),
-            _Th('Action'),
+            _Th('finance.status'),
+            _Th('finance.action'),
             _Th()
         ];
     }
@@ -75,7 +75,7 @@ class EndOfYearsTable extends Table
             _Flex(
                 $isInitialBalance ? _Pill('finance.initial-balances')->class('bg-gray-200 text-gray-700') : (
                     $closedStatus ?
-                        _Pill('Preview')->class('bg-info text-white') :
+                        _Pill('finance.preview')->class('bg-info text-white') :
                         (!$canRunEoy ? null : _Button('finance.run-end-of-year')->small()->class('!px-4')
                             ->selfPost('runEndOfYearBalances', [
                                 'date' => $balanceDate,

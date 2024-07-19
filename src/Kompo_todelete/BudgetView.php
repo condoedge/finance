@@ -55,14 +55,14 @@ class BudgetView extends Form
 					$this->sectionTitle('Period')->class('mb-2'),
 					$this->detailsCard(
 						[
-							_Html($this->model->period_label)->class('text-level3')
+							_Html($this->model->period_label)->class('text-greenmain')
 						]
 					),
 					$this->sectionTitle('Provisions')->class('mb-2'),
 					$this->detailsCard(
 						$this->funds->map(function($fund){
 							return _FlexBetween(
-								_Html($fund->name)->class('text-level3'),
+								_Html($fund->name)->class('text-greenmain'),
 								_Currency(
 									$this->model->getAmount(null, $fund)
 								)->class('whitespace-nowrap')
@@ -75,7 +75,7 @@ class BudgetView extends Form
 					_FlexBetween(
 						$this->sectionTitle('finance.distribution-by-funds'),
 						_Link('finance.add-new-fund')->icon(_Sax('add',20))
-							->class('text-sm text-level3 font-bold')
+							->class('text-sm text-greenmain font-bold')
 							->get('funds.form')
 							->inModal(),
 					),
@@ -103,7 +103,7 @@ class BudgetView extends Form
 
 	protected function detailsTitle($label)
 	{
-		return _Html($label)->class('text-level3 text-sm font-bold');
+		return _Html($label)->class('text-greenmain text-sm font-bold');
 	}
 
     public function js()

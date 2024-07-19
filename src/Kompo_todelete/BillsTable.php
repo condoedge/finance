@@ -75,7 +75,7 @@ class BillsTable extends Table
             currentUnion()->board_approves_bills ? new BillsApprovalTable() : null,
             _Columns(
                 _Dropdown('finance.selection')->rIcon('icon-down')
-                    ->togglerClass('vlBtn bg-info')->class('relative z-10')
+                    ->togglerClass('vlBtn')->class('relative z-10')
                     ->submenu(
                         _Link('finance.record-payment')->class('px-4 py-2 border-b border-gray-100')
                             ->get('payment-entries', ['type' => 'bill'])->inModal()

@@ -134,19 +134,19 @@ class TransactionsTable extends Table
                         $this->getTxCountFor($year)->mapWithKeys(fn($stat) => [
                             $stat->label => $this->yearMonthOption(carbon($stat->label.'-01', 'Y-m-d')->translatedFormat('M'), $stat->cn)
                         ])
-                    )->selectedClass('text-level3 border-b-2 border-level3', 'text-level3 border-b-2 border-transparent')
+                    )->selectedClass('text-greenmain border-b-2 border-level3', 'text-greenmain border-b-2 border-transparent')
                     ->filter()
             )->class('mb-4');
         }
 
         return _Flex4(
-            _Html('file.filter-by-year')->class('text-level1 font-medium'),
+            _Html('finance.filter-by-year')->class('text-level1 font-medium'),
             _LinkGroup()->name('year', false)->class('mb-0')
                 ->options(
                     $this->getTxCountFor()->mapWithKeys(fn($stat) => [
                         $stat->label => $this->yearMonthOption($stat->label, $stat->cn)
                     ])
-                )->selectedClass('text-level3 border-b-2 border-level3 !bg-gray-100', 'text-level3 border-b-2 border-transparent !bg-gray-100')
+                )->selectedClass('text-greenmain border-b-2 border-level3 !bg-gray-100', 'text-greenmain border-b-2 border-transparent !bg-gray-100')
                 ->filter()
                 ->onSuccess(fn($e) => $e->getElements('yearMonthLinkGroup')->inPanel('transactions-year-month-filter'))
         )->class('mb-4');

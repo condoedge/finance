@@ -339,7 +339,7 @@ class Transaction extends Model
             ->href($this->invoice_id ? 'invoices.stage' : 'bills.stage', [
                 'id' => $this->invoice_id ?: $this->bill_id,
             ])
-            ->class('text-2xl mt-1 font-bold text-level3 text-opacity-50');
+            ->class('text-2xl mt-1 font-bold text-greenmain text-opacity-50');
     }
 
     public function voidPill()

@@ -91,7 +91,7 @@ class BankReconcialationPage extends Form
 
     protected static function labelOnly($label)
     {
-        return _Html($label)->class('font-semibold text-level3');;
+        return _Html($label)->class('font-semibold text-greenmain');;
     }
 
     public function rules()

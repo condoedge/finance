@@ -18,7 +18,7 @@ class BudgetFundDetails extends Form
     protected $budget;
     protected $fundPanelId;
 
-    protected $detailsTitleClass = 'bg-gray-100 text-level3 py-2 px-4';
+    protected $detailsTitleClass = 'bg-gray-100 text-greenmain py-2 px-4';
 
     public function created()
     {
@@ -51,16 +51,16 @@ class BudgetFundDetails extends Form
                                 ->balloon($fundInvoiced ? __('finance.included-in-contributions') : __('finance.not-included-in-contributions'), 'right') :
                             null,
                         _Html($this->model->name)->rIcon('icon-down')
-                            ->class('font-semibold text-level3'),
+                            ->class('font-semibold text-greenmain'),
                     ),
                     _FlexEnd(
-                        _Currency($fundRevenue)->class('font-semibold text-level3 whitespace-nowrap w-28')
+                        _Currency($fundRevenue)->class('font-semibold text-greenmain whitespace-nowrap w-28')
                             ->class('fund-total-revenue'),
                         _Sax('money-recive')->class('text-gray-500 ml-2 mr-8'),
-                        _Currency($fundExpenses)->class('font-semibold text-level3 whitespace-nowrap w-28')
+                        _Currency($fundExpenses)->class('font-semibold text-greenmain whitespace-nowrap w-28')
                             ->class('fund-total-expense'),
                         _Sax('money-send')->class('text-gray-500 ml-2 mr-8'),
-                        _Currency($fundRevenue - $fundExpenses)->class('font-semibold text-level3 whitespace-nowrap w-28')
+                        _Currency($fundRevenue - $fundExpenses)->class('font-semibold text-greenmain whitespace-nowrap w-28')
                             ->class('fund-total-provision'),
                         _Html('Net')->class('text-gray-500 ml-2 text-sm font-medium'),
                     )->class('text-right')

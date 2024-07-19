@@ -21,7 +21,7 @@ class OtonomUnionPpaKeyForm extends Form
 				_Html('finance.ppa-key-saved')->icon('icon-check')
 					->class('p-4 bg-positive bg-opacity-50 mb-4 rounded-lg text-sm') :
 				_Html('finance.if-no-ppa-key')
-					->class('mb-2 text-sm font-semibold text-level3'),
+					->class('mb-2 text-sm font-semibold text-greenmain'),
 			_Rows(
 				_Link('https://www.otonomsolution.com/')->class('underline')
 					->href('https://www.otonomsolution.com/')->inNewTab(),
