@@ -11,7 +11,7 @@ use Kompo\Elements\Element;
 class InvoicesTable extends Table
 {
     public $containerClass = 'container-fluid';
-    public $itemsWrapperClass = 'bg-white rounded-2xl p-4';
+    public $itemsWrapperClass = 'bg-white rounded-2xl p-4'; 
 
     protected $teamId;
 

@@ -30,10 +30,10 @@ class ChargeDetailsTable extends Table
     {
         return [
             _Th('finance.product-service'),
-            _Th('Qty')->class('text-right'),
-            _Th('Price')->class('text-right'),
-            _Th('Taxes')->class('text-right'),
-            _Th('Amount')->class('text-right'),
+            _Th('finance.qty')->class('text-right'),
+            _Th('finance.price')->class('text-right'),
+            _Th('finance.taxes')->class('text-right'),
+            _Th('finance.amount')->class('text-right'),
         ];
     }
 

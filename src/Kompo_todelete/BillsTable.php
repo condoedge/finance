@@ -74,7 +74,7 @@ class BillsTable extends Table
             )->class('mb-4'),
             currentUnion()->board_approves_bills ? new BillsApprovalTable() : null,
             _Columns(
-                _Dropdown('finance.selection')->rIcon('icon-down')
+                _Dropdown('finance.grouped-action')->rIcon('icon-down')
                     ->togglerClass('vlBtn')->class('relative z-10')
                     ->submenu(
                         _Link('finance.record-payment')->class('px-4 py-2 border-b border-gray-100')
