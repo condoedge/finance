@@ -29,7 +29,7 @@ class AccountsBalancesList extends Query
 
     public function query()
     {
-        return GlAccount::forUnionAll()->with('accountBalances', 'unbalancedEntries')
+        return GlAccount::forTeam()->with('accountBalances', 'unbalancedEntries')
             ->where('type', $this->accountType);
     }
 

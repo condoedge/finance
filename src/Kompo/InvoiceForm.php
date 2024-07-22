@@ -85,12 +85,12 @@ class InvoiceForm extends Form
 		return [
 			_FlexBetween(
 				_Breadcrumbs(
-	                _Link('finance.all-receivables')->href('invoices.table'),
-	                _Html('finance.edit'),
+	                _Link('finance-all-receivables')->href('finance.invoices-table'),
+	                _Html('finance-edit'),
 	            ),
 				_FlexEnd4(
-					$this->model->id ? _DeleteLink('general.delete')->outlined()->byKey($this->model)->redirect('invoices.table') : null,
-					_SubmitButton('general.save'),
+					$this->model->id ? _DeleteLink('finance-delete')->outlined()->byKey($this->model)->redirect('invoices.table') : null,
+					_SubmitButton('finance-save'),
 				)
 			)->class('mb-6'),
 
@@ -100,13 +100,13 @@ class InvoiceForm extends Form
 
             _CardWhiteP4(
 				_Columns(
-					_Select('finance.receiving-team')->name('team_id')
+					_Select('finance-receiving-team')->name('team_id')
 						->options([
 							$this->team->id => $this->team->team_name,
 						])
 						->readonly()
 						->default($this->team->id),
-					_Select('finance.client')->name('person_id')
+					_Select('finance-client')->name('person_id')
 						->options(
 							Person::getOptionsForTeamWithFullName($this->team->id)
 						),
@@ -114,8 +114,8 @@ class InvoiceForm extends Form
 						->default(Invoice::getInvoiceIncrement($this->team->id, $this->prefix)),
 				),
 				_Columns(
-					_DateTime('finance.invoice-date')->name('invoiced_at')->default(date('Y-m-d H:i')),
-					_Date('finance.due-date')->name('due_at')->default(date('Y-m-d')),
+					_DateTime('finance-invoice-date')->name('invoiced_at')->default(date('Y-m-d H:i')),
+					_Date('finance-due-date')->name('due_at')->default(date('Y-m-d')),
 					_Html(),
 				)
 			)->class('bg-white rounded-2xl shadow-lg'),
@@ -127,14 +127,14 @@ class InvoiceForm extends Form
 					'default_accounts' => 'usableRevenue',
 				])
 				->asTable([
-					__('finance.product-service'),
+					__('finance-product-service'),
 					'',
 					_FlexBetween(
 						_Flex(
-							_Th('finance.quantity')->class('w-28'),
-							_Th('finance.price'),
+							_Th('finance-quantity')->class('w-28'),
+							_Th('finance-price'),
 						)->class('space-x-4'),
-						_Th('finance.total')->class('text-right'),
+						_Th('finance-total')->class('text-right'),
 					)->class('text-sm font-medium'),
 				])->addLabel(
 					$this->getChargeablesSelect(),
@@ -144,35 +144,40 @@ class InvoiceForm extends Form
 
                 _Columns(
 				_Rows(
-					_TitleMini('finance.invoice-notes')->class('mb-2'),
+					_TitleMini('finance-invoice-notes')->class('mb-2'),
 					_CardWhiteP4(
-						_Textarea('finance.notes')->name('notes'),
+						_Textarea('finance-notes')->name('notes'),
 						_TagsMultiSelect(),
-						_MultiFile('finance.files')->name('files')
+						_MultiFile('finance-files')->name('files')
 							->extraAttributes([
 								'team_id' => $this->team->id,
 							])
 					)->class('p-6 bg-white rounded-2xl')
 				),
 				_Rows(
-					_TitleMini('finance.invoice-total')->class('mb-2'),
+					_TitleMini('finance-invoice-total')->class('mb-2'),
 					_CardWhiteP4(
-						_TotalCurrencyCols(__('finance.subtotal'), 'finance-subtotal', $this->model->amount, false),
+						_TotalCurrencyCols(__('finance-subtotal'), 'finance-subtotal', $this->model->amount, false),
 						_Rows(
 							$this->team->taxes->map(
 								fn($tax) => _TotalCurrencyCols($tax->name, 'finance-taxes-'.$tax->id, $this->model->getAmountForTax($tax->id))
 												 ->class('tax-summary')->attr(['data-id' => $tax->id])
 							)
 						),
-						_TotalCurrencyCols(__('finance.total'), 'finance-total', $this->model->total_amount)->class('!font-bold text-xl'),
+						_TotalCurrencyCols(__('finance-total'), 'finance-total', $this->model->total_amount)->class('!font-bold text-xl'),
 						_TaxesInfoLink()->class('left-4 bottom-6'),
 					)->class('relative p-6 bg-white rounded-2xl'),
 					_FlexEnd(
-						_SubmitButton('general.save'),
+						_SubmitButton('finance-save'),
 					),
 				)
 			)
 		];
+	}
+
+	public function js()
+	{
+		return financeScriptFile();
 	}
 
 	public function getTaxesInfoModal()

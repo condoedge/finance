@@ -65,7 +65,7 @@ class AccountsList extends Query
     	return _FlexBetween(
             _Rows(
                 _Flex4(
-                    _Html($account->code)->class('w-14 text-gray-600'),
+                    _Html($account->getGlAccountNumber())->class('w-14 text-gray-600'),
                     _EditLink($account->display_short)
                         ->class($account->enabled ? '' : 'line-through text-gray-600')
                         ->selfGet('getAccountForm', [

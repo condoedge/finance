@@ -7,7 +7,7 @@ trait MorphManyChargeablesSelect
     /* ELEMENTS */
     public function getChargeablesSelect()
     {
-        return _Select()->placeholder('finance.add-new-item')->name('chargeable')
+        return _Select()->placeholder('finance-add-new-item')->name('chargeable')
             ->searchOptions(0, 'searchChargeables')
             ->class('mb-0 py-4 px-8 bg-level5 rounded-b-2xl border-t')
             ->resetAfterChange();
@@ -25,7 +25,7 @@ trait MorphManyChargeablesSelect
         ]);
 
         return collect([
-            0 => _Html('finance.create-new-item')->class('text-greenmain font-medium text-opacity-75')
+            0 => _Html('finance-create-new-item')->class('text-greenmain font-medium text-opacity-75')
         ])->union($products)->union($services);
     }
 }

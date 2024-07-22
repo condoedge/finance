@@ -110,7 +110,7 @@ class Invoice extends Charge
     public function isLate()
     {
         return !$this->canApprove() && $this->due_amount && (
-            $this->due_at->diffInDays(Carbon::now(), false) > $this->union->getLateDays()
+            $this->due_at->diffInDays(Carbon::now(), false) > $this->team->getLateDays()
         );
     }
 
@@ -150,7 +150,7 @@ class Invoice extends Charge
 
     public function getEditRoute()
     {
-        return $this->isReimbursment() ? 'invoice-credit.form' : 'invoice.form';
+        return $this->isReimbursment() ? 'finance.invoice-credit-form' : 'finance.invoice-form';
     }
 
     public function canPay()
@@ -182,11 +182,6 @@ class Invoice extends Charge
     public function getNumberDisplayAttribute()
     {
         return $this->invoice_number;
-    }
-
-    public function getCustomerLabelAttribute()
-    {
-        return $this->customer?->display_cs;
     }
 
     public function getLastInterestDateAttribute()
@@ -229,7 +224,7 @@ class Invoice extends Charge
             return;
         }
 
-        if (!$this->union->acceptsFinanceChange($this->invoiced_at)) {
+        if (!$this->team->acceptsFinanceChange($this->invoiced_at)) {
             abort(403, balanceLockedMessage($this->union->latestBalanceDate()));
         }
 
@@ -500,7 +495,7 @@ class Invoice extends Charge
         );
 
         $paymentTx->createEntry(
-            $this->mainTransaction->entries()->whereHas('account', fn($q) => $q->receivables())->value('gl_account_id'),
+            $this->mainTransaction->entries()->whereHas('glAccount', fn($q) => $q->receivables())->value('gl_account_id'),
             $paidAt,
             $writeOff ? $transactionAmount : $maxAcceptedAmount,
             0,
@@ -528,7 +523,7 @@ class Invoice extends Charge
                     0,
                 );
 
-                Acompte::addOrDelete($this->customer_id, $diffAmount, $paymentTx->id);
+                //Acompte::addOrDelete($this->customer_id, $diffAmount, $paymentTx->id); //TODO REVIEW
             }
 
         }

@@ -18,6 +18,11 @@ trait BelongsToGlAccountTrait
         scopeWhereBelongsTo($query, 'gl_account_id', $idOrIds);
     }
 
+    public function scopeForTeamGlAccounts($query, $teamIdOrIds = null)
+    {
+    	$query->whereHas('glAccount', fn($q) => $q->forTeam($teamIdOrIds));
+    }
+
 	/* CALCULATED FIELDS */
 
 	/* ACTIONS */

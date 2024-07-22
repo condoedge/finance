@@ -63,7 +63,7 @@ class Fund extends Model
     /* CALCULATED FIELDS */
     public function getRelatedAccounts($group)
     {
-        $query = GlAccount::inUnionGl($this->union);
+        $query = GlAccount::inTeamGl($this->team);
 
         if ($this->isDefaultFund()) {
             $query = $query->where('fund_id', $this->id);

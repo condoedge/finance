@@ -12,6 +12,12 @@ class TransactionPreviewForm extends ModalScroll
 	public $_Title = 'finance-preview-transaction';
 	public $_Icon = 'clipboard-text';
 
+
+    public function headerButtons()
+    {
+        return;
+    }
+
 	public function body()
 	{
 		$dateValue = $this->model->transacted_at;
@@ -33,7 +39,7 @@ class TransactionPreviewForm extends ModalScroll
 						$paymentNumber,
 					),
 					_Link('finance-go-to-transaction')->button()->icon('external-link')->class('mt-1 ml-4')
-						->href('finance-transaction-form', ['id' => $this->model->id])->inNewTab(),
+						->href('finance.transaction-form', ['id' => $this->model->id])->inNewTab(),
 				)->class('mb-4'),
 				_FlexBetween(
 					_Flex4(

@@ -18,8 +18,7 @@ trait GlAccountCreateActionsTrait
         }
 
         Rgcq::get()->each(
-            fn($rgcq) => GlAccount::forceCreate([
-                'team_id' => $team->id,
+            fn($rgcq) => GlAccount::createGlAccount($team, [
                 'group' => $rgcq->group,
                 'type' => $rgcq->getTranslations('type'),
                 'name' => $rgcq->getTranslations('name'),
@@ -43,8 +42,7 @@ trait GlAccountCreateActionsTrait
             $nextCode = Tax::ACCOUNT_CODE + 1;
         }
 
-        GlAccount::forceCreate([
-            'team_id' => $team->id,
+        GlAccount::createGlAccount($team, [
             'group' => GlAccount::GROUP_EXPENSE,
             'type' => translationsArr('finance.sales-tax'),
             'name' => $tax->getTranslations('name'),
@@ -52,6 +50,17 @@ trait GlAccountCreateActionsTrait
             'code' => $nextCode,
             'tax_id' => $tax->id,
         ]);
+    }
+
+    public static function createGlAccount($team, $specs)
+    {
+        GlAccount::forceCreate(
+            array_merge([
+                'team_id' => $team->id,
+            ],
+                $specs
+            )
+        );
     }
 
     /* SCOPES */

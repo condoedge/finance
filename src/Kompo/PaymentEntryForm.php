@@ -2,21 +2,18 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\Bill;
-use Condoedge\Finance\Models\Entry;
-use Condoedge\Finance\Models\Invoice;
-use App\View\Modal;
+use App\Models\Finance\Bill;
+use App\Models\Finance\Entry;
+use App\Models\Finance\GlAccount;
+use App\Models\Finance\Invoice;
+use Kompo\Auth\Common\ModalScroll;
 
-class PaymentEntryForm extends Modal
+class PaymentEntryForm extends ModalScroll
 {
 	protected $modelType;
 
 	protected $_Title = 'finance.record-payment';
-	protected $_Icon = 'cash';
-
-	public $class = 'overflow-y-auto mini-scroll';
-    public $style = 'max-height:95vh';
+	public $_Icon = 'clipboard-text';
 
 	protected $hasInvoiceCredit = false;
 	protected $hasBillCredit = false;
@@ -26,7 +23,7 @@ class PaymentEntryForm extends Modal
 
 	public function created()
 	{
-		$this->modelType = $this->parameter('type');
+		$this->modelType = $this->prop('type');
 
 		if (!in_array($this->modelType, ['invoice', 'bill'])) {
 			abort(403);
@@ -34,7 +31,7 @@ class PaymentEntryForm extends Modal
 
 		$model = 'App\\Models\\Finance\\'.ucfirst($this->modelType);
 
-		$this->model($model::find($this->parameter('id')));
+		$this->model($model::find($this->prop('id')));
 
 		$this->hasInvoiceCredit = ($this->modelType == 'invoice') && ($this->model->customer_type == 'unit') && (
 			($this->getAcompteValue() > 0) || $this->getInvoiceCreditNotes()->count()
@@ -42,6 +39,11 @@ class PaymentEntryForm extends Modal
 
 		$this->hasBillCredit = ($this->modelType == 'bill') && $this->getBillCreditNotes()->count();
 	}
+
+    public function headerButtons()
+    {
+        return;
+    }
 
 	protected function getAcompteValue()
 	{
@@ -64,10 +66,10 @@ class PaymentEntryForm extends Modal
 			abort(403, __('finance.cannot-enter-payment-with-zero'));
 		}
 
-		$this->model->union->checkIfDateAcceptable(request('transacted_at'));
+		$this->model->team->checkIfDateAcceptable(request('transacted_at'));
 
 		$this->model->createPayment(
-            request('account_id'),
+            request('gl_account_id'),
             request('transacted_at'),
             request('amount'),
             request('payment_method'),
@@ -75,7 +77,7 @@ class PaymentEntryForm extends Modal
             request('write_off'),
 		);
 
-		return redirect()->route(($this->modelType == 'invoice') ? 'invoices.stage' : 'bills.stage', [
+		return redirect()->route(($this->modelType == 'invoice') ? 'finance.invoice-page' : 'finance.bill-page', [
             'id' => $this->model->id,
         ]);
 	}
@@ -251,7 +253,7 @@ class PaymentEntryForm extends Modal
 	{
 		return [
 			'transacted_at' => 'required|date',
-			'account_id' => 'required',
+			'gl_account_id' => 'required',
 			'amount' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/',
 			'payment_method' => 'required',
 		];

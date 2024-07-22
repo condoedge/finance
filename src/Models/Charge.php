@@ -262,7 +262,7 @@ abstract class Charge extends Model
         return _Flex2(
             $this->approvedByLabel()->icon('icon-check'),
             $this->approved_at ? _Flex2(
-                _Html('finance.on-le')->class('font-bold'),
+                _Html('finance-on-le')->class('font-bold'),
                 _HtmlDate($this->approved_at),
             ) : null
         );
@@ -270,7 +270,7 @@ abstract class Charge extends Model
 
     public function approvedByLabel()
     {
-        return _Html('<b>'.__('finance.approved-by').'</b> '.$this->approvedBy->name);
+        return _Html('<b>'.__('finance-approved-by').'</b> '.$this->approvedBy->name);
     }
 
     public function sentEls()
@@ -280,7 +280,7 @@ abstract class Charge extends Model
         }
 
         return _Flex2(
-            _Html('<b>'.__('finance.sent-by').'</b> '.$this->sentBy->name)->icon('icon-check'),
+            _Html('<b>'.__('finance-sent-by').'</b> '.$this->sentBy->name)->icon('icon-check'),
             $this->sent_at ? _Flex2(
                 _Html('on-le')->class('font-bold'),
                 _DateStr($this->sent_at),
@@ -295,7 +295,7 @@ abstract class Charge extends Model
         }
 
         return _Rows(
-            _TitleMini('file.attached-files')->class('uppercase mb-2'),
+            _TitleMini('file-attached-files')->class('uppercase mb-2'),
             _Rows(
                 _Flex(
                     $this->files->map(function($file){

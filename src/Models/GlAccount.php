@@ -134,6 +134,18 @@ class GlAccount extends Model
     }
 
     /* CALCULATED FIELDS */
+    public function getGlAccountNumber()
+    {
+        if ($this->number) {
+            return $this->number;
+        }
+
+        $this->number = $this->team->getFullGlAccountPrefix().'-'.$this->code;
+        $this->save();
+
+        return $this->number;
+    }
+
     public static function allGroups()
     {
         return [
@@ -155,7 +167,7 @@ class GlAccount extends Model
                 static::CODE_BNR_SPECIAL,
                 static::CODE_BNR_INSURANCE,
             ],
-            static::inUnionGl()->whereRaw('LEFT(code,2) = ?', [substr(static::CODE_BNR_SPECIAL, 0, 2)])
+            static::inTeamGl()->whereRaw('LEFT(code,2) = ?', [substr(static::CODE_BNR_SPECIAL, 0, 2)])
                 ->where('code', '<>', static::CODE_BNR_SPECIAL)
                 ->pluck('code')->toArray()
 
@@ -165,7 +177,7 @@ class GlAccount extends Model
     public static function getSubGroups($groupId)
     {
         return static::selectRaw('type as type_lang, MAX(LEFT(code,2)) as subcode')
-            ->forUnionAll()
+            ->forTeam()
             ->where('group', $groupId)
             ->groupByRaw('type_lang')->get();
     }
@@ -441,19 +453,19 @@ class GlAccount extends Model
     }
 
     /* SCOPES */
-    public function scopeForUnionAll($query, $teamId = null)
-    {
-        return $query->where('team_id', $teamId ?: currentTeamId());
-    }
-
     public function scopeEnabledInGl($query)
     {
         return $query->where('enabled', 1);
     }
 
-    public function scopeInUnionGl($query, $unionId = null)
+    public function scopeInTeamGl($query, $teamId = null)
     {
-        return $query->forUnionAll($unionId ?: currentUnionId())->enabledInGl();
+        return $query->forTeam($teamId)->enabledInGl();
+    }
+
+    public function scopeInUnionGl($query, $teamId = null) //slowly replace this by the one above
+    {
+        return $query->forTeam($teamId)->enabledInGl();
     }
 
     //Account categories scopes
@@ -551,49 +563,49 @@ class GlAccount extends Model
     }
 
     //Account categories scoped by union level
-    public function scopeUsableRevenue($query, $unionId = null)
+    public function scopeUsableRevenue($query, $teamId = null)
     {
-        return $query->inUnionGl($unionId)->revenue();
+        return $query->inTeamGl($teamId)->revenue();
     }
 
-    public function scopeUsableReceivables($query, $unionId = null)
+    public function scopeUsableReceivables($query, $teamId = null)
     {
-        return $query->inUnionGl($unionId)->receivables();
+        return $query->inTeamGl($teamId)->receivables();
     }
 
-    public function scopeUsablePayables($query, $unionId = null)
+    public function scopeUsablePayables($query, $teamId = null)
     {
-        return $query->inUnionGl($unionId)->payables();
+        return $query->inTeamGl($teamId)->payables();
     }
 
-    public function scopeUsableExpense($query, $unionId = null)
+    public function scopeUsableExpense($query, $teamId = null)
     {
-        return $query->inUnionGl($unionId)->expense();
+        return $query->inTeamGl($teamId)->expense();
     }
 
-    public function scopeUsableTax($query, $unionId = null, $taxId = null)
+    public function scopeUsableTax($query, $teamId = null, $taxId = null)
     {
-        return $query->inUnionGl($unionId)->forTax($taxId);
+        return $query->inTeamGl($teamId)->forTax($taxId);
     }
 
-    public function scopeUsableCash($query, $unionId = null)
+    public function scopeUsableCash($query, $teamId = null)
     {
-        return $query->inUnionGl($unionId)->cash();
+        return $query->inTeamGl($teamId)->cash();
     }
 
-    public function scopeUsableAcompte($query, $unionId = null)
+    public function scopeUsableAcompte($query, $teamId = null)
     {
-        return $query->inUnionGl($unionId)->acompte();
+        return $query->inTeamGl($teamId)->acompte();
     }
 
-    public function scopeUsableAcompteGroup($query, $unionId = null)
+    public function scopeUsableAcompteGroup($query, $teamId = null)
     {
-        return $query->inUnionGl($unionId)->acompteGroup();
+        return $query->inTeamGl($teamId)->acompteGroup();
     }
 
-    public function scopeUsableWriteOff($query, $unionId = null)
+    public function scopeUsableWriteOff($query, $teamId = null)
     {
-        return $query->inUnionGl($unionId)->writeOff();
+        return $query->inTeamGl($teamId)->writeOff();
     }
 
     /* ACTIONS */
@@ -715,9 +727,9 @@ class GlAccount extends Model
             ->default($defaultAccountId);
     }
 
-    public static function getToWarehouse($unionId)
+    public static function getToWarehouse($teamId)
     {
-        return static::ForUnionAll($unionId)->where(
+        return static::forTeam($teamId)->where(
             'code',
             static::CODE_WAREHOUSE
         )->firstOrFail();

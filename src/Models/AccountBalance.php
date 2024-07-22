@@ -20,12 +20,17 @@ class AccountBalance extends Model
     }
 
     /* CALCULATED FIELDS */
-    public static function initialBalancesQuery($date, $union = null)
+    public static function getLastLockedDate($teamId = null)
     {
-        $union = $union ?: currentUnion();
+        return static::forTeamGlAccounts($teamId)->orderByDesc('from_date')->value('from_date');
+    }
+
+    public static function initialBalancesQuery($date = null, $team = null)
+    {
+        $team = $team ?: currentTeam();
 
         return static::where('from_date', $date)
-            ->whereIn('gl_account_id', GlAccount::inUnionGl($union)->pluck('id'));
+            ->whereIn('gl_account_id', GlAccount::inTeamGl($team)->pluck('id'));
     }
 
     public static function getBalancesTable($date = null) //This one doesnt merge debit and credit, but keeps them separate.
@@ -66,9 +71,9 @@ class AccountBalance extends Model
 
     protected static function getInitialBalance($date = null, $groupId = null)
     {
-        $date = $date ?: currentUnion()->balance_date;
+        $date = $date ?: currentTeam()->balance_date;
 
-        $qAccounts = GlAccount::inUnionGl();
+        $qAccounts = GlAccount::inTeamGl();
         $qAccounts = $groupId ? $qAccounts->forGroup($groupId) : $qAccounts;
 
         $balance = AccountBalance::where('from_date', $date)->whereIn('gl_account_id', $qAccounts->pluck('id'));

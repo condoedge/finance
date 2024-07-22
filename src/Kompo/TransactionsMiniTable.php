@@ -27,7 +27,7 @@ class TransactionsMiniTable extends TransactionsTable
             return $query->where('bill_id', $this->billId);
         }
 
-        abort(403, 'finance.no-parent-invoice-or-bill-given');
+        abort(403, 'finance-no-parent-invoice-or-bill-given');
     }
 
     public function top()

@@ -24,49 +24,49 @@ class InvoicePage extends Form
 		return [
 			_FlexBetween(
 				_Breadcrumbs(
-	                _Link('finance.all-receivables')->href('finance.invoices-table'),
+	                _Link('finance-all-receivables')->href('finance.invoices-table'),
 	                _Html($this->model->invoice_number),
 	            ),
 				_FlexEnd4(
-					_Dropdown('general.actions')->rIcon('icon-down')->button()
+					_Dropdown('finance-actions')->rIcon('icon-down')->button()
 						->submenu(
-							_DropdownLink('finance.create-another-invoice')
-								->href('invoices.form'),
+							_DropdownLink('finance-create-another-invoice')
+								->href('finance.invoice-form'),
 						)->alignRight(),
 					!$this->model->formOpenable() ? null :
-						_Link('finance.edit-invoice')->outlined()
+						_Link('finance-edit-invoice')->outlined()
 							->href($this->model->getEditRoute(), ['id' => $this->model->id]),
 				)
 			)->class('mb-12'),
 			_FlexBetween(
 				_FlexEnd(
 					_Rows(
-						_TitleMini('finance.status'),
+						_TitleMini('finance-status'),
 						$this->model->statusBadge()->class('text-sm !py-2')
 					),
 					_Rows(
-						_TitleMini('finance.client'),
-						_Html($this->model->customer_label)->class($this->bigClass),
+						_TitleMini('finance-client'),
+						_Html($this->model->person_label)->class($this->bigClass),
 					),
 				)->class('space-x-8'),
 				_FlexEnd4(
-					_MiniLabelDate('finance.invoice-date', $this->model->invoiced_at, $this->bigClass),
-					_MiniLabelCcy('finance.total', $this->model->total_amount, $this->bigClass)->class('border-l border-level3 pl-4'),
+					_MiniLabelDate('finance-invoice-date', $this->model->invoiced_at, $this->bigClass),
+					_MiniLabelCcy('finance-total', $this->model->total_amount, $this->bigClass)->class('border-l border-level3 pl-4'),
 				)->class('text-right'),
 			)->class('space-x-8 mb-4 p-6 bg-white rounded-2xl'),
 			$this->stepBox(
 				_Rows(
-					$this->stepTitle('finance.approval'),
+					$this->stepTitle('finance-approval'),
 					$this->model->approvedBy ?
 						$this->model->approvalEls() :
 						_Flex(
-							_Html(__('finance.created').' :')->class('font-bold'),
+							_Html(__('finance-created').' :')->class('font-bold'),
 							_HtmlDate($this->model->created_at)->class('ml-4')
 						)
 				),
 				_FlexEnd4(
 					!$this->model->canApprove() ? null :
-						_Button('finance.approve-draft')
+						_Button('finance-approve-draft')
 							->selfPost('approveInvoice', ['id' => $this->model->id])
 							->inAlert()->refresh(),
 				)->class('text-right')
@@ -78,9 +78,9 @@ class InvoicePage extends Form
 				),
 				_FlexEnd4(
 					!$this->model->isLate() ? null :
-						_Button('finance.late-interests')->icon(_Sax('add',20))->class('!bg-danger text-white')
+						_Button('finance-late-interests')->icon(_Sax('add',20))->class('!bg-danger text-white')
 							->inModal(),
-					_Link('finance.send-invoice')->outlined()
+					_Link('finance-send-invoice')->outlined()
 						->selfPost('getSendingModal')->inModal()
 				)
 			)->class('mb-4 p-6 bg-white rounded-2xl'),
@@ -88,12 +88,12 @@ class InvoicePage extends Form
 				$this->model->isReimbursment() ?
 
 					_Rows(
-						$this->stepTitle('finance.apply-credit'),
+						$this->stepTitle('finance-apply-credit'),
 						$this->amountDue()
 					) :
 
 					_Rows(
-						$this->stepTitle('finance.get-paid'),
+						$this->stepTitle('finance-get-paid'),
 						_Flex4(
 							$this->amountDueDate(),
 							$this->lastPaymentWithDate(),
@@ -102,24 +102,21 @@ class InvoicePage extends Form
 				!$this->model->canPay() ? null : _FlexEnd(
 					_Link('finance.record-payment')
 						->outlined()
-						->get('payment-entry.form', [
-							'type' => 'invoice',
-	                        'id' => $this->model->id,
-	                    ])->inModal()
+						->selfUpdate('getPaymentEntryForm')->inModal()
 				)
 			)->class('mb-4 p-6 bg-white rounded-2xl'),
-			_TitleMini($this->model->isReimbursment() ? 'finance.credit-note-details' : 'finance.invoice-details')->class('uppercase mb-2 mt-4'),
+			_TitleMini($this->model->isReimbursment() ? 'finance-credit-note-details' : 'finance-invoice-details')->class('uppercase mb-2 mt-4'),
 			(new ChargeDetailsTable([
 				'invoice_id' => $this->model->id,
 			]))->class('p-6 bg-white rounded-2xl mb-6'),
 
-			_TitleMini('finance.journal-transactions')->class('uppercase mb-2'),
+			_TitleMini('finance-journal-transactions')->class('uppercase mb-2'),
 			(new TransactionsMiniTable([
 				'invoice_id' => $this->model->id,
 			]))->class('p-6 bg-white rounded-2xl mb-6'),
 
 			!$this->model->notes ? null : _Rows(
-				_TitleMini('finance.notes')->class('uppercase mb-2'),
+				_TitleMini('finance-notes')->class('uppercase mb-2'),
 				_Html($this->model->notes)->class('p-6 bg-white rounded-2xl mb-6'),
 			),
 
@@ -130,9 +127,9 @@ class InvoicePage extends Form
 
 	public function approveInvoice($id)
 	{
-		Invoice::findOrFail($id)->markApprovedWithJournalEntries();
+		Invoice::findOrFail($id)->markApproved();
 
-		return __('finance.invoice-approved');
+		return __('finance-invoice-approved');
 	}
 
 	public function getSendingModal()
@@ -143,6 +140,14 @@ class InvoicePage extends Form
 	public function getLateInterestModal()
 	{
 		return new LateInterestModal($this->model->id);
+	}
+
+	public function getPaymentEntryForm()
+	{
+		return new PaymentEntryForm([
+			'type' => 'invoice',
+            'id' => $this->model->id,
+        ]);
 	}
 
 	protected function stepBox()
@@ -180,7 +185,7 @@ class InvoicePage extends Form
 			_Rows(
 				_TitleMini('finance.last-payment'),
 				_Flex4(
-					_DateStr(carbon($lastPayment->transacted_at))->class($this->bigClass),
+					_HtmlDate(carbon($lastPayment->transacted_at))->class($this->bigClass),
 					_Currency($lastPayment->amount)->class($this->bigClass)
 				),
 			)->class('border-l border-gray-100 pl-4 ml-4')
