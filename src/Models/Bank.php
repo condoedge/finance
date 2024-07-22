@@ -9,13 +9,9 @@ class Bank extends Model
 {
     use \Kompo\Auth\Models\Traits\BelongsToUserTrait;
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    use \Condoedge\Finance\Models\HasManyGlAccounts;
 
     /* RELATIONSHIPS */
-    public function account()
-    {
-    	return $this->hasOne(GlAccount::class);
-    }    
-
     public function units()
     {
         return $this->belongsToMany(Unit::class);
@@ -59,7 +55,7 @@ class Bank extends Model
     {
         $this->units()->sync([]); //detaches
 
-        if ($account = $this->account) {
+        if ($account = $this->glAccount) {
             $account->bank_id = null;
             $account->save();
         }

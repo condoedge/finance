@@ -2,8 +2,8 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\Entry;
-use Condoedge\Finance\Models\Transaction;
+use App\Models\Finance\Entry;
+use App\Models\Finance\Transaction;
 use Illuminate\Validation\ValidationException;
 use Kompo\Form;
 
@@ -29,26 +29,22 @@ class TransactionForm extends Form
 
 	public function beforeSave()
 	{
-		$this->model->setUnionId();
+		$this->model->setTeamId();
 		$this->model->setUserId();
 
-		$this->model->union->checkIfDateAcceptable($this->minDate);
+		//$this->model->checkIfDateAcceptable($this->minDate); //TODO REACTIVATE
 
 		$balanceCheck = collect(request('entries'))->map(fn($entry) => $entry['credit'] - $entry['debit'])->sum();
 
 		if ( abs($balanceCheck) > 0.01 ) {
-			throw ValidationException::withMessages([
-			   'sum' => [__('finance.entries-do-not-balance')],
-			]);
+			throwValidationError('sum', 'finance-entries-do-not-balance');
 		}
 
 		$allAccountIds = collect(request('entries'))->pluck('account_id');
 
 		foreach (['cash', 'payables', 'receivables'] as $scope) {
-			if (currentUnion()->accounts()->{$scope}()->whereIn('id', $allAccountIds)->count()) {
-				throw ValidationException::withMessages([
-				   'sum' => [__('finance.you-cant-enter-or-modifiy-transaction-in-account').' '.$scope.'.'],
-				]);
+			if (currentTeam()->glAccounts()->{$scope}()->whereIn('id', $allAccountIds)->count()) {
+				throwValidationError('sum', __('finance-you-cant-enter-or-modifiy-transaction-in-account').' '.$scope.'.');
 			}
 		}
 
@@ -69,20 +65,25 @@ class TransactionForm extends Form
 		});
 	}
 
+	public function response()
+	{
+		return redirect()->route('finance.transactions-table');
+	}
+
 	public function render()
 	{
 		$dateValue = $this->model->id ? $this->model->transacted_at : date('Y-m-d');
 
 		if ($this->model->isReadonly()) {
 
-			$dateField = _MiniLabelValue('finance.transaction-date', $dateValue)->class('mb-4');
+			$dateField = _MiniLabelValue('finance-transaction-date', $dateValue)->class('mb-4');
 			$descField = _MiniLabelValue('Description', $this->model->description)->class('mb-4');
 			$parentLink = $this->model->parentLink();
 
 		}else{
 
-			$dateField = _Date('finance.transaction-date')->name('transacted_at')->default($dateValue);
-			$descField = _Textarea('Description')->rows(1)->class('flex-auto');
+			$dateField = _Date('finance-transaction-date')->name('transacted_at')->default($dateValue);
+			$descField = _Textarea('Description')->rows(2)->class('flex-auto');
 			$parentLink = null;
 
 		}
@@ -90,17 +91,17 @@ class TransactionForm extends Form
 		return _Modal(
 			_ModalHeader(
 				_Breadcrumbs(
-	                _Link('finance.transactions')->href('transactions.table', ['account_id' => request('back_account_id')]),
-	                _Html('finance.edit-transaction'),
+	                _Link('finance-transactions')->href('finance.transactions-table', ['account_id' => request('back_account_id')]),
+	                _Html('finance-edit-transaction'),
 	            ),
 				_FlexEnd(
             		$this->model->getVoidLink(true)?->class('text-sm'),
 					$this->model->voidPill(),
-					$this->model->isReadonly() ? null : _SubmitButton('general.save')->redirect('transactions')
+					$this->model->isReadonly() ? null : _SubmitButton('general.save'),
 				)->class('space-x-4')
 			)->class('mb-4'),
 			_ModalBody(
-				_TitleMini('finance.transaction-details')->class('mb-2'),
+				_TitleMini('finance-transaction-details')->class('mb-2'),
 				_Rows(
 					_Flex(
 						$parentLink,
@@ -109,18 +110,18 @@ class TransactionForm extends Form
 					)->alignStart()
 					->class('space-x-4'),
 				)->class('dashboard-card pt-4 px-4'),
-				_TitleMini('finance.entries')->class('mb-2'),
+				_TitleMini('finance-entries')->class('mb-2'),
 				$this->model->isReadonly() ?
 					new TransactionEntriesTable(['transaction_id' => $this->model->id ]) :
 					_MultiForm()->noLabel()->name('entries')
 						->formClass(TransactionEntryForm::class)
 						->asTable([
 							'',
-							__('finance.description'),
-							__('finance.account'),
-							__('finance.debit'),
-							__('finance.credit'),
-						])->addLabel('finance.add-entry', 'icon-plus', 'mt-2 inline-block')
+							__('finance-description'),
+							__('finance-account'),
+							__('finance-debit'),
+							__('finance-credit'),
+						])->addLabel('finance-add-entry', 'icon-plus', 'mt-2 inline-block')
 						->class('mb-4')
 						->id('transaction-entries'),
 				_FlexBetween(
@@ -128,21 +129,21 @@ class TransactionForm extends Form
 					_Rows(
 						_FlexBetween(
 							_Rows(
-								_Html('finance.total-debits')->class('text-xs font-bold text-gray-500'),
+								_Html('finance-total-debits')->class('text-xs font-bold text-gray-500'),
 								_Currency($this->model->id ? $this->model->debit : 0)
 									->class('text-lg font-bold')
 									->id('total-debit')
 							)->class('px-2'),
 							_Html('='),
 							_Rows(
-								_Html('finance.total-credits')->class('text-xs font-bold text-gray-500'),
+								_Html('finance-total-credits')->class('text-xs font-bold text-gray-500'),
 								_Currency($this->model->id ? $this->model->credit : 0)
 									->class('text-lg font-bold')
 									->id('total-credit')
 							)->class('px-2'),
 						)->class('space-x-4'),
 						_FlexAround(
-							_Html('finance.difference')->class('text-xs font-bold'),
+							_Html('finance-difference')->class('text-xs font-bold'),
 							_Currency($this->model->id ? $this->model->diff_balance : 0)
 								->class('text-lg font-bold')
 								->id('total-sum'),
@@ -164,7 +165,7 @@ class TransactionForm extends Form
 	{
 		return [
 			'transacted_at' => 'required|date',
-			'entries.*.account_id' => 'required',
+			'entries.*.gl_account_id' => 'required',
 		];
 	}
 

@@ -3,11 +3,10 @@
 namespace Condoedge\Finance\Models;
 
 use Kompo\Auth\Models\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Entry extends Model
 {
-    use SoftDeletes;
+    use \Condoedge\Finance\Models\BelongsToGlAccountTrait;
 
     protected $casts = [
         'transacted_at' => 'datetime',
@@ -37,11 +36,6 @@ class Entry extends Model
     public function transaction()
     {
         return $this->belongsTo(Transaction::class);
-    }
-
-    public function glAccount()
-    {
-        return $this->belongsTo(Account::class);
     }
 
     /* SCOPES */

@@ -2,23 +2,23 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use App\Kompo\Common\Modal;
-use Condoedge\Finance\Models\Transaction;
+use App\Models\Finance\Transaction;
+use Kompo\Auth\Common\ModalScroll;
 
-class TransactionPreviewForm extends Modal
+class TransactionPreviewForm extends ModalScroll
 {
 	public $model = Transaction::class;
 
-	public $_Title = 'finance.preview-transaction';
-	public $_Icon = 'collection';
+	public $_Title = 'finance-preview-transaction';
+	public $_Icon = 'clipboard-text';
 
 	public function body()
 	{
 		$dateValue = $this->model->transacted_at;
 
 		$parentLink = ($parentLink = $this->model->parentLink()) ? $parentLink->inNewTab()->outlined() : null;
-		$dateField = _MiniLabelValue('finance.transaction-date', $dateValue);
-		$descField = _MiniLabelValue('Description', $this->model->description);
+		$dateField = _MiniLabelValue('finance-transaction-date', $dateValue);
+		$descField = _MiniLabelValue('finance-description', $this->model->description);
 
 		$paymentNumber = $this->model->getPaymentNumber(); 
 		$paymentNumber = $paymentNumber ? _MiniLabelValue('Payment #', $paymentNumber) : null;
@@ -32,12 +32,12 @@ class TransactionPreviewForm extends Modal
 						$descField,
 						$paymentNumber,
 					),
-					_Link('finance.go-to-transaction')->button()->icon('external-link')->class('mt-1 ml-4')
-						->href('transactions.form', ['id' => $this->model->id])->inNewTab(),
+					_Link('finance-go-to-transaction')->button()->icon('external-link')->class('mt-1 ml-4')
+						->href('finance-transaction-form', ['id' => $this->model->id])->inNewTab(),
 				)->class('mb-4'),
 				_FlexBetween(
 					_Flex4(
-						_TitleMini('finance.entries'),
+						_TitleMini('finance-entries'),
 						_TitleMini('#'.$this->model->id),
 					),
 					$this->model->voidPill(),

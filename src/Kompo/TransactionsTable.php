@@ -52,23 +52,23 @@ class TransactionsTable extends Table
             _FlexBetween(
                 _TitleMain('Transactions'),
                 _FlexEnd4(
-                    _Link('finance.add-entry')->button()
-                        ->href('transaction.form'),
+                    _Link('finance-add-entry')->button()
+                        ->href('finance.transaction-form'),
                 )->class('space-x-2')
             )->class('mb-4'),
             _Columns(
                 _Select()->name('account_id', false)
-                    ->placeholder('finance.filter-by-account')
+                    ->placeholder('finance-filter-by-account')
                     ->options(
                         GlAccount::getUnionOptions()
                     )->default($this->selectedAccountId)
                     ->filter(),
                 _Select()->name('type')
-                    ->placeholder('finance.filter-by-type')
+                    ->placeholder('finance-filter-by-type')
                     ->options(
                         Transaction::types()
                     )->filter(),
-                _Toggle('finance.show-void-too')->name('show_void', false)->class('mt-2')->filter(),
+                _Toggle('finance-show-void-too')->name('show_void', false)->class('mt-2')->filter(),
             ),
             _Panel(
                 $this->yearMonthLinkGroup()

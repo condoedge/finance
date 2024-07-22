@@ -245,6 +245,7 @@
     "finance-delete-and-recreate-contributions" : "Supprimer et recréer les cotisations après:",
     "finance-delete-balances-for-this-date" : "Supprimer les soldes pour cette date",
     "finance-delete-with-all-its-bills" : "Supprimer avec toutes ses factures",
+    "finance-description" : "Description",
     "finance-description-optional" : "Description (facultatif)",
     "finance-distributed:" : "Distribué :",
     "finance-distribution-by-funds" : "Répartition par fonds",

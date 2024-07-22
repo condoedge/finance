@@ -2,13 +2,12 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Models\Entry;
+use App\Models\Finance\Entry;
 use Kompo\Auth\Models\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Conciliation extends Model
 {
-    use SoftDeletes;
+    use \Condoedge\Finance\Models\BelongsToGlAccountTrait;
 
     protected $casts = [
         'start_date' => 'date',
@@ -16,10 +15,6 @@ class Conciliation extends Model
     ];
 
     /* RELATIONSHIPS */
-    public function account()
-    {
-        return $this->belongsTo(GlAccount::class);
-    }
 
     /* ACTIONS */
     public function calculateAmountsFromEntries()

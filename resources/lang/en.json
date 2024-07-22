@@ -245,6 +245,7 @@
     "finance-delete-and-recreate-contributions" : "Delete and recreate contributions after:",
     "finance-delete-balances-for-this-date" : "Delete balances for this date",
     "finance-delete-with-all-its-bills" : "Delete with all its bills",
+    "finance-description" : "Description",
     "finance-description-optional" : "Description (optional)",
     "finance-distributed:" : "Distributed :",
     "finance-distribution-by-funds" : "Distribution by funds",

@@ -2,16 +2,14 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Models\GlAccount;
 use Kompo\Auth\Models\Model;
-use Kompo\Database\HasTranslations;
 
 class Fund extends Model
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    use \Condoedge\Finance\Models\HasManyGlAccounts;
 
-    use HasTranslations;
-
+    use \Kompo\Database\HasTranslations;
     protected $translatable = [
         'name',
         'description',
@@ -25,21 +23,6 @@ class Fund extends Model
     public const TYPE_PARKING = 6;
 
     /* RELATIONSHIPS */
-    public function account()
-    {
-        return $this->hasOne(GlAccount::class)->income(); //TODO remove after making sure no references
-    }
-
-    public function incomeAccount()
-    {
-        return $this->hasOne(GlAccount::class)->income();
-    }
-
-    public function bnrAccount()
-    {
-        return $this->hasOne(GlAccount::class)->bnr();
-    }
-
     public function budgetDetails()
     {
         return $this->hasMany(BudgetDetail::class);

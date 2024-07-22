@@ -2,6 +2,8 @@
 
 namespace Condoedge\Finance\Models;
 
+use App\Models\Finance\Invoice;
+
 trait BelongsToInvoiceTrait
 {
 	/* RELATIONS */

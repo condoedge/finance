@@ -2,6 +2,8 @@
 
 namespace Condoedge\Finance\Models;
 
+use App\Models\Finance\GlAccount;
+
 trait HasManyGlAccounts
 {
     /* RELATIONS */
@@ -10,9 +12,19 @@ trait HasManyGlAccounts
         return $this->hasMany(GlAccount::class);
     }
 
-    public function funds()
+    public function glAccount()
     {
-        return $this->hasMany(Fund::class);
+        return $this->hasOne(GlAccount::class);
+    }
+
+    public function incomeAccount()
+    {
+        return $this->glAccount()->income();
+    }
+
+    public function bnrAccount()
+    {
+        return $this->glAccount()->bnr();
     }
 
     /* CALCULATED FIELDS */
@@ -34,46 +46,6 @@ trait HasManyGlAccounts
     }
 
     /* ACTIONS */
-    public function createFinancialData()
-    {
-        $this->createFundsIfNone();
-        $this->createGlAccountsIfNone();
-    }
-
-    public function createFundsIfNone()
-    {
-        if ($this->funds()->count()) {
-            return;
-        }
-
-        Fund::seed($this->id);
-    }
-
-    public function createGlAccountsIfNone()
-    {
-        if ($this->glAccounts()->count()) {
-            return;
-        }
-
-        $unionFunds = $this->funds()->pluck('id', 'type_id');
-
-        Rgcq::get()->each(
-            fn($rgcq) => GlAccount::forceCreate([
-                'union_id' => $this->id,
-                'fund_id' => $rgcq->fund_type_id ? $unionFunds[$rgcq->fund_type_id] : null,
-                'level' => $rgcq->level,
-                'group' => $rgcq->group,
-                'type' => $rgcq->getTranslations('type'),
-                'name' => $rgcq->getTranslations('name'),
-                'subname' => $rgcq->getTranslations('subname'),
-                'description' => $rgcq->getTranslations('description'),
-                'code' => $rgcq->code,
-            ])
-        );
-
-        //Create tax accounts
-        $this->team->taxes->each(fn($tax) => $tax->createTaxAccount($this->id));
-    }
 
     /* SCOPES */
 

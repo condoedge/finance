@@ -38,6 +38,14 @@ function _MiniLabelCcy($label, $date, $class = '')
     );
 }
 
+function _MiniLabelValue($label, $value)
+{
+    return _Rows(
+        _MiniLabel($label),
+        _Html($value ?: '&nbsp;'), //when empty preserve height
+    );
+}
+
 function _MiniLabel($label)
 {
     return _Html($label)->class('text-level1 text-opacity-50 text-xs');

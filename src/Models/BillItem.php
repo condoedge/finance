@@ -7,13 +7,9 @@ use Kompo\Auth\Models\Model;
 class BillItem extends Model
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    use \Condoedge\Finance\Models\BelongsToGlAccountTrait;
 
     /* RELATIONSHIPS */
-    public function account()
-    {
-        return $this->belongsTo(GlAccount::class);
-    }
-
     public function taxes()
     {
     	return $this->belongsToMany(Tax::class);

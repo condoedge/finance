@@ -6,16 +6,11 @@ use Kompo\Auth\Models\Model;
 
 class ChargeDetail extends Model
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use \Condoedge\Finance\Models\MorphToManyTaxesTrait;
     use \Condoedge\Finance\Models\BelongsToInvoiceTrait;
+    use \Condoedge\Finance\Models\BelongsToGlAccountTrait;
 
     /* RELATIONSHIPS */
-    public function glAccount()
-    {
-        return $this->belongsTo(GlAccount::class);
-    }
-
     public function chargeable()
     {
         return $this->morphTo();

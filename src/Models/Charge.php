@@ -8,7 +8,6 @@ use App\Models\User;
 
 abstract class Charge extends Model
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
     use \Kompo\Auth\Models\Files\MorphManyFilesTrait;
     use \Kompo\Auth\Models\Tags\MorphToManyTagsTrait;

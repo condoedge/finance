@@ -2,18 +2,14 @@
 
 namespace Condoedge\Finance\Models;
 
+use App\Models\Finance\GlAccount;
 use Kompo\Auth\Models\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AccountBalance extends Model
 {
-    use SoftDeletes;
-
+    use \Condoedge\Finance\Models\BelongsToGlAccountTrait;
+    
     /* RELATIONSHIPS */
-    public function account()
-    {
-        return $this->belongsTo(GlAccount::class);
-    }
 
     /* ATTRIBUTES */
     public function getNetBalanceAttribute()

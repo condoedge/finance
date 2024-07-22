@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\Transaction;
+use App\Models\Finance\Transaction;
 use Kompo\Table;
 
 class TransactionEntriesTable extends Table
@@ -15,7 +15,7 @@ class TransactionEntriesTable extends Table
 
     public function created()
     {
-        $this->transactionId = $this->store('transaction_id');
+        $this->transactionId = $this->prop('transaction_id');
     }
 
     public function query()
@@ -39,7 +39,7 @@ class TransactionEntriesTable extends Table
     	return _TableRow(
             _Html($entry->id)->class('text-gray-300 text-xs'),
             _Html($entry->description),
-            _Html($entry->account?->display),
+            _Html($entry->glAccount?->display),
             _Currency($entry->debit),
             _Currency($entry->credit)
         );
