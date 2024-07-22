@@ -28,18 +28,18 @@ class ChartOfAccounts extends Form
     {
         return [
             _FlexBetween(
-                _TitleMain('finance.chart-of-accounts')->class('mb-4'),
+                _TitleMain('finance-chart-of-accounts')->class('mb-4'),
                 _FlexEnd(
                     _Link(
                         '<span class="hidden sm:inline">'.
-                            ($this->allAccounts ? __('finance.show-active-accounts') : __('finance.show-inactive-accounts')).
+                            ($this->allAccounts ? __('finance-show-active-accounts') : __('finance-show-inactive-accounts')).
                         '</span>'
                     )->icon('ban')->class('text-sm')
                     ->href('finance.chart-of-accounts', [
                         'group' => $this->groupId,
                         'all' => $this->allAccounts ? 0 : 1,
                     ]),
-                    _Button('finance.balance-verification')->outlined()
+                    _Button('finance-balance-verification')->outlined()
                         ->icon('view-list')
                         ->selfGet('getBalanceVerificationBox')->inPanel($this->coaPanelId),
                 )->class('space-x-4 mb-4')

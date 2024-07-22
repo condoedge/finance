@@ -137,11 +137,11 @@ class GlAccount extends Model
     public static function allGroups()
     {
         return [
-            static::GROUP_ASSETS => __('finance.assets'),
-            static::GROUP_LIABILITIES => __('finance.liabilities'),
-            static::GROUP_INCOME => __('finance.income'),
-            static::GROUP_EXPENSE => __('finance.expenses'),
-            static::GROUP_EQUITY => __('finance.equity'),
+            static::GROUP_ASSETS => __('finance-assets'),
+            static::GROUP_LIABILITIES => __('finance-liabilities'),
+            static::GROUP_INCOME => __('finance-income'),
+            static::GROUP_EXPENSE => __('finance-expenses'),
+            static::GROUP_EQUITY => __('finance-equity'),
         ];
     }
 

@@ -53,7 +53,7 @@ class AccountsList extends Query
             _Link($this->mainAccount->type)->class('font-bold text-greenmain text-sm my-2')
                 ->icon('icon-up')->id('subgroup-toggle'.$this->subCodeId)
                 ->run('() => { toggleSubGroup('.$this->subCodeId.') }'),
-            _AddLink('finance.add-new-account')->class('text-sm mt-1 text-level2 subgroup-add'.$this->subCodeId)
+            _AddLink('finance-add-new-account')->class('text-sm mt-1 text-level2 subgroup-add'.$this->subCodeId)
                 ->selfGet('getAccountForm', [
                     'sub_code_id' => $this->subCodeId,
                 ])->inModal()
@@ -134,7 +134,7 @@ class AccountsList extends Query
 
     protected function acomptesLink()
     {
-        return $this->configurationLink('finance.view-advance-payments-per-client')
+        return $this->configurationLink('finance-view-advance-payments-per-client')
             ->selfGet('showAcomptes')->inModal();
     }
 
