@@ -21,9 +21,9 @@ class InvoiceForm extends Form
 	protected $minDate;
 	protected $realModification;
 
-	protected $labelDetails = 'finance.invoice-details';
-	protected $labelNumber = 'finance.invoice-number';
-	protected $labelElements = 'finance.invoice-items';
+	protected $labelDetails = 'finance-invoice-details';
+	protected $labelNumber = 'finance-invoice-number';
+	protected $labelElements = 'finance-invoice-items';
 
 	public function created()
 	{

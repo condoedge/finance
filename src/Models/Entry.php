@@ -54,15 +54,15 @@ class Entry extends Model
     public static function paymentMethods()
     {
         return [
-            static::METHOD_JOURNAL_ENTRY => __('finance.journal-entry'),
-            static::METHOD_BANK_PAYMENT => __('finance.bank-payment'),
-            static::METHOD_INTERAC_TRANSFER => __('finance.interac-payment'),
-            static::METHOD_CASH => __('finance.cash'),
-            static::METHOD_CHEQUE => __('finance.cheque'),
-            static::METHOD_CREDIT_CARD => __('finance.credit-card'),
-            static::METHOD_PAYPAL => __('finance.paypal'),
-            static::METHOD_OTHER => __('finance.other'),
-            static::METHOD_ACOMPTE => __('finance.advance-payment'),
+            static::METHOD_JOURNAL_ENTRY => __('finance-journal-entry'),
+            static::METHOD_BANK_PAYMENT => __('finance-bank-payment'),
+            static::METHOD_INTERAC_TRANSFER => __('finance-interac-payment'),
+            static::METHOD_CASH => __('finance-cash'),
+            static::METHOD_CHEQUE => __('finance-cheque'),
+            static::METHOD_CREDIT_CARD => __('finance-credit-card'),
+            static::METHOD_PAYPAL => __('finance-paypal'),
+            static::METHOD_OTHER => __('finance-other'),
+            static::METHOD_ACOMPTE => __('finance-advance-payment'),
         ];
     }
 
@@ -94,8 +94,8 @@ class Entry extends Model
                     static::METHOD_BANK_PAYMENT
                 )->class('mb-0'),
             _Rows(
-                _Input('finance.payment-number')->name('payment_number')
-                    ->placeholder('finance.cheque-or-transaction')->class('mt-2 mb-0'),
+                _Input('finance-payment-number')->name('payment_number')
+                    ->placeholder('finance-cheque-or-transaction')->class('mt-2 mb-0'),
             )
         );
     }

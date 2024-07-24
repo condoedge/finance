@@ -29,11 +29,11 @@ class ChargeDetailsTable extends Table
     public function headers()
     {
         return [
-            _Th('finance.product-service'),
-            _Th('finance.qty')->class('text-right'),
-            _Th('finance.price')->class('text-right'),
-            _Th('finance.taxes')->class('text-right'),
-            _Th('finance.amount')->class('text-right'),
+            _Th('finance-product-service'),
+            _Th('finance-qty')->class('text-right'),
+            _Th('finance-price')->class('text-right'),
+            _Th('finance-taxes')->class('text-right'),
+            _Th('finance-amount')->class('text-right'),
         ];
     }
 

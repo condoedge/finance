@@ -30,13 +30,13 @@ enum PaymentMethodEnum: int
     public function label()
     {
         return match($this) {
-            self::CREDIT_CARD_ONLINE => __('finance.credit-card-online'),
-            self::DEBIT_CARD_ONLINE => __('finance.debit-card-online'),
-            self::INTERAC_TRANSFER => __('finance.interac-transfer-online'),
-            self::CASH => __('finance.cash'),
-            self::CHEQUE => __('finance.cheque'),
-            self::BANK_TRANSFER => __('finance.bank-transfer'),
-            self::CREDIT_CARD_OFFLINE => __('finance.credit-card-offline'),
+            self::CREDIT_CARD_ONLINE => __('finance-credit-card-online'),
+            self::DEBIT_CARD_ONLINE => __('finance-debit-card-online'),
+            self::INTERAC_TRANSFER => __('finance-interac-transfer-online'),
+            self::CASH => __('finance-cash'),
+            self::CHEQUE => __('finance-cheque'),
+            self::BANK_TRANSFER => __('finance-bank-transfer'),
+            self::CREDIT_CARD_OFFLINE => __('finance-credit-card-offline'),
         };
     }
 }

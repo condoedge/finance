@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 
 class ContributionSendingModal extends Modal
 {
-	protected $_Title = 'finance.send-contributions';
+	protected $_Title = 'finance-send-contributions';
 	protected $_Icon = 'mail';
 
 	public $class = 'overflow-y-auto mini-scroll';
@@ -48,27 +48,27 @@ class ContributionSendingModal extends Modal
 
 	public function headerButtons()
 	{
-		return $this->invoiceDates->count() ? _SubmitButton('finance.send-invoices')->closeModal() : null;
+		return $this->invoiceDates->count() ? _SubmitButton('finance-send-invoices')->closeModal() : null;
 	}
 
 	public function body()
 	{
 		if (!$this->invoiceDates->count()) {
-			return _Html('finance.no-invoice-due-next-10');
+			return _Html('finance-no-invoice-due-next-10');
 		}
 
 		$defaultDate = $this->invoiceDates->take(1)->keys()->first();
 
 		return _Columns(
 			_Rows(
-	            _Select('finance.send-invoices-for-date')->name('send_date')
+	            _Select('finance-send-invoices-for-date')->name('send_date')
 	            	->options($this->invoiceDates)->default($defaultDate)
 	            	->selfGet('getMonthInvoicesTable')->inPanel($this->panelId),
 
-	            _Html('finance.check-all-invoices-one-email')
+	            _Html('finance-check-all-invoices-one-email')
 	            	->class('card-gray-100 p-4'),
 
-	            _CKEditor('finance.customize-message-here')
+	            _CKEditor('finance-customize-message-here')
 	            	->name('message')
 	            	->default(ContributionNotification::getContributionDefaultText())
 			),
@@ -95,7 +95,7 @@ class ContributionSendingModal extends Modal
 		$invoices = $this->getInvoicesForDate($invoiceDate ?: request('send_date'));
 
 		if (!$invoices->count()) {
-			return _Html('finance.no-draft-or-approved-invoice')->class('card-gray-100 p-4');
+			return _Html('finance-no-draft-or-approved-invoice')->class('card-gray-100 p-4');
 		}
 
 		return _Rows(
@@ -109,7 +109,7 @@ class ContributionSendingModal extends Modal
 			                _EmailHtml($invoice->customer->owners->map(fn($owner) => $owner->mainEmail())->implode('<br>')),
 			            )->class('space-y-2'),
 			            _Rows(
-			                _Html('finance.amount-due')->class('text-xxs font-bold text-gray-600'),
+			                _Html('finance-amount-due')->class('text-xxs font-bold text-gray-600'),
 			                _Currency($invoice->due_amount),
 			                _Flex(
 			                    _Html('/'),

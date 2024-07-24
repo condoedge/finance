@@ -54,7 +54,7 @@ class InvoicesTable extends Table
                         ->class('relative z-10')
                 )->class('mb-4')
             )->class('flex-wrap'),
-            _Columns(
+            _FlexBetween(
                 _Dropdown('finance-grouped-action')->rIcon('icon-down')
                     ->togglerClass('vlBtn')->class('relative z-10 mb-4')
                     ->submenu(
@@ -66,22 +66,24 @@ class InvoicesTable extends Table
                             ->config(['withCheckedItemIds' => true])
                             ->browse(),
                     ),
-                _Select()->placeholder('finance-client')->name('person_id')
-                    ->options(Person::getOptionsForTeamWithFullName($this->teamId))
-                    ->filter(),
-                _Select()->placeholder('finance-filter-by-month')
-                    ->name('month_year', false)
-                    ->options(
-                        Invoice::forTeam($this->teamId)
-                            ->selectRaw("DATE_FORMAT(invoiced_at, '%Y-%m') as value, DATE_FORMAT(invoiced_at, '%M %Y') as label")->distinct()
-                            ->orderByDesc('value')
-                            ->pluck('label', 'value')
-                    )
-                    ->filter(),
+                _Columns(
+                    _Select()->placeholder('finance-client')->name('person_id')
+                        ->options(Person::getOptionsForTeamWithFullName($this->teamId))
+                        ->filter(),
+                    _Select()->placeholder('finance-filter-by-month')
+                        ->name('month_year', false)
+                        ->options(
+                            Invoice::forTeam($this->teamId)
+                                ->selectRaw("DATE_FORMAT(invoiced_at, '%Y-%m') as value, DATE_FORMAT(invoiced_at, '%M %Y') as label")->distinct()
+                                ->orderByDesc('value')
+                                ->pluck('label', 'value')
+                        )
+                        ->filter(),
 
-                _Select()->placeholder('finance-filter-by-status')
-                    ->name('status')->options(Invoice::statuses())
-                    ->filter(),
+                    _Select()->placeholder('finance-filter-by-status')
+                        ->name('status')->options(Invoice::statuses())
+                        ->filter(),
+                ),
             )->alignCenter()
         );
     }
@@ -92,10 +94,10 @@ class InvoicesTable extends Table
             _CheckAllItems()->class('w-1/12'),
             _Th('finance-date')->sort('invoiced_at')->class('w-1/6'),
             _Th('finance-invoice-number')->sort('invoice_number')->class('w-1/6'),
-            _Th('finance-type')->class('w-1/6'),
+            _Th('finance-type')->class('w-1/12'),
             _Th('finance-client')->sort('customer_id')->class('w-1/4'),
             _Th('finance-status')->sort('status')->class('w-1/6'),
-            _Th('finance-amount-due')->class('text-right')->class('w-1/12'),
+            _Th('finance-amount-due')->class('text-right')->class('w-1/6'),
             _Th()->class('w-1/12'),
         ];
     }
@@ -107,7 +109,7 @@ class InvoicesTable extends Table
             _Rows(
                 _HtmlDate($invoice->invoiced_at)->class('taxt-gray-400 font-bold'),
                 _Flex2(
-                    _Html('finance-due'),
+                    _Html('finance-due-at'),
                     _HtmlDate($invoice->due_at)
                 )->class('text-xs text-gray-600')
             )->gotoInvoice($invoice->id),
@@ -127,14 +129,14 @@ class InvoicesTable extends Table
             )->class('items-end'),
             _TripleDotsDropdown(
 
-                $this->dropdownLink('general.view')->gotoInvoice($invoice->id),
+                $this->dropdownLink('finance-view')->gotoInvoice($invoice->id),
 
-                $this->dropdownLink('general.edit')->href($invoice->getEditRoute(), ['id' => $invoice->id,]),
+                $this->dropdownLink('finance-edit')->href($invoice->getEditRoute(), ['id' => $invoice->id,]),
 
-                !$invoice->canApprove() ? null : $this->dropdownLink('Approve')->selfPost('approveInvoice', ['id' => $invoice->id])->browse(),
+                !$invoice->canApprove() ? null : $this->dropdownLink('finance-approve')->selfPost('approveInvoice', ['id' => $invoice->id])->browse(),
 
                 (!$invoice->canPay() || ($invoice->due_amount <= 0)) ? null :
-                    $this->dropdownLink('finance.record-payment')
+                    $this->dropdownLink('finance-record-payment')
                         ->get('payment-entry.form', [
                             'type' => 'invoice',
                             'id' => $invoice->id,

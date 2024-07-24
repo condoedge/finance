@@ -105,18 +105,18 @@ class Transaction extends Model
     public static function types()
     {
         return [
-            static::TYPE_MANUAL_ENTRY => __('finance.journal-entry'),
-            static::TYPE_CONTRIBUTION => __('finance.contribution-log'),
-            static::TYPE_INVOICE => __('finance.invoice-log'),
-            static::TYPE_INVOICE_PMT => __('finance.invoice-payment'),
-            static::TYPE_BILL => __('finance.bill-log'),
-            static::TYPE_BILL_PMT => __('finance.bill-payment'),
-            static::TYPE_INTEREST => __('finance.late-interest'),
-            static::TYPE_EOY => __('finance.end-of-year'),
-            static::TYPE_NFS => __('finance.non-sufficient-funds'),
-            static::TYPE_BANKFEES => __('finance.bank-account-fees'),
-            static::TYPE_BANKINTEREST => __('finance.bank-account-interests'),
-            static::TYPE_INTERFUND => __('finance.interfund-transfer'),
+            static::TYPE_MANUAL_ENTRY => __('finance-journal-entry'),
+            static::TYPE_CONTRIBUTION => __('finance-contribution-log'),
+            static::TYPE_INVOICE => __('finance-invoice-log'),
+            static::TYPE_INVOICE_PMT => __('finance-invoice-payment'),
+            static::TYPE_BILL => __('finance-bill-log'),
+            static::TYPE_BILL_PMT => __('finance-bill-payment'),
+            static::TYPE_INTEREST => __('finance-late-interest'),
+            static::TYPE_EOY => __('finance-end-of-year'),
+            static::TYPE_NFS => __('finance-non-sufficient-funds'),
+            static::TYPE_BANKFEES => __('finance-bank-account-fees'),
+            static::TYPE_BANKINTEREST => __('finance-bank-account-interests'),
+            static::TYPE_INTERFUND => __('finance-interfund-transfer'),
         ];
     }
 

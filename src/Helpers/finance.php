@@ -48,5 +48,5 @@ function _MiniLabelValue($label, $value)
 
 function _MiniLabel($label)
 {
-    return _Html($label)->class('text-level1 text-opacity-50 text-xs');
+    return _Html($label)->class('text-level1 opacity-60 text-xs');
 }

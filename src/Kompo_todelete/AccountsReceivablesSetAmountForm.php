@@ -45,7 +45,7 @@ class AccountsReceivablesSetAmountForm extends Modal
 	public function body()
 	{
 		return _Rows(
-			_Input('finance.invoice-number')->name('invoice_number')
+			_Input('finance-invoice-number')->name('invoice_number')
 				->default(Invoice::getInvoiceIncrement(null, $this->prefix)),
 			_Select('Unit')->name('unit_id')
 				->options(

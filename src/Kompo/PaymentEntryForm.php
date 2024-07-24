@@ -111,13 +111,13 @@ class PaymentEntryForm extends ModalScroll
 	public function body()
 	{
 		return _Rows(
-			_FlexEnd(
+			_Card(
 				_Rows(
 					_Currency($this->model->due_amount)->class('text-2xl font-bold'),
-					_Html('finance.remaining-amount-to-be-paid'),
+					_Html('finance-remaining-amount-to-be-paid')->class('opacity-60'),
 				)->class('text-right')
-			)->class('card-positive p-4 !mb-2'),
-			_Html('finance.how-will-you-pay')->class('text-xl font-semibold'),
+			)->class('bg-level4 p-4 !mb-2'),
+			_Html('finance-how-will-you-pay')->class('text-xl font-semibold'),
 			_DateLockErrorField(),
 			_Panel(
 
@@ -139,30 +139,30 @@ class PaymentEntryForm extends ModalScroll
 	public function invoicePaymentTypeButtons()
 	{
 		return _Columns(
-			_HugeButton('finance.regular-payment', 'money')->selfGet('getRegularPaymentForm')->inPanel($this->panelId),
+			_HugeButton('finance-regular-payment', 'money')->selfGet('getRegularPaymentForm')->inPanel($this->panelId),
 			$this->getAcompteValue() ?
-				_HugeButton('finance.advance-payments', 'money-time')->selfGet('getAdvancePaymentForm')->inPanel($this->panelId) : null,
+				_HugeButton('finance-advance-payments', 'money-time')->selfGet('getAdvancePaymentForm')->inPanel($this->panelId) : null,
 			$this->getInvoiceCreditNotes()->count() ?
-				_HugeButton('finance.credit-notes', 'card-add')->selfGet('getInvoiceCreditNotesForm')->inPanel($this->panelId) : null,
+				_HugeButton('finance-credit-notes', 'card-add')->selfGet('getInvoiceCreditNotesForm')->inPanel($this->panelId) : null,
 		);
 	}
 
 	public function billPaymentTypeButtons()
 	{
 		return _Columns(
-			_HugeButton('finance.regular-payment', 'money')->selfGet('getRegularPaymentForm')->inPanel($this->panelId),
-			_HugeButton('finance.credit-notes', 'card-add')->selfGet('getBillCreditNotesForm')->inPanel($this->panelId),
+			_HugeButton('finance-regular-payment', 'money')->selfGet('getRegularPaymentForm')->inPanel($this->panelId),
+			_HugeButton('finance-credit-notes', 'card-add')->selfGet('getBillCreditNotesForm')->inPanel($this->panelId),
 		);
 	}
 
 	public function getRegularPaymentForm()
 	{
 		return _Rows(
-			_TitleMini('finance.regular-payment')->class('mb-4'),
+			_TitleMini('finance-regular-payment')->class('mb-4'),
 
-			_Date('finance.payment-date')->name('transacted_at', false)->default(date('Y-m-d'))->class('mb-2'),
+			_Date('finance-payment-date')->name('transacted_at', false)->default(date('Y-m-d'))->class('mb-2'),
 
-			_Input('Amount')->name('amount', false)->type('number')->step(0.01)
+			_Input('finance-amount')->name('amount', false)->type('number')->step(0.01)
 				->default(abs($this->model->due_amount))
 				->selfGet('getSubmitInfoPanel')->inPanel($this->submitInfoPanelId)
                 ->class('mb-2'),
@@ -171,7 +171,7 @@ class PaymentEntryForm extends ModalScroll
 
 			Entry::paymentMethodsSelect(false)->class('mb-2'),
 
-			_Textarea('Description')->name('description', false),
+			_Textarea('finance-description')->name('description', false),
 
 			_Panel(
 				$this->getSubmitInfoPanel($this->model->due_amount)

@@ -673,7 +673,7 @@ class GlAccount extends Model
                 ...$groupItems
             ),
             static::balanceRow(
-                _Html('Total'),
+                _Html('finance-total'),
                 _Currency($totalDebit)->id('total-debit-allgroups'),
                 _Currency($totalCredit)->id('total-credit-allgroups'),
                 static::netColumn($totalDebit, $totalCredit)->id('total-net-allgroups'),
@@ -704,10 +704,10 @@ class GlAccount extends Model
     public static function balanceHeader()
     {
         return static::balanceRow(
-            _Html('Verification'),
-            _Html('Debit'),
-            _Html('Credit'),
-            _Html('Net')->class('pr-6'),
+            _Html('finance-verification'),
+            _Html('finance-debit'),
+            _Html('finance-credit'),
+            _Html('finance-net')->class('pr-6'),
         )->class('font-bold');
     }
 
@@ -718,7 +718,7 @@ class GlAccount extends Model
         $defaultAccountId = $cashAccounts->filter(fn ($account) => $account->bank?->default_bank)->first()?->id ?:
             $cashAccounts->first()?->id;
 
-        return _Select('Account')->name('gl_account_id', $relatedToModel)
+        return _Select('finance-account')->name('gl_account_id', $relatedToModel)
             ->options(
                 $cashAccounts
                     ->sortByDesc(fn ($account) => $account->bank?->default_bank)

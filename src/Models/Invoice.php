@@ -208,12 +208,12 @@ class Invoice extends Charge
     public static function colors()
     {
         return [
-            static::STATUS_DRAFT => 'bg-level3 bg-opacity-50',
-            static::STATUS_APPROVED => 'bg-info bg-opacity-30',
-            static::STATUS_SENT => 'bg-level1 bg-opacity-30',
-            static::STATUS_PARTIALLY_PAID => 'bg-warning bg-opacity-30',
-            static::STATUS_PAID => 'bg-positive bg-opacity-30',
-            static::STATUS_VOIDED => 'bg-danger bg-opacity-30',
+            static::STATUS_DRAFT => 'bg-graylight text-graydark',
+            static::STATUS_APPROVED => 'bg-infolight text-info',
+            static::STATUS_SENT => 'bg-graylight bg-graydark',
+            static::STATUS_PARTIALLY_PAID => 'bg-warninglight text-warningdark',
+            static::STATUS_PAID => 'bg-greenlight text-greendark',
+            static::STATUS_VOIDED => 'bg-dangerlight text-dangerdark',
         ];
     }
 
@@ -482,7 +482,7 @@ class Invoice extends Charge
         $paymentTx = $this->createTransaction(
             $transactionAmount,
             Transaction::TYPE_INVOICE_PMT,
-            $description ?: (__('finance.invoice-payment').' '.$this->customer_label),
+            $description ?: (__('finance-invoice-payment').' '.$this->customer_label),
             $paidAt
         );
 

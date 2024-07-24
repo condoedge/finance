@@ -44,7 +44,7 @@ trait GlAccountCreateActionsTrait
 
         GlAccount::createGlAccount($team, [
             'group' => GlAccount::GROUP_EXPENSE,
-            'type' => translationsArr('finance.sales-tax'),
+            'type' => translationsArr('finance-sales-tax'),
             'name' => $tax->getTranslations('name'),
             'subname' => null,
             'code' => $nextCode,

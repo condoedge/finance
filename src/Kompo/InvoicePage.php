@@ -41,13 +41,13 @@ class InvoicePage extends Form
 			_FlexBetween(
 				_FlexEnd(
 					_Rows(
-						_TitleMini('finance-status'),
+						_MiniLabel('finance-status'),
 						$this->model->statusBadge()->class('text-sm !py-2')
 					),
 					_Rows(
-						_TitleMini('finance-client'),
+						_MiniLabel('finance-client'),
 						_Html($this->model->person_label)->class($this->bigClass),
-					),
+					)->class('border-l border-level4 pl-4'),
 				)->class('space-x-8'),
 				_FlexEnd4(
 					_MiniLabelDate('finance-invoice-date', $this->model->invoiced_at, $this->bigClass),
@@ -60,7 +60,7 @@ class InvoicePage extends Form
 					$this->model->approvedBy ?
 						$this->model->approvalEls() :
 						_Flex(
-							_Html(__('finance-created').' :')->class('font-bold'),
+							_Html(__('finance-invoice-created-at').' :')->class('font-bold'),
 							_HtmlDate($this->model->created_at)->class('ml-4')
 						)
 				),
@@ -105,12 +105,12 @@ class InvoicePage extends Form
 						->selfUpdate('getPaymentEntryForm')->inModal()
 				)
 			)->class('mb-4 p-6 bg-white rounded-2xl'),
-			_TitleMini($this->model->isReimbursment() ? 'finance-credit-note-details' : 'finance-invoice-details')->class('uppercase mb-2 mt-4'),
+			_TitleMini($this->model->isReimbursment() ? 'finance-credit-note-details' : 'finance-invoice-details')->class('uppercase mb-2 mt-4 text-greenmain opacity-70'),
 			(new ChargeDetailsTable([
 				'invoice_id' => $this->model->id,
 			]))->class('p-6 bg-white rounded-2xl mb-6'),
 
-			_TitleMini('finance-journal-transactions')->class('uppercase mb-2'),
+			_TitleMini('finance-journal-transactions')->class('uppercase mb-2 text-greenmain opacity-70'),
 			(new TransactionsMiniTable([
 				'invoice_id' => $this->model->id,
 			]))->class('p-6 bg-white rounded-2xl mb-6'),
@@ -157,7 +157,7 @@ class InvoicePage extends Form
 
 	protected function stepTitle($label)
 	{
-		return _Html($label)->class($this->bigClass)->class('pb-4 opacity-60');
+		return _Html($label)->class($this->bigClass)->class('pb-4 text-greenmain');
 	}
 
 	protected function amountDueDate()
@@ -183,12 +183,12 @@ class InvoicePage extends Form
 
 		return _FlexEnd(
 			_Rows(
-				_TitleMini('finance.last-payment'),
+				_MiniLabel('finance-last-payment'),
 				_Flex4(
 					_HtmlDate(carbon($lastPayment->transacted_at))->class($this->bigClass),
 					_Currency($lastPayment->amount)->class($this->bigClass)
 				),
-			)->class('border-l border-gray-100 pl-4 ml-4')
+			)->class('border-l border-level4 pl-4')
 		);
 	}
 
