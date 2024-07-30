@@ -20,6 +20,7 @@ class Invoice extends Charge
     protected $casts = [
         'invoiced_at' => 'datetime',
         'due_at' => 'datetime',
+        'status' => InvoiceStatusEnum::class,
     ];
 
     public const STATUS_DRAFT = 1;
@@ -54,25 +55,25 @@ class Invoice extends Charge
     /* SCOPES */
     public function scopeDraft($query)
     {
-        $query->where('status', static::STATUS_DRAFT);
+        $query->where('status', InvoiceStatusEnum::DRAFT);
     }
 
     public function scopeNotDraft($query)
     {
-        $query->where('status', '<>', static::STATUS_DRAFT);
+        $query->where('status', '<>', InvoiceStatusEnum::DRAFT);
     }
 
     public function scopeApproved($query)
     {
-        $query->where('status', static::STATUS_APPROVED);
+        $query->where('status', InvoiceStatusEnum::APPROVED);
     }
 
     public function scopeOpen($query)
     {
         $query->whereIn('status', [
-            static::STATUS_SENT,
-            static::STATUS_APPROVED,
-            static::STATUS_PARTIALLY_PAID,
+            InvoiceStatusEnum::SENT,
+            InvoiceStatusEnum::APPROVED,
+            InvoiceStatusEnum::PARTIALLY_PAID,
         ]);
     }
 
@@ -104,7 +105,7 @@ class Invoice extends Charge
 
     public function isDraft()
     {
-        return $this->status == static::STATUS_DRAFT;
+        return $this->status == InvoiceStatusEnum::DRAFT;
     }
 
     public function isLate()
@@ -156,25 +157,25 @@ class Invoice extends Charge
     public function canPay()
     {
         return !$this->isReimbursment() && in_array($this->status, [
-            static::STATUS_APPROVED,
-            static::STATUS_SENT,
-            static::STATUS_PARTIALLY_PAID,
+            InvoiceStatusEnum::APPROVED,
+            InvoiceStatusEnum::SENT,
+            InvoiceStatusEnum::PARTIALLY_PAID,
         ]);
     }
 
     public function canApprove()
     {
         return in_array($this->status, [
-            static::STATUS_DRAFT,
-            static::STATUS_VOIDED,
+            InvoiceStatusEnum::DRAFT,
+            InvoiceStatusEnum::VOIDED,
         ]);
     }
 
     public function canMarkSent()
     {
         return in_array($this->status, [
-            static::STATUS_DRAFT,
-            static::STATUS_APPROVED,
+            InvoiceStatusEnum::DRAFT,
+            InvoiceStatusEnum::APPROVED,
         ]);
     }
 
@@ -193,27 +194,32 @@ class Invoice extends Charge
         );
     }
 
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->status->label();
+    }
+
     public static function statuses()
     {
         return [
-            static::STATUS_DRAFT => __('finance.draft'),
-            static::STATUS_APPROVED => __('finance.approved'),
-            static::STATUS_SENT => __('finance.sent'),
-            static::STATUS_PARTIALLY_PAID => __('finance.partial'),
-            static::STATUS_PAID => __('finance.paid'),
-            static::STATUS_VOIDED => __('finance.void'),
+            InvoiceStatusEnum::DRAFT => __('finance.draft'),
+            InvoiceStatusEnum::APPROVED => __('finance.approved'),
+            InvoiceStatusEnum::SENT => __('finance.sent'),
+            InvoiceStatusEnum::PARTIALLY_PAID => __('finance.partial'),
+            InvoiceStatusEnum::PAID => __('finance.paid'),
+            InvoiceStatusEnum::VOIDED => __('finance.void'),
         ];
     }
 
     public static function colors()
     {
         return [
-            static::STATUS_DRAFT => 'bg-graylight text-graydark',
-            static::STATUS_APPROVED => 'bg-infolight text-info',
-            static::STATUS_SENT => 'bg-graylight bg-graydark',
-            static::STATUS_PARTIALLY_PAID => 'bg-warninglight text-warningdark',
-            static::STATUS_PAID => 'bg-greenlight text-greendark',
-            static::STATUS_VOIDED => 'bg-dangerlight text-dangerdark',
+            InvoiceStatusEnum::DRAFT => 'bg-graylight text-graydark',
+            InvoiceStatusEnum::APPROVED => 'bg-infolight text-info',
+            InvoiceStatusEnum::SENT => 'bg-graylight bg-graydark',
+            InvoiceStatusEnum::PARTIALLY_PAID => 'bg-warninglight text-warningdark',
+            InvoiceStatusEnum::PAID => 'bg-greenlight text-greendark',
+            InvoiceStatusEnum::VOIDED => 'bg-dangerlight text-dangerdark',
         ];
     }
 
@@ -336,7 +342,7 @@ class Invoice extends Charge
 
     public function markInitialStatus()
     {
-        $this->status = static::STATUS_VOIDED;
+        $this->status = InvoiceStatusEnum::VOIDED;
         $this->approved_by = null;
         $this->approved_at = null;
         $this->save();
@@ -344,7 +350,7 @@ class Invoice extends Charge
 
     public function markApproved()
     {
-        $this->status = static::STATUS_APPROVED;
+        $this->status = InvoiceStatusEnum::APPROVED;
         $this->approved_by = auth()->id();
         $this->approved_at = now();
         $this->save();
@@ -353,7 +359,7 @@ class Invoice extends Charge
     public function markSent()
     {
         if ($this->canMarkSent()) {
-            $this->status = static::STATUS_SENT;
+            $this->status = InvoiceStatusEnum::SENT;
         }
         $this->sent_by = auth()->id();
         $this->sent_at = now();
@@ -362,7 +368,7 @@ class Invoice extends Charge
 
     public function markPayment()
     {
-        $this->markPaymentStatus(static::STATUS_APPROVED, static::STATUS_PARTIALLY_PAID, static::STATUS_PAID);
+        $this->markPaymentStatus(InvoiceStatusEnum::APPROVED, InvoiceStatusEnum::PARTIALLY_PAID, InvoiceStatusEnum::PAID);
     }
 
     /* PAST INVOICES */
@@ -394,7 +400,7 @@ class Invoice extends Charge
         $invoice->union_id = $unit->union_id;
         $invoice->customer_id = $unit->id;
         $invoice->customer_type = 'unit';
-        $invoice->status = static::STATUS_DRAFT;
+        $invoice->status = InvoiceStatusEnum::DRAFT;
         $invoice->invoice_number = $invoiceNumber;
         $invoice->invoiced_at = $invoiceDate;
         $invoice->due_at = $invoiceDate;
@@ -666,7 +672,7 @@ class Invoice extends Charge
         $invoice->union_id = env('FINANCE_ADMIN_UNION_ID');
         $invoice->customer_id = $user->id;
         $invoice->customer_type = 'user';
-        $invoice->status = static::STATUS_APPROVED;
+        $invoice->status = InvoiceStatusEnum::APPROVED;
         $invoice->invoice_number = static::getUserIncrement($user->id);
         $invoice->invoiced_at = $date ?: date('Y-m-d');
         $invoice->notes = $user->personalTeam()->name.' - '.__('finance.condoedge-subscription');
