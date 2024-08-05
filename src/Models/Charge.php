@@ -12,12 +12,22 @@ abstract class Charge extends Model
     use \Kompo\Auth\Models\Files\MorphManyFilesTrait;
     use \Kompo\Auth\Models\Tags\MorphToManyTagsTrait;
 
+    protected $casts = [];
+    protected $toExtendCasts = [];
     protected static $mainTransactionTypes = [];
 
     protected const ITEMS_RELATION = 'to_override';
 
     public const TYPE_PAYMENT = 1;
     public const TYPE_REIMBURSMENT = 2;
+
+    // This is a fix to the overriden casts when we're extending the model
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->casts = array_merge($this->casts, $this->toExtendCasts);
+    }
 
     public function save(array $options = [])
     {

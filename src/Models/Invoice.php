@@ -17,7 +17,7 @@ class Invoice extends Charge
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
     use \Condoedge\Crm\Models\BelongsToPersonTrait;
 
-    protected $casts = [
+    protected $toExtendCasts = [
         'invoiced_at' => 'datetime',
         'due_at' => 'datetime',
         'status' => InvoiceStatusEnum::class,
@@ -197,6 +197,11 @@ class Invoice extends Charge
     public function getStatusLabelAttribute(): string
     {
         return $this->status->label();
+    }
+
+    public function getColorAttribute(): string
+    {
+        return $this->status->classes();
     }
 
     public static function statuses()
