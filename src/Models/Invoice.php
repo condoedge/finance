@@ -207,24 +207,24 @@ class Invoice extends Charge
     public static function statuses()
     {
         return [
-            InvoiceStatusEnum::DRAFT => __('finance.draft'),
-            InvoiceStatusEnum::APPROVED => __('finance.approved'),
-            InvoiceStatusEnum::SENT => __('finance.sent'),
-            InvoiceStatusEnum::PARTIALLY_PAID => __('finance.partial'),
-            InvoiceStatusEnum::PAID => __('finance.paid'),
-            InvoiceStatusEnum::VOIDED => __('finance.void'),
+            InvoiceStatusEnum::DRAFT->value => __('finance.draft'),
+            InvoiceStatusEnum::APPROVED->value => __('finance.approved'),
+            InvoiceStatusEnum::SENT->value => __('finance.sent'),
+            InvoiceStatusEnum::PARTIALLY_PAID->value => __('finance.partial'),
+            InvoiceStatusEnum::PAID->value => __('finance.paid'),
+            InvoiceStatusEnum::VOIDED->value => __('finance.void'),
         ];
     }
 
     public static function colors()
     {
         return [
-            InvoiceStatusEnum::DRAFT => 'bg-graylight text-graydark',
-            InvoiceStatusEnum::APPROVED => 'bg-infolight text-info',
-            InvoiceStatusEnum::SENT => 'bg-graylight bg-graydark',
-            InvoiceStatusEnum::PARTIALLY_PAID => 'bg-warninglight text-warningdark',
-            InvoiceStatusEnum::PAID => 'bg-greenlight text-greendark',
-            InvoiceStatusEnum::VOIDED => 'bg-dangerlight text-dangerdark',
+            InvoiceStatusEnum::DRAFT->value => 'bg-graylight text-graydark',
+            InvoiceStatusEnum::APPROVED->value => 'bg-infolight text-info',
+            InvoiceStatusEnum::SENT->value => 'bg-graylight bg-graydark',
+            InvoiceStatusEnum::PARTIALLY_PAID->value => 'bg-warninglight text-warningdark',
+            InvoiceStatusEnum::PAID->value => 'bg-greenlight text-greendark',
+            InvoiceStatusEnum::VOIDED->value => 'bg-dangerlight text-dangerdark',
         ];
     }
 
