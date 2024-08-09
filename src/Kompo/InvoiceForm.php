@@ -106,7 +106,7 @@ class InvoiceForm extends Form
 						])
 						->readonly()
 						->default($this->team->id),
-					_Select('finance-client')->name('person_id')
+					_Select('finance-invoiced-to')->name('person_id')
 						->options(
 							Person::getOptionsForTeamWithFullName($this->team->id)
 						),
