@@ -2015,6 +2015,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-bank-transfer</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-bill-added</name>
 						<description/>
 						<comment/>
@@ -3515,6 +3530,36 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-credit-card-offline</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-credit-card-online</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-credit-note-details</name>
 						<description/>
 						<comment/>
@@ -3696,6 +3741,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-debit-card</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-debit-card-online</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -5315,6 +5375,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-interac-transfer-online</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-interest-revenue</name>
 						<description/>
 						<comment/>
@@ -5511,6 +5586,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-invoiced-custom</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-invoiced-to</name>
 						<description/>
 						<comment/>
 						<translations>
