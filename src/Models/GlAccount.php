@@ -300,7 +300,7 @@ class GlAccount extends Model
 
         $balance = AccountBalance::where('from_date', $latestBalanceDate)->whereIn('gl_account_id', $accountIds);
 
-        $unbalancedEntries = Entry::notVoid()->whereIn('gl_account_id', $accountIds)->where('transacted_at', '<=', $atDate)
+        $unbalancedEntries = Entry::whereIn('gl_account_id', $accountIds)->where('transacted_at', '<=', $atDate)
             ->where('transacted_at', '>=', $latestBalanceDate);
 
         return [
@@ -319,7 +319,7 @@ class GlAccount extends Model
 
         $balance = AccountBalance::where('from_date', $latestBalanceDate)->whereIn('gl_account_id', $qAccounts->pluck('id'));
 
-        $unbalancedEntries = Entry::notVoid()->whereIn('gl_account_id', $qAccounts->pluck('id'))
+        $unbalancedEntries = Entry::whereIn('gl_account_id', $qAccounts->pluck('id'))
             ->where('transacted_at', '>=', substr($latestBalanceDate, 0, 10));
 
         return [

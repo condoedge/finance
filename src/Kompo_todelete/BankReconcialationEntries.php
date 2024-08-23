@@ -37,8 +37,7 @@ class BankReconcialationEntries extends BaseExportableReport
 
     public function query()
     {
-        return Entry::notVoid()
-            ->where('account_id', $this->conciliation->account_id)
+        return Entry::where('account_id', $this->conciliation->account_id)
             ->where(
                 fn($q) => $q->whereBetween('transacted_at', [$this->conciliation->start_date, $this->conciliation->end_date])
                     ->orWhere(

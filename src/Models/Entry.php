@@ -39,10 +39,6 @@ class Entry extends Model
     }
 
     /* SCOPES */
-    public function scopeNotVoid($query)
-    {
-        $query->whereHas('transaction', fn($q) => $q->notVoid());
-    }
 
     /* ATTRIBUTES */
     public function getMethodLabelAttribute()

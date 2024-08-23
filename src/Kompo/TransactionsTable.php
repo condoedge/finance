@@ -98,14 +98,14 @@ class TransactionsTable extends Table
             _Html($transaction->id)->class('text-gray-600 text-xs'),
             _Html($transaction->transacted_at)->class('whitespace-nowrap'),
             $transaction->txTypePill(),
-            _Html($transaction->void ? 'void' : $transaction->mainPaymentMethod())
+            _Html($transaction->isReversed() ? 'void' : $transaction->mainPaymentMethod())
                 ->class('text-xs px-3 py-1 rounded-lg inline-block')
-                ->class($transaction->void ? 'bg-danger text-level1' : 'bg-level3 text-level1'),
+                ->class($transaction->isReversed() ? 'bg-danger text-level1' : 'bg-level3 text-level1'),
             _Html(
                 $transaction->description.($pmtNumber ? (' #'.$pmtNumber) : '')
             ),
             _Currency($transaction->amount)->class('whitespace-nowrap text-right')
-                ->class($transaction->void ? 'line-through' : ''),
+                ->class($transaction->isReversed() ? 'line-through' : ''),
             _FlexEnd(
                 $this->voidLinkWithAction($transaction) ?: _Html(),
             ),

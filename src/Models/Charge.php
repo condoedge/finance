@@ -44,17 +44,17 @@ abstract class Charge extends Model
 
     public function mainTransaction()
     {
-        return $this->hasOne(Transaction::class)->whereIn('type', static::$mainTransactionTypes)->notVoid()->orderByDesc('id');
+        return $this->hasOne(Transaction::class)->whereIn('type', static::$mainTransactionTypes)->orderByDesc('id');
     }
 
     public function payments()
     {
-        return $this->transactions()->notVoid()->isPaymentType();
+        return $this->transactions()->isPaymentType();
     }
 
     public function interests()
     {
-        return $this->transactions()->notVoid()->isInterestType();
+        return $this->transactions()->isInterestType();
     }
 
     public function lastPayment()

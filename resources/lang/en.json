@@ -309,7 +309,7 @@
 	"finance-finished-settingup-payment": "Perfect, you have finished setting-up your payment method.",
 	"finance-fiscal-year": "Fiscal Year",
 	"finance-fiscal-year-already-started": "The fiscal year has already started and there is a mismatch between the theoretical contribution schedule and real payments. Do you want to create an adjustment bill to match the schedule?",
-	"finance-fiscal-year-already-started-no": "No, just create future contributions only!",
+	"finance-fiscal-year-already-started-no": "No, just create the contributions (no adjustment)!",
 	"finance-fiscal-year-already-started-yes": "Yes, let me create an one time invoice adjustment",
 	"finance-fiscal-year-star-changed": "Fiscal year start has been changed!",
 	"finance-for-your-union": "for your union",

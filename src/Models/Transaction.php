@@ -144,6 +144,11 @@ class Transaction extends Model
         return optional($this->mainEntry)->method_label;
     }
 
+    public function isReversed()
+    {
+        return $this->reversed_transaction_id || $this->reverse_transaction_id;
+    }
+
     public function isReadonly()
     {
         return $this->invoice_id || $this->bill_id;
@@ -166,7 +171,7 @@ class Transaction extends Model
 
     public function isVoidable()
     {
-        if ($this->void || !auth()->user()->can('void', $this)) {
+        if ($this->isReversed() || !auth()->user()->can('void', $this)) {
             return false;
         }
 
@@ -199,7 +204,7 @@ class Transaction extends Model
     /* SCOPES */
     public function scopeNotVoid($query)
     {
-        $query->where(fn($q) => $q->where('void', '<>', 1)->orWhereNull('void'));
+        $query->whereNull('reversed_transaction_id')->whereNull('reverse_transaction_id');
     }
 
     public function scopeIsPaymentType($query)
@@ -240,32 +245,17 @@ class Transaction extends Model
         $this->createEntry($accountId, $date, $credit, $debit, $paymentMethod, $description);
     }
 
-    public function reverseEntriesWithRatio($tx, $ratio)
+    public function reverseEntries($tx)
     {
-        $this->entries->each(function($entry) use ($tx, $ratio) {
-
-            $reversedEntry = $entry->replicate();
-
-            $reversedEntry->transaction_id = $tx->id;
-            $reversedEntry->transacted_at = $tx->transacted_at;
-
-            $reversedEntry->debit = round($entry->credit * $ratio, 2);
-            $reversedEntry->credit = round($entry->debit * $ratio, 2);
-
-            $reversedEntry->save();
-
-        });
-    }
-
-    public function reverseEntries($unvoidFlag = null)
-    {
-        $this->entries->each(function($entry) use ($unvoidFlag) {
+        $this->entries->each(function($entry) use ($tx) {
 
             $reversedEntry = $entry->replicate();
 
             $reversedEntry->debit = $entry->credit;
             $reversedEntry->credit = $entry->debit;
-            $reversedEntry->unvoid_flag = $unvoidFlag;
+            $reversedEntry->transaction_id = $tx->id;
+            $reversedEntry->transacted_at = $tx->transacted_at;
+            $reversedEntry->description = __('Reversal of').' '.$reversedEntry->description;
 
             $reversedEntry->save();
 
@@ -280,12 +270,19 @@ class Transaction extends Model
 
         $oldAmount = $this->amount;
 
-        $this->reverseEntries(1);
+        $reverseTx = $this->replicate();
+        $reverseTx->description = __('Reversal of').' '.$this->description;
+        $reverseTx->reversed_transaction_id = $this->id;
+        $reverseTx->amount = -$this->amount;
+        $reverseTx->setUserId();
+        $reverseTx->transacted_at = now();
+        $reverseTx->save();
+
+        $this->reverseEntries($reverseTx);
 
         $this->acompte()->first()?->delete();
 
-        $this->void = 1;
-        $this->amount = 0;
+        $this->reverse_transaction_id = $reverseTx->id;
         $this->save();
 
         $this->handleParentAfterVoidChange($oldAmount);

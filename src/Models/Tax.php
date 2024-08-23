@@ -48,16 +48,6 @@ class Tax extends Model
         return round($this->rate * $amount, 2);
     }
 
-    public static function getDefaultTaxes()
-    {
-        return Tax::whereIn('id', \Cache::get('charge-latest-taxes-'.auth()->id()) ?: [])->get();
-    }
-
-    public static function setDefaultTaxes($taxIds)
-    {
-        \Cache::forever('charge-latest-taxes-'.auth()->id(), $taxIds);
-    }
-
     /* ACTIONS */
 
     /* ELEMENTS */

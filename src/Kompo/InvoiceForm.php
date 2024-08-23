@@ -62,10 +62,11 @@ class InvoiceForm extends Form
 		if ($this->realModification) {
 			if ($mainTransaction = $this->model->mainTransaction) {
 				$mainTransaction->checkAndDelete();
+
+	            $this->model->journalEntriesAsInvoice(); 
+	            //$this->model->createInvoiceBacklogEntries();
 			}
 
-            $this->model->createJournalEntries(); //Invoice are approved first
-            $this->model->createInvoiceBacklogEntries();
 		}
 	}
 

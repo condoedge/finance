@@ -32,11 +32,6 @@ class ChargeDetailForm extends Form
 		$this->defaultAccounts = $this->prop('default_accounts');
 	}
 
-	public function beforeSave()
-	{
-		Tax::setDefaultTaxes(request('taxes'));
-	}
-
 	public function afterSave()
 	{
 		$this->model->calculateAmountsChd();
@@ -51,13 +46,13 @@ class ChargeDetailForm extends Form
 			$name = $this->chargeable->{$this->chargeable::SEARCHABLE_NAME_ATTRIBUTE};
 			$price = $this->chargeable->getMainPricePerUnit();
 			$quantity = 1;
-			$taxes = Tax::getDefaultTaxes();
+			$taxes = Tax::getOrCreateTaxes();
 			$defaultAccountId = GlAccount::forTeam($this->teamId)->where('code', $this->chargeable->gl_account_code)->value('id');
 		} else {
 			$name = $this->model->name_chd;
 			$price = $this->model->price_chd;
 			$quantity = $this->model->quantity_chd;
-			$taxes = $this->model->id ? $this->model->taxes()->get() : Tax::getDefaultTaxes();
+			$taxes = $this->model->id ? $this->model->taxes()->get() : Tax::getOrCreateTaxes();
 			$defaultAccountId = null;
 		}
 

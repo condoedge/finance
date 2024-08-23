@@ -80,7 +80,7 @@ class InvoicesTable extends Table
                         )
                         ->filter(),
 
-                    _Select()->placeholder('finance-filter-by-status')
+                    _MultiSelect()->placeholder('finance-filter-by-status')
                         ->name('status')->options(Invoice::statuses())
                         ->filter(),
                 ),

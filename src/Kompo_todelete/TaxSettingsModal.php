@@ -18,7 +18,7 @@ class TaxSettingsModal extends Modal
 
   	public function beforeSave()
   	{
-  		if (!request('tax_accounts_enabled') && Entry::notVoid()->whereHas('account', fn($q) => $q->forUnion()->forTax())->count()) {
+  		if (!request('tax_accounts_enabled') && Entry::whereHas('account', fn($q) => $q->forUnion()->forTax())->count()) {
   			abort(403, __('error.tax-account-no-void-cant-be-disabled'));
   		}
   	}

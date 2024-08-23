@@ -53,6 +53,10 @@ class AccountForm extends Modal
 
 	public function body()
 	{
+		if ($this->model->id && !$this->model->name) {
+			$this->model->name = $this->model->getTranslations('type');
+		}
+		
 		return [
 			_Translatable('Name')->name('name'),
 			_Translatable('SubName')->name('subname'),

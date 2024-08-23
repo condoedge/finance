@@ -218,7 +218,7 @@ class Invoice extends Charge
     }
 
     /* ACTIONS */
-    public function markApprovedWithJournalEntries($accountId = null, $fromFunds = false)
+    public function markApprovedWithJournalEntries()
     {
         if ($this->transactions()->notVoid()->count() || !$this->canApprove()) {
             return;
@@ -228,44 +228,26 @@ class Invoice extends Charge
             abort(403, balanceLockedMessage($this->union->latestBalanceDate()));
         }
 
-        $this->createJournalEntries($accountId, $fromFunds);
+        $this->journalEntriesAsInvoice();
 
-        $this->createInvoiceBacklogEntries();
+        //$this->createInvoiceBacklogEntries();
 
         $this->markApproved();
     }
 
-    public function createJournalEntries($accountId = null, $fromFunds = false)
+    public function journalEntriesAsInvoice()
     {
-        if ($fromFunds || $this->budget_id) {
-            $this->journalEntriesAsContribution($accountId);
-        } else {
-            $this->journalEntriesAsInvoice($accountId);
-        }
+        $tx = $this->createTransaction($this->total_amount);
+
+        $this->createMainEntry($tx);
+
+        $this->createInvoiceDetailsEntries($tx, true);
     }
 
     public function createInvoiceBacklogEntries()
     {
         $this->chargeDetails()->get()
             ->each(fn($chargeDetail) => $chargeDetail->reduceFromStockInventory($this->union, $this->invoiced_at, $this));
-    }
-
-    public function journalEntriesAsContribution($accountId = null)
-    {
-        $tx = $this->createTransaction($this->total_amount, Transaction::TYPE_CONTRIBUTION);
-
-        $this->createMainEntry($tx, $accountId);
-
-        $this->createInvoiceDetailsEntries($tx);
-    }
-
-    protected function journalEntriesAsInvoice($accountId = null)
-    {
-        $tx = $this->createTransaction($this->total_amount);
-
-        $this->createMainEntry($tx, $accountId);
-
-        $this->createInvoiceDetailsEntries($tx, true);
     }
 
     public function journalEntriesForInterest($amount, $date, $description = null)
@@ -287,10 +269,10 @@ class Invoice extends Charge
         );
     }
 
-    protected function createMainEntry($tx, $accountId = null)
+    protected function createMainEntry($tx)
     {
         $tx->createEntry(
-            $accountId ?: $this->team->glAccounts()->receivables()->value('id'),
+            $this->team->glAccounts()->receivables()->value('id'),
             $this->invoiced_at,
             $this->isReimbursment() ? $this->total_amount : 0,
             $this->isReimbursment() ? 0 : $this->total_amount,

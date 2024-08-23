@@ -127,7 +127,7 @@ class InvoicePage extends Form
 
 	public function approveInvoice($id)
 	{
-		Invoice::findOrFail($id)->markApproved();
+		Invoice::findOrFail($id)->markApprovedWithJournalEntries();
 
 		return __('finance-invoice-approved');
 	}
