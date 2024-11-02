@@ -280,6 +280,12 @@ class Invoice extends Charge
         );
     }
 
+    public function markAsPaid()
+	{
+		$this->status = static::STATUS_PAID;
+		$this->save();
+	}
+
     protected function createMainEntry($tx)
     {
         $tx->createEntry(
