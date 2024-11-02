@@ -280,9 +280,9 @@ class Invoice extends Charge
         );
     }
 
-    public function markAsPaid()
+	public function markAsPaid()
 	{
-		$this->status = static::STATUS_PAID;
+		$this->status = InvoiceStatusEnum::PAID;
 		$this->save();
 	}
 
