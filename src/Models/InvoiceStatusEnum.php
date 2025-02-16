@@ -28,12 +28,12 @@ enum InvoiceStatusEnum: int
     public function classes()
     {
         return match($this) {
-            self::DRAFT => 'bg-graylight text-graydark',
-            self::APPROVED => 'bg-infolight text-info',
-            self::SENT => 'bg-graylight bg-graydark',
-            self::PARTIALLY_PAID => 'bg-warninglight text-warningdark',
-            self::PAID => 'bg-greenlight text-greendark',
-            self::VOIDED => 'bg-dangerlight text-dangerdark',
+            self::DRAFT => 'bg-graydark text-white',
+            self::APPROVED => 'bg-info text-white',
+            self::SENT => 'bg-infodark bg-white',
+            self::PARTIALLY_PAID => 'bg-warning text-white',
+            self::PAID => 'bg-positive text-white',
+            self::VOIDED => 'bg-danger text-white',
         };
     }
 }
