@@ -4,11 +4,10 @@ namespace Condoedge\Finance\Kompo;
 
 use App\Models\Finance\Invoice;
 use App\Models\Crm\Person;
-use Kompo\Table;
-use Illuminate\Support\Carbon;
+use Kompo\Auth\Exports\TableExportableToExcel;
 use Kompo\Elements\Element;
 
-class InvoicesTable extends Table
+class InvoicesTable extends TableExportableToExcel
 {
     public $containerClass = 'container-fluid';
     public $itemsWrapperClass = 'bg-white rounded-2xl p-4'; 
@@ -66,24 +65,29 @@ class InvoicesTable extends Table
                             ->config(['withCheckedItemIds' => true])
                             ->browse(),
                     ),
-                _Columns(
-                    _Select()->placeholder('finance-client')->name('person_id')
-                        ->options(Person::getOptionsForTeamWithFullName($this->teamId))
-                        ->filter(),
-                    _Select()->placeholder('finance-filter-by-month')
-                        ->name('month_year', false)
-                        ->options(
-                            Invoice::forTeam($this->teamId)
-                                ->selectRaw("DATE_FORMAT(invoiced_at, '%Y-%m') as value, DATE_FORMAT(invoiced_at, '%M %Y') as label")->distinct()
-                                ->orderByDesc('value')
-                                ->pluck('label', 'value')
-                        )
-                        ->filter(),
 
-                    _MultiSelect()->placeholder('finance-filter-by-status')
-                        ->name('status')->options(Invoice::statuses())
-                        ->filter(),
-                ),
+                _Flex(
+                    _Columns(
+                        _Select()->placeholder('finance-client')->name('person_id')
+                            ->options(Person::getOptionsForTeamWithFullName($this->teamId))
+                            ->filter(),
+                        _Select()->placeholder('finance-filter-by-month')
+                            ->name('month_year', false)
+                            ->options(
+                                Invoice::forTeam($this->teamId)
+                                    ->selectRaw("DATE_FORMAT(invoiced_at, '%Y-%m') as value, DATE_FORMAT(invoiced_at, '%M %Y') as label")->distinct()
+                                    ->orderByDesc('value')
+                                    ->pluck('label', 'value')
+                            )
+                            ->filter(),
+    
+                        _MultiSelect()->placeholder('finance-filter-by-status')
+                            ->name('status')->options(Invoice::statuses())
+                            ->filter(),
+                    ),
+                    
+                    _ExcelExportButton(),
+                )->class('gap-4'),
             )->alignCenter()
         );
     }
@@ -142,7 +146,7 @@ class InvoicesTable extends Table
                             'id' => $invoice->id,
                         ])->inModal(),
 
-            )->class('px-2 float-right hover:bg-gray-100 rounded-lg')
+            )->class('px-2 float-right hover:bg-gray-100 rounded-lg exclude-export')
             ->alignRight(),
         )->class('group');
     }
