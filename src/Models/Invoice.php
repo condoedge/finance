@@ -221,7 +221,7 @@ class Invoice extends Charge
         return [
             InvoiceStatusEnum::DRAFT->value => 'bg-graylight text-graydark',
             InvoiceStatusEnum::APPROVED->value => 'bg-infolight text-info',
-            InvoiceStatusEnum::SENT->value => 'bg-graylight bg-graydark',
+            InvoiceStatusEnum::SENT->value => 'bg-mauvelight bg-mauvedark',
             InvoiceStatusEnum::PARTIALLY_PAID->value => 'bg-warninglight text-warningdark',
             InvoiceStatusEnum::PAID->value => 'bg-greenlight text-greendark',
             InvoiceStatusEnum::VOIDED->value => 'bg-dangerlight text-dangerdark',

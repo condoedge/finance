@@ -28,7 +28,7 @@ enum InvoiceStatusEnum: int
     public function classes()
     {
         return match($this) {
-            self::DRAFT => 'bg-graydark text-white',
+            self::DRAFT => 'bg-graylight text-graydark',
             self::APPROVED => 'bg-info text-white',
             self::SENT => 'bg-infodark bg-white',
             self::PARTIALLY_PAID => 'bg-warning text-white',
