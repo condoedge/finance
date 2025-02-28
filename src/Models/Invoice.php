@@ -185,6 +185,11 @@ class Invoice extends Charge
         return $this->invoice_number;
     }
 
+    public function getCustomerLabelAttribute()
+    {
+        return $this->person?->full_name;
+    }
+
     public function getLastInterestDateAttribute()
     {
         return carbon(

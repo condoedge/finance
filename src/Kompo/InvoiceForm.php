@@ -83,6 +83,12 @@ class InvoiceForm extends Form
 			$this->model->setRelation('chargeDetails', collect([$chargeDetail]));
 		}
 
+		$personOptions = Person::getOptionsForTeamWithFullName($this->team->id);
+
+		if ($this->model->person_id) {
+			$personOptions->prepend($this->model->person->full_name, $this->model->person_id);
+		}
+
 		return [
 			_FlexBetween(
 				_Breadcrumbs(
@@ -108,9 +114,7 @@ class InvoiceForm extends Form
 						->readonly()
 						->default($this->team->id),
 					_Select('finance-invoiced-to')->name('person_id')
-						->options(
-							Person::getOptionsForTeamWithFullName($this->team->id)
-						),
+						->options($personOptions),
 					_Input($this->labelNumber)->name('invoice_number')
 						->default(Invoice::getInvoiceIncrement($this->team->id, $this->prefix)),
 				),
