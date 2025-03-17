@@ -80,11 +80,19 @@ class Invoice extends AbstractMainFinanceModel
     {
         return DB::transaction(function () use ($saveCb) {
             $sequence = DB::table('invoice_types')->select('next_number')
-                    ->where('id', $this->invoice_type_id)
-                    ->lockForUpdate()
-                    ->first();
+                ->where('id', $this->invoice_type_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$sequence) {
+                throw new \Exception("Invoice type with ID {$this->invoice_type_id} not found");
+            }
         
             $this->invoice_number = $sequence->next_number;
+
+            DB::table('invoice_types')
+                ->where('id', $this->invoice_type_id)
+                ->update(['next_number' => $sequence->next_number + 1]);
 
             // Instead of using $this->save we use the callback to avoid infinite recursion
             $saveCb();
