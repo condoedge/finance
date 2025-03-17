@@ -1,0 +1,19 @@
+<?php
+
+const CUSTOMER_MODEL_KEY = 'customer-model';
+
+const CUSTOMER_ADDRESS_MODEL_KEY = 'customer-address-model';
+
+const INVOICE_MODEL_KEY = 'invoice-model';
+
+const INVOICE_DETAIL_MODEL_KEY = 'invoice-detail-model';
+
+const INVOICE_PAYMENT_MODEL_KEY = 'invoice-payment-model';
+
+const TAX_MODEL_KEY = 'tax-model';
+
+const TAX_GROUP_MODEL_KEY = 'tax-group-model';
+
+const INVOICE_TYPE_ENUM_KEY = 'invoice-type-enum';
+
+const PAYMENT_TYPE_ENUM_KEY = 'payment-type-enum';

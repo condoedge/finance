@@ -4,7 +4,10 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Condoedge\\Finance\\": "src/"
+            "Condoedge\\Finance\\": "src/",
+            "Condoedge\\Finance\\Database\\Factories\\": "database/factories/",
+            "Condoedge\\Finance\\Database\\Seeders\\": "database/seeders/",
+            "Kompo\\Auth\\Database\\Factories\\": "vendor/kompo/auth/database/factories/"
         }
     },
     "minimum-stability": "stable",

@@ -2,8 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use App\Models\Finance\Invoice;
-use App\Models\Crm\Person;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Kompo\Auth\Exports\TableExportableToExcel;
 use Kompo\Elements\Element;
 
@@ -21,7 +20,7 @@ class InvoicesTable extends TableExportableToExcel
         $this->teamId = currentTeamId();
 
         Element::macro('gotoInvoice', function($invoiceId){
-            return $this->href('finance.invoice-page', [
+            return $this->href('invoices.show', [
                 'id' => $invoiceId,
             ]);
         });
@@ -29,13 +28,13 @@ class InvoicesTable extends TableExportableToExcel
 
     public function query()
     {
-        $query = Invoice::forTeam($this->teamId)->with('tags', 'person', 'payments');
+        $query = InvoiceModel::forTeam(51);
 
         if (request('month_year')) {
-            $query = $query->whereRaw('LEFT(invoiced_at, 7) = ?', [request('month_year')]);
+            $query = $query->whereRaw('LEFT(invoice_date, 7) = ?', [request('month_year')]);
         }
 
-        return $query->orderByDesc('invoiced_at')->orderByDesc('id');
+        return $query->orderByDesc('invoice_date')->orderByDesc('id');
     }
 
     public function top()
@@ -47,7 +46,7 @@ class InvoicesTable extends TableExportableToExcel
                     _Dropdown('finance-actions')->togglerClass('vlBtn')->rIcon('icon-down')
                         ->content(
                             _DropdownLink('finance.new-invoice')
-                                ->href('finance.invoice-form'),
+                                ->href('invoices.form'),
                         )
                         ->alignRight()
                         ->class('relative z-10')
@@ -68,22 +67,22 @@ class InvoicesTable extends TableExportableToExcel
 
                 _Flex(
                     _Columns(
-                        _Select()->placeholder('finance-client')->name('person_id')
-                            ->options(Person::getOptionsForTeamWithFullName($this->teamId))
-                            ->filter(),
+                        // _Select()->placeholder('finance-client')->name('person_id')
+                        //     ->options(PersonModel::getOptionsForTeamWithFullName($this->teamId))
+                        //     ->filter(),
                         _Select()->placeholder('finance-filter-by-month')
                             ->name('month_year', false)
                             ->options(
-                                Invoice::forTeam($this->teamId)
-                                    ->selectRaw("DATE_FORMAT(invoiced_at, '%Y-%m') as value, DATE_FORMAT(invoiced_at, '%M %Y') as label")->distinct()
+                                InvoiceModel::forTeam($this->teamId)
+                                    ->selectRaw("DATE_FORMAT(invoice_date, '%Y-%m') as value, DATE_FORMAT(invoice_date, '%M %Y') as label")->distinct()
                                     ->orderByDesc('value')
                                     ->pluck('label', 'value')
                             )
                             ->filter(),
     
-                        _MultiSelect()->placeholder('finance-filter-by-status')
-                            ->name('status')->options(Invoice::statuses())
-                            ->filter(),
+                        // _MultiSelect()->placeholder('finance-filter-by-status')
+                        //     ->name('status')->options(InvoiceModel::statuses())
+                        //     ->filter(),
                     ),
                     
                     _ExcelExportButton(),
@@ -96,7 +95,7 @@ class InvoicesTable extends TableExportableToExcel
     {
         return [
             _CheckAllItems()->class('w-1/12'),
-            _Th('finance-date')->sort('invoiced_at')->class('w-1/6'),
+            _Th('finance-date')->sort('invoice_date')->class('w-1/6'),
             _Th('finance-invoice-number')->sort('invoice_number')->class('w-1/6'),
             _Th('finance-type')->class('w-1/12'),
             _Th('finance-client')->sort('customer_id')->class('w-1/4'),
@@ -111,43 +110,42 @@ class InvoicesTable extends TableExportableToExcel
     	return _TableRow(
             _CheckSingleItem($invoice->id),
             _Rows(
-                _HtmlDate($invoice->invoiced_at)->class('taxt-gray-400 font-bold'),
+                _HtmlDate($invoice->invoice_date)->class('taxt-gray-400 font-bold'),
                 _Flex2(
                     _Html('finance-due-at'),
                     _HtmlDate($invoice->due_at)
                 )->class('text-xs text-gray-600')
             )->gotoInvoice($invoice->id),
             _Rows(
-                _Html($invoice->invoice_number)->class('group-hover:underline'),
+                _Html($invoice->invoice_reference)->class('group-hover:underline'),
             )->gotoInvoice($invoice->id),
-            _Html($invoice->isReimbursment() ? 'Credit' : 'Invoice'),
+            _Html($invoice->payment_type_label),
             _Html($invoice->customer_label),
-            $invoice->statusBadge()
-                ->class('text-xs'),
+            _Html(null),
             _Rows(
-                _Currency($invoice->due_amount),
+                _Currency($invoice->invoice_due_amount),
                 _Flex(
                     _Html('finance-total'),
-                    _Currency($invoice->total_amount),
+                    _Currency($invoice->invoice_amount),
                 )->class('space-x-2 text-sm text-gray-600'),
             )->class('items-end'),
-            _TripleDotsDropdown(
+            // _TripleDotsDropdown(
 
-                $this->dropdownLink('finance-view')->gotoInvoice($invoice->id),
+            //     $this->dropdownLink('finance-view')->gotoInvoice($invoice->id),
 
-                $this->dropdownLink('finance-edit')->href($invoice->getEditRoute(), ['id' => $invoice->id,]),
+            //     $this->dropdownLink('finance-edit')->href($invoice->getEditRoute(), ['id' => $invoice->id,]),
 
-                !$invoice->canApprove() ? null : $this->dropdownLink('finance-approve')->selfPost('approveInvoice', ['id' => $invoice->id])->browse(),
+            //     !$invoice->canApprove() ? null : $this->dropdownLink('finance-approve')->selfPost('approveInvoice', ['id' => $invoice->id])->browse(),
 
-                (!$invoice->canPay() || ($invoice->due_amount <= 0)) ? null :
-                    $this->dropdownLink('finance-record-payment')
-                        ->get('payment-entry.form', [
-                            'type' => 'invoice',
-                            'id' => $invoice->id,
-                        ])->inModal(),
+            //     (!$invoice->canPay() || ($invoice->due_amount <= 0)) ? null :
+            //         $this->dropdownLink('finance-record-payment')
+            //             ->get('payment-entry.form', [
+            //                 'type' => 'invoice',
+            //                 'id' => $invoice->id,
+            //             ])->inModal(),
 
-            )->class('px-2 float-right hover:bg-gray-100 rounded-lg exclude-export')
-            ->alignRight(),
+            // )->class('px-2 float-right hover:bg-gray-100 rounded-lg exclude-export')
+            // ->alignRight(),
         )->class('group');
     }
 
@@ -163,7 +161,7 @@ class InvoicesTable extends TableExportableToExcel
 
     public function approveInvoice($id)
     {
-        Invoice::findOrFail($id)->markApprovedWithJournalEntries();
+        InvoiceModel::findOrFail($id)->markApprovedWithJournalEntries();
     }
 
     public function getPaymentPrepayInvoiceModal()

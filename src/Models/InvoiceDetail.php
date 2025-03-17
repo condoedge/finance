@@ -2,20 +2,36 @@
 
 namespace Condoedge\Finance\Models;
 
-class InvoiceDetail extends ChargeDetail
+use Condoedge\Finance\Events\InvoiceDetailGenerated;
+
+class InvoiceDetail extends AbstractMainFinanceModel
 {
-	protected $table = 'charge_details';
+    protected $table = 'fin_invoice_details';
+
+    public function getCreatedEventClass()
+    {
+        return InvoiceDetailGenerated::class;
+    }
 
     /* RELATIONSHIPS */
-    public function fund()
+    public function invoice()
     {
-        return $this->belongsTo(Fund::class);
+        return $this->belongsTo(Invoice::class, 'invoice_id');
     }
+
+    /* ATTRIBUTES */
 
     /* CALCULATED FIELDS */
-    public function deletable()
+
+    /* SCOPES */
+
+    /* ACTIONS */
+
+    /* INTEGRITY */
+    public static function checkIntegrity($ids = null): void
     {
-        return $this->chargeable?->deletable();
+        // Implement specific integrity check for the InvoiceDetail model. For now, we don't have any.
     }
 
+    /* ELEMENTS */    
 }
