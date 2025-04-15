@@ -13,7 +13,7 @@ class CreateCustomerDueFunction extends Migration
      */
     public function up()
     {
-        $sql = file_get_contents(__DIR__ . '/../sql/calculate_customer_due/calculate_customer_due_v0001.sql');
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_customer_due/calculate_customer_due_v0001.sql');
         \DB::unprepared("DROP FUNCTION IF EXISTS calculate_customer_due");
         \DB::unprepared($sql);
     }

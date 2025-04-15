@@ -39,7 +39,7 @@ trait HasRelationsManager
 
                         // Compare if this relationship points to the child model we are looking for
                         if (!$relatedClass || $relatedModel === $relatedClass) {
-                            $relations[] = $method->getName();
+                            $relations[] = [$method->getName(), $relatedModel];
                         }
                     }
                 } catch (\Throwable $th) {

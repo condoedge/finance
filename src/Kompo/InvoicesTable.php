@@ -28,7 +28,7 @@ class InvoicesTable extends TableExportableToExcel
 
     public function query()
     {
-        $query = InvoiceModel::forTeam(51);
+        $query = InvoiceModel::forTeam($this->teamId);
 
         if (request('month_year')) {
             $query = $query->whereRaw('LEFT(invoice_date, 7) = ?', [request('month_year')]);
@@ -121,12 +121,12 @@ class InvoicesTable extends TableExportableToExcel
             )->gotoInvoice($invoice->id),
             _Html($invoice->payment_type_label),
             _Html($invoice->customer_label),
-            _Html(null),
+            $invoice->invoice_status_id->pill(),
             _Rows(
-                _Currency($invoice->invoice_due_amount),
+                _FinanceCurrency($invoice->invoice_due_amount),
                 _Flex(
                     _Html('finance-total'),
-                    _Currency($invoice->invoice_amount),
+                    _FinanceCurrency($invoice->invoice_amount),
                 )->class('space-x-2 text-sm text-gray-600'),
             )->class('items-end'),
             // _TripleDotsDropdown(

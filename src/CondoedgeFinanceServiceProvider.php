@@ -2,6 +2,9 @@
 
 namespace Condoedge\Finance;
 
+use Condoedge\Finance\Billing\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\PaymentGatewayResolver;
+use Condoedge\Finance\Billing\TempPaymentGateway;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
 use Illuminate\Support\Facades\File;
@@ -71,6 +74,16 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->singleton('finance.integrity_checker', function ($app) {
             return new IntegrityChecker();
         });
+
+        $this->app->bind(PaymentGatewayInterface::class, function ($app) {
+            return PaymentGatewayResolver::resolve();
+        });
+
+        $this->app->bind('config-currency', function ($app) {
+            return app()->getLocale() === 'en'
+                ? config('kompo-finance.currency_preformats.en')
+                : config('kompo-finance.currency_preformats.fr');
+        });
         
         // Publish configuration
         $this->publishes([
@@ -83,10 +96,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         // Model binding facades
         $this->app->bind(CUSTOMER_MODEL_KEY, function () {
             return new (config('kompo-finance.'. CUSTOMER_MODEL_KEY .'-namespace'));
-        });
-
-        $this->app->bind(CUSTOMER_ADDRESS_MODEL_KEY, function () {
-            return new (config('kompo-finance.'. CUSTOMER_ADDRESS_MODEL_KEY .'-namespace'));
         });
 
         $this->app->bind(INVOICE_MODEL_KEY, function () {
@@ -149,6 +158,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     {
         $dirs = [
             'kompo-finance' => __DIR__.'/../config/kompo-finance.php',
+            'global-config' => __DIR__.'/../config/global-config.php',
         ];
 
         foreach ($dirs as $key => $path) {
@@ -183,4 +193,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         });
     }
 
+    public function loadRoutes()
+    {
+        Route::middleware('web')->group(__DIR__.'/../routes/web.php');
+    }
 }

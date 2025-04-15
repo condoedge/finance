@@ -2,8 +2,12 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use App\Models\Finance\ChargeDetail;
+use Condoedge\Finance\Billing\PaymentGatewayResolver;
+use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceTypeEnum;
+use Condoedge\Finance\Facades\PaymentGateway;
+use Condoedge\Finance\Facades\PaymentTypeEnum;
 use Condoedge\Finance\Models\Customer;
 use Kompo\Form;
 
@@ -25,9 +29,28 @@ class InvoiceForm extends Form
 		$this->team = currentTeam();
 	}
 
+	public function beforeSave()
+	{
+		PaymentGatewayResolver::setContext($this->model);
+
+		$this->model->account_receivable_id = PaymentGateway::getCashAccount()->id;
+
+		/**
+		 * @var \Condoedge\Finance\Models\Customer $customer
+		 */
+		$customer = CustomerModel::find($this->model->customer_id);
+
+		$customer->fillInvoiceForCustomer($this->model);
+	}
+
+	public function afterSave()
+	{
+		PaymentGatewayResolver::setContext($this->model);
+	}
+
 	public function response()
 	{
-		return redirect()->route('finance.invoice-page', ['id' => $this->model->id ]);
+		return redirect()->route('invoices.show', ['id' => $this->model->id]);
 	}
 
 	public function render()
@@ -45,6 +68,12 @@ class InvoiceForm extends Form
 			)->class('mb-6'),
 
             _CardWhiteP4(
+				_Select('translate.finance.invoice-type')
+					->name('invoice_type_id')
+					->options(InvoiceTypeEnum::optionsWithLabels()),
+				_Select('translate.finance.payment-type')
+					->name('payment_type_id')
+					->options(PaymentTypeEnum::optionsWithLabels()),
 				_Columns(
 					_Select('finance-invoiced-to')->name('customer_id')->class('!mb-0')
 						->options(Customer::forTeam($this->team?->id)->pluck('name', 'id')),
@@ -52,33 +81,32 @@ class InvoiceForm extends Form
 					_Button()->class('mb-2')->icon('plus')->selfGet('getCustomerModal')->inModal(),
 				)->class('items-end mb-2'),
 				_Columns(
-					_DateTime('finance-invoice-date')->name('invoiced_at')->default(date('Y-m-d H:i')),
-					_Date('finance-due-date')->name('due_at')->default(date('Y-m-d')),
+					_DateTime('finance-invoice-date')->name('invoice_date')->default(date('Y-m-d H:i')),
+					_DateTime('finance-due-date')->name('invoice_due_date')->default(date('Y-m-d')),
 					_Html(),
 				)
 			)->class('bg-white rounded-2xl shadow-lg'),
 
 			// _TitleMini($this->labelElements)->class('uppercase mb-2'),
-			// _MultiForm()->noLabel()->name('chargeDetails')
-			// 	->formClass(ChargeDetailForm::class, [
-			// 		'team_id' => $this->team->id,
-			// 		'default_accounts' => 'usableRevenue',
-			// 	])
-			// 	->asTable([
-			// 		__('finance-product-service'),
-			// 		'',
-			// 		_FlexBetween(
-			// 			_Flex(
-			// 				_Th('finance-quantity')->class('w-28'),
-			// 				_Th('finance-price'),
-			// 			)->class('space-x-4'),
-			// 			_Th('finance-total')->class('text-right'),
-			// 		)->class('text-sm font-medium'),
-			// 	])->addLabel(
-			// 		$this->getChargeablesSelect(),
-			// 	)
-			// 	->class('mb-6 bg-white rounded-2xl')
-			// 	->id('finance-items'),
+			_MultiForm()->noLabel()->name('invoiceDetails')
+				->formClass(InvoiceDetailForm::class, [
+					'team_id' => $this->team->id,
+				])
+				->asTable([
+					__('finance-product-service'),
+					'',
+					_FlexBetween(
+						_Flex(
+							_Th('finance-quantity')->class('w-28'),
+							_Th('finance-price'),
+						)->class('space-x-4'),
+						_Th('finance-total')->class('text-right'),
+					)->class('text-sm font-medium'),
+				])->addLabel(
+					$this->getChargeablesSelect(),
+				)
+				->class('mb-6 bg-white rounded-2xl')
+				->id('finance-items'),
 
             //     _Columns(
 			// 	_Rows(
@@ -133,10 +161,11 @@ class InvoiceForm extends Form
 	public function rules()
 	{
 		return [
-			'team_id' => 'required',
-			'person_id' => 'required',
-			'due_at' => 'required',
-			'invoiced_at' => 'required',
+			'customer_id' => 'required',
+			'invoice_due_date' => 'required',
+			'invoice_date' => 'required',
+			'payment_type_id' => 'required',
+			'invoice_type_id' => 'required',
 		];
 	}
 }

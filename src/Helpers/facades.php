@@ -2,7 +2,6 @@
 
 const CUSTOMER_MODEL_KEY = 'customer-model';
 
-const CUSTOMER_ADDRESS_MODEL_KEY = 'customer-address-model';
 
 const INVOICE_MODEL_KEY = 'invoice-model';
 

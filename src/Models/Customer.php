@@ -5,10 +5,12 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Events\CustomerCreated;
 use Illuminate\Support\Facades\DB;
 use Kompo\Auth\Facades\GlobalConfig;
+use Kompo\Auth\Models\Maps\Address;
 
 class Customer extends AbstractMainFinanceModel
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    use \Kompo\Auth\Models\Maps\MorphManyAddresses;
 
     public static function boot()
     {
@@ -34,14 +36,9 @@ class Customer extends AbstractMainFinanceModel
         return $this->hasMany(Invoice::class, 'customer_id');
     }
 
-    public function addresses()
-    {
-        return $this->hasMany(CustomerAddress::class, 'customer_id');
-    }
-
     public function defaultAddress()
     {
-        return $this->belongsTo(CustomerAddress::class, 'default_billing_address_id');
+        return $this->belongsTo(Address::class, 'default_billing_address_id');
     }
 
     public function customable()
@@ -74,13 +71,13 @@ class Customer extends AbstractMainFinanceModel
         $this->save();
     }
 
-    public function fillInvoiceForCustomer(Invoice $initialInvoiceDetails)
+    public function fillInvoiceForCustomer(Invoice $initialInvoice)
     {
         if (!$this->default_billing_address_id) {
             throw new \Illuminate\Database\Eloquent\RelationNotFoundException(__('translate.customer-address-not-set'));
         }
 
-        $invoice = $initialInvoiceDetails;
+        $invoice = $initialInvoice;
         $invoice->customer_id = $this->id;
         $invoice->tax_group_id = $this->defaultAddress->tax_group_id ?? GlobalConfig::getOrFail('default_tax_group_id');
         $invoice->payment_type_id = $this->default_payment_type_id ?? GlobalConfig::getOrFail('default_payment_type_id');

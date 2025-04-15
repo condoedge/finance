@@ -14,4 +14,9 @@ enum PaymentTypeEnum: int
             self::CASH => __('translate.cash'),
         };
     }
+
+    public function getPaymentGateway()
+    {
+        return config('kompo-finance.payment_gateways')[$this->value] ?? null;
+    }
 }

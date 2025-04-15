@@ -11,6 +11,6 @@ class TaxGroup extends Model
     /* RELATIONSHIPS */
     public function taxes()
     {
-        return $this->belongsToMany(Tax::class, 'fin_tax_group_tax', 'tax_group_id', 'tax_id');
+        return $this->belongsToMany(Tax::class, 'fin_taxes_group_taxes', 'tax_group_id', 'tax_id');
     }
 }

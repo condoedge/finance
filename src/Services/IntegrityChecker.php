@@ -109,7 +109,7 @@ class IntegrityChecker
         if ($ids) {
             foreach ($children as $child) {
                 $relationClass = $child::getRelationships($currentRelationClass)[0] ?? null;
-                $childrenIds[$child] = !$relationClass ? null : $child::whereHas($relationClass, fn($q) => $q->whereIn('id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
+                $childrenIds[$child] = !$relationClass ? null : $child::whereHas($relationClass, fn($q) => $q->whereIn((new $relationClass[1])->getTable() . '.id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
 
                 $currentRelationClass = $child;
             }
@@ -143,7 +143,7 @@ class IntegrityChecker
         foreach ($ancestors as $ancestor) {
             if ($ids) {
                 $relationClass = $ancestor::getRelationships($currentRelationClass)[0] ?? null;
-                $ids = !$relationClass ? null : $ancestor::whereHas($relationClass, fn($q) => $q->whereIn('id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
+                $ids = !$relationClass ? null : $ancestor::whereHas($relationClass[0], fn($q) => $q->whereIn((new $relationClass[1])->getTable() .'.id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
             }
 
             $this->runCheckIntegrityOn($ancestor, $ids);

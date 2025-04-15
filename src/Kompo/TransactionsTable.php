@@ -104,7 +104,7 @@ class TransactionsTable extends Table
             _Html(
                 $transaction->description.($pmtNumber ? (' #'.$pmtNumber) : '')
             ),
-            _Currency($transaction->amount)->class('whitespace-nowrap text-right')
+            _FinanceCurrency($transaction->amount)->class('whitespace-nowrap text-right')
                 ->class($transaction->isReversed() ? 'line-through' : ''),
             _FlexEnd(
                 $this->voidLinkWithAction($transaction) ?: _Html(),

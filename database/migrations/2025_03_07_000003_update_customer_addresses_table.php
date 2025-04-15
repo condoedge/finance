@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCustomerAddressesTable extends Migration
+class UpdateCustomerAddressesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,22 +13,12 @@ class CreateCustomerAddressesTable extends Migration
      */
     public function up()
     {
-        Schema::create('fin_customer_addresses', function (Blueprint $table) {
-            addMetaData($table);
-
-            $table->string('name')->nullable();
-            $table->string('address');
-            $table->string('city');
-            $table->string('state');
-            $table->string('country');
-            $table->string('postal_code');
-
-            $table->foreignId('customer_id')->constrained('fin_customers');
+        Schema::table('addresses', function (Blueprint $table) {
             $table->foreignId('default_tax_group_id')->nullable()->constrained('fin_taxes_groups');
         });
 
         Schema::table('fin_customers', function (Blueprint $table) {
-            $table->foreign('default_billing_address_id')->references('id')->on('fin_customer_addresses');
+            $table->foreign('default_billing_address_id')->references('id')->on('addresses');
         });
     }
 
@@ -43,6 +33,9 @@ class CreateCustomerAddressesTable extends Migration
             $table->dropForeign(['default_billing_address_id']);
         });
 
-        Schema::dropIfExists('fin_customer_addresses');
+        Schema::table('addresses', function (Blueprint $table) {
+            $table->dropForeign(['default_tax_group_id']);
+            $table->dropColumn('default_tax_group_id');
+        });
     }
 }

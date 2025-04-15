@@ -11,7 +11,7 @@ class FinanceRouteService
 {
     public static function invoicesRoutes()
     {
-        Route::get('invoices', InvoicesTable::class)->name('invoices.index');
+        Route::get('invoices', InvoicesTable::class)->name('invoices.list');
 
         Route::get('invoices/{id}', InvoicePage::class)->name('invoices.show');
 

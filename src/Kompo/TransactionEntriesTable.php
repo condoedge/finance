@@ -40,8 +40,8 @@ class TransactionEntriesTable extends Table
             _Html($entry->id)->class('text-gray-300 text-xs'),
             _Html($entry->description),
             _Html($entry->glAccount?->display),
-            _Currency($entry->debit),
-            _Currency($entry->credit)
+            _FinanceCurrency($entry->debit),
+            _FinanceCurrency($entry->credit)
         );
     }
 }

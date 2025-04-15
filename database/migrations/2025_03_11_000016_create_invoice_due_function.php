@@ -13,7 +13,7 @@ class CreateInvoiceDueFunction extends Migration
      */
     public function up()
     {
-        $sql = file_get_contents(__DIR__ . '/../sql/calculate_invoice_due/calculate_invoice_due_v0001.sql');
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_invoice_due/calculate_invoice_due_v0001.sql');
         \DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_due");
         \DB::unprepared($sql);
     }

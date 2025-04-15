@@ -14,9 +14,28 @@ class CustomerFactory extends Factory
     {
         return [
             'name' => $this->faker->name,
-            'default_payment_type_id' => $this->faker->randomDigit,
+            'default_payment_type_id' => null, // Will be populated later if needed
             'default_billing_address_id' => null, // Will be populated later if needed
             'customer_due_amount' => $this->faker->randomFloat(2, 0, 1000),
+            'team_id' => TeamFactory::new()->create()->id,
         ];
+    }
+
+    public function configure(array $attributes = [])
+    {
+        return $this->afterCreating(function (Customer $customer) {
+            // Create a default address for the customer
+            $address = $customer->addresses()->create([
+                'address1' => $this->faker->streetAddress,
+                'city' => $this->faker->city,
+                'state' => $this->faker->state,
+                'postal_code' => $this->faker->postcode,
+                'country' => $this->faker->country,
+            ]);
+
+            \DB::table('fin_customers')
+                ->where('id', $customer->id)
+                ->update(['default_billing_address_id' => $address->id]);
+        });
     }
 }

@@ -113,7 +113,7 @@ class PaymentEntryForm extends ModalScroll
 		return _Rows(
 			_Card(
 				_Rows(
-					_Currency($this->model->due_amount)->class('text-2xl font-bold'),
+					_FinanceCurrency($this->model->due_amount)->class('text-2xl font-bold'),
 					_Html('finance-remaining-amount-to-be-paid')->class('opacity-60'),
 				)->class('text-right')
 			)->class('bg-level4 p-4 !mb-2'),
@@ -219,7 +219,7 @@ class PaymentEntryForm extends ModalScroll
 						_Html($invoice->customer_label),
 					),
 					_Rows(
-						_Currency(abs($invoice->due_amount))->class('text-xl font-black'),
+						_FinanceCurrency(abs($invoice->due_amount))->class('text-xl font-black'),
 						_Html($invoice->invoiced_at->translatedFormat('d M Y')),
 					)->class('text-right')
 				)->class('p-4 card-gray-100 cursor-pointer hover:shadow')
@@ -239,7 +239,7 @@ class PaymentEntryForm extends ModalScroll
 						_Html($bill->supplier->display),
 					),
 					_Rows(
-						_Currency(abs($bill->due_amount))->class('text-xl font-black'),
+						_FinanceCurrency(abs($bill->due_amount))->class('text-xl font-black'),
 						_Html($bill->billed_at->translatedFormat('d M Y')),
 					)->class('text-right')
 				)->class('p-4 card-gray-100 cursor-pointer hover:shadow')

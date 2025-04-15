@@ -4,6 +4,8 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Kompo\Common\Modal;
+use Kompo\Auth\Models\Maps\Address;
+use Kompo\Place;
 
 class CustomerForm extends Modal
 {
@@ -25,13 +27,14 @@ class CustomerForm extends Modal
 
     public function handle()
     {
-        if (request('from_model') && request('from_id')) {
-            $fromModel = request('from_model');
-            $fromId = request('from_id');
+        $modelInstance = $this->getModelRelationInstance();
 
-            $modelInstance = $fromModel::find($fromId);
+        if ($modelInstance) {
+            Address::createMainForFromRequest($modelInstance, request('address')[0]);
 
-            $modelInstance->upsertCustomerFromThisModel(currentTeamId());
+            $modelInstance?->upsertCustomerFromThisModel(currentTeamId());
+        } else {
+            Address::createMainForFromRequest($this->model, request('address')[0]);
         }
     }
 
@@ -72,7 +75,34 @@ class CustomerForm extends Modal
             return $this->manualForm();
         }
 
-        return _Select($customableClass::getVisualName())->name('from_id')
-            ->options($customableClass::getOptionsForCustomerForm());
+        return _Rows(
+            _Select($customableClass::getVisualName())->name('from_id')
+                ->selfPost('ensureAddress')->withAllFormValues()->inPanel('address-panel')
+                ->options($customableClass::getOptionsForCustomerForm()),
+            _Panel()->id('address-panel'),
+        );
+    }
+
+    public function ensureAddress()
+    {
+        $modelInstance = $this->getModelRelationInstance();
+   
+        if (!$modelInstance->getFirstValidAddress()) {
+            return _Place()->name('address');
+        }
+
+        return null;
+    }
+
+    protected function getModelRelationInstance()
+    {
+        if (!request('from_model') || !request('from_id')) {
+            return null;
+        }
+
+        $fromModel = request('from_model');
+        $fromId = request('from_id');
+
+        return $fromModel::find($fromId);
     }
 }

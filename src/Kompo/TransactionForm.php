@@ -130,21 +130,21 @@ class TransactionForm extends Form
 						_FlexBetween(
 							_Rows(
 								_Html('finance-total-debits')->class('text-xs font-bold text-gray-500'),
-								_Currency($this->model->id ? $this->model->debit : 0)
+								_FinanceCurrency($this->model->id ? $this->model->debit : 0)
 									->class('text-lg font-bold')
 									->id('total-debit')
 							)->class('px-2'),
 							_Html('='),
 							_Rows(
 								_Html('finance-total-credits')->class('text-xs font-bold text-gray-500'),
-								_Currency($this->model->id ? $this->model->credit : 0)
+								_FinanceCurrency($this->model->id ? $this->model->credit : 0)
 									->class('text-lg font-bold')
 									->id('total-credit')
 							)->class('px-2'),
 						)->class('space-x-4'),
 						_FlexAround(
 							_Html('finance-difference')->class('text-xs font-bold'),
-							_Currency($this->model->id ? $this->model->diff_balance : 0)
+							_FinanceCurrency($this->model->id ? $this->model->diff_balance : 0)
 								->class('text-lg font-bold')
 								->id('total-sum'),
 						)->class('space-x-2'),

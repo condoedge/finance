@@ -83,7 +83,7 @@ class AccountsList extends Query
                             ->selfUpdate('getBankForm', ['id' => $account->bank_id])->inModal(),
                     static::toggleAccountKomponent($account),
                 )->class('hidden group-hover:flex space-x-4'),
-                _Currency($account->getCurrentBalance())
+                _FinanceCurrency($account->getCurrentBalance())
                     ->class('text-level1')
             ),
     	)->class('py-2 px-4 space-x-4 bg-white border-b border-gray-100 hover:bg-gray-50 group');

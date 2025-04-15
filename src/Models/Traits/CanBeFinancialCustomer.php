@@ -40,6 +40,7 @@ trait CanBeFinancialCustomer
         }
 
         $this->fillCustomerFromThisModel($customer);
+        $customer->default_billing_address_id = $this->getFirstValidAddress()?->id;
 
         if ($customer->isDirty()) {
             $customer->customable_id = $this->id;

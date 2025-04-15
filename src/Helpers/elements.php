@@ -11,3 +11,10 @@ if (!function_exists('_FinanceModalHeader')) {
         ->alignStart();
     }
 }
+
+if (!function_exists('_FinanceCurrency')) {
+    function _FinanceCurrency($value, $options = null)
+    {
+        return _Html(finance_html_currency($value, $options));
+    }
+}

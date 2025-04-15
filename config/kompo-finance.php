@@ -1,12 +1,10 @@
 <?php
 
+use Condoedge\Finance\Billing\TempPaymentGateway;
 use Condoedge\Finance\Models\CustomableTeam;
-use Kompo\Auth\Models\Teams\Team;
 
 return [
     CUSTOMER_MODEL_KEY . '-namespace' => getAppClass(App\Models\Customer::class, Condoedge\Finance\Models\Customer::class),
-
-    CUSTOMER_ADDRESS_MODEL_KEY . '-namespace' => getAppClass(App\Models\CustomerAddress::class, Condoedge\Finance\Models\CustomerAddress::class),
 
     INVOICE_MODEL_KEY . '-namespace' => getAppClass(App\Models\Invoice::class, Condoedge\Finance\Models\Invoice::class),
 
@@ -45,4 +43,73 @@ return [
     'customable_models' => [
         CustomableTeam::class,
     ],
+
+    'payment_gateways' => [
+        \Condoedge\Finance\Models\PaymentTypeEnum::CASH->value => TempPaymentGateway::class,
+    ],
+
+    // These are used to bind "config-currency" to the locale in our service provider
+    // But as default we use the logic behind this. If we don't set "config-currency" in the service provider, it will use the default config
+    'currency_preformats' => [
+        'en' => [
+            'format' => '#,###.00 CAD',
+        ],
+        'fr' => [
+            'format' => '#,###.00### $',
+        ],
+    ],
+
+    'currency' => [
+        /*
+        |--------------------------------------------------------------------------
+        | Format
+        |--------------------------------------------------------------------------
+        |
+        | If you set 'format', it overrides the following default currency properties:
+        |   - 'symbol'
+        |   - 'position'
+        |   - 'decimal_separator'
+        |   - 'thousands_separator'
+        |   - 'min_number_of_decimals'
+        |   - 'max_number_of_decimals'
+        |
+        | Example:
+        | 'format' => '$ #,###.00###',
+        */
+        'format' => '$ #,###.00###',
+
+        'symbol' => '$',
+        'position' => 'left',
+        'decimal_separator' => '.',
+        'thousands_separator' => ',',
+        'min_number_of_decimals' => 2,
+        'max_number_of_decimals' => 3,
+
+        /*
+        |--------------------------------------------------------------------------
+        | Rounding Mode
+        |--------------------------------------------------------------------------
+        |
+        | Define how decimal values should be handled when they exceed the maximum number of decimals
+        | Options:
+        | 'round' - Standard mathematical rounding (e.g., 3.456 with 2 decimals becomes 3.46)
+        | 'truncate' - Simply cuts off excess decimals (e.g., 3.456 with 2 decimals becomes 3.45)
+        | 'ceiling' - Always rounds up (e.g., 3.451 with 2 decimals becomes 3.46)
+        | 'floor' - Always rounds down (e.g., 3.459 with 2 decimals becomes 3.45)
+        */
+        'rounding_mode' => 'round',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Custom Currency Formatter
+    |--------------------------------------------------------------------------
+    |
+    | Define a callable that takes a numeric value and returns a formatted string
+    | This allows developers to completely override the default formatting logic
+    | Example: 'formatter' => function($value) { return '$' . number_format($value, 2); }
+    |
+    | Leave this as null to use the default formatter
+    */
+    'custom_currency_formatter' => null,
 ];
