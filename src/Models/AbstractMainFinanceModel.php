@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Traits\HasEventsOnDbInteraction;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 
 abstract class AbstractMainFinanceModel extends Model
 {

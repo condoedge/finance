@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 
 class InvoiceStatus extends Model
 {

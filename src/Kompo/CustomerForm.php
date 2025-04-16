@@ -4,8 +4,7 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Kompo\Common\Modal;
-use Kompo\Auth\Models\Maps\Address;
-use Kompo\Place;
+use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 
 class CustomerForm extends Modal
 {

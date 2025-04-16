@@ -3,10 +3,10 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
-use Kompo\Auth\Exports\TableExportableToExcel;
+use Condoedge\Utils\Kompo\Common\Table;
 use Kompo\Elements\Element;
 
-class InvoicesTable extends TableExportableToExcel
+class InvoicesTable extends Table
 {
     public $containerClass = 'container-fluid';
     public $itemsWrapperClass = 'bg-white rounded-2xl p-4'; 

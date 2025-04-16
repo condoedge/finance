@@ -3,14 +3,14 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Events\CustomerCreated;
+use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
-use Kompo\Auth\Facades\GlobalConfig;
-use Kompo\Auth\Models\Maps\Address;
+use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 
 class Customer extends AbstractMainFinanceModel
 {
-    use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
-    use \Kompo\Auth\Models\Maps\MorphManyAddresses;
+    use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
+    use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
 
     public static function boot()
     {

@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 
 /**
  * This model is intended for read-only historical customer data queries.

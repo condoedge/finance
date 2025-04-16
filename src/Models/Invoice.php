@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\DB;
  */
 class Invoice extends AbstractMainFinanceModel
 {
-    use \Kompo\Auth\Models\Maps\MorphManyAddresses;
+    use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
     
     protected $table = 'fin_invoices';
 

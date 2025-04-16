@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Kompo\Auth\KompoAuthServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
@@ -27,9 +26,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $authProvider = new KompoAuthServiceProvider($this->app);
-        $authProvider->boot();
-
         EloquentFactory::guessFactoryNamesUsing(function (string $modelName) {
             return 'Condoedge\\Finance\\Database\\Factories\\'.class_basename($modelName).'Factory';
         });

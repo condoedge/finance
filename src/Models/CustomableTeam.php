@@ -3,10 +3,9 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Traits\CanBeFinancialCustomer;
-use Kompo\Auth\Models\Teams\Team;
 
 // Not used for queries, just a service model to create customers from teams
-class CustomableTeam extends Team implements CustomableContract
+class CustomableTeam implements CustomableContract
 {
     use CanBeFinancialCustomer;
 

@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Facades;
 
-use Kompo\Auth\Facades\FacadeEnum;
+use Condoedge\Utils\Facades\FacadeEnum;
 
 /**
  * @mixin \Condoedge\Finance\Models\InvoiceTypeEnum
