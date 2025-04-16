@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Kompo\Database\HasTranslations;
 

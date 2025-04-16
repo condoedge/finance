@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Models;
 use App\Models\Condo\Unit;
 use Condoedge\Finance\Models\Fund;
 use Condoedge\Finance\Models\Invoice;
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 use App\Models\Traits\MorphManyNotifications;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;

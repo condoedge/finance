@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use App\Models\Finance\GlAccount;
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 
 class AccountBalance extends Model
 {

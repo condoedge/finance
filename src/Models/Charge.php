@@ -3,14 +3,14 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Transaction;
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 use App\Models\User;
 
 abstract class Charge extends Model
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
-    use \Kompo\Auth\Models\Files\MorphManyFilesTrait;
-    use \Kompo\Auth\Models\Tags\MorphToManyTagsTrait;
+    use \Condoedge\Utils\Models\Files\MorphManyFilesTrait;
+    use \Condoedge\Utils\Models\Tags\MorphToManyTagsTrait;
 
     protected $casts = [];
     protected $toExtendCasts = [];

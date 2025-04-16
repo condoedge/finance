@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Models;
 
 enum PaymentMethodEnum: int 
 {
-    use \Kompo\Auth\Models\Traits\EnumKompo;
+    use \Condoedge\Utils\Models\Traits\EnumKompo;
     
     case CREDIT_CARD_ONLINE = 1;
     case DEBIT_CARD_ONLINE = 2;

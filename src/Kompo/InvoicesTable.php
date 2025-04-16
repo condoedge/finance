@@ -4,10 +4,10 @@ namespace Condoedge\Finance\Kompo;
 
 use App\Models\Finance\Invoice;
 use App\Models\Crm\Person;
-use Kompo\Auth\Exports\TableExportableToExcel;
+use Condoedge\Utils\Kompo\Common\Table;
 use Kompo\Elements\Element;
 
-class InvoicesTable extends TableExportableToExcel
+class InvoicesTable extends Table
 {
     public $containerClass = 'container-fluid';
     public $itemsWrapperClass = 'bg-white rounded-2xl p-4'; 

@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Models;
 
 enum PaymentInstallmentEnum: int
 {
-    use \Kompo\Auth\Models\Traits\EnumKompo;
+    use \Condoedge\Utils\Models\Traits\EnumKompo;
     
     case ONE_TIME = 1;
     case TWO_TIMES = 2;

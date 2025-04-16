@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\GlAccount;
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 
 class Tax extends Model
 {

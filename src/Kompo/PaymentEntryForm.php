@@ -6,7 +6,7 @@ use App\Models\Finance\Bill;
 use App\Models\Finance\Entry;
 use App\Models\Finance\GlAccount;
 use App\Models\Finance\Invoice;
-use Kompo\Auth\Common\ModalScroll;
+use Condoedge\Utils\Kompo\Common\Modal;
 
 class PaymentEntryForm extends ModalScroll
 {

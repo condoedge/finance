@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Acompte;
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 
 class Transaction extends Model
 {

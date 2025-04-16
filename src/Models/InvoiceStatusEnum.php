@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Models;
 
 enum InvoiceStatusEnum: int
 {
-    use \Kompo\Auth\Models\Traits\EnumKompo;
+    use \Condoedge\Utils\Models\Traits\EnumKompo;
     
     case DRAFT = 1;
     case APPROVED = 2;

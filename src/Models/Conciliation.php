@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use App\Models\Finance\Entry;
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 
 class Conciliation extends Model
 {

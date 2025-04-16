@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use App\Models\Finance\Transaction;
-use Kompo\Auth\Common\ModalScroll;
+use Condoedge\Utils\Kompo\Common\Modal;
 
 class TransactionPreviewForm extends ModalScroll
 {

@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use App\Models\Condo\Unit;
-use Kompo\Auth\Models\Model;
+use Condoedge\Utils\Models\Model;
 
 class FundQuote extends Model
 {
