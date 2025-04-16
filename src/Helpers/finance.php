@@ -1,12 +1,5 @@
 <?php
 
-
-function _DateLockErrorField()
-{
-    return _ErrorField()->name('not_editable', false);
-}
-
-
 function _TotalCurrencyCols($title, $id, $amount = 0, $border = true)
 {
     return _Columns(
@@ -19,34 +12,4 @@ function _TaxesInfoLink()
 {
 	return _Link()->icon('question-mark-circle')->class('text-gray-700 absolute')
 		->selfGet('getTaxesInfoModal')->inModal();
-}
-
-
-function _MiniLabelDate($label, $date, $class = '')
-{
-    return _Rows(
-        _MiniLabel($label),
-        _HtmlDate($date)->class($class),
-    );
-}
-
-function _MiniLabelCcy($label, $date, $class = '')
-{
-    return _Rows(
-        _MiniLabel($label),
-        _Currency($date)->class($class),
-    );
-}
-
-function _MiniLabelValue($label, $value)
-{
-    return _Rows(
-        _MiniLabel($label),
-        _Html($value ?: '&nbsp;'), //when empty preserve height
-    );
-}
-
-function _MiniLabel($label)
-{
-    return _Html($label)->class('text-level1 opacity-60 text-xs');
 }
