@@ -59,6 +59,7 @@ return [
         ],
     ],
 
+    // This is not used, just to show all the settings possibles in the config file
     'currency' => [
         /*
         |--------------------------------------------------------------------------
