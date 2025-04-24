@@ -119,11 +119,7 @@ if (!function_exists('finance_ensure_decimals')) {
     {
         $formattedParts = explode('.', $formatted);
 
-        if (!isset($formattedParts[1])) {
-            return $formatted;
-        }
-
-        $decimal = rtrim($formattedParts[1], '0');
+        $decimal = rtrim($formattedParts[1] ?? '', '0');
         if (strlen($decimal) < $minDecimals) {
             $decimal = str_pad($decimal, $minDecimals, '0');
         }

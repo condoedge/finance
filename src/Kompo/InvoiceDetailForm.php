@@ -6,6 +6,7 @@ use App\Models\Finance\GlAccount;
 use App\Models\Finance\ChargeDetail;
 use App\Models\Finance\Tax;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
+use Condoedge\Finance\Models\Account;
 use Kompo\Form;
 
 class InvoiceDetailForm extends Form
@@ -23,9 +24,9 @@ class InvoiceDetailForm extends Form
 		return [
 			_Rows(
 				_Input()->placeholder('finance.new-item-name')->name('name'),
-			)->class('pl-4 w-72'),
+			)->class('pl-4')->style('width: 15em'),
 
-			_Input()->placeholder('finance.item-description')->name('description')->style('width: 20em'),
+			_Input()->placeholder('finance.item-description')->name('description')->style('width: 10em'),
 
 			_Rows(
 				// $this->model->getChargeableHiddenEls($this->chargeable),
@@ -41,6 +42,11 @@ class InvoiceDetailForm extends Form
 							->name('unit_price')
 							->class('w-28 mb-0')
 							->run('calculateTotals'),
+
+						_Select()->placeholder('account')
+							->class('w-36 mb-0')
+							->name('revenue_account_id')
+							->options(Account::pluck('name', 'id')->toArray()),
 					)->class('space-x-4'),
 
 					_FinanceCurrency(0)
@@ -70,7 +76,7 @@ class InvoiceDetailForm extends Form
 			'quantity' => 'required',
 			'unit_price' => 'required',
 			'name' => 'sometimes|required',
-			'gl_account_id' => 'sometimes|required',
+			'revenue_account_id' => 'required|exists:fin_accounts,id',
 		];
 	}
 }

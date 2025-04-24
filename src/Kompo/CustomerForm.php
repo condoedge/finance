@@ -29,10 +29,12 @@ class CustomerForm extends Modal
         $modelInstance = $this->getModelRelationInstance();
 
         if ($modelInstance) {
-            Address::createMainForFromRequest($modelInstance, request('address')[0]);
-
             $modelInstance?->upsertCustomerFromThisModel(currentTeamId());
-        } else {
+
+            $this->model($modelInstance);
+        }
+
+        if (!$modelInstance->getFirstValidAddress()) {
             Address::createMainForFromRequest($this->model, request('address')[0]);
         }
     }

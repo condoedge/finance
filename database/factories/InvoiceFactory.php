@@ -18,9 +18,10 @@ class InvoiceFactory extends Factory
     public function definition()
     {
         return [
-            'invoice_number' => $this->faker->randomNumber(),
+            'invoice_number' => $this->faker->unique()->randomNumber(8, false),
             'invoice_date' => $this->faker->date(),
-            'invoice_amount' => $this->faker->randomFloat(2, 100, 1000),
+            'invoice_amount_before_taxes' => $this->faker->randomFloat(2, 100, 1000),
+            'invoice_due_date' => $this->faker->dateTimeBetween('now', '+1 month'),
             'invoice_due_amount' => $this->faker->randomFloat(2, 50, 500),
             'invoice_tax_amount' => $this->faker->randomFloat(2, 10, 100),
             'customer_id' => Customer::factory(),

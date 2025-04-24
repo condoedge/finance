@@ -36,7 +36,11 @@ return [
         ],
         \Condoedge\Finance\Models\Invoice::class => [
             \Condoedge\Finance\Models\InvoiceDetail::class,
+            \Condoedge\Finance\Models\InvoiceDetailTax::class,
             \Condoedge\Finance\Models\InvoicePayment::class,
+        ],
+        \Condoedge\Finance\Models\InvoiceDetailTax::class => [
+           \Condoedge\Finance\Models\InvoiceDetail::class,
         ],
     ],
 
@@ -52,10 +56,10 @@ return [
     // But as default we use the logic behind this. If we don't set "config-currency" in the service provider, it will use the default config
     'currency_preformats' => [
         'en' => [
-            'format' => '#,###.00 CAD',
+            'format' => '#,###.00# $',
         ],
         'fr' => [
-            'format' => '#,###.00### $',
+            'format' => '#.###,00### $',
         ],
     ],
 

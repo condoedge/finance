@@ -24,6 +24,7 @@ class InvoiceDetailsTable extends Table
     {
         return [
             _Th('finance-product-service'),
+            _Th('accounts.revenue-account')->class('text-right'),
             _Th('finance-qty')->class('text-right'),
             _Th('finance-price')->class('text-right'),
             _Th('finance-taxes')->class('text-right'),
@@ -35,6 +36,7 @@ class InvoiceDetailsTable extends Table
     {
     	return _TableRow(
             _Html($invoiceDetail->name),
+            _Html($invoiceDetail->revenueAccount->name)->class('text-right'),
             _Html($invoiceDetail->quantity)->class('text-right'),
             _FinanceCurrency($invoiceDetail->unit_price)->class('text-right'),
             _FinanceCurrency($invoiceDetail->tax_amount)->class('text-right'),

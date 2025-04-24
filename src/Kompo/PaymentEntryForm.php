@@ -6,7 +6,8 @@ use App\Models\Finance\Bill;
 use App\Models\Finance\Entry;
 use App\Models\Finance\GlAccount;
 use App\Models\Finance\Invoice;
-use Condoedge\Utils\Kompo\Common\Modal;
+use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Kompo\Common\Modal;
 
 class PaymentEntryForm extends Modal
 {
@@ -29,15 +30,11 @@ class PaymentEntryForm extends Modal
 			abort(403);
 		}
 
-		$model = 'App\\Models\\Finance\\'.ucfirst($this->modelType);
+		$this->model(InvoiceModel::find($this->prop('id')));
 
-		$this->model($model::find($this->prop('id')));
+		$this->hasInvoiceCredit = false;
 
-		$this->hasInvoiceCredit = ($this->modelType == 'invoice') && ($this->model->customer_type == 'unit') && (
-			($this->getAcompteValue() > 0) || $this->getInvoiceCreditNotes()->count()
-		);
-
-		$this->hasBillCredit = ($this->modelType == 'bill') && $this->getBillCreditNotes()->count();
+		$this->hasBillCredit = false;
 	}
 
     public function headerButtons()

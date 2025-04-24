@@ -26,6 +26,10 @@ BEGIN
             RETURN p_draft_status_id;
         END IF;
 
+        IF current_status = p_paid_status_id THEN
+            RETURN p_pending_status_id;
+        END IF;
+
         RETURN current_status;
     END IF;
 END$$

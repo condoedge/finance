@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class SetInvoicesFunctions extends Migration
@@ -13,13 +14,37 @@ class SetInvoicesFunctions extends Migration
      */
     public function up()
     {
-        $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_invoice_amount/calculate_invoice_amount_v0001.sql');
-        \DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_amount");
-        \DB::unprepared($sql);
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_invoice_amount_before_taxes/calculate_invoice_amount_before_taxes_v0001.sql');
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_amount_before_taxes");
+        DB::unprepared(processDelimiters($sql));
 
         $sql = file_get_contents(__DIR__ . '/../sql/functions/get_invoice_reference/get_invoice_reference_v0001.sql');
-        \DB::unprepared("DROP FUNCTION IF EXISTS get_invoice_reference");
-        \DB::unprepared($sql);
+        DB::unprepared("DROP FUNCTION IF EXISTS get_invoice_reference");
+        DB::unprepared(processDelimiters($sql));
+
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_invoice_due/calculate_invoice_due_v0001.sql');
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_due");
+        DB::unprepared(processDelimiters($sql));
+
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_invoice_status/calculate_invoice_status_v0001.sql');
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_status");
+        DB::unprepared(processDelimiters($sql));
+
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_invoice_tax/calculate_invoice_tax_v0001.sql');
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_tax");
+        DB::unprepared(processDelimiters($sql));
+
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/get_detail_tax_amount/get_detail_tax_amount_v0001.sql');
+        DB::unprepared("DROP FUNCTION IF EXISTS get_detail_tax_amount");
+        DB::unprepared(processDelimiters($sql));
+
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/get_detail_unit_price_with_sign/get_detail_unit_price_with_sign_v0001.sql');
+        DB::unprepared("DROP FUNCTION IF EXISTS get_detail_unit_price_with_sign");
+        DB::unprepared(processDelimiters($sql));
+
+        $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_customer_due/calculate_customer_due_v0001.sql');
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_customer_due");
+        DB::unprepared(processDelimiters($sql));
     }
 
     /**
@@ -29,7 +54,13 @@ class SetInvoicesFunctions extends Migration
      */
     public function down()
     {
-        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_amount");
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_amount_before_taxes");
         DB::unprepared("DROP FUNCTION IF EXISTS get_invoice_reference");
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_due");
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_status");
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_invoice_tax");
+        DB::unprepared("DROP FUNCTION IF EXISTS get_detail_tax_amount");
+        DB::unprepared("DROP FUNCTION IF EXISTS get_detail_unit_price_with_sign");
+        DB::unprepared("DROP FUNCTION IF EXISTS calculate_customer_due");
     }
 }

@@ -8,8 +8,7 @@ use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Facades\PaymentTypeEnum;
-use Condoedge\Finance\Models\Customer;
-use Kompo\Form;
+use Condoedge\Utils\Kompo\Common\Form;
 
 class InvoiceForm extends Form
 {
@@ -31,8 +30,12 @@ class InvoiceForm extends Form
 
 	public function beforeSave()
 	{
+		$this->model->customer_id = request('customer_id');
+
+		// This is a tool to set the context in the PaymentGatewayResolver (it needs the invoice model to get details)
 		PaymentGatewayResolver::setContext($this->model);
 
+		// After setting the context the resolver will return the correct payment gateway using logic behind (for now payment_type_id) 
 		$this->model->account_receivable_id = PaymentGateway::getCashAccount()->id;
 
 		/**
@@ -40,11 +43,13 @@ class InvoiceForm extends Form
 		 */
 		$customer = CustomerModel::find($this->model->customer_id);
 
+		// We decorate the invoice with the customer data preferences
 		$customer->fillInvoiceForCustomer($this->model);
 	}
 
 	public function afterSave()
 	{
+		// For now we don't do anything here, but we could do some extra logic
 		PaymentGatewayResolver::setContext($this->model);
 	}
 
@@ -58,7 +63,7 @@ class InvoiceForm extends Form
 		return [
 			_FlexBetween(
 				_Breadcrumbs(
-	                _Link('finance-all-receivables')->href('finance.invoices-table'),
+	                _BackLink('finance-all-receivables')->href('invoices.list'),
 	                _Html('finance-edit'),
 	            ),
 				_FlexEnd4(
@@ -75,8 +80,10 @@ class InvoiceForm extends Form
 					->name('payment_type_id')
 					->options(PaymentTypeEnum::optionsWithLabels()),
 				_Columns(
-					_Select('finance-invoiced-to')->name('customer_id')->class('!mb-0')
-						->options(Customer::forTeam($this->team?->id)->pluck('name', 'id')),
+					new SelectCustomer(null, [
+						'team_id' => $this->team?->id,
+						'default_id' => $this->model->customer_id,
+					]),
 
 					_Button()->class('mb-2')->icon('plus')->selfGet('getCustomerModal')->inModal(),
 				)->class('items-end mb-2'),
@@ -98,7 +105,8 @@ class InvoiceForm extends Form
 					_FlexBetween(
 						_Flex(
 							_Th('finance-quantity')->class('w-28'),
-							_Th('finance-price'),
+							_Th('finance-price')->class('w-28'),
+							_Th('finance-account')->class('w-36'),
 						)->class('space-x-4'),
 						_Th('finance-total')->class('text-right'),
 					)->class('text-sm font-medium'),
@@ -149,7 +157,7 @@ class InvoiceForm extends Form
 	public function getCustomerModal()
 	{
 		return new CustomerForm(null, [
-			'refresh_id' => self::ID,
+			'refresh_id' => 'select-customer',
 		]);
 	}
 
@@ -161,7 +169,6 @@ class InvoiceForm extends Form
 	public function rules()
 	{
 		return [
-			'customer_id' => 'required',
 			'invoice_due_date' => 'required',
 			'invoice_date' => 'required',
 			'payment_type_id' => 'required',

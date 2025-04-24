@@ -18,6 +18,7 @@ class InvoiceDetailFactory extends Factory
         $unit_price = $this->faker->randomFloat(2, 10, 100);
         
         return [
+            'name' => $this->faker->word,
             'invoice_id' => Invoice::factory(),
             'revenue_account_id' => Account::factory(),
             'product_id' => Product::factory(),

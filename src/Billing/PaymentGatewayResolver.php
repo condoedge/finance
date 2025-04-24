@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Billing;
 
 use Condoedge\Finance\Models\Invoice;
+use Illuminate\Support\Facades\Log;
 
 class PaymentGatewayResolver
 {
@@ -16,6 +17,8 @@ class PaymentGatewayResolver
     public static function resolve(): PaymentGatewayInterface
     {
         if (self::$invoiceContext === null) {
+            Log::critical('PaymentGatewayResolver: Context is not set. Please set the context before resolving.');
+            
             throw new \RuntimeException('Payment gateway context is not set.');
         }
 

@@ -3,11 +3,13 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Traits\CanBeFinancialCustomer;
+use Condoedge\Utils\Models\Model;
 
 // Not used for queries, just a service model to create customers from teams
-class CustomableTeam implements CustomableContract
+class CustomableTeam extends Model implements CustomableContract
 {
     use CanBeFinancialCustomer;
+    use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
 
     protected $table = 'teams';
 

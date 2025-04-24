@@ -18,3 +18,14 @@ if (!function_exists('_FinanceCurrency')) {
         return _Html(finance_html_currency($value, $options));
     }
 }
+
+if (!function_exists('_MiniLabelFinanceCcy')) {
+    function _MiniLabelFinanceCcy($label, $date, $class = '')
+    {
+        return _Rows(
+            _MiniLabel($label),
+            _FinanceCurrency($date)->class($class),
+        );
+    }
+}
+

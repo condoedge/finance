@@ -17,10 +17,12 @@ trait HasIntegrityCheck
     public static function bootHasIntegrityCheck()
     {
         static::saved(function ($model) {
+            IntegrityChecker::checkChildrenThenModel(static::class, [$model->id]);
             IntegrityChecker::checkModelThenParents(static::class, [$model->id]);
         });
 
         static::deleted(function ($model) {
+            IntegrityChecker::checkChildrenThenModel(static::class, [$model->id]);
             IntegrityChecker::checkModelThenParents(static::class, [$model->id]);
         });
     }

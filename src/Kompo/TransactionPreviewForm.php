@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use App\Models\Finance\Transaction;
-use Condoedge\Utils\Kompo\Common\Modal;
+use Condoedge\Finance\Kompo\Common\Modal;
 
 class TransactionPreviewForm extends Modal
 {
