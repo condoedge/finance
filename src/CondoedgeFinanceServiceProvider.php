@@ -5,8 +5,13 @@ namespace Condoedge\Finance;
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Billing\TempPaymentGateway;
+use Condoedge\Finance\Facades\CustomerModel;
+use Condoedge\Finance\Models\CustomableTeam;
+use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -41,11 +46,11 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
-        $this->loadRelationsMorphMap();
-
         $this->loadCommands();
 
         $this->registerFacades();
+        
+        $this->loadRelationsMorphMap();
 
         $this->setCronExecutions();
     }
@@ -60,6 +65,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         // Best way to load routes. This ensures loading at the very end (after fortifies' routes for ex.)
         $this->booted(function () {
             Route::middleware('web')->group(__DIR__.'/../routes/web.php');
+            Route::prefix('api')->middleware('api')->group(__DIR__.'/../routes/api.php');
         });
 
         // Register services for integrity checking
@@ -121,6 +127,10 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->bind(INVOICE_TYPE_ENUM_KEY, function () {
             return config('kompo-finance.' . INVOICE_TYPE_ENUM_KEY . '-namespace');
         });
+
+        $this->app->bind(CUSTOMER_PAYMENT_MODEL_KEY, function () {
+            return new (config('kompo-finance.' . CUSTOMER_PAYMENT_MODEL_KEY . '-namespace'));
+        });
     }
 
     protected function loadHelpers()
@@ -167,9 +177,11 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
      */
     protected function loadRelationsMorphMap()
     {
-        Relation::morphMap([
-
-        ]);
+        Relation::morphMap(array_merge([
+            
+        ], CustomerModel::getCustomables()->all() , collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
+                return [$case->value => $case->getMorphableClass()];
+        })->all()));
     }
 
     public function loadCommands()
@@ -187,10 +199,5 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('finance:ensure-integrity')->dailyAt('01:00');
         });
-    }
-
-    public function loadRoutes()
-    {
-        Route::middleware('web')->group(__DIR__.'/../routes/web.php');
     }
 }

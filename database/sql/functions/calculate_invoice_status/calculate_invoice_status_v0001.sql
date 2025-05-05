@@ -5,12 +5,15 @@ CREATE FUNCTION calculate_invoice_status(p_invoice_id INT, p_paid_status_id INT,
 BEGIN
     DECLARE current_status INT DEFAULT NULL;
     DECLARE items_quantity INT DEFAULT 0;
-    DECLARE is_draft BOOLEAN DEFAULT FALSE;
+    DECLARE is_draft BOOLEAN DEFAULT TRUE;
 
     select count(*) into items_quantity from fin_invoice_details
         where invoice_id = p_invoice_id;
 
     SELECT invoice_status_id INTO current_status FROM fin_invoices
+            WHERE id = p_invoice_id;
+
+    SELECT fin_invoices.is_draft = 1 INTO is_draft FROM fin_invoices
             WHERE id = p_invoice_id;
 
     IF is_draft = TRUE THEN

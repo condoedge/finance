@@ -93,11 +93,11 @@ class InvoicePage extends Form
 							$this->lastPaymentWithDate(),
 						)
 					),
-				// !$this->model->canPay() ? null : _FlexEnd(
-				// 	_Link('finance.record-payment')
-				// 		->outlined()
-				// 		->selfUpdate('getPaymentEntryForm')->inModal()
-				// )
+				!$this->model->canBePaid() ? null : _FlexEnd(
+					_Link('finance.record-payment')
+						->outlined()
+						->selfUpdate('getApplyPaymentToInvoiceModal')->inModal()
+				)
 			)->class('mb-4 p-6 bg-white rounded-2xl'),
 			_TitleMini($this->model->isRefund() ? 'finance-credit-note-details' : 'finance-invoice-details')->class('uppercase mb-2 mt-4 text-greenmain opacity-70'),
 			(new InvoiceDetailsTable([
@@ -125,6 +125,14 @@ class InvoicePage extends Form
 
 		return __('finance-invoice-approved');
 	}
+
+	public function getApplyPaymentToInvoiceModal()
+    {
+        return new PaymentForm([
+			'customer_id' => $this->model->customer_id,
+            'invoice_id' => $this->model->id,
+        ]);
+    }
 
 	public function getSendingModal()
 	{
@@ -158,13 +166,13 @@ class InvoicePage extends Form
 	{
 		return _FlexEnd4(
 			$this->amountDue(),
-			_MiniLabelDate('finance.due-date', $this->model->due_at, $this->bigClass)->class('border-l border-gray-200 pl-4'),
+			_MiniLabelDate('finance.due-date', $this->model->invoice_due_date, $this->bigClass)->class('border-l border-gray-200 pl-4'),
 		);
 	}
 
 	protected function amountDue()
 	{
-		return _MiniLabelCcy('finance.amount-due', $this->model->due_amount, $this->bigClass);
+		return _MiniLabelCcy('finance.amount-due', $this->model->invoice_due_amount, $this->bigClass);
 	}
 
 	protected function lastPaymentWithDate()

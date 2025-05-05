@@ -8,7 +8,7 @@ use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\TaxGroup;
 use Condoedge\Finance\Models\InvoiceDetail;
-use Condoedge\Finance\Models\InvoicePayment;
+use Condoedge\Finance\Models\InvoiceApply;
 
 class BaseSeeder extends Seeder
 {
@@ -17,7 +17,7 @@ class BaseSeeder extends Seeder
         Customer::factory()->count(10)->create();
         Invoice::factory()->count(10)->create();
         InvoiceDetail::factory()->count(10)->create();
-        InvoicePayment::factory()->count(10)->create();
+        InvoiceApply::factory()->count(10)->create();
         TaxGroup::factory()->count(10)->create();
         Tax::factory()->count(10)->create();
 

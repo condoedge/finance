@@ -57,7 +57,7 @@ class InvoicesTable extends Table
                     ->togglerClass('vlBtn')->class('relative z-10 mb-4')
                     ->submenu(
                         _DropdownLink('finance-record-payment')
-                            ->get('payment-entries', ['type' => 'invoice'])->inModal()
+                            ->selfGet('getPaymentForm')->inModal()
                             ->config(['withCheckedItemIds' => true]),
                         _DropdownLink('finance-approve')
                             ->selfPost('approveMany')
@@ -123,10 +123,10 @@ class InvoicesTable extends Table
             _Html($invoice->customer_label),
             $invoice->invoice_status_id->pill(),
             _Rows(
-                _FinanceCurrency($invoice->invoice_due_amount),
+                _FinanceCurrency($invoice->abs_invoice_due_amount),
                 _Flex(
                     _Html('finance-total'),
-                    _FinanceCurrency($invoice->invoice_total_amount),
+                    _FinanceCurrency($invoice->abs_invoice_total_amount),
                 )->class('space-x-2 text-sm text-gray-600'),
             )->class('items-end'),
             // _TripleDotsDropdown(
@@ -147,6 +147,11 @@ class InvoicesTable extends Table
             // )->class('px-2 float-right hover:bg-gray-100 rounded-lg exclude-export')
             // ->alignRight(),
         )->class('group');
+    }
+
+    public function getPaymentForm()
+    {
+        return new PaymentForm();
     }
 
     protected function dropdownLink($label)

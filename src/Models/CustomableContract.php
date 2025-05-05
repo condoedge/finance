@@ -12,4 +12,7 @@ interface CustomableContract
 
     public static function getVisualName();
     public static function getOptionsForCustomerForm();
+
+    // Addresses
+    public function getFirstValidAddress();
 }

@@ -1,7 +1,11 @@
 <?php
 
 use Condoedge\Finance\Billing\TempPaymentGateway;
+use Condoedge\Finance\Facades\CustomerPaymentModel;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\CustomableTeam;
+use Condoedge\Finance\Models\CustomerPayment;
+use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 
 return [
     CUSTOMER_MODEL_KEY . '-namespace' => getAppClass(App\Models\Customer::class, Condoedge\Finance\Models\Customer::class),
@@ -10,7 +14,7 @@ return [
 
     INVOICE_DETAIL_MODEL_KEY . '-namespace' => getAppClass(App\Models\InvoiceDetail::class, Condoedge\Finance\Models\InvoiceDetail::class),
 
-    INVOICE_PAYMENT_MODEL_KEY . '-namespace' => getAppClass(App\Models\InvoicePayment::class, Condoedge\Finance\Models\InvoicePayment::class),
+    INVOICE_PAYMENT_MODEL_KEY . '-namespace' => getAppClass(App\Models\InvoicePayment::class, Condoedge\Finance\Models\InvoiceApply::class),
 
     TAX_MODEL_KEY . '-namespace' => getAppClass(App\Models\Tax::class, Condoedge\Finance\Models\Tax::class),
 
@@ -37,15 +41,24 @@ return [
         \Condoedge\Finance\Models\Invoice::class => [
             \Condoedge\Finance\Models\InvoiceDetail::class,
             \Condoedge\Finance\Models\InvoiceDetailTax::class,
-            \Condoedge\Finance\Models\InvoicePayment::class,
+            \Condoedge\Finance\Models\InvoiceApply::class,
         ],
         \Condoedge\Finance\Models\InvoiceDetailTax::class => [
            \Condoedge\Finance\Models\InvoiceDetail::class,
         ],
+
+        \Condoedge\Finance\Models\CustomerPayment::class => [
+            \Condoedge\Finance\Models\InvoiceApply::class,
+        ]
+    ],
+
+    'invoice_applicable_types' => [
+        Credit::class, // CREDIT TYPE
+        CustomerPayment::class, // CUSTOMER PAYMENT TYPE
     ],
 
     'customable_models' => [
-        CustomableTeam::class,
+        'customable_team' => CustomableTeam::class,
     ],
 
     'payment_gateways' => [
@@ -117,4 +130,6 @@ return [
     | Leave this as null to use the default formatter
     */
     'custom_currency_formatter' => null,
+
+    CUSTOMER_PAYMENT_MODEL_KEY . '-namespace' => getAppClass(App\Models\CustomerPayment::class, \Condoedge\Finance\Models\CustomerPayment::class),
 ];

@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Facades;
 use Kompo\Komponents\Form\KompoModelFacade;
 
 /**
- * @mixin \Condoedge\Finance\Models\InvoicePayment
+ * @mixin \Condoedge\Finance\Models\InvoiceApply
  */
 class InvoicePaymentModel extends KompoModelFacade
 {

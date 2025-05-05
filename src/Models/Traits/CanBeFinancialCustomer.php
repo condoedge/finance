@@ -51,6 +51,8 @@ trait CanBeFinancialCustomer
         if ($this->customer_id != $customer->id) {
             $this->setCustomerId($customer->id);
         }
+
+        return $customer;
     }
 
     public function setCustomerId($customerId)

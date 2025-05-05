@@ -16,3 +16,4 @@ const TAX_GROUP_MODEL_KEY = 'tax-group-model';
 const INVOICE_TYPE_ENUM_KEY = 'invoice-type-enum';
 
 const PAYMENT_TYPE_ENUM_KEY = 'payment-type-enum';
+const CUSTOMER_PAYMENT_MODEL_KEY = 'customer_payment-model';

@@ -37,4 +37,9 @@ enum InvoiceStatusEnum: int
             ->class('text-sm font-semibold text-white')
             ->class($this->class());
     }
+
+    public function canBePaid(): bool
+    {
+        return $this === self::PENDING;
+    }
 }

@@ -4,7 +4,10 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Kompo\Common\Modal;
+use Condoedge\Finance\Models\Dto\CreateOrUpdateCustomerDto;
+use Condoedge\Finance\Models\Dto\CreateCustomerFromCustomable;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class CustomerForm extends Modal
 {
@@ -28,14 +31,17 @@ class CustomerForm extends Modal
     {
         $modelInstance = $this->getModelRelationInstance();
 
-        if ($modelInstance) {
-            $modelInstance?->upsertCustomerFromThisModel(currentTeamId());
-
-            $this->model($modelInstance);
-        }
-
-        if (!$modelInstance->getFirstValidAddress()) {
-            Address::createMainForFromRequest($this->model, request('address')[0]);
+        if (!$modelInstance) {
+            CustomerModel::createOrEditFromDto(new CreateOrUpdateCustomerDto([
+                'name' => request('name'),
+                'address' => parsePlaceFromRequest('address'),
+            ]));
+        } else {
+            CustomerModel::createOrEditFromCustomable(new CreateCustomerFromCustomable([
+                'customable_id' => $modelInstance->id,
+                'customable_type' => request('from_model'),
+                'address' => parsePlaceFromRequest('address'),
+            ]));
         }
     }
 
@@ -44,8 +50,8 @@ class CustomerForm extends Modal
         return _Rows(
             // Create from other customable model or...
             _Select('translate.from-entity')->name('from_model', false)->class('!mb-2')
-                ->options(CustomerModel::getCustomables()->mapWithKeys(function ($customable) {
-                    return [$customable => $customable::getVisualName()];
+                ->options(CustomerModel::getCustomables()->mapWithKeys(function ($customable, $morphableType) {
+                    return [$morphableType => $customable::getVisualName()];
                 }))
                 ->selfGet('getCustomableOptions')->inPanel('customableOptionsPanel'),
 
@@ -65,12 +71,18 @@ class CustomerForm extends Modal
             _Html('translate.or')->class('mb-4 mt-2'),
 
             _Input('translate.name')->name('name'),
+
+            _Place()->name('address'),
         ];
     }
 
     public function getCustomableOptions()
     {
-        $customableClass = request('from_model');
+        if (!request('from_model')) {
+            return $this->manualForm();
+        }
+
+        $customableClass = Relation::morphMap()[request('from_model')];
 
         if (!$customableClass) {
             return $this->manualForm();
@@ -101,9 +113,6 @@ class CustomerForm extends Modal
             return null;
         }
 
-        $fromModel = request('from_model');
-        $fromId = request('from_id');
-
-        return $fromModel::find($fromId);
+        return getModelFromMorphable(request('from_model'), request('from_id'));
     }
 }

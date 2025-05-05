@@ -3,6 +3,8 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Events\CustomerCreated;
+use Condoedge\Finance\Models\Dto\CreateOrUpdateCustomerDto;
+use Condoedge\Finance\Models\Dto\CreateCustomerFromCustomable;
 use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
@@ -59,7 +61,7 @@ class Customer extends AbstractMainFinanceModel
 
     public function customable()
     {
-        return $this->morphTo();
+        return $this->morphTo('customable', 'customable_type', 'customable_id', 'id');
     }
 
     /* ATTRIBUTES */
@@ -81,9 +83,52 @@ class Customer extends AbstractMainFinanceModel
     /* SCOPES */
 
     /* ACTIONS */
+    public static function createOrEditFromDto(CreateOrUpdateCustomerDto $dto)
+    {
+        if (isset($dto->id)) {
+            $customer = self::findorFail($dto->id);
+            $customer->name = $dto->name;
+            $customer->save();
+
+            return $customer;
+        }
+
+        $customer = new self;
+        $customer->name = $dto->name;
+        $customer->team_id = $dto->team_id ?? currentTeamId();
+        $customer->save();
+
+        Address::createMainForFromRequest($customer, $dto->address->toArray());
+
+        return $customer;
+    }
+
+    public static function createOrEditFromCustomable(CreateCustomerFromCustomable $dto)
+    {
+        $customer = $dto->customable->upsertCustomerFromThisModel();
+
+        if ($dto->address) {
+            Address::createMainForFromRequest($customer, $dto->address->toArray());
+        }
+
+        return $customer;
+    }
+
     public function setDefaultAddress($addressId)
     {
         $this->default_billing_address_id = $addressId;
+        $this->save();
+    }
+
+    public function setPrimaryBillingAddress($id)
+    {
+        $this->default_billing_address_id = $id;
+        $this->save();
+    }
+
+    public function setPrimaryShippingAddress($id)
+    {
+        $this->default_billing_address_id = $id;
         $this->save();
     }
 
@@ -99,16 +144,14 @@ class Customer extends AbstractMainFinanceModel
         $invoice->payment_type_id = $this->default_payment_type_id ?? GlobalConfig::getOrFail('default_payment_type_id');
     }
 
+    // SCOPES
+
     /* INTEGRITY */
-    public static function checkIntegrity($ids = null): void
+    public static function columnsIntegrityCalculations()
     {
-        DB::table('fin_customers')
-            ->when($ids, function ($query) use ($ids) {
-                return $query->whereIn('id', $ids);
-            })
-            ->update([
-                'customer_due_amount' => DB::raw('calculate_customer_due(fin_customers.id)'),
-            ]);
+        return [
+            'customer_due_amount' => DB::raw('calculate_customer_due(fin_customers.id)'),
+        ];
     }
 
     /* ELEMENTS */

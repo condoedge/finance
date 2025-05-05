@@ -8,6 +8,9 @@ use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Models\Dto\CreateInvoiceDto;
+use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\UpdateInvoiceDto;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class InvoiceForm extends Form
@@ -28,29 +31,27 @@ class InvoiceForm extends Form
 		$this->team = currentTeam();
 	}
 
-	public function beforeSave()
+	public function handle()
 	{
-		$this->model->customer_id = request('customer_id');
+		$parsedDetails = collect(request()->get('invoiceDetails', []));
 
-		// This is a tool to set the context in the PaymentGatewayResolver (it needs the invoice model to get details)
-		PaymentGatewayResolver::setContext($this->model);
+		$parsedDetails->transform(function ($detail) {
+			$detail['id'] = $detail['multiFormKey'] ?? null;
 
-		// After setting the context the resolver will return the correct payment gateway using logic behind (for now payment_type_id) 
-		$this->model->account_receivable_id = PaymentGateway::getCashAccount()->id;
+			return $detail;
+		});
 
-		/**
-		 * @var \Condoedge\Finance\Models\Customer $customer
-		 */
-		$customer = CustomerModel::find($this->model->customer_id);
+		$sharedDtoData = request()->all();
+		$sharedDtoData['invoiceDetails']  = $parsedDetails->toArray();
 
-		// We decorate the invoice with the customer data preferences
-		$customer->fillInvoiceForCustomer($this->model);
-	}
+		if ($this->model->id) {
+			$sharedDtoData['id'] = $this->model->id;
+			InvoiceModel::updateInvoiceFromDto(new UpdateInvoiceDto($sharedDtoData));
+		} else {
+			InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto($sharedDtoData));
+		}
 
-	public function afterSave()
-	{
-		// For now we don't do anything here, but we could do some extra logic
-		PaymentGatewayResolver::setContext($this->model);
+		return $this->response();
 	}
 
 	public function response()
@@ -73,13 +74,13 @@ class InvoiceForm extends Form
 			)->class('mb-6'),
 
             _CardWhiteP4(
-				_Select('translate.finance.invoice-type')
+				$this->model->id ? null : _Select('translate.finance.invoice-type')
 					->name('invoice_type_id')
 					->options(InvoiceTypeEnum::optionsWithLabels()),
 				_Select('translate.finance.payment-type')
 					->name('payment_type_id')
 					->options(PaymentTypeEnum::optionsWithLabels()),
-				_Columns(
+				$this->model->id ? null : _Columns(
 					new SelectCustomer(null, [
 						'team_id' => $this->team?->id,
 						'default_id' => $this->model->customer_id,
@@ -169,10 +170,10 @@ class InvoiceForm extends Form
 	public function rules()
 	{
 		return [
-			'invoice_due_date' => 'required',
-			'invoice_date' => 'required',
-			'payment_type_id' => 'required',
-			'invoice_type_id' => 'required',
+			// 'invoice_due_date' => 'required',
+			// 'invoice_date' => 'required',
+			// 'payment_type_id' => 'required',
+			// 'invoice_type_id' => 'required',
 		];
 	}
 }

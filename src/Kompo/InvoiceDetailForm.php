@@ -2,9 +2,6 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use App\Models\Finance\GlAccount;
-use App\Models\Finance\ChargeDetail;
-use App\Models\Finance\Tax;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Models\Account;
 use Kompo\Form;

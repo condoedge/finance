@@ -12,21 +12,7 @@ BEGIN
     FROM fin_invoice_details id
     WHERE id.id = id_id;
 
-    SELECT it.sign_multiplier 
-    INTO sign_multiplier 
-    FROM fin_invoices i
-    JOIN fin_invoice_types it ON i.invoice_type_id = it.id
-    WHERE i.id = invoice_id;
-
-    IF unit_price IS NULL THEN
-        RETURN 0.00;
-    END IF;
-
-    IF unit_price / sign_multiplier < 0 THEN
-        RETURN unit_price * -1;
-    END IF;
-
-    RETURN unit_price;
+    return get_amount_using_sign_from_invoice(invoice_id, unit_price);
 END$$
 
 DELIMITER ;

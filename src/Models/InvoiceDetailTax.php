@@ -44,14 +44,11 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
     /* ACTIONS */
 
     /* INTEGRITY */
-    public static function checkIntegrity($ids = null): void
+    public static function columnsIntegrityCalculations()
     {
-        DB::table('fin_invoice_detail_taxes')
-            ->when($ids, function ($query) use ($ids) {
-                $query->whereIn('id', $ids);
-            })->update([
-                'tax_amount' => DB::raw('get_updated_tax_amount_for_taxes(fin_invoice_detail_taxes.invoice_detail_id, fin_invoice_detail_taxes.tax_rate)'),
-            ]);
+        return [
+            'tax_amount' => DB::raw('get_updated_tax_amount_for_taxes(fin_invoice_detail_taxes.invoice_detail_id, fin_invoice_detail_taxes.tax_rate)'),
+        ];
     }
 
     /* ELEMENTS */    

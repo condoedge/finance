@@ -1,60 +1,56 @@
 # condoedge/finance
 
-## Package explanation
+## Package Explanation
 
-This package is designed to provide a comprehensive solution for managing financial transactions and products. The idea is ensuring the integrity of the data and providing some components for managing financial transactions. Including paymentGateways, accounts, some payments methods (extendable), invoices, accouting, taxes, and more.
+This package provides a comprehensive solution for managing financial transactions and products. Its main goal is to ensure data integrity and offer components for handling payment gateways, accounts, payment methods (extendable), invoices, accounting, taxes, and more.
+
+---
 
 ## Installation
 
-### Install the package using composer:
+### 1. Install the package using Composer
 
 ```cmd
 composer require condoedge/finance
 ```
 
-### Run migrations
+### 2. Run migrations
 
-To create the necessary tables in your database, run the following command:
+Create the necessary tables in your database:
 
 ```cmd
 php artisan migrate
 ```
 
-### Publish the configuration file
-
-To publish the configuration file, run the following command:
+### 3. Publish the configuration file
 
 ```cmd
 php artisan vendor:publish --provider="Condoedge\Finance\Providers\FinanceServiceProvider"
 ```
 
-### Seed configuration data 
-
-To seed the configuration data, run the following command:
+### 4. Seed configuration data
 
 ```cmd
 php artisan db:seed --class=\\Condoedge\\Finance\\Database\\Seeders\\SettingsSeeder
 ```
 
-### Seed test data (Optional)
-
-To seed the database with the initial data, run the following command:
+### 5. Seed test data (Optional)
 
 ```cmd
 php artisan db:seed --class=\\Condoedge\\Finance\\Database\\Seeders\\BaseSeeder
 ```
 
+---
+
 ## Extendables
 
 ### Customers
 
-We have a table class called `customers` that is used to manage the customers of the application. This table shouldn't be called in the app if you're not touching any financial part. The idea is not add any fields in customers except the financial ones and use intermediares classes to manage other type of data. A customer could be a team, person, or other type of concept into the app. But it should implements *CustomableContract* to be able to create from them customers, being able to duplicate some fields like name, email, phone, and address. The idea is to have a single table for all the customers in the application and use the *CustomableContract* to abstract all the other logic outside the package.
+The `customers` table manages all financial customers in the application. This table should only contain financial fields. Other data should be managed through intermediary classes. A customer can be a team, person, or any other concept, but must implement the `CustomableContract` to be recognized as a customer. This allows duplicating fields like name, email, phone, and address for historical accuracy.
 
-You should also use *use CanBeFinancialCustomer;* to get some contract methods already resolved.
+Use the `CanBeFinancialCustomer` trait to get contract methods already resolved.
 
 ```php
-
-// Not used for queries, just a service model to create customers from teams
 class CustomableTeam extends Model implements CustomableContract
 {
     use CanBeFinancialCustomer;
@@ -63,83 +59,235 @@ class CustomableTeam extends Model implements CustomableContract
 
 ### Currencies
 
-This package provides a set of methods and components for managing currencies.
+- `finance_currency()`: Formats an amount as a currency string using global configuration.
+- `_FinanceCurrency()`: Kompo component wrapper for displaying formatted amounts.
 
-#### Methods
+Currency configuration is dynamic and can be overridden using user or locale preferences.
 
-- `finance_currency()`: Parse an amount to a string currency format using global configurations to ensure the same style across the application.
+### Payment Gateways
 
-#### Components
-
-- `_FinanceCurrency()`: Just a wrapper of finance_currency adapted to kompo to provide the html content of an amount
-
-#### Configuration
-
-`finance_currency` uses `get_currency_config` to get the configuration of the currency. The default configuration is set in the config file, but it's also merging that config with the global app setting: `config-currency` *app('config-currency')* so you have a dynamic way to override it using concepts like user preferences or local preferences or just change the configs files.
-
-We're already resolving config-currency in the package
-using locales and kompo-finance.currency_preformats config key, and you also can change those keys to keep the locale functionality but using different formats.
-
-### Payment gateways
-
-We use *PaymentGateway* facade to manage the payments methods. From there we could get the accounts of the payment methods and make transactions. The idea is to have a single point of entry for all the payment methods and be able to extend it easily. We'll have some default payment gateways like `Stripe`, `PayPal`, `Cash`, and `Bank Transfer`. We use the *PaymentGatewayResolver* giving to it the invoice context to get the right payment gateway.
-The resolver will get the payment type from the invoice and create an instance of the linked payment gateway. You can configure it in kompo-finance.payment_gateways config.
+The `PaymentGateway` facade manages payment methods. All payment methods are accessed through a single entry point, making it easy to extend. Default gateways include Stripe, PayPal, Cash, and Bank Transfer. The `PaymentGatewayResolver` uses the invoice context to select the correct gateway.
 
 ```php
-    // First we set the context
-    PaymentGatewayResolver::setContext($invoice);
-
-    // After that we could use the resolved payment gateway
-    $account = PaymentGateway::getCashAccount()->id;
+PaymentGatewayResolver::setContext($invoice);
+$account = PaymentGateway::getCashAccount()->id;
 ```
 
-## Integrity ensurance explanation
+---
 
-The more important thing in a finantial software is ensure the integrity of the data.
-I tried to avoid getters methods inside of models to ensure we could manage all the data also from the database. We have some fillable methods that will be filled using database functions so each time you want that info you'll just get it from a regular column, doing easier the order by, searchs, sums, average, and other numbers. And allowing chaning logic from the database without changing the code.
-When do we calculculate those columns. There are two ways:
+## Ensuring Data Integrity
 
-- We use a cron job to ensure integrity of all models and data. This is the best way to ensure that all the data is correct and up to date. The cron job will run every day and check all the models and data to ensure that everything is correct.
+Data integrity is the most important aspect of financial software. This package uses several strategies to guarantee consistency:
 
-```cmd
-php artisan condoedge:finance:integrity-checker
-```
+### 1. Calculated Columns
 
-- We listen (from the application) to the events of the models and just update the data related to children and parents of those records.
+- Instead of using model getters, important values are stored in database columns, calculated using database functions.
+- This allows for efficient queries, ordering, searching, and reporting, and lets you change logic at the database level without touching the code.
 
-So we keep this dependency to the app to run the cron job and ensure that all the data is correct. But we have a single point of truth for all the data (the database). And if you don't have the app running you can use functions instead of precalculated columns. We could change that approach just using more triggers to recalculate and fill the columns, that could be a future change
+### 2. Integrity Checking
 
-For now as i said we run a command to ensure data.
-The service responsible for this is called: `Condoedge\Finance\Services\IntegrityChecker` and is using `checkChildrenThenModel()`,
-`checkModelThenParents()` and `checkFullIntegrity()` methods to check the integrity of the data. And to update data in realtime (after saving the model), we use `HasIntegrityCheck` trait that is used in the models that will call a static method of the class (`checkIntegrity()`) giving the ids of the models that will be checked. This method will check the integrity of the model and update the data in realtime.
+There are two main ways to ensure data integrity:
 
-An example:
+- **Scheduled Cron Job:**  
+  Run a command regularly (e.g., daily) to check and update all models and data:
+
+  ```cmd
+  php artisan condoedge:finance:integrity-checker
+  ```
+  
+- **Real-time Updates:**  
+  The application listens to model events and updates related data for parent/child records as needed.
+
+The service responsible for this is `Condoedge\Finance\Services\IntegrityChecker`, which uses methods like `checkChildrenThenModel()`, `checkModelThenParents()`, and `checkFullIntegrity()`.
+
+For real-time updates after saving a model, the `HasIntegrityCheck` trait is used. It calls a static `checkIntegrity()` method on the model, updating the relevant data based on an editable method `columnsIntegrityCalculations()` that must be implemented in each model associating columns with their functions to calculate them.
+
+**Example:**
 
 ```php
-    // InvoiceDetail.php
+  // AbstractMainFinanceModel.php
+  public final static function checkIntegrity($ids = null): void
+  {
+      DB::table((new static)->getTable())
+          ->when($ids, function ($query) use ($ids) {
+              return $query->whereIn('id', $ids);
+          })
+          ->update(static::columnsIntegrityCalculations());
+  }
 
-    /* INTEGRITY */
-    public static function checkIntegrity($ids = null): void
+  // InvoiceDetail.php
+  public static function columnsIntegrityCalculations()
+  {
+      return [
+            'unit_price' => DB::raw('get_detail_unit_price_with_sign(fin_invoice_details.id)'),
+            'tax_amount' => DB::raw('get_detail_tax_amount(fin_invoice_details.id)'),
+      ];
+  }
+```
+
+Models using this trait include:  
+
+- `Condoedge\Finance\Models\Invoice`
+- `Condoedge\Finance\Models\Payment`
+- `Condoedge\Finance\Models\InvoiceDetail`
+- `Condoedge\Finance\Models\InvoiceDetailTax`
+
+Search for `@CALCULATED` in the codebase to find these columns and their calculation logic.
+
+### 3. Database Triggers
+
+Triggers are used to:
+
+- Create historical snapshots (e.g., customers, addresses, taxes, invoice numbers).
+
+- Prevent deletion or modification of historical data.
+
+Search for `@TRIGGERED` in the codebase to find these processes.
+
+---
+
+### 4. Component-Agnostic Logic through DTOs and Model Services
+
+One of Kompo's strengths is its ability to automatically manage model saving within forms, which simplifies development. However, this approach has limitations:
+
+1. **Logic Reuse Challenge**: When business logic is defined in components, it becomes difficult to reuse across different contexts
+2. **Validation Isolation**: Validation rules defined at the component level cannot be easily abstracted or standardized
+3. **Consistency Concerns**: Ensuring the same validation and business rules apply in all contexts (UI forms, API, etc.) becomes challenging
+
+Our solution uses a two-part architecture:
+
+#### Static Model Methods as Services
+
+Instead of keeping saving logic in components, we implement static methods on model classes (or their facades) that handle all business logic:
+
+```php
+// Example: Creating an invoice from both UI and API uses the same method
+public static function createInvoiceFromDto(CreateInvoiceDto $dto): self
+{
+    $invoice = new self();
+    // Set properties from DTO
+    // Apply business rules
+    // Save invoice and related records
+    return $invoice;
+}
+```
+
+These methods act as services that encapsulate all business logic, data validation, and relationship management in one place, regardless of whether the data comes from a UI form or an API request.
+
+#### Data Transfer Objects (DTOs)
+
+We use the `wendelladriel/laravel-validated-dto` package to create strongly typed data containers that:
+
+  1. Define the exact shape of data needed for each operation
+  2. Implement validation rules in a single place
+  3. Handle type casting automatically
+  4. Provide clear contracts between UI/API and business logic
+
+```php
+// Example: DTO for creating an invoice
+class CreateInvoiceDto extends ValidatedDTO
+{
+    public int $customer_id;
+    public int $invoice_type_id;
+    public Carbon $invoice_date;
+    // ...
+
+    public function rules(): array
     {
-        DB::table('fin_invoice_details')
-            ->when($ids, function ($query) use ($ids) {
-                $query->whereIn('id', $ids);
-            })->update([
-                'unit_price' => DB::raw('get_detail_unit_price_with_sign(fin_invoice_details.id)'),
-                'tax_amount' => DB::raw('get_detail_tax_amount(fin_invoice_details.id)'),
-            ]);
+        return [
+            'customer_id' => 'required|integer|exists:fin_customers,id',
+            // More validation rules...
+        ];
     }
+}
 ```
 
-The models that are using this trait are: `Condoedge\Finance\Models\Invoice`, `Condoedge\Finance\Models\Payment`, `Condoedge\Finance\Models\InvoiceDetail`,
-`Condoedge\Finance\Models\InvoiceDetailTax`
+This approach allows both forms and API controllers to use the exact same validation and business logic:
 
-You can search *@CALCULATED* into the app to find these columns. And you can also search for the functions that are used to calculate them.
+```php
+// In InvoiceForm (UI)
+public function handle()
+{
+  InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto(request()->all()));
+}
 
-We also use some triggers to ensure that the data is correct, but it's more related to creating snapshots in time (historical customers, addresses, copying taxes, invoice number) and some preventing of deleting/modifying some historical data.
+// In InvoicesController (API)
+public function createInvoice(CreateInvoiceDto $data)
+{
+    InvoiceModel::createInvoiceFromDto($data);
+    return response()->json(['message' => 'Success']);
+}
+```
 
-You can search *@TRIGGERED* into the app to find these processes related to triggers.
+##### Benefits
 
-## Processes explanation
+- *Consistent Data Validation:* The same rules apply everywhere
+- *Separation of Concerns:* DTOs handle validation, models handle business logic
+- *Type Safety:* DTOs provide strong typing and auto-completion
+- *API Documentation:* DTOs automatically generate API documentation with Scramble
+- *Testability:* Business logic is isolated and easily testable
 
-TODO
+## API
+
+For apis documentation we use `dedoc/scramble`. It automatically generates a documentation using the dtos and some minor comments.
+
+## Process Explanations
+
+### Creating Invoices
+
+Invoices use a system of positive and negative values to simplify balance calculations. The process is highly automated:
+
+- **Customer Data & Addresses:**  
+  Triggers automatically create historical snapshots of customer and address data at the time of invoice creation.
+
+- **Invoice Number:**  
+  A trigger assigns the next invoice number based on the invoice type.
+
+- **Calculated Columns:**  
+  After saving, the integrity process generates:
+  - `invoice_amount_before_taxes`
+  - `invoice_tax_amount`
+  - `invoice_total_amount`
+  - `invoice_due_amount`
+  - `invoice_status_id`
+
+#### Creating Invoice Details
+
+- The sign of `unit_price` is automatically corrected based on invoice type during the integrity process.
+- Tax details are created by the `sp_insert_invoice_detail_tax` procedure, executed by a DB trigger. This ensures correct tax amounts and creates one record per tax.
+
+**Note:**  
+If you use the value before saving (before the integrity process runs), you might get an incorrect value. Always use values after saving or after running the integrity process.
+
+---
+
+### Applying Payments
+
+Payments involve two steps: creating the payment and applying it.
+
+- **Creating a Payment:**  
+  Payments are created in `fin_customers_payments`. This affects the customer balance but not the invoice balance.
+
+- **Applying a Payment:**  
+  Payments are applied to invoices via `fin_invoice_applies`. This updates all related values through the integrity process.
+
+- **Integrity Enforcement:**  
+  The `trg_ensure_invoice_payment_integrity` trigger ensures that applied payments do not exceed the invoice or payment amount. The `amount_left` field in `customer_payments` uses the absolute value of the payment amount, which can be positive or negative depending on the invoice type. This ensures that payments always reduce the invoice amount correctly.
+
+---
+
+## Maintenance of integrity
+
+- When you're adding new financial models you should use the `HasIntegrityCheck` trait.
+- Define relationships in `model_integrity_relations` config
+- Implement `columnsIntegrityCalculations()` instead of getters or other type of calculation to get the columns.
+
+## Summary
+
+- **Data integrity** is enforced through calculated columns, scheduled checks, real-time updates, and database triggers.
+- **Payments** are flexible and secure, allowing multiple payments to be applied to multiple invoices, with all balances and signs handled automatically.
+- **Automation** ensures minimal manual intervention and reduces the risk of errors.
+
+For more details, search for `@CALCULATED` and `@TRIGGERED` in the codebase to find all automated and integrity-related processes.
+
+---

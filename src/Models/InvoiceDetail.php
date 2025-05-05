@@ -3,7 +3,9 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Events\InvoiceDetailGenerated;
+use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
 use Illuminate\Support\Facades\DB;
+use Kompo\Auth\Models\Teams\PermissionTypeEnum;
 
 /**
  * Class InvoiceDetail
@@ -66,17 +68,49 @@ class InvoiceDetail extends AbstractMainFinanceModel
     /* SCOPES */
 
     /* ACTIONS */
+    public static function createInvoiceDetail(CreateOrUpdateInvoiceDetail $dto)
+    {
+        $invoiceDetail = new self();
+        $invoiceDetail->invoice_id = $dto->invoice_id;
+        $invoiceDetail->name = $dto->name;
+        $invoiceDetail->revenue_account_id = $dto->revenue_account_id;
+        $invoiceDetail->product_id = $dto->product_id;
+        $invoiceDetail->quantity = $dto->quantity;
+        $invoiceDetail->name = $dto->name;
+        $invoiceDetail->description = $dto->description;
+        $invoiceDetail->unit_price = $dto->unit_price;
+        $invoiceDetail->save();
+
+        return $invoiceDetail;
+    }
+
+    public static function editInvoiceDetail(CreateOrUpdateInvoiceDetail $dto)
+    {
+        $invoiceDetail = self::findOrFail($dto->id);
+        $invoiceDetail->name = $dto->name;
+        $invoiceDetail->revenue_account_id = $dto->revenue_account_id;
+        $invoiceDetail->product_id = $dto->product_id;
+        $invoiceDetail->quantity = $dto->quantity;
+        $invoiceDetail->name = $dto->name;
+        $invoiceDetail->description = $dto->description;
+        $invoiceDetail->unit_price = $dto->unit_price;
+        $invoiceDetail->save();
+
+        return $invoiceDetail;
+    }
+
+    public function deletable()
+    {
+        return $this->invoice->invoice_status_id == InvoiceStatusEnum::DRAFT && auth()->user()->hasPermission('InvoiceDetail', PermissionTypeEnum::WRITE, $this->invoice->customer->team_id);
+    }
 
     /* INTEGRITY */
-    public static function checkIntegrity($ids = null): void
+    public static function columnsIntegrityCalculations()
     {
-        DB::table('fin_invoice_details')
-            ->when($ids, function ($query) use ($ids) {
-                $query->whereIn('id', $ids);
-            })->update([
-                'unit_price' => DB::raw('get_detail_unit_price_with_sign(fin_invoice_details.id)'),
-                'tax_amount' => DB::raw('get_detail_tax_amount(fin_invoice_details.id)'),
-            ]);
+        return [
+            'unit_price' => DB::raw('get_detail_unit_price_with_sign(fin_invoice_details.id)'),
+            'tax_amount' => DB::raw('get_detail_tax_amount(fin_invoice_details.id)'),
+        ];
     }
 
     /* ELEMENTS */    
