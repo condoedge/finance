@@ -7,7 +7,7 @@ BEGIN
 
     SELECT SUM(idt.`tax_amount`) INTO tax_amount
     FROM fin_invoice_detail_taxes idt
-    WHERE idt.invoice_detail_id = id_id;
+    WHERE idt.invoice_detail_id = id_id and deleted_at is null;
 
     IF tax_amount IS NULL THEN
         SET tax_amount = 0.0;

@@ -11,6 +11,7 @@ use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Models\Dto\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\UpdateInvoiceDto;
+use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -234,6 +235,14 @@ class Invoice extends AbstractMainFinanceModel
         }
 
         return $invoice;
+    }
+
+    public function getDefaultTaxesIds()
+    {
+        $taxGroupId = $this->customer?->defaultAddress->tax_group_id ?? GlobalConfig::getOrFail('default_tax_group_id');
+        $taxGroup = TaxGroup::findOrFail($taxGroupId);
+
+        return $taxGroup->taxes()->pluck('fin_taxes.id');
     }
 
     /* ELEMENTS */

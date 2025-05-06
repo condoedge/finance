@@ -140,7 +140,7 @@ class Customer extends AbstractMainFinanceModel
 
         $invoice = $initialInvoice;
         $invoice->customer_id = $this->id;
-        $invoice->tax_group_id = $this->defaultAddress->tax_group_id ?? GlobalConfig::getOrFail('default_tax_group_id');
+        // $invoice->tax_group_id = $this->defaultAddress->tax_group_id ?? GlobalConfig::getOrFail('default_tax_group_id');
         $invoice->payment_type_id = $this->default_payment_type_id ?? GlobalConfig::getOrFail('default_payment_type_id');
     }
 

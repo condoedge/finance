@@ -3,7 +3,10 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceDetailModel;
+use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\Tax;
 use Kompo\Form;
 
 class InvoiceDetailForm extends Form
@@ -40,10 +43,19 @@ class InvoiceDetailForm extends Form
 							->class('w-28 mb-0')
 							->run('calculateTotals'),
 
-						_Select()->placeholder('account')
-							->class('w-36 mb-0')
-							->name('revenue_account_id')
-							->options(Account::pluck('name', 'id')->toArray()),
+						_Rows(
+							_Select()->placeholder('account')
+								->class('w-36 mb-0')
+								->name('revenue_account_id')
+								->options(Account::pluck('name', 'id')->toArray()),
+							
+							_MultiSelect()->placeholder('taxes')
+								->class('w-36 mb-0 mt-2')
+								->name('taxesIds', false)
+								->default($this->model->id ? $this->model->invoiceTaxes()->pluck('tax_id') : InvoiceModel::getDefaultTaxesIds())
+								->options(TaxModel::active()->pluck('name', 'id')->toArray()),
+						),
+
 					)->class('space-x-4'),
 
 					_FinanceCurrency(0)

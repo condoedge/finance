@@ -26,9 +26,6 @@ class CreateInvoicesTable extends Migration
 
             $table->foreignId('account_receivable_id')->constrained('fin_accounts');
 
-            // We manage versions of taxes in the taxes table. So here we'll get the historical tax rate
-            $table->foreignId('tax_group_id')->constrained('fin_taxes_groups');
-
             /**
              * @see Condoedge\Finance\Models\PaymentTypeEnum::class
             */

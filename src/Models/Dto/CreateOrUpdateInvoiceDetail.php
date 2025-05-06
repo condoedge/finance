@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models\Dto;
 
+use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\FloatCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
@@ -20,6 +21,12 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
     public float $unit_price;
     public int $revenue_account_id;
 
+    /**
+     * The IDs of the taxes to be applied to this invoice detail.
+     * @var int[]
+     */
+    public ?array $taxesIds;
+
     public function rules(): array
     {
         return [
@@ -35,6 +42,9 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
             'quantity' => 'required|integer|min:1',
             'unit_price' => 'required|numeric|min:0',
             'revenue_account_id' => 'required|integer|exists:fin_accounts,id',
+
+            'taxesIds' => 'nullable|array',
+            'taxesIds.*' => 'integer|exists:fin_taxes,id',
         ];
     }
 
@@ -48,6 +58,7 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
             'quantity' => new IntegerCast,
             'unit_price' => new FloatCast,
             'revenue_account_id' => new IntegerCast,
+            'taxesIds' => new ArrayCast,
         ];
     }
 }

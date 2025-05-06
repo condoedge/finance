@@ -4,6 +4,8 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Events\InvoiceDetailGenerated;
 use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\UpsertManyTaxDetailDto;
+use Condoedge\Finance\Models\Dto\UpsertTaxDetailDto;
 use Illuminate\Support\Facades\DB;
 use Kompo\Auth\Models\Teams\PermissionTypeEnum;
 
@@ -81,6 +83,11 @@ class InvoiceDetail extends AbstractMainFinanceModel
         $invoiceDetail->unit_price = $dto->unit_price;
         $invoiceDetail->save();
 
+        InvoiceDetailTax::upsertManyForInvoiceDetail(new UpsertManyTaxDetailDto([
+            'taxes_ids' => $dto->taxesIds ?? [],
+            'invoice_detail_id' => $invoiceDetail->id,
+        ]));
+
         return $invoiceDetail;
     }
 
@@ -95,6 +102,11 @@ class InvoiceDetail extends AbstractMainFinanceModel
         $invoiceDetail->description = $dto->description;
         $invoiceDetail->unit_price = $dto->unit_price;
         $invoiceDetail->save();
+
+        InvoiceDetailTax::upsertManyForInvoiceDetail(new UpsertManyTaxDetailDto([
+            'taxes_ids' => $dto->taxesIds ?? [],
+            'invoice_detail_id' => $invoiceDetail->id,
+        ]));
 
         return $invoiceDetail;
     }

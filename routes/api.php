@@ -23,3 +23,8 @@ Route::post('/invoices/update', [\Condoedge\Finance\Http\InvoicesController::cla
 Route::post('/invoice-details/save', [\Condoedge\Finance\Http\InvoicesController::class, 'saveInvoiceDetail'])
     ->name('invoice-details.save');
 
+Route::post('/invoice-taxes/sync-many',  [\Condoedge\Finance\Http\TaxesController::class, 'syncTaxes'])
+    ->name('invoice-taxes.sync-many');
+
+Route::post('/invoice-taxes/add',  [\Condoedge\Finance\Http\TaxesController::class, 'addTax'])
+    ->name('invoice-taxes.add');
