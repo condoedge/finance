@@ -254,7 +254,7 @@ Invoices use a system of positive and negative values to simplify balance calcul
 #### Creating Invoice Details
 
 - The sign of `unit_price` is automatically corrected based on invoice type during the integrity process.
-- Tax details are created by the `sp_insert_invoice_detail_tax` procedure, executed by a DB trigger. This ensures correct tax amounts and creates one record per tax.
+- Tax details are created into the invoice detail service.
 
 **Note:**  
 If you use the value before saving (before the integrity process runs), you might get an incorrect value. Always use values after saving or after running the integrity process.
