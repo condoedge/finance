@@ -3,8 +3,6 @@
 namespace Condoedge\Finance\Command;
 
 use Condoedge\Finance\Facades\IntegrityChecker;
-use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Models\Invoice;
 use Illuminate\Console\Command;
 
 class EnsureIntegrityCommand extends Command

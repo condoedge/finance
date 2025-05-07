@@ -84,7 +84,7 @@ class ApplyPaymentToInvoiceModal extends Modal
 
             _Date('finance.apply-date')->name('apply_date')->required(),
 
-            _ErrorField()->name('amounts_to_apply', false),
+            _ErrorField()->name('amounts_to_apply', false)->noInputWrapper()->class('!my-0'),
             _Panel(
                 $this->getInvoicesToBeApliedTable($this->customerId),
             )->id('invoice-to-be-applied'),

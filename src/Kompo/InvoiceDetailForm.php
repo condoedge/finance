@@ -12,6 +12,7 @@ use Kompo\Form;
 class InvoiceDetailForm extends Form
 {
 	public $model = InvoiceDetailModel::class;
+	public $class = 'align-top';
 	protected $teamId;
 
 	public function created()
@@ -21,12 +22,17 @@ class InvoiceDetailForm extends Form
 
 	public function render()
 	{
+		// If the taxes were set before and they are now disabled, we should allow them anyways
+		$taxesOptions = $this->model?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
+			fn($it) => [$it->tax->id => $it->complete_label_html])
+		->union(Tax::active()->get()->pluck('complete_label_html', 'id'));
+
 		return [
 			_Rows(
 				_Input()->placeholder('finance.new-item-name')->name('name'),
-			)->class('pl-4')->style('width: 15em'),
+			)->class('pl-4 w-72'),
 
-			_Input()->placeholder('finance.item-description')->name('description')->style('width: 10em'),
+			_Input()->placeholder('finance.item-description')->name('description')->style('width: 20em'),
 
 			_Rows(
 				// $this->model->getChargeableHiddenEls($this->chargeable),
@@ -43,23 +49,37 @@ class InvoiceDetailForm extends Form
 							->class('w-28 mb-0')
 							->run('calculateTotals'),
 
-						_Rows(
-							_Select()->placeholder('account')
-								->class('w-36 mb-0')
-								->name('revenue_account_id')
-								->options(Account::pluck('name', 'id')->toArray()),
-							
-							_MultiSelect()->placeholder('taxes')
-								->class('w-36 mb-0 mt-2')
-								->name('taxesIds', false)
-								->default($this->model->id ? $this->model->invoiceTaxes()->pluck('tax_id') : InvoiceModel::getDefaultTaxesIds())
-								->options(TaxModel::active()->pluck('name', 'id')->toArray()),
-						),
+						_Hidden()->name('revenue_account_id')->value(Account::first()->id),
+						// _Rows(
+						// 	_Select()->placeholder('account')
+						// 		->class('w-36 mb-0')
+						// 		->name('revenue_account_id')
+						// 		->options(Account::pluck('name', 'id')->toArray()),
+						// ),
 
 					)->class('space-x-4'),
 
-					_FinanceCurrency(0)
+					_FinanceCurrency($this->model->extended_price)
 						->class('item-total w-32 text-lg font-semibold text-level1 text-right')
+				)->class('mb-4'),
+
+				
+				_FlexBetween(
+					_MultiSelect()->placeholder('taxes')
+						->class('w-60 mb-0 mt-2')
+						->name('taxesIds', false)
+						->default($this->model->id ? $this->model->invoiceTaxes()->pluck('tax_id') : InvoiceModel::getDefaultTaxesIds())
+						->options($taxesOptions)
+						->run('calculateTotals'),
+
+					_FlexEnd(
+						_TaxesInfoLink()->class('left-0 top-1 ml-1'),
+						_Rows(
+							$this->model->invoiceTaxes()->get()->map(
+								fn($it) => _FinanceCurrency($this->model->extended_price * $it->tax_rate)
+							)
+						)->class('w-32 item-taxes font-semibold text-level1 text-right')
+					)->class('relative'),
 				)->class('mb-4'),
 			)->class('pr-0'),
             _Rows(

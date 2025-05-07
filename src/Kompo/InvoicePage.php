@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Kompo;
 
 use App\Models\Finance\Invoice;
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Kompo\Form;
 
 class InvoicePage extends Form
@@ -94,7 +95,7 @@ class InvoicePage extends Form
 						)
 					),
 				!$this->model->canBePaid() ? null : _FlexEnd(
-					_Link('finance.record-payment')
+					_Link('translate.finance.record-payment')
 						->outlined()
 						->selfUpdate('getApplyPaymentToInvoiceModal')->inModal()
 				)
@@ -121,7 +122,9 @@ class InvoicePage extends Form
 
 	public function approveInvoice($id)
 	{
-		InvoiceModel::findOrFail($id)->markApproved();
+		InvoiceModel::approveInvoice(new ApproveInvoiceDto([
+			'invoice_id' => $id,
+		]));
 
 		return __('finance-invoice-approved');
 	}
@@ -166,13 +169,13 @@ class InvoicePage extends Form
 	{
 		return _FlexEnd4(
 			$this->amountDue(),
-			_MiniLabelDate('finance.due-date', $this->model->invoice_due_date, $this->bigClass)->class('border-l border-gray-200 pl-4'),
+			_MiniLabelDate('translate.finance.due-date', $this->model->invoice_due_date, $this->bigClass)->class('border-l border-gray-200 pl-4'),
 		);
 	}
 
 	protected function amountDue()
 	{
-		return _MiniLabelCcy('finance.amount-due', $this->model->invoice_due_amount, $this->bigClass);
+		return _MiniLabelCcy('translate.finance.amount-due', $this->model->invoice_due_amount, $this->bigClass);
 	}
 
 	protected function lastPaymentWithDate()

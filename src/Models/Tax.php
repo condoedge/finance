@@ -15,6 +15,16 @@ class Tax extends Model
     }
 
     /* ATTRIBUTES */
+    public function getCompleteLabelAttribute()
+    {
+        return $this->name . ' (' . $this->rate * 100 . '%)';
+    }
+
+    
+    public function getCompleteLabelHtmlAttribute()
+    {
+        return '<span data-name="'.$this->name.'" data-tax="'.$this->rate.'" data-id="'.$this->id.'">'.$this->complete_label.'</span>';
+    }
 
     /* CALCULATED FIELDS */
 

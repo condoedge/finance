@@ -7,8 +7,8 @@ function calculateTotals(){
 
 	$('#finance-items tbody tr').each(function(){
 		let row = $(this)
-		let qty = parseFloat(row.find('[name=quantity_chd]')[0].value || 0)
-		let price = parseFloat(row.find('[name=price_chd]')[0].value || 0)
+		let qty = parseFloat(row.find('[name=quantity]')[0].value || 0)
+		let price = parseFloat(row.find('[name=unit_price]')[0].value || 0)
 		let itemAmount = qty * price
 
 		let totalTaxRate = 0
@@ -23,22 +23,42 @@ function calculateTotals(){
 
 		subtotal += itemAmount
 		total += Math.round(itemAmount * (1 + totalTaxRate) * 100) / 100
-		setRoundedAmount(row.find('.item-total'), itemAmount)
+		setRoundedAmount(row.find('.item-total span'), itemAmount)
 	})
 
 	setRoundedAmount($('#finance-subtotal span'), subtotal)
-	$('.tax-summary').each(function(){
-		let row = $(this)
-		let taxId = $(this).data('id')
-		setRoundedAmount(row.find('.ccy-amount span'), taxes[taxId] || 0)
-	})
+
+    $('#tax-summary').html('');
+
+    Object.entries(taxes).forEach(function([taxId, amount]){
+        taxElement = $('#tax-summary').find('[data-id='+taxId+']');
+
+        if (!taxElement.first().length) {
+            const template = $('#template_currency_format_cols').clone();
+            template.removeAttr('id');
+            template.removeClass('hidden');
+            template.attr('data-id', taxId);
+            template.find('.title-currency').html($('#finance-items tbody tr .vlTaggableContent [data-tax][data-id='+taxId+']').data('name'));
+
+            $('#tax-summary').append(template);
+        }
+
+        setRoundedAmount($('#tax-summary').find('[data-id='+taxId+']').find('.ccy-amount span'), amount || 0)
+    });
+
 	setRoundedAmount($('#finance-total span'), total)
 }
 
-function setRoundedAmount(selector, amount) {
-	if (!selector[0]) {
-		console.log('prob setting amount', amount)
+function asCurrency(amount)
+{
+	if (!amount) {
+		return '-'
 	}
+
+	return '$ '+amount.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+}
+
+function setRoundedAmount(selector, amount) {
 	selector[0].innerHTML = asCurrency(amount)
 }
 
@@ -78,6 +98,12 @@ function calculateTotalBalances()
 	$('#total-credit-allgroups').html(asCurrency(totalCredit))
 	$('#total-net-allgroups .net-ccy').html(asCurrency(Math.abs(totalCredit - totalDebit)))
 	$('#total-net-allgroups .net-side').html(totalDebit > totalCredit ? 'dt' : (totalDebit < totalCredit ? 'ct' : ''))
+
+	if (Math.abs(totalCredit - totalDebit) > 0.0099) {
+		$('#balances-warning').removeClass('hidden')	
+	} else {	
+		$('#balances-warning').addClass('hidden')
+	}
 }
 
 function getBalanceAmount(that, inputClass){
@@ -159,13 +185,4 @@ function checkAllCheckboxes(){
 	        }
     	})
     }, 50)
-}
-
-function asCurrency(amount)
-{
-    if (!amount) {
-        return '-'
-    }
-
-    return '$ '+amount.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 }

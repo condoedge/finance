@@ -2,14 +2,16 @@
 
 namespace Condoedge\Finance\Kompo;
 
+use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceModel;
-use Condoedge\Utils\Kompo\Common\Table;
+use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
+use Condoedge\Finance\Models\InvoiceStatusEnum;
+use Condoedge\Utils\Kompo\Common\WhiteTable;
 use Kompo\Elements\Element;
 
-class InvoicesTable extends Table
+class InvoicesTable extends WhiteTable
 {
     public $containerClass = 'container-fluid';
-    public $itemsWrapperClass = 'bg-white rounded-2xl p-4'; 
 
     protected $teamId;
 
@@ -45,8 +47,10 @@ class InvoicesTable extends Table
                 _FlexEnd4(
                     _Dropdown('finance-actions')->togglerClass('vlBtn')->rIcon('icon-down')
                         ->content(
-                            _DropdownLink('finance.new-invoice')
+                            _DropdownLink('translate.finance.new-transaction')
                                 ->href('invoices.form'),
+                            _DropdownLink('translate.finance-create-payment')
+                                ->selfGet('getPaymentForm')->inModal(),
                         )
                         ->alignRight()
                         ->class('relative z-10')
@@ -56,9 +60,9 @@ class InvoicesTable extends Table
                 _Dropdown('finance-grouped-action')->rIcon('icon-down')
                     ->togglerClass('vlBtn')->class('relative z-10 mb-4')
                     ->submenu(
-                        _DropdownLink('finance-record-payment')
-                            ->selfGet('getPaymentForm')->inModal()
-                            ->config(['withCheckedItemIds' => true]),
+                        // _DropdownLink('finance-record-payment')
+                        //     ->selfGet('getPaymentForm')->inModal()
+                        //     ->config(['withCheckedItemIds' => true]),
                         _DropdownLink('finance-approve')
                             ->selfPost('approveMany')
                             ->config(['withCheckedItemIds' => true])
@@ -67,9 +71,9 @@ class InvoicesTable extends Table
 
                 _Flex(
                     _Columns(
-                        // _Select()->placeholder('finance-client')->name('person_id')
-                        //     ->options(PersonModel::getOptionsForTeamWithFullName($this->teamId))
-                        //     ->filter(),
+                        _Select()->placeholder('finance-client')->name('customer_id')
+                            ->options(CustomerModel::forTeam($this->teamId)->pluck('name', 'id'))
+                            ->filter(),
                         _Select()->placeholder('finance-filter-by-month')
                             ->name('month_year', false)
                             ->options(
@@ -80,9 +84,9 @@ class InvoicesTable extends Table
                             )
                             ->filter(),
     
-                        // _MultiSelect()->placeholder('finance-filter-by-status')
-                        //     ->name('status')->options(InvoiceModel::statuses())
-                        //     ->filter(),
+                        _MultiSelect()->placeholder('finance-filter-by-status')
+                            ->name('invoice_status_id')->options(InvoiceStatusEnum::optionsWithLabels())
+                            ->filter(),
                     ),
                     
                     _ExcelExportButton(),
@@ -151,7 +155,9 @@ class InvoicesTable extends Table
 
     public function getPaymentForm()
     {
-        return new PaymentForm();
+        return new PaymentForm(null, [
+			'go_to_apply_model_after' => 1,
+        ]);
     }
 
     protected function dropdownLink($label)
@@ -161,12 +167,9 @@ class InvoicesTable extends Table
 
     public function approveMany($ids)
     {
-        collect($ids)->each(fn($id) => $this->approveInvoice($id));
-    }
-
-    public function approveInvoice($id)
-    {
-        InvoiceModel::findOrFail($id)->markApprovedWithJournalEntries();
+        InvoiceModel::approveManyInvoices(new ApproveManyInvoicesDto([
+            'invoices_ids' => $ids,
+        ]));
     }
 
     public function getPaymentPrepayInvoiceModal()

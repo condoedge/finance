@@ -40,9 +40,23 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
         return $this->belongsTo(Account::class, 'account_id');
     }
 
+    public function tax()
+    {
+        return $this->belongsTo(Tax::class, 'tax_id');
+    }
+
     /* ATTRIBUTES */
 
     /* CALCULATED FIELDS */
+    public function getCompleteLabelAttribute()
+    {
+        return $this->tax->name . ' (' . $this->tax_rate * 100 . '%)';
+    }
+
+    public function getCompleteLabelHtmlAttribute()
+    {
+        return '<span data-name="'.$this->tax->name.'" data-tax="'.$this->tax_rate.'" data-id="'.$this->tax_id.'">'.$this->complete_label.'</span>';
+    }
 
     /* SCOPES */
 

@@ -28,7 +28,6 @@ class InvoiceFactory extends Factory
             'invoice_type_id' => collect(InvoiceTypeEnum::cases())->random()->value,
             'payment_type_id' => collect(PaymentTypeEnum::cases())->random()->value,
             'account_receivable_id' => Account::factory(),
-            'tax_group_id' => TaxGroup::factory(),
         ];
     }
 }

@@ -20,8 +20,7 @@ class SelectCustomer extends Form
 
     public function render()
     {
-        return _Select('finance-invoiced-to')->name('customer_id', false)->default($this->defaultId)->class('!mb-0')
-            ->options(Customer::forTeam($this->teamId)->pluck('name', 'id'));
+        return teamCustomersSelect($this->teamId, $this->defaultId)->class('!mb-0');
     }
 
     public function rules()

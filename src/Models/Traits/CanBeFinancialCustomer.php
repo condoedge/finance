@@ -3,6 +3,8 @@
 namespace Condoedge\Finance\Models\Traits;
 
 use Condoedge\Finance\Facades\CustomerModel;
+use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Models\Dto\CreateInvoiceDto;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 trait CanBeFinancialCustomer
@@ -23,11 +25,16 @@ trait CanBeFinancialCustomer
 
     public function createInvoiceForThisModel() 
     {
-        if (!$this->customer) {
-            throw new ModelNotFoundException(__('translate.create-customer-first'));
-        }
+        throw new \Exception('Not implemented yet');
+        
+        $customer = $this->upsertCustomerFromThisModel();
+        // if (!$this->customer) {
+        //     throw new ModelNotFoundException(__('translate.create-customer-first'));
+        // }
 
-        $this->customer->createInvoiceForCustomer();
+        InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+            'customer_id' => $customer->id,
+        ]));
     }
 
     public function upsertCustomerFromThisModel($teamId = null)

@@ -10,6 +10,8 @@ use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Models\Dto\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\UpdateInvoiceDto;
 use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
@@ -84,6 +86,11 @@ class Invoice extends AbstractMainFinanceModel
     public function invoiceDetails()
     {
         return $this->hasMany(InvoiceDetail::class, 'invoice_id');
+    }
+
+    public function invoiceDetailsTaxes()
+    {
+        return $this->hasManyThrough(InvoiceDetailTax::class, InvoiceDetail::class, 'invoice_id', 'invoice_detail_id');
     }
 
     public function invoiceStatus()
@@ -166,6 +173,19 @@ class Invoice extends AbstractMainFinanceModel
         return $this->invoice_status_id->canBePaid();
     }
 
+    public function getTaxesGrouped()
+    {
+        return $this->invoiceDetailsTaxes()->groupBy('tax_id')->groupBy('invoice_id')
+                ->selectRaw('SUM(fin_invoice_detail_taxes.tax_amount) as tax_amount, tax_id')->with('tax')->get();
+    }
+
+    public function getVisualTaxesGrouped()
+    {
+        return $this->getTaxesGrouped()->mapWithKeys(function ($item) {
+            return [$item->tax->name => $item->tax_amount];
+        });
+    }
+
     /* ACTIONS */
     public function markApproved()
     {
@@ -235,6 +255,20 @@ class Invoice extends AbstractMainFinanceModel
         }
 
         return $invoice;
+    }
+
+    public static function approveInvoice(ApproveInvoiceDto $data)
+    {
+		InvoiceModel::findOrFail($data->invoice_id)->markApproved();
+    }
+
+    public function approveManyInvoices(ApproveManyInvoicesDto $data)
+    {
+        $invoices = self::whereIn('id', $data->invoices_ids)->get();
+
+        foreach ($invoices as $invoice) {
+            $invoice->markApproved();
+        }
     }
 
     public function getDefaultTaxesIds()
