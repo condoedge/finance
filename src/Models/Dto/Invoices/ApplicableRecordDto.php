@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Models\Dto;
+namespace Condoedge\Finance\Models\Dto\Invoices;
 
 /**
  * @property integer $applicable_id The ID of the applicable record.

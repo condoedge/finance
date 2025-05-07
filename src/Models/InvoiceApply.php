@@ -3,9 +3,9 @@
 namespace Condoedge\Finance\Models;
 
 use Illuminate\Support\Facades\DB;
-use Condoedge\Finance\Models\Dto\ApplicableRecordDto;
-use Condoedge\Finance\Models\Dto\CreateAppliesForMultipleInvoiceDto;
-use Condoedge\Finance\Models\Dto\CreateApplyForInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\ApplicableRecordDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 
 /**
  * Class InvoiceApply

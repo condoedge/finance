@@ -4,9 +4,8 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Kompo\Common\Modal;
-use Condoedge\Finance\Models\Dto\CreateOrUpdateCustomerDto;
-use Condoedge\Finance\Models\Dto\CreateCustomerFromCustomable;
-use Condoedge\Utils\Models\ContactInfo\Maps\Address;
+use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
+use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 class CustomerForm extends Modal

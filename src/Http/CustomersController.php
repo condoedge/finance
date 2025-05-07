@@ -3,9 +3,8 @@
 namespace Condoedge\Finance\Http;
 
 use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Models\Dto\CreateOrUpdateCustomerDto;
-use Condoedge\Finance\Models\Dto\CreateCustomerFromCustomable;
-use Dedoc\Scramble\Attributes\BodyParameter;
+use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
+use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
 use Illuminate\Routing\Controller;
 
 class CustomersController extends Controller

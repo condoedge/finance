@@ -3,8 +3,8 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Events\CustomerCreated;
-use Condoedge\Finance\Models\Dto\CreateOrUpdateCustomerDto;
-use Condoedge\Finance\Models\Dto\CreateCustomerFromCustomable;
+use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
+use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
 use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;

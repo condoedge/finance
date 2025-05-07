@@ -4,9 +4,9 @@ namespace Condoedge\Finance\Http;
 
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\InvoiceModel;
-use Condoedge\Finance\Models\Dto\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
-use Condoedge\Finance\Models\Dto\UpdateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Illuminate\Routing\Controller;
 
 class InvoicesController extends Controller

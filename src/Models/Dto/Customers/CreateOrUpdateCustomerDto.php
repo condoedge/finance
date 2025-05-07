@@ -1,8 +1,7 @@
 <?php
 
-namespace Condoedge\Finance\Models\Dto;
+namespace Condoedge\Finance\Models\Dto\Customers;
 
-use Dedoc\Scramble\Attributes\BodyParameter;
 use WendellAdriel\ValidatedDTO\Casting\DTOCast;
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;

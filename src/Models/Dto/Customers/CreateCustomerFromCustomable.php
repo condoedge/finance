@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Models\Dto;
+namespace Condoedge\Finance\Models\Dto\Customers;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Models\CustomableContract;

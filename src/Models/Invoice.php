@@ -8,11 +8,11 @@ use Condoedge\Finance\Events\InvoiceGenerated;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\PaymentGateway;
-use Condoedge\Finance\Models\Dto\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
-use Condoedge\Finance\Models\Dto\UpdateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
 

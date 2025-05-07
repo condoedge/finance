@@ -3,9 +3,8 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Events\InvoiceDetailGenerated;
-use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
-use Condoedge\Finance\Models\Dto\UpsertManyTaxDetailDto;
-use Condoedge\Finance\Models\Dto\UpsertTaxDetailDto;
+use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
 use Illuminate\Support\Facades\DB;
 use Kompo\Auth\Models\Teams\PermissionTypeEnum;
 

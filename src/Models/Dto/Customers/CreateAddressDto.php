@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Models\Dto;
+namespace Condoedge\Finance\Models\Dto\Customers;
 
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;

@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use App\Models\Finance\Invoice;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Kompo\Form;

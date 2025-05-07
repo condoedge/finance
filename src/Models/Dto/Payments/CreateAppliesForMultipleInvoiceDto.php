@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Models\Dto;
+namespace Condoedge\Finance\Models\Dto\Payments;
 
 use Carbon\Carbon;
 use Condoedge\Finance\Facades\InvoiceModel;

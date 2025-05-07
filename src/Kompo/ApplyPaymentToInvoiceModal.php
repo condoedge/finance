@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Kompo\Common\Modal;
-use Condoedge\Finance\Models\Dto\CreateAppliesForMultipleInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
 use Condoedge\Finance\Models\InvoiceApply;
 
 class ApplyPaymentToInvoiceModal extends Modal

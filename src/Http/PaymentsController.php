@@ -3,8 +3,8 @@
 namespace Condoedge\Finance\Http;
 
 use Condoedge\Finance\Facades\CustomerPaymentModel;
-use Condoedge\Finance\Models\Dto\CreateCustomerPaymentDto;
-use Condoedge\Finance\Models\Dto\CreateCustomerPaymentForInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Illuminate\Routing\Controller;
 
 class PaymentsController extends Controller

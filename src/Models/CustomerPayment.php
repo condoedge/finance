@@ -3,9 +3,9 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Facades\InvoicePaymentModel;
-use Condoedge\Finance\Models\Dto\CreateApplyForInvoiceDto;
-use Condoedge\Finance\Models\Dto\CreateCustomerPaymentDto;
-use Condoedge\Finance\Models\Dto\CreateCustomerPaymentForInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Illuminate\Support\Facades\DB;
 
 /**

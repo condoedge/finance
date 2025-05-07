@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Models\Dto;
+namespace Condoedge\Finance\Models\Dto\Payments;
 
 use Condoedge\Finance\Facades\InvoiceModel;
 use WendellAdriel\ValidatedDTO\Attributes\Rules;

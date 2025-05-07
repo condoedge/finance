@@ -2,15 +2,11 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Billing\PaymentGatewayResolver;
-use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Facades\PaymentTypeEnum;
-use Condoedge\Finance\Models\Dto\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\CreateOrUpdateInvoiceDetail;
-use Condoedge\Finance\Models\Dto\UpdateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Utils\Kompo\Common\Form;
 

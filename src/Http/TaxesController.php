@@ -2,8 +2,8 @@
 
 namespace Condoedge\Finance\Http;
 
-use Condoedge\Finance\Models\Dto\UpsertManyTaxDetailDto;
-use Condoedge\Finance\Models\Dto\UpsertTaxDetailDto;
+use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
+use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;
 use Condoedge\Finance\Models\InvoiceDetailTax;
 use Illuminate\Routing\Controller;
 

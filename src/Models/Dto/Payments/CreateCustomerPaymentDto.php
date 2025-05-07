@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Models\Dto;
+namespace Condoedge\Finance\Models\Dto\Payments;
 
 use WendellAdriel\ValidatedDTO\Attributes\Rules;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;

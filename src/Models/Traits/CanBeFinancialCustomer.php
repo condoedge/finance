@@ -4,8 +4,7 @@ namespace Condoedge\Finance\Models\Traits;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceModel;
-use Condoedge\Finance\Models\Dto\CreateInvoiceDto;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 
 trait CanBeFinancialCustomer
 {

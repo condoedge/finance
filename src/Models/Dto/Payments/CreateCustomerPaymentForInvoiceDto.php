@@ -1,8 +1,9 @@
 <?php
 
-namespace Condoedge\Finance\Models\Dto;
+namespace Condoedge\Finance\Models\Dto\Payments;
 
-use Condoedge\Finance\Models\Dto\CreateCustomerPaymentDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
+use Illuminate\Support\Facades\DB;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 
 class CreateCustomerPaymentForInvoiceDto extends CreateCustomerPaymentDto
@@ -41,7 +42,7 @@ class CreateCustomerPaymentForInvoiceDto extends CreateCustomerPaymentDto
         $invoiceId = $this->dtoData['invoice_id'] ?? null;
 
         if ($invoiceId) {
-            $this->customer_id = \DB::table('fin_invoices')
+            $this->customer_id = DB::table('fin_invoices')
                 ->where('id', $invoiceId)
                 ->value('customer_id');
         }

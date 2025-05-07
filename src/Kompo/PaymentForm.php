@@ -46,7 +46,7 @@ class PaymentForm extends Modal
                 ...$applyInformation,
             ]));
         } else {
-            $payment = CustomerPayment::createForCustomer(new \Condoedge\Finance\Models\Dto\CreateCustomerPaymentDto([
+            $payment = CustomerPayment::createForCustomer(new \Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto([
                 'customer_id' => $this->customerId ?? request('customer_id'),
                 ...$applyInformation,
             ]));
