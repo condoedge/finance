@@ -9,6 +9,11 @@
             "Condoedge\\Finance\\Database\\Seeders\\": "database/seeders/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
     "minimum-stability": "stable",
     "require": {
         "php": "^7.3|^8.0",
@@ -27,5 +32,10 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "require-dev": {
+        "orchestra/testbench": "^10.2",
+        "phpunit/phpunit": "^11.5",
+        "brianium/paratest": "^7.8"
+    }
 }

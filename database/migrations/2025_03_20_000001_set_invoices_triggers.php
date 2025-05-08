@@ -29,6 +29,10 @@ class SetInvoicesTriggers extends Migration
         $sql = file_get_contents(__DIR__ . '/../sql/triggers/set_invoice_number/set_invoice_number_v0001.sql');
         DB::unprepared("DROP TRIGGER IF EXISTS set_invoice_number");
         DB::unprepared(processDelimiters($sql));
+
+        $sql = file_get_contents(__DIR__ . '/../sql/triggers/ensure_invoice_payment_integrity/ensure_invoice_payment_integrity_v0001.sql');
+        DB::unprepared("DROP TRIGGER IF EXISTS trg_ensure_invoice_payment_integrity");
+        DB::unprepared(processDelimiters($sql));
     }
 
     /**
