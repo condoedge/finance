@@ -7,12 +7,13 @@ use Condoedge\Finance\Models\InvoiceStatus;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
 use Illuminate\Database\Seeder;
 use Condoedge\Finance\Models\InvoiceType;
+use Condoedge\Finance\Models\InvoiceTypeEnum as ModelsInvoiceTypeEnum;
 
 class SettingsSeeder extends Seeder
 {
     public function run()
     {
-        collect(InvoiceTypeEnum::cases())->each(function ($enum) {
+        collect(InvoiceTypeEnum::getEnumClass()::cases())->each(function (ModelsInvoiceTypeEnum $enum) {
             $type = new InvoiceType();
 
             if (InvoiceType::find($enum->value)) {

@@ -23,11 +23,13 @@ class SetInvoicesTriggers extends Migration
         DB::unprepared(processDelimiters($sql));
 
         $sql = file_get_contents(__DIR__ . '/../sql/triggers/prevent_updating_deleting/prevent_updating_deleting_v0001.sql');
-        DB::unprepared("DROP TRIGGER IF EXISTS prevent_updating_deleting");
+        DB::unprepared("DROP TRIGGER IF EXISTS prevent_update_invoice_customer");
+        DB::unprepared("DROP TRIGGER IF EXISTS prevent_modification_fin_historical_customers");
+        DB::unprepared("DROP TRIGGER IF EXISTS prevent_delete_fin_historical_customers");
         DB::unprepared(processDelimiters($sql));
 
         $sql = file_get_contents(__DIR__ . '/../sql/triggers/set_invoice_number/set_invoice_number_v0001.sql');
-        DB::unprepared("DROP TRIGGER IF EXISTS set_invoice_number");
+        DB::unprepared("DROP TRIGGER IF EXISTS tr_invoice_number_before_insert");
         DB::unprepared(processDelimiters($sql));
 
         $sql = file_get_contents(__DIR__ . '/../sql/triggers/ensure_invoice_payment_integrity/ensure_invoice_payment_integrity_v0001.sql');

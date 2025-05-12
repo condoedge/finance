@@ -1,4 +1,4 @@
-drop trigger  trg_ensure_invoice_payment_integrity;
+drop trigger if exists trg_ensure_invoice_payment_integrity;
 DELIMITER $$
 
 CREATE TRIGGER trg_ensure_invoice_payment_integrity
