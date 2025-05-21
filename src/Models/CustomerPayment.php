@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
@@ -18,8 +19,8 @@ use Illuminate\Support\Facades\DB;
  * @property int $id
  * @property int $customer_id Foreign key to fin_customers
  * @property \DateTime $payment_date The date of the payment
- * @property float $amount The total amount of the payment
- * @property float $amount_left @CALCULATED BY calculate_payment_amount_left() - Amount left to be applied to invoices
+ * @property \Condoedge\Finance\Casts\SafeDecimal $amount The total amount of the payment
+ * @property \Condoedge\Finance\Casts\SafeDecimal $amount_left @CALCULATED BY calculate_payment_amount_left() - Amount left to be applied to invoices
  * 
 **/ 
 class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToInvoiceContract
@@ -30,6 +31,8 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
 
     protected $casts = [
         'payment_date' => 'date',
+        'amount' => SafeDecimalCast::class,
+        'amount_left' => SafeDecimalCast::class,
     ];
 
     // ACTIONS

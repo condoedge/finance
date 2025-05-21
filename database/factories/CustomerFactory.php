@@ -16,7 +16,7 @@ class CustomerFactory extends Factory
             'name' => $this->faker->name,
             'default_payment_type_id' => null, // Will be populated later if needed
             'default_billing_address_id' => null, // Will be populated later if needed
-            'customer_due_amount' => $this->faker->randomFloat(2, 0, 1000),
+            // 'customer_due_amount' => $this->faker->randomFloat(2, 0, 1000),
             'team_id' => TeamModel::create(['team_name' => $this->faker->company])->id,
         ];
     }
@@ -25,6 +25,8 @@ class CustomerFactory extends Factory
     {
         return $this->afterCreating(function (Customer $customer) {
             // Create a default address for the customer
+            auth()->user()?->load('currentTeamRole');
+
             $address = $customer->addresses()->create([
                 'address1' => $this->faker->streetAddress,
                 'city' => $this->faker->city,

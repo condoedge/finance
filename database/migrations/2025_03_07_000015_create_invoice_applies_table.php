@@ -18,7 +18,7 @@ class CreateInvoiceAppliesTable extends Migration
 
             $table->date('apply_date');
             $table->foreignId('invoice_id')->constrained('fin_invoices');
-            // $table->decimal('invoice_applied_amount', 19, 5);
+            // $table->decimal('invoice_applied_amount', 19, config('kompo-finance.decimal-scale'));
             
             // We set the morphable_type to use integers to improve performance
             $table->unsignedBigInteger('applicable_id');
@@ -27,7 +27,7 @@ class CreateInvoiceAppliesTable extends Migration
             $table->index(['applicable_id', 'applicable_type'], 'fin_invoice_applicable_index');
 
             // $table->foreignId('payment_id')->constrained('fin_customer_payments');
-            $table->decimal('payment_applied_amount', 19, 5);
+            $table->decimal('payment_applied_amount', 19, config('kompo-finance.decimal-scale'));
         });
     }
 

@@ -16,6 +16,6 @@ class IntegrityChecker extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'finance.integrity_checker';
+        return 'integrity-checker';
     }
 }

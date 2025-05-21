@@ -28,7 +28,7 @@ class CreateCustomersTable extends Migration
             $table->nullableMorphs('customable');
 
             // Precalculated fields
-            $table->decimal('customer_due_amount', 19, 5)->nullable();
+            $table->decimal('customer_due_amount', 19, config('kompo-finance.decimal-scale'))->nullable();
         });
     }
 

@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\CustomerCreated;
 use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
 use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
@@ -20,7 +21,7 @@ use Condoedge\Utils\Models\ContactInfo\Maps\Address;
  * @property int $id
  * @property string $name
  * @property int $team_id 
- * @property float $customer_due_amount @CALCULATED BY calculate_customer_due() - Remaining amount to be paid
+ * @property \Condoedge\Finance\Casts\SafeDecimal $customer_due_amount @CALCULATED BY calculate_customer_due() - Remaining amount to be paid
  * @property int|null $default_billing_address_id Foreign key to fin_addresses
  * @property int|null $default_payment_type_id Foreign key to fin_payment_types
  * @property int|null $default_tax_group_id Foreign key to fin_taxes_groups
@@ -29,6 +30,10 @@ class Customer extends AbstractMainFinanceModel
 {
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
+
+    protected $casts = [
+        'customer_due_amount' => SafeDecimalCast::class,
+    ];
 
     public static function boot()
     {

@@ -2,11 +2,31 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Utils\Models\Model;
+use Condoedge\Finance\Casts\SafeDecimalCast;
 
-class Tax extends Model
+/**
+ * Class InvoiceDetailTax
+ * 
+ * @package Condoedge\Finance\Models
+ * 
+ * @TRIGGERED BY: tr_invoice_details_after_insert (insert_invoice_taxes_v0001.sql)
+ * 
+ * @property int $id
+ * @property int $invoice_detail_id Foreign key to fin_invoices
+ * @property int $account_id Foreign key to fin_accounts
+ * @property int $tax_id Foreign key to the original tax fin_taxes. The tax rate can mismatch if it was changed
+ * @property int|null $tax_amount Tax amount 
+ * @property \Condoedge\Finance\Casts\SafeDecimal $tax_rate Tax rate as percentage / 100
+ * 
+ * @property-read \Condoedge\Finance\Models\Invoice $invoice
+ */
+class Tax extends AbstractMainFinanceModel
 {
     protected $table = 'fin_taxes';
+
+    protected $casts = [
+        'rate' => SafeDecimalCast::class,
+    ];
     
     /* RELATIONSHIPS */
     public function groups()

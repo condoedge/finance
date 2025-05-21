@@ -4,14 +4,11 @@ namespace Condoedge\Finance;
 
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
-use Condoedge\Finance\Billing\TempPaymentGateway;
+use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
-use Dedoc\Scramble\Scramble;
-use Dedoc\Scramble\Support\Generator\OpenApi;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +16,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
+use Illuminate\Support\Collection;
 
 class CondoedgeFinanceServiceProvider extends ServiceProvider
 {
@@ -72,8 +70,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->bind('finance.graph', function ($app) {
             return new Graph();
         });
-        
-        $this->app->singleton('finance.integrity_checker', function ($app) {
+
+        $this->app->singleton('integrity-checker', function ($app) {
             return new IntegrityChecker();
         });
 

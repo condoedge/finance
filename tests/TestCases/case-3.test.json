@@ -1,0 +1,91 @@
+{
+  "testCase": "Create Fully Non-Taxable Invoice",
+  "setup": {
+    "customer": "Acme Corporation",
+    "terms": "Net 30",
+    "taxConfiguration": {
+      "quebec": {
+        "name": "QST",
+        "rate": 9.975
+      },
+      "canada": {
+        "name": "GST",
+        "rate": 5.0
+      }
+    }
+  },
+  "initialState": {
+    "date": "2025-01-25",
+    "openingBalance": 8548.25,
+    "existingDocuments": [
+      {
+        "reference": "INV-001",
+        "remainingAmount": 4024.125
+      },
+      {
+        "reference": "INV-002",
+        "remainingAmount": 4524.125
+      }
+    ]
+  },
+  "transaction": {
+    "type": "Invoice",
+    "reference": "INV-003",
+    "date": "2025-01-25",
+    "dueDate": "2025-02-24",
+    "lineItems": [
+      {
+        "description": "Books and Educational Materials",
+        "unitPrice": 1200.00,
+        "quantity": 1,
+        "taxable": false,
+        "taxes": []
+      },
+      {
+        "description": "Regulatory Filing Fees",
+        "unitPrice": 800.00,
+        "quantity": 1,
+        "taxable": false,
+        "taxes": []
+      }
+    ]
+  },
+  "expectedResult": {
+    "newCustomerBalance": 10548.25,
+    "documentStatus": {
+      "INV-001": 4024.125,
+      "INV-002": 4524.125,
+      "INV-003": 2000.00
+    },
+    "taxCalculation": {
+      "GST": [],
+      "QST": []
+    },
+    "customerStatement": [
+      {
+        "date": "2025-01-15",
+        "transaction": "Invoice",
+        "reference": "INV-001",
+        "amount": 4024.125,
+        "balance": 4024.125,
+        "docRemaining": "INV-001: 4024.125"
+      },
+      {
+        "date": "2025-01-20",
+        "transaction": "Invoice",
+        "reference": "INV-002",
+        "amount": 4524.125,
+        "balance": 8548.25,
+        "docRemaining": "INV-001: 4024.125\nINV-002: 4524.13"
+      },
+      {
+        "date": "2025-01-25",
+        "transaction": "Invoice",
+        "reference": "INV-003",
+        "amount": 2000.00,
+        "balance": 10548.25,
+        "docRemaining": "INV-001: 4024.125\nINV-002: 4524.125\nINV-003: 2000.00"
+      }
+    ]
+  }
+}

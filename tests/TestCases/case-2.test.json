@@ -1,0 +1,113 @@
+{
+  "testCase": "Create Invoice with Mixed Taxable and Non-Taxable Items",
+  "setup": {
+    "customer": "Acme Corporation",
+    "terms": "Net 30",
+    "taxConfiguration": {
+      "quebec": {
+        "name": "QST",
+        "rate": 9.975
+      },
+      "canada": {
+        "name": "GST",
+        "rate": 5.0
+      }
+    }
+  },
+  "initialState": {
+    "date": "2025-01-20",
+    "openingBalance": 4024.125,
+    "existingDocuments": [
+      {
+        "reference": "INV-001",
+        "remainingAmount": 4024.125
+      }
+    ]
+  },
+  "transaction": {
+    "type": "Invoice",
+    "reference": "INV-002",
+    "date": "2025-01-20",
+    "dueDate": "2025-02-19",
+    "lineItems": [
+      {
+        "description": "Consulting Services",
+        "unitPrice": 1000.00,
+        "quantity": 2,
+        "taxable": true,
+        "taxes": [
+          "GST",
+          "QST"
+        ]
+      },
+      {
+        "description": "Software License",
+        "unitPrice": 1500.00,
+        "quantity": 1,
+        "taxable": true,
+        "taxes": [
+          "GST",
+          "QST"
+        ]
+      },
+      {
+        "description": "Documentation",
+        "unitPrice": 500.00,
+        "quantity": 1,
+        "taxable": false,
+        "taxes": []
+      }
+    ]
+  },
+  "expectedResult": {
+    "newCustomerBalance": 8548.25,
+    "documentStatus": {
+      "INV-001": 4024.125,
+      "INV-002": 4524.125
+    },
+    "taxCalculation": {
+      "GST": [
+        {
+          "rate": 5.0,
+          "amount": 100.0,
+          "taxableAmount": 2000.0
+        },
+        {
+          "rate": 5.0,
+          "amount": 75.0,
+          "taxableAmount": 1500.0
+        }
+      ],
+      "QST": [
+        {
+          "rate": 9.975,
+          "amount": 199.5,
+          "taxableAmount": 2000.0
+        },
+        {
+          "rate": 9.975,
+          "amount": 149.625,
+          "taxableAmount": 1500.0
+        }
+      ]
+    },
+    "customerStatement": [
+      {
+        "date": "2025-01-15",
+        "transaction": "Invoice",
+        "reference": "INV-001",
+        "amount": 4024.125,
+        "balance": 4024.125,
+        "docRemaining": "INV-001: 4024.125"
+      },
+      {
+        "date": "2025-01-20",
+        "transaction": "Invoice",
+        "reference": "INV-002",
+        "amount": 4524.125,
+        "balance": 8548.25,
+        "docRemaining": "INV-001: 4024.125\nINV-002: 4524.125"
+      }
+    ]
+  }
+}

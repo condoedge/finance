@@ -4,7 +4,7 @@ services:
   mysql-test:
     container_name: mysql-test
     image: mysql:8.4
-    command: --authentication_policy=*
+    command: --authentication_policy=* --log_bin_trust_function_creators=1
     tmpfs:
       - /var/lib/mysql # en RAM
     environment:

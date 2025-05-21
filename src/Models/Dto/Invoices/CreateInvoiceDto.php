@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Models\Dto\Invoices;
 use Carbon\Carbon;
 use Condoedge\Finance\Facades\PaymentTypeEnum;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
+use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
@@ -17,7 +18,7 @@ class CreateInvoiceDto extends ValidatedDTO
     public Carbon $invoice_date;
     public Carbon $invoice_due_date;
 
-    public bool $is_draft = true;
+    public bool $is_draft;
 
     public array $invoiceDetails;
 
@@ -40,8 +41,8 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoiceDetails.*.id' => 'nullable|integer|exists:fin_invoice_details,id',
             'invoiceDetails.*.name' => 'required|string|max:255',
             'invoiceDetails.*.description' => 'nullable|string|max:255',
-            'invoiceDetails.*.quantity' => 'required|integer|min:1',
-            'invoiceDetails.*.unit_price' => 'required|numeric|gt:0',
+            'invoiceDetails.*.quantity' => 'required|integer|min:1|max:2147483647',
+            'invoiceDetails.*.unit_price' => 'required|numeric|gt:0|max:99999999999999.99999',
             'invoiceDetails.*.revenue_account_id' => 'required|integer|exists:fin_accounts,id',
             'invoiceDetails.*.taxesIds' => 'nullable|array',
             'invoiceDetails.*.taxesIds.*' => 'integer|exists:fin_taxes,id',
@@ -57,6 +58,7 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoice_date' => new CarbonCast,
             'invoice_due_date' => new CarbonCast,
             'invoiceDetails' => new ArrayCast,
+            'is_draft' => new BooleanCast,
         ];
     }
 

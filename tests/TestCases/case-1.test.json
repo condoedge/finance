@@ -1,0 +1,91 @@
+{
+  "testCase": "Create Invoice with GST and QST",
+  "setup": {
+    "customer": "Acme Corporation",
+    "terms": "Net 30",
+    "taxConfiguration": {
+      "quebec": {
+        "name": "QST",
+        "rate": 9.975
+      },
+      "canada": {
+        "name": "GST",
+        "rate": 5.0
+      }
+    }
+  },
+  "initialState": {
+    "date": "2025-01-01",
+    "openingBalance": 0.0
+  },
+  "transaction": {
+    "type": "Invoice",
+    "reference": "INV-001",
+    "date": "2025-01-15",
+    "dueDate": "2025-02-14",
+    "lineItems": [
+      {
+        "description": "Professional Services",
+        "unitPrice": 1000.0,
+        "quantity": 1,
+        "taxable": true,
+        "taxes": [
+          "GST",
+          "QST"
+        ]
+      },
+      {
+        "description": "Equipment",
+        "unitPrice": 2500.0,
+        "quantity": 1,
+        "taxable": true,
+        "taxes": [
+          "GST",
+          "QST"
+        ]
+      }
+    ]
+  },
+  "expectedResult": {
+    "newCustomerBalance": 4024.125,
+    "documentStatus": {
+      "INV-001": 4024.125
+    },
+    "taxCalculation": {
+      "GST": [
+        {
+          "rate": 5.0,
+          "amount": 50.0,
+          "taxableAmount": 1000.0
+        },
+        {
+          "rate": 5.0,
+          "amount": 125.0,
+          "taxableAmount": 2500.0
+        }
+      ],
+      "QST": [
+        {
+          "rate": 9.975,
+          "amount": 99.75,
+          "taxableAmount": 1000.0
+        },
+        {
+          "rate": 9.975,
+          "amount": 249.375,
+          "taxableAmount": 2500.0
+        }
+      ]
+    },
+    "customerStatement": [
+      {
+        "date": "2025-01-15",
+        "transaction": "Invoice",
+        "reference": "INV-001",
+        "amount": 4024.125,
+        "balance": 4024.125,
+        "docRemaining": "INV-001: 4024.125"
+      }
+    ]
+  }
+}

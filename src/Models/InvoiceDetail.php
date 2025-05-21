@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceDetailGenerated;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
@@ -20,16 +21,23 @@ use Kompo\Auth\Models\Teams\PermissionTypeEnum;
  * @property int $quantity
  * @property string $name
  * @property string $description
- * @property float $unit_price Checked by get_detail_unit_price_with_sign() function. Ensuring sign is correct. It could be saved as negative or positive.
- * @property float $extended_price @CALCULATED: Calculated as quantity * unit_price
- * @property float $tax_amount @CALCULATED: Calculated using get_detail_tax_amount() function
- * @property float $total_amount @CALCULATED: Calculated as extended_price + tax_amount
+ * @property \Condoedge\Finance\Casts\SafeDecimal $unit_price Checked by get_detail_unit_price_with_sign() function. Ensuring sign is correct. It could be saved as negative or positive.
+ * @property \Condoedge\Finance\Casts\SafeDecimal $extended_price @CALCULATED: Calculated as quantity * unit_price
+ * @property \Condoedge\Finance\Casts\SafeDecimal $tax_amount @CALCULATED: Calculated using get_detail_tax_amount() function
+ * @property \Condoedge\Finance\Casts\SafeDecimal $total_amount @CALCULATED: Calculated as extended_price + tax_amount
  * 
  * @property-read \Condoedge\Finance\Models\Invoice $invoice
  */
 class InvoiceDetail extends AbstractMainFinanceModel
 {
     protected $table = 'fin_invoice_details';
+
+    protected $casts = [
+        'unit_price' => SafeDecimalCast::class,
+        'extended_price' => SafeDecimalCast::class,
+        'tax_amount' => SafeDecimalCast::class,
+        'total_amount' => SafeDecimalCast::class,
+    ];
 
     public function getCreatedEventClass()
     {

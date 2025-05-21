@@ -276,6 +276,61 @@ Payments involve two steps: creating the payment and applying it.
 
 ---
 
+## Safe Decimals
+
+One of the most common problems in the programming language is the float type. We use a concept called "safe decimals" to avoid issues with float precision. To apply that concept we have a `SafeDecimal` class combined with the `SafeDecimalCast` class to handle the operations between decimals instead of using direct php operators.
+
+For collection operations you have the following macros that will help to get the correct values working with decimals:
+
+- `sumDecimals()`: Sums the values of a collection.
+- `avgDecimals()`: Averages the values of a collection.
+- `minDecimals()`: Gets the minimum value of a collection.
+- `maxDecimals()`: Gets the maximum value of a collection.
+
+Also you have a helper function `safeDecimal()` that will help you to create a new instance of the `SafeDecimal` class.
+
+```php
+safeDecimal(10.5)->add(5.5); // 16.0
+```
+
+`safeDecimal` accepts a float, string, integer or SafeDecimal instance for the construction and also the operations. It will return a new instance of SafeDecimal.
+
+### Precision
+
+You can configure the scale/precision of the decimals in the `config/kompo-finance.php` file. By default, it is set to 5 decimals.
+
+```php
+'decimal-scale' => 5,
+```
+
+### Testing decimals
+
+```php
+$this->assertEqualsDecimals(5.6, new SafeDecimal(5.6)); // true
+$this->assertEqualsDecimals(5.6, 5.6); // true
+$this->assertEqualsDecimals(5.6, 5.6000); // true
+$this->assertEqualsDecimals(5.6, 5.6001); // false
+$this->assertEqualsDecimals(5.6, 5.6000001); // true (more than 5 decimals so it's rounded to 5.6)
+```
+
+### Handling unmanaged decimals
+
+Our first goal is not saving wrong data into the database. One problem must be if you add a new database column and you forget to apply the cast so you'll be doing operations out of the decimal type. This can cause problems in the future, especially if you use the value in a calculation. I created two approaches
+
+- **Local, dev or testing**: You'll get errors when you try to get a unmanaged decimal intercepting the `AbstractFinantialModel.getAttribute` method. That will help to the developer to correct it adding the cast into the model before it goes to prod.
+
+- **Production**: If the case gets to prod, we print into the logs the case with its details like id of entity, user, team so the developer can fix it. By default it'll continue with the operation because we don't want to break the application. But you can change that behavior by adding the `SAFE_DECIMAL_DISABLE_HANDLER` as false in your `.env` file.
+(The probability of adding wrong data before the you catch the error is very low and easily fixable so we recommend not to put it as false)
+
+#### Disabling the error
+
+If you want to disable the error approach you can just add the `SAFE_DECIMAL_DISABLE_HANDLER` env variable to your `.env` file. This will ignore the unmanaged decimals and just log the case.
+By the default it will be disabled in prod but enabled in local and testing
+
+```env
+SAFE_DECIMAL_DISABLE_HANDLER=true
+```
+
 ## Maintenance of integrity
 
 - When you're adding new financial models you should use the `HasIntegrityCheck` trait.

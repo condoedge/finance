@@ -85,7 +85,7 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
              */
             $applicableModel = getFinanceMorphableModel($applicableType, $applicable['id']);
 
-            if ($applicableModel->applicable_amount_left < collect($amountsToApply)->sum('amount_applied')) {
+            if ($applicableModel->applicable_amount_left < collect($amountsToApply)->sumDecimals('amount_applied')) {
                 $validator->errors()->add('applicable', __('translate.validation.custom.finance.applicable-amount-exceeded'));
             }
         }

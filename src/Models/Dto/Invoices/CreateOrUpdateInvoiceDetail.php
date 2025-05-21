@@ -2,6 +2,8 @@
 
 namespace Condoedge\Finance\Models\Dto\Invoices;
 
+use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\FloatCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -18,7 +20,7 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
     public string $name;
     public string $description;
     public int $quantity;
-    public float $unit_price;
+    public SafeDecimal $unit_price;
     public int $revenue_account_id;
 
     /**
@@ -56,7 +58,7 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
             'invoice_id' => new IntegerCast,
             'description' => new StringCast,
             'quantity' => new IntegerCast,
-            'unit_price' => new FloatCast,
+            'unit_price' => new SafeDecimalCast,
             'revenue_account_id' => new IntegerCast,
             'taxesIds' => new ArrayCast,
         ];

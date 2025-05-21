@@ -45,6 +45,18 @@ if (!function_exists('finance_currency')) {
     }
 }
 
+if (!function_exists('db_decimal_format')) {
+    function db_decimal_format($value, $precision = 5) {
+        return number_format($value, $precision, '.', '');
+    }
+}
+
+if (!function_exists('db_datetime_format')) {
+    function db_datetime_format($value) {
+        return date('Y-m-d H:i:s', strtotime($value));
+    }
+}
+
 if (!function_exists('get_currency_config')) {
     function get_currency_config($overridingOptions = null) {
         $config = config('kompo-finance.currency', []);

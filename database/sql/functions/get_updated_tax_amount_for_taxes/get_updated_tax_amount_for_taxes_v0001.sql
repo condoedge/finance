@@ -8,7 +8,7 @@ BEGIN
 
     SELECT get_detail_unit_price_with_sign(p_detail_id) INTO unit_price;
     SELECT d.quantity INTO quantity
-      FROM fin_invoices_details d
+      FROM fin_invoice_details d
      WHERE d.id = p_detail_id;
 
     SET taxable_amount = unit_price * quantity;

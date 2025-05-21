@@ -19,8 +19,8 @@ class CreateInvoiceDetailTaxesTable extends Migration
             $table->foreignId('invoice_detail_id')->constrained('fin_invoice_details');
             $table->foreignId('tax_id')->constrained('fin_taxes');
             $table->foreignId('account_id')->constrained('fin_accounts');
-            $table->decimal('tax_amount', 19, 5);
-            $table->decimal('tax_rate', 19, 5);
+            $table->decimal('tax_amount', 19, config('kompo-finance.decimal-scale'));
+            $table->decimal('tax_rate', 19, config('kompo-finance.decimal-scale'));
         });
     }
 

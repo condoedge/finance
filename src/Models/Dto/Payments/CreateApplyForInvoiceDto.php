@@ -2,10 +2,11 @@
 
 namespace Condoedge\Finance\Models\Dto\Payments;
 
+use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Facades\InvoiceModel;
 use WendellAdriel\ValidatedDTO\Attributes\Rules;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
-use WendellAdriel\ValidatedDTO\Casting\FloatCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\ObjectCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
@@ -27,7 +28,7 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
     public int $applicable_type;
 
     #[Rules(['numeric', 'required'])]
-    public $amount_applied;
+    public SafeDecimal $amount_applied;
 
     #[Rules(['numeric', 'required', 'exists:fin_invoices,id'])]
     public $invoice_id;
@@ -39,7 +40,7 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
     protected function casts(): array {
         return [
             'apply_date' => new CarbonCast,
-            'amount_applied' => new FloatCast,
+            'amount_applied' => new SafeDecimalCast,
             'invoice_id' => new IntegerCast,
             'applicable_type' => new IntegerCast,
 

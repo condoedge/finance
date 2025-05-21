@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use Illuminate\Support\Facades\DB;
 use Condoedge\Finance\Models\Dto\Invoices\ApplicableRecordDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
@@ -19,12 +20,17 @@ use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
  * @property string|\Carbon $apply_date The date of the payment application
  * @property int $applicable_id The ID of the applicable record (e.g., invoice, credit, etc.)
  * @property int $applicable_type The type of the applicable record (e.g., payment = 1, credit = 2, etc.)
- * @property float $payment_applied_amount The amount of the payment applied to the invoice
+ * @property \Condoedge\Finance\Casts\SafeDecimal $payment_applied_amount The amount of the payment applied to the invoice
  * 
 **/ 
 class InvoiceApply extends AbstractMainFinanceModel
 {
     protected $table = 'fin_invoice_applies';
+
+    protected $casts = [
+        'apply_date' => 'date',
+        'payment_applied_amount' => SafeDecimalCast::class,
+    ];
 
     /* RELATIONSHIPS */
     public function invoice()

@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
@@ -20,13 +21,18 @@ use Illuminate\Support\Facades\DB;
  * @property int $account_id Foreign key to fin_accounts
  * @property int $tax_id Foreign key to the original tax fin_taxes. The tax rate can mismatch if it was changed
  * @property int|null $tax_amount Tax amount 
- * @property float $tax_rate Tax rate as percentage / 100
+ * @property \Condoedge\Finance\Casts\SafeDecimal $tax_rate Tax rate as percentage / 100
  * 
  * @property-read \Condoedge\Finance\Models\Invoice $invoice
  */
 class InvoiceDetailTax extends AbstractMainFinanceModel
 {
     protected $table = 'fin_invoice_detail_taxes';
+
+    protected $casts = [
+        'tax_rate' => SafeDecimalCast::class,
+        'tax_amount' => SafeDecimalCast::class,
+    ];
 
     /* RELATIONSHIPS */
     public function invoiceDetail()
@@ -54,7 +60,7 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
 
     public function getCompleteLabelHtmlAttribute()
     {
-        return '<span data-name="'.$this->tax->name.'" data-tax="'.$this->tax_rate.'" data-id="'.$this->tax_id.'">'.$this->complete_label.'</span>';
+        return '<span data-name="' . $this->tax->name . '" data-tax="' . $this->tax_rate . '" data-id="' . $this->tax_id . '">' . $this->complete_label . '</span>';
     }
 
     /* SCOPES */
@@ -74,7 +80,7 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
         $invoiceDetailTax->tax_id = $tax->id;
         $invoiceDetailTax->tax_rate = $tax->rate;
         // It will be recaculated so it doesn't matter
-        $invoiceDetailTax->tax_amount = $invoiceDetail->extended_price * $tax->rate;
+        $invoiceDetailTax->tax_amount = $invoiceDetail->extended_price->multiply($tax->rate);
         $invoiceDetailTax->save();
 
         return $invoiceDetailTax;
@@ -93,6 +99,23 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
         $invoiceDetail = InvoiceDetailModel::findOrFail($data->invoice_detail_id);
 
         $invoiceDetail->invoiceTaxes()->whereNotIn('tax_id', $data->taxes_ids ?? [])->get()->each->delete();
+    }
+
+    public static function getAllForInvoiceDetail(int $invoiceDetailId, ?string $taxName = null)
+    {
+        return static::where('invoice_detail_id', $invoiceDetailId)
+            ->when($taxName, fn($q) => $q->whereHas('tax', function ($query) use ($taxName) {
+                $query->where('name', $taxName);
+            })->withAggregate('tax', 'name')->get());
+    }
+
+    public static function getAllForInvoice(int $invoiceId, ?string $taxName = null)
+    {
+        return static::whereHas('invoiceDetail', function ($query) use ($invoiceId) {
+            $query->where('invoice_id', $invoiceId);
+        })->when($taxName, fn($q) => $q->whereHas('tax', function ($query) use ($taxName) {
+            $query->where('name', $taxName);
+        })->withAggregate('tax', 'name')->get());
     }
 
     /* INTEGRITY */
