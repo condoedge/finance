@@ -4,6 +4,7 @@ use Condoedge\Finance\Billing\TempPaymentGateway;
 use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
+use Condoedge\Finance\Models\Payable\VendorPayment;
 
 return [
     'decimal-scale' => 5,
@@ -32,15 +33,36 @@ return [
         \Condoedge\Finance\Models\InvoiceDetailTax::class => [
            \Condoedge\Finance\Models\InvoiceDetail::class,
         ],
-
         \Condoedge\Finance\Models\CustomerPayment::class => [
             \Condoedge\Finance\Models\InvoiceApply::class,
+        ],
+        
+        // Payable module integrity relations
+        \Condoedge\Finance\Models\Payable\Vendor::class => [
+            \Condoedge\Finance\Models\Payable\Bill::class,
+            \Condoedge\Finance\Models\Payable\VendorPayment::class,
+        ],
+        \Condoedge\Finance\Models\Payable\Bill::class => [
+            \Condoedge\Finance\Models\Payable\BillDetail::class,
+            \Condoedge\Finance\Models\Payable\BillDetailTax::class,
+            \Condoedge\Finance\Models\Payable\BillApply::class,
+        ],
+        \Condoedge\Finance\Models\Payable\BillDetailTax::class => [
+           \Condoedge\Finance\Models\Payable\BillDetail::class,
+        ],
+        \Condoedge\Finance\Models\Payable\VendorPayment::class => [
+            \Condoedge\Finance\Models\Payable\BillApply::class,
         ]
     ],
 
     'invoice_applicable_types' => [
         Credit::class, // CREDIT TYPE
         CustomerPayment::class, // CUSTOMER PAYMENT TYPE
+    ],
+
+    'bill_applicable_types' => [
+        Credit::class, // CREDIT TYPE  
+        VendorPayment::class, // VENDOR PAYMENT TYPE
     ],
 
     'customable_models' => [
@@ -117,22 +139,25 @@ return [
     */
     'custom_currency_formatter' => null,
 
+    // Receivable module configurations
     CUSTOMER_PAYMENT_MODEL_KEY . '-namespace' => getAppClass(App\Models\CustomerPayment::class, \Condoedge\Finance\Models\CustomerPayment::class),
-
     CUSTOMER_MODEL_KEY . '-namespace' => getAppClass(App\Models\Customer::class, Condoedge\Finance\Models\Customer::class),
-
     INVOICE_MODEL_KEY . '-namespace' => getAppClass(App\Models\Invoice::class, Condoedge\Finance\Models\Invoice::class),
-
     INVOICE_DETAIL_MODEL_KEY . '-namespace' => getAppClass(App\Models\InvoiceDetail::class, Condoedge\Finance\Models\InvoiceDetail::class),
-
     INVOICE_PAYMENT_MODEL_KEY . '-namespace' => getAppClass(App\Models\InvoicePayment::class, Condoedge\Finance\Models\InvoiceApply::class),
 
+    // Payable module configurations
+    VENDOR_PAYMENT_MODEL_KEY . '-namespace' => getAppClass(App\Models\VendorPayment::class, \Condoedge\Finance\Models\Payable\VendorPayment::class),
+    VENDOR_MODEL_KEY . '-namespace' => getAppClass(App\Models\Vendor::class, Condoedge\Finance\Models\Payable\Vendor::class),
+    BILL_MODEL_KEY . '-namespace' => getAppClass(App\Models\Bill::class, Condoedge\Finance\Models\Payable\Bill::class),
+    BILL_DETAIL_MODEL_KEY . '-namespace' => getAppClass(App\Models\BillDetail::class, Condoedge\Finance\Models\Payable\BillDetail::class),
+    BILL_PAYMENT_MODEL_KEY . '-namespace' => getAppClass(App\Models\BillPayment::class, Condoedge\Finance\Models\Payable\BillApply::class),
+
+    // Shared configurations
     TAX_MODEL_KEY . '-namespace' => getAppClass(App\Models\Tax::class, Condoedge\Finance\Models\Tax::class),
-
     TAX_GROUP_MODEL_KEY . '-namespace' => getAppClass(App\Models\TaxGroup::class, Condoedge\Finance\Models\TaxGroup::class),
-
     PAYMENT_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\PaymentTypeEnum::class,
-
     INVOICE_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\InvoiceTypeEnum::class,
+    BILL_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\Payable\BillTypeEnum::class,
     
 ];

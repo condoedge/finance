@@ -47,6 +47,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations/gl');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations/payable');
 
         $this->loadCommands();
 
@@ -69,8 +70,9 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             Route::middleware('web')->group(__DIR__.'/../routes/web.php');
             Route::prefix('api')->middleware('api')->group(__DIR__.'/../routes/api.php');
             
-            // Load GL routes
+            // Load module routes
             Route::group([], __DIR__.'/../routes/gl.php');
+            Route::group([], __DIR__.'/../routes/payable.php');
         });
 
         // Register services for integrity checking
@@ -102,15 +104,19 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             __DIR__.'/../config/kompo-finance.php' => config_path('kompo-finance.php'),
         ], 'finance-config');
 
-        // Publish GL migrations
+        // Publish migrations
         $this->publishes([
             __DIR__.'/../database/migrations/gl' => database_path('migrations'),
         ], 'gl-migrations');
+
+        $this->publishes([
+            __DIR__.'/../database/migrations/payable' => database_path('migrations'),
+        ], 'payable-migrations');
     }
 
     protected function registerFacades()
     {
-        // Model binding facades
+        // Receivable module facades
         $this->app->bind(CUSTOMER_MODEL_KEY, function () {
             return new (config('kompo-finance.'. CUSTOMER_MODEL_KEY .'-namespace'));
         });
@@ -120,13 +126,39 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(INVOICE_DETAIL_MODEL_KEY, function () {
-            return new (config('kompo-finance.'. INVOICE_DETAIL_MODEL_key .'-namespace'));
+            return new (config('kompo-finance.'. INVOICE_DETAIL_MODEL_KEY .'-namespace'));
         });
 
         $this->app->bind(INVOICE_PAYMENT_MODEL_KEY, function () {
             return new (config('kompo-finance.'. INVOICE_PAYMENT_MODEL_KEY .'-namespace'));
         });
 
+        $this->app->bind(CUSTOMER_PAYMENT_MODEL_KEY, function () {
+            return new (config('kompo-finance.' . CUSTOMER_PAYMENT_MODEL_KEY . '-namespace'));
+        });
+
+        // Payable module facades
+        $this->app->bind(VENDOR_MODEL_KEY, function () {
+            return new (config('kompo-finance.'. VENDOR_MODEL_KEY .'-namespace'));
+        });
+
+        $this->app->bind(BILL_MODEL_KEY, function () {
+            return new (config('kompo-finance.'. BILL_MODEL_KEY .'-namespace'));
+        });
+
+        $this->app->bind(BILL_DETAIL_MODEL_KEY, function () {
+            return new (config('kompo-finance.'. BILL_DETAIL_MODEL_KEY .'-namespace'));
+        });
+
+        $this->app->bind(BILL_PAYMENT_MODEL_KEY, function () {
+            return new (config('kompo-finance.'. BILL_PAYMENT_MODEL_KEY .'-namespace'));
+        });
+
+        $this->app->bind(VENDOR_PAYMENT_MODEL_KEY, function () {
+            return new (config('kompo-finance.' . VENDOR_PAYMENT_MODEL_KEY . '-namespace'));
+        });
+
+        // Shared facades
         $this->app->bind(TAX_MODEL_KEY, function () {
             return new (config('kompo-finance.'. TAX_MODEL_KEY .'-namespace'));
         });
@@ -143,8 +175,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             return config('kompo-finance.' . INVOICE_TYPE_ENUM_KEY . '-namespace');
         });
 
-        $this->app->bind(CUSTOMER_PAYMENT_MODEL_KEY, function () {
-            return new (config('kompo-finance.' . CUSTOMER_PAYMENT_MODEL_KEY . '-namespace'));
+        $this->app->bind(BILL_TYPE_ENUM_KEY, function () {
+            return config('kompo-finance.' . BILL_TYPE_ENUM_KEY . '-namespace');
         });
     }
 
