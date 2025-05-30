@@ -9,6 +9,9 @@ use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
+use Condoedge\Finance\Services\GL\FiscalPeriodService;
+use Condoedge\Finance\Services\GL\ChartOfAccountsService;
+use Condoedge\Finance\Services\GL\GlTransactionService;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +46,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->loadJSONTranslationsFrom(__DIR__.'/../resources/lang');
 
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations/gl');
 
         $this->loadCommands();
 
@@ -64,6 +68,9 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->booted(function () {
             Route::middleware('web')->group(__DIR__.'/../routes/web.php');
             Route::prefix('api')->middleware('api')->group(__DIR__.'/../routes/api.php');
+            
+            // Load GL routes
+            Route::group([], __DIR__.'/../routes/gl.php');
         });
 
         // Register services for integrity checking
@@ -84,11 +91,21 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 ? config('kompo-finance.currency_preformats.en')
                 : config('kompo-finance.currency_preformats.fr');
         });
+
+        // Register GL services
+        $this->app->singleton(FiscalPeriodService::class);
+        $this->app->singleton(ChartOfAccountsService::class);
+        $this->app->singleton(GlTransactionService::class);
         
         // Publish configuration
         $this->publishes([
             __DIR__.'/../config/kompo-finance.php' => config_path('kompo-finance.php'),
         ], 'finance-config');
+
+        // Publish GL migrations
+        $this->publishes([
+            __DIR__.'/../database/migrations/gl' => database_path('migrations'),
+        ], 'gl-migrations');
     }
 
     protected function registerFacades()
@@ -103,7 +120,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(INVOICE_DETAIL_MODEL_KEY, function () {
-            return new (config('kompo-finance.'. INVOICE_DETAIL_MODEL_KEY .'-namespace'));
+            return new (config('kompo-finance.'. INVOICE_DETAIL_MODEL_key .'-namespace'));
         });
 
         $this->app->bind(INVOICE_PAYMENT_MODEL_KEY, function () {
