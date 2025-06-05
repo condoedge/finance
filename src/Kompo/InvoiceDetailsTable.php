@@ -38,9 +38,9 @@ class InvoiceDetailsTable extends Table
             _Html($invoiceDetail->name),
             _Html($invoiceDetail->revenueAccount->name)->class('text-right'),
             _Html($invoiceDetail->quantity)->class('text-right'),
-            _FinanceCurrency($invoiceDetail->unit_price)->class('text-right'),
-            _FinanceCurrency($invoiceDetail->tax_amount)->class('text-right'),
-            _FinanceCurrency($invoiceDetail->total_amount) ->class('text-right font-semibold'),
+            _FinanceCurrency($invoiceDetail->abs_unit_price)->class('text-right'),
+            _FinanceCurrency($invoiceDetail->abs_tax_amount)->class('text-right'),
+            _FinanceCurrency($invoiceDetail->abs_total_amount) ->class('text-right font-semibold'),
         );
     }
 }

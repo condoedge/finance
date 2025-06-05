@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models\Traits;
 
+use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Models\ApplicableToInvoiceContract;
 use Condoedge\Finance\Models\MorphablesEnum;
 
@@ -21,13 +22,13 @@ trait ApplicableUtilsTrait
         return MorphablesEnum::getFromM(new static)->value;
     }
 
-    public function getApplicableAmountLeftAttribute(): float|int
+    public function getApplicableAmountLeftAttribute(): SafeDecimal
     {
-        return $this->getSqlColumnCalculation(static::getApplicableAmountLeftColumn(), 'amount_left');
+        return new SafeDecimal($this->getSqlColumnCalculation(static::getApplicableAmountLeftColumn(), 'amount_left'));
     }
 
-    public function getApplicableTotalAmountAttribute(): float|int
+    public function getApplicableTotalAmountAttribute(): SafeDecimal
     {
-        return $this->getSqlColumnCalculation(static::getApplicableTotalAmountColumn(), 'total_amount');
+        return new SafeDecimal($this->getSqlColumnCalculation(static::getApplicableTotalAmountColumn(), 'total_amount'));
     }
 }

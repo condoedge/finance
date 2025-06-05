@@ -16,7 +16,7 @@ class CreateInvoiceDto extends ValidatedDTO
     public int $invoice_type_id;
     public int $payment_type_id;
     public Carbon $invoice_date;
-    public Carbon $invoice_due_date;
+    public ?Carbon $invoice_due_date;
 
     public bool $is_draft;
 
@@ -29,7 +29,7 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoice_type_id' => 'required|integer|exists:fin_invoice_types,id',
             'payment_type_id' => 'required|integer|in:' . collect(PaymentTypeEnum::getEnumClass()::cases())->pluck('value')->implode(','),
             'invoice_date' => 'required|date',
-            'invoice_due_date' => 'required|date|after_or_equal:invoice_date',
+            'invoice_due_date' => 'nullable|date|after_or_equal:invoice_date',
             'is_draft' => 'boolean',
 
             'invoiceDetails' => 'array',

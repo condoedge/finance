@@ -2,6 +2,8 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimal;
+
 interface ApplicableToInvoiceContract
 {
     public static function getApplicableType(): string;
@@ -16,7 +18,7 @@ interface ApplicableToInvoiceContract
 
     public function getSqlColumnCalculation($column, $as = null);
 
-    public function getApplicableAmountLeftAttribute(): float|int;
+    public function getApplicableAmountLeftAttribute(): SafeDecimal;
 
-    public function getApplicableTotalAmountAttribute(): float|int;
+    public function getApplicableTotalAmountAttribute(): SafeDecimal;
 }

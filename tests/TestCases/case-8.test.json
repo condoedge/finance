@@ -1,0 +1,80 @@
+{
+  "testCase": "Refund to Customer (Negative Payment)",
+  "setup": {
+    "customer": "Acme Corporation",
+    "terms": "Net 30",
+    "taxConfiguration": {
+      "quebec": {
+        "name": "QST",
+        "rate": 9.975
+      },
+      "canada": {
+        "name": "GST",
+        "rate": 5.0
+      }
+    },
+    "transactions": {
+      "transaction": {
+      "type": "Invoice",
+      "reference": "INV-005",
+      "date": "2025-03-05",
+      "dueDate": "2025-03-22",
+      "lineItems": [
+          {
+            "description": "Professional Services",
+            "unitPrice": 1000.0,
+            "quantity": 1,
+            "taxable": true,
+            "taxes": [
+              "GST",
+              "QST"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "initialState": {
+    "date": "2025-03-05",
+    "openingBalance": 0,
+    "existingDocuments": [
+      {
+        "reference": "INV-001",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-002",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-003",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-004",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-005",
+        "remainingAmount": 1149.75
+      }
+    ]
+  },
+  "transaction": {
+    "type": "Payment",
+    "reference": "PAY-003",
+    "date": "2025-03-05",
+    "amount": -500.00,
+    "description": "Payment to customer (refund)"
+  },
+  "expectedResult": {
+    "newCustomerBalance": 1649.75000,
+    "documentStatus": {
+      "INV-001": 0.00,
+      "INV-002": 0.00,
+      "INV-003": 0.00,
+      "INV-004": 0.00,
+      "INV-005": 1149.75
+    }
+  }
+}

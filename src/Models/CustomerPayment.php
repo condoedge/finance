@@ -44,11 +44,12 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
         $customerPayment->amount = $data->amount;
         $customerPayment->save();
 
-        return $customerPayment;
+        return $customerPayment->refresh();
     }
 
     public static function createForCustomerAndApply(CreateCustomerPaymentForInvoiceDto $data)
     {
+        $payment = null;
         try {
             $payment = static::createForCustomer(new CreateCustomerPaymentDto($data->toArray()));
 
@@ -61,7 +62,8 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
             ]));
         } catch (\Exception $e) {
             // Rollback the payment creation if invoice payment fails
-            $payment->delete();
+            $payment?->delete();
+
             throw $e;
         }
     }
@@ -82,6 +84,7 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
     {
         return [
             'amount_left' => DB::raw('calculate_payment_amount_left(fin_customer_payments.id)'),
+            // 'amount' => DB::raw('calculate_payment_amount_with_sign(fin_customer_payments.id)'),
         ];
     }
 

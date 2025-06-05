@@ -34,7 +34,7 @@ class CreateInvoicesTable extends Migration
             $table->boolean('is_draft')->default(true);
             
             $table->timestamp('invoice_date');
-            $table->timestamp('invoice_due_date');
+            $table->timestamp('invoice_due_date')->nullable();
             $table->decimal('invoice_amount_before_taxes', 19, config('kompo-finance.decimal-scale'))->nullable();
             $table->decimal('invoice_total_amount', 19, config('kompo-finance.decimal-scale'))->storedAs('invoice_tax_amount + invoice_amount_before_taxes');
 

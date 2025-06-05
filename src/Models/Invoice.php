@@ -4,10 +4,12 @@ namespace Condoedge\Finance\Models;
 
 use App\Models\User;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
+use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceGenerated;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
+use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
@@ -43,8 +45,8 @@ use Illuminate\Support\Facades\DB;
  * @property-read string $customer_label The name of the customer
  * @property-read string $invoice_type_label The invoice type label (Invoice, Credit, etc.)
  * @property-read string $invoice_status_label The invoice status label (Draft, Paid, etc.)
- * @property-read float $abs_invoice_total_amount The absolute value of the invoice amount
- * @property-read float $abs_invoice_due_amount The absolute value of the invoice due amount
+ * @property-read SafeDecimal $abs_invoice_total_amount The absolute value of the invoice amount
+ * @property-read SafeDecimal $abs_invoice_due_amount The absolute value of the invoice due amount
  * @property-read string $payment_type_label The payment type label (Cash, Credit Card, etc.)
  * 
  */
@@ -107,6 +109,11 @@ class Invoice extends AbstractMainFinanceModel
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+    public function payments()
+    {
+        return $this->hasMany(InvoicePaymentModel::getClass(), 'invoice_id');
+    }
+
     /* ATTRIBUTES */
     public function getCustomerLabelAttribute()
     {
@@ -125,12 +132,12 @@ class Invoice extends AbstractMainFinanceModel
 
     public function getAbsInvoiceTotalAmountAttribute()
     {
-        return abs($this->invoice_total_amount);
+        return $this->invoice_total_amount->abs();
     }
 
     public function getAbsInvoiceDueAmountAttribute()
     {
-        return abs($this->invoice_due_amount);
+        return $this->invoice_due_amount->abs();
     }
 
     public function getPaymentTypeLabelAttribute()
@@ -159,6 +166,16 @@ class Invoice extends AbstractMainFinanceModel
     public function scopeCanApplyOnIt($query)
     {
         return $query->pending()->where('invoice_type_id', InvoiceTypeEnum::INVOICE);
+    }
+
+    public function scopeByReferenceDetails($query, $prefix, $number)
+    {
+        $type = collect(InvoiceTypeEnum::cases())->first(function ($case) use ($prefix) {
+            return $case->prefix() === $prefix;
+        });
+
+        return $query->where('invoice_number', $number)
+            ->where('invoice_type_id', $type?->value);
     }
 
     /* CALCULATED FIELDS */
@@ -258,12 +275,12 @@ class Invoice extends AbstractMainFinanceModel
             }
         }
 
-        return $invoice;
+        return $invoice->refresh();
     }
 
     public static function approveInvoice(ApproveInvoiceDto $data)
     {
-		InvoiceModel::findOrFail($data->invoice_id)->markApproved();
+		static::findOrFail($data->invoice_id)->markApproved();
     }
 
     public function approveManyInvoices(ApproveManyInvoicesDto $data)

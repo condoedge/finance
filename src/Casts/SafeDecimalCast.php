@@ -31,6 +31,10 @@ class SafeDecimalCast implements CastsAttributes, Castable
      */
     public function cast(string $property, mixed $value): SafeDecimal
     {
+        if (isset($value['safe_decimal_value'])) {
+            $value = $value['safe_decimal_value'];
+        }
+
         if (! is_numeric($value) && $value !== '') {
             throw new CastException($property);
         }

@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\CustomerPaymentModel;
+use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Utils\Kompo\Common\Table;
 
@@ -38,7 +39,7 @@ class FinantialCustomerPayments extends Table
         ];
     }
 
-    public function render($customerPayment)
+    public function render(CustomerPayment $customerPayment)
     {
         return _TableRow(
             _HtmlDate($customerPayment->payment_date),
@@ -46,7 +47,7 @@ class FinantialCustomerPayments extends Table
             _FinanceCurrency($customerPayment->amount_left),
 
             _TripleDotsDropdown(
-                $customerPayment->amount_left <= 0 ? null : _DropdownLink('translate.apply-payment')->selfGet('getApplyPaymentToInvoiceModal', [
+                $customerPayment->amount_left->lessThanOrEqual(0) ? null : _DropdownLink('translate.apply-payment')->selfGet('getApplyPaymentToInvoiceModal', [
                     'customer_payment_id' => $customerPayment->id,
                 ])
                     ->inModal(),

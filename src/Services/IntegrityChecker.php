@@ -142,8 +142,15 @@ class IntegrityChecker
 
         foreach ($ancestors as $ancestor) {
             if ($ids) {
-                $relationClass = $ancestor::getRelationships($currentRelationClass)[0] ?? null;
-                $ids = !$relationClass ? null : $ancestor::whereHas($relationClass[0], fn($q) => $q->whereIn((new $relationClass[1])->getTable() .'.id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
+                $relationsClass = $ancestor::getRelationships($currentRelationClass) ?? null;
+
+                $ids = collect($relationsClass)->isEmpty() ? null : [];
+
+                collect($relationsClass)->each(function ($relationClass) use ($ancestor, &$ids) {
+                    $ids = array_merge($ids, $ancestor::whereHas($relationClass[0], function ($query) use ($relationClass, $ids) {
+                        $query->whereIn((new $relationClass[1])->getTable() . '.id', $this->parseIds($ids) ?? []);
+                    })->withTrashed()->pluck('id')->all());
+                });
             }
 
             $this->runCheckIntegrityOn($ancestor, $ids);

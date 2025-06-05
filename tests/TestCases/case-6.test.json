@@ -1,0 +1,74 @@
+{
+  "testCase": "Create Credit Note and Apply to Invoice",
+  "setup": {
+    "customer": "Acme Corporation",
+    "terms": "Net 30",
+    "taxConfiguration": {
+      "quebec": {
+        "name": "QST",
+        "rate": 9.975
+      },
+      "canada": {
+        "name": "GST",
+        "rate": 5.0
+      }
+    }
+  },
+  "initialState": {
+    "date": "2025-02-10",
+    "openingBalance": 6328.25,
+    "existingDocuments": [
+      {
+        "reference": "INV-001",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-002",
+        "remainingAmount": 1524.125
+      },
+      {
+        "reference": "INV-003",
+        "remainingAmount": 1024.125
+      }
+    ]
+  },
+  "transaction": {
+    "type": "CreditNote",
+    "reference": "CRD-001",
+    "date": "2025-02-10",
+    "referenceInvoice": "INV-002",
+    "lineItems": [
+      {
+        "description": "Software License (partial refund)",
+        "unitPrice": 500.00,
+        "quantity": 1,
+        "taxable": true,
+        "taxes": ["GST", "QST"]
+      }
+    ],
+    "total": 574.875,
+    "applications": [{
+      "document": "INV-002",
+      "amount": 574.875
+    }]
+  },
+  "expectedResult": {
+    "newCustomerBalance": 5753.375,
+    "documentStatus": {
+      "INV-001": 0.00,
+      "INV-002": 949.25,
+      "INV-003": 1024.125,
+      "INV-004": 3780.00
+    },
+    "taxCalculation": {
+      "GST": [{
+        "rate": 5.0,
+        "amount": -25.00
+      }],
+      "QST": [{
+        "rate": 9.975,
+        "amount": -49.875
+      }]
+    }
+  }
+}

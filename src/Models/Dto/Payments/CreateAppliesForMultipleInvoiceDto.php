@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Models\Dto\Payments;
 use Carbon\Carbon;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\ApplicableToInvoiceContract;
+use Condoedge\Finance\Rule\SafeDecimalRule;
 use WendellAdriel\ValidatedDTO\Attributes\Rules;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -47,7 +48,7 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
         return [
             'amounts_to_apply' => ['array', 'required'],
             'amounts_to_apply.*.id' => ['numeric', 'required'],
-            'amounts_to_apply.*.amount_applied' => ['numeric', 'required'],
+            'amounts_to_apply.*.amount_applied' => [new SafeDecimalRule(true), 'required'],
 
             'applicable.id' => ['numeric', 'required'],
         ];
@@ -71,10 +72,21 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
             $invoices = InvoiceModel::whereIn('id', $invoicesIds)->get()->keyBy('id');
 
             foreach ($amountsToApply as $amountToApply) {
-                if ($invoices->get($amountToApply['id'])->invoice_due_amount < $amountToApply['amount_applied']) {
+                if (!isset($amountToApply['id']) || !isset($amountToApply['amount_applied'])) {
+                    // No need to validate because it will be validated by the rules. If we don't skip it here it will throw an error because we're trying to access a key that doesn't exist
+                    continue;
+                }
+
+                if ($invoices->get($amountToApply['id'])->invoice_due_amount->lessThan($amountToApply['amount_applied'])) {
                     $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('translate.validation.custom.finance.invoice-amount-exceeded'));
 
                     $validator->errors()->add('amounts_to_apply', __('translate.validation.custom.finance.invoice-amount-exceeded'));
+                }
+
+                if ($invoices->get($amountToApply['id'])->is_draft) {
+                    $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('translate.validation.custom.finance.invoice-draft'));
+
+                    $validator->errors()->add('amounts_to_apply', __('translate.validation.custom.finance.invoice-draft'));
                 }
             }
         }
@@ -85,7 +97,7 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
              */
             $applicableModel = getFinanceMorphableModel($applicableType, $applicable['id']);
 
-            if ($applicableModel->applicable_amount_left < collect($amountsToApply)->sumDecimals('amount_applied')) {
+            if ($applicableModel->abs_applicable_amount_left->lessThan(collect($amountsToApply)->sumDecimals('amount_applied'))) {
                 $validator->errors()->add('applicable', __('translate.validation.custom.finance.applicable-amount-exceeded'));
             }
         }

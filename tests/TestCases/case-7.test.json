@@ -1,0 +1,67 @@
+{
+  "testCase": "Complete Payment of Remaining Invoices",
+  "setup": {
+    "customer": "Acme Corporation",
+    "terms": "Net 30",
+    "taxConfiguration": {
+      "quebec": {
+        "name": "QST",
+        "rate": 9.975
+      },
+      "canada": {
+        "name": "GST",
+        "rate": 5.0
+      }
+    }
+  },
+  "initialState": {
+    "date": "2025-02-15",
+    "openingBalance": 5753.375,
+    "existingDocuments": [
+      {
+        "reference": "INV-001",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-002",
+        "remainingAmount": 949.25
+      },
+      {
+        "reference": "INV-003",
+        "remainingAmount": 1023.94
+      }
+    ]
+  },
+  "transaction": {
+    "type": "Payment",
+    "reference": "PAY-002",
+    "date": "2025-02-15",
+    "amount": 5753.375,
+    "applications": [
+      {
+        "document": "INV-002",
+        "amount": 949.25,
+        "type": "Full"
+      },
+      {
+        "document": "INV-003",
+        "amount": 1024.125,
+        "type": "Full"
+      },
+      {
+        "document": "INV-004",
+        "amount": 3780.00,
+        "type": "Full"
+      }
+    ]
+  },
+  "expectedResult": {
+    "newCustomerBalance": 0.00,
+    "documentStatus": {
+      "INV-001": 0.00,
+      "INV-002": 0.00,
+      "INV-003": 0.00,
+      "INV-004": 0.00
+    }
+  }
+}

@@ -2,10 +2,12 @@
 
 namespace Condoedge\Finance\Models\GlobalScopesTypes;
 
+use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Models\ApplicableToInvoiceContract;
+use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceTypeEnum as ModelsInvoiceTypeEnum;
-use Condoedge\Finance\Models\MorphablesEnum;
 
 class Credit extends Invoice implements ApplicableToInvoiceContract
 {
@@ -20,6 +22,27 @@ class Credit extends Invoice implements ApplicableToInvoiceContract
         });
     }
 
+    // SERVICE
+    /**
+     * Creates a credit note and apply a payment to it. It's used to pay to the customer.
+     */
+    public static function createCreditPayment(CreateInvoiceDto $dto, $paymentDate): self
+    {
+        $dto->invoice_type_id = ModelsInvoiceTypeEnum::CREDIT->value;
+
+        $credit = static::createInvoiceFromDto($dto);
+
+        CustomerPaymentModel::createForCustomerAndApply(new CreateCustomerPaymentForInvoiceDto([
+            'customer_id' => $dto->customer_id,
+            'invoice_id' => $credit->id,
+            'amount' => $credit->invoice_due_amount,
+            'payment_date' => $paymentDate,
+        ]));
+
+        return $credit;
+    }
+
+    // APPLICABLE LOGIC
     public static function getApplicableAmountLeftColumn(): string
     {
         return 'ABS(invoice_due_amount)';

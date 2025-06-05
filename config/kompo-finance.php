@@ -39,8 +39,8 @@ return [
     ],
 
     'invoice_applicable_types' => [
-        Credit::class, // CREDIT TYPE
-        CustomerPayment::class, // CUSTOMER PAYMENT TYPE
+        \Condoedge\Finance\Models\GlobalScopesTypes\Credit::class, // CREDIT TYPE
+        \Condoedge\Finance\Models\CustomerPayment::class, // CUSTOMER PAYMENT TYPE
     ],
 
     'customable_models' => [

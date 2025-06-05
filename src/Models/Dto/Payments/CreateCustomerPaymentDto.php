@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Models\Dto\Payments;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Rule\SafeDecimalRule;
 use WendellAdriel\ValidatedDTO\Attributes\Rules;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\FloatCast;
@@ -15,13 +16,10 @@ class CreateCustomerPaymentDto extends ValidatedDTO
 {
     use EmptyDefaults;
 
-    #[Rules(['required', 'integer', 'exists:fin_customers,id'])]
     public int $customer_id;
 
-    #[Rules(['required', 'date'])]
     public \Carbon\Carbon|string $payment_date;
 
-    #[Rules(['required', 'numeric', 'min:0'])]
     public SafeDecimal $amount;
 
     public function casts(): array
@@ -39,7 +37,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
         return [
             'customer_id' => ['required', 'integer', 'exists:fin_customers,id'],
             'payment_date' => ['required', 'date'],
-            'amount' => ['required', 'numeric', 'min:0'],
+            'amount' => ['required', new SafeDecimalRule(true)],
         ];
     }
 }

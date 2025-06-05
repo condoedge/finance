@@ -1,0 +1,85 @@
+{
+  "testCase": "Create New Invoice After Credit Application",
+  "setup": {
+    "customer": "Acme Corporation",
+    "terms": "Net 30",
+    "taxConfiguration": {
+      "quebec": {
+        "name": "QST",
+        "rate": 9.975
+      },
+      "canada": {
+        "name": "GST",
+        "rate": 5.0
+      }
+    }
+  },
+  "initialState": {
+    "date": "2025-03-20",
+    "openingBalance":  500.00,
+    "existingDocuments": [
+      {
+        "reference": "INV-001",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-002",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-003",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "INV-004",
+        "remainingAmount": 0.00
+      },
+     {
+        "reference": "INV-004",
+        "remainingAmount": 0.00
+      },
+      {
+        "reference": "CN-002",
+        "remainingAmount": 0.00
+      }
+    ]
+  },
+  "transaction": {
+    "type": "Invoice",
+    "reference": "INV-006",
+    "date": "2025-03-20",
+    "dueDate": "2025-04-19",
+    "lineItems": [
+      {
+        "description": "Consulting Services",
+        "unitPrice": 3000.00,
+        "quantity": 1,
+        "taxable": true,
+        "taxes": ["GST", "QST"]
+      }
+    ],
+    "total": 3449.25
+  },
+  "expectedResult": {
+    "newCustomerBalance": 3949.25,
+    "documentStatus": {
+      "INV-001": 0.00,
+      "INV-002": 0.00,
+      "INV-003": 0.00,
+      "INV-004": 0.00,
+      "INV-005": 0.00,
+      "INV-006": 3449.25,
+      "CRD-002": 0.00
+    },
+    "taxCalculation": {
+      "GST": [{
+        "rate": 5.0,
+        "amount": 150.00
+      }],
+      "QST": [{
+        "rate": 9.975,
+        "amount": 299.25
+      }]
+    }
+  }
+}

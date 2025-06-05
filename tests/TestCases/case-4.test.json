@@ -71,40 +71,6 @@
           "taxableAmount": 3600.00
         }
       ]
-    },
-    "customerStatement": [
-      {
-        "date": "2025-01-15",
-        "transaction": "Invoice",
-        "reference": "INV-001",
-        "amount": 4024.125,
-        "balance": 4024.125,
-        "docRemaining": "INV-001: 4024.125"
-      },
-      {
-        "date": "2025-01-20",
-        "transaction": "Invoice",
-        "reference": "INV-002",
-        "amount": 4524.13,
-        "balance": 8548.25,
-        "docRemaining": "INV-001: 4024.125\nINV-002: 4524.13"
-      },
-      {
-        "date": "2025-01-25",
-        "transaction": "Invoice",
-        "reference": "INV-003",
-        "amount": 2000.00,
-        "balance": 10548.25,
-        "docRemaining": "INV-001: 4024.125\nINV-002: 4524.125\nINV-003: 2000.00"
-      },
-      {
-        "date": "2025-01-25",
-        "transaction": "Invoice",
-        "reference": "INV-004",
-        "amount": 2000.00,
-        "balance": 12148.25,
-        "docRemaining": "INV-001: 4024.125\nINV-002: 4524.125\nINV-003: 2000.00\nINV-004: 3600.00"
-      }
-    ]
+    }
   }
 }

@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\CustomerPayment;
+use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\MorphablesEnum;
 
 class PaymentForm extends Modal
@@ -37,11 +38,11 @@ class PaymentForm extends Modal
     {
         $applyInformation = [
             'payment_date' => request('payment_date'),
-            'amount' => request('amount'),
+            'amount' => request('amount') * request('type'),
         ];
 
         if ($this->invoiceId) {
-            CustomerPayment::createForCustomerAndApply(new \Condoedge\Finance\Models\Dto\CreateCustomerPaymentForInvoiceDto([
+            CustomerPayment::createForCustomerAndApply(new CreateCustomerPaymentForInvoiceDto([
                 'invoice_id' => $this->invoiceId,
                 ...$applyInformation,
             ]));
@@ -64,7 +65,7 @@ class PaymentForm extends Modal
     {
         return [
             !$this->invoice ? null : _CardLevel5(
-                _FinanceCurrency($this->invoice->invoice_due_amount)->class('font-bold text-3xl'),
+                _FinanceCurrency($this->invoice->abs_invoice_due_amount)->class('font-bold text-3xl'),
                 _Html(__('translate.with-values.paying-invoice', [
                     'invoice_reference' => $this->invoice->invoice_reference,
                 ]))->class('text-lg font-semibold'),
@@ -78,7 +79,14 @@ class PaymentForm extends Modal
             _Date('finance-payment-date')->name('payment_date')->default(now())
                 ->placeholder('finance-payment-date'),
 
-            _InputDollar('finance-amount')->name('amount')->default($this->invoice?->invoice_due_amount)
+            _ButtonGroup('translate.select-type')->name('type')
+                ->when($this->invoice, fn($e) => $e->default($this->invoice->invoice_type_id->signMultiplier() < 0 ? -1 : 1))
+                ->options([
+                    1 => __('translate.finance.from-customer'),
+                    -1 => __('translate.finance.to-customer'),
+                ]),
+
+            _InputDollar('finance-amount')->name('amount')->default($this->invoice?->abs_invoice_due_amount->toFloat())
                 ->placeholder('finance-amount'),
 
             _ErrorField()->name('amount_applied', false)->noInputWrapper()->class('!my-0'),
@@ -90,11 +98,11 @@ class PaymentForm extends Modal
         ];
     }
 
-    // public function rules()
-    // {
-    // 	return [
-    //         'customer_id' => 'required|exists:fin_customers,id',
-    //         'amount' => 'required|numeric|min:0',
-    // 	];
-    // }
+    public function rules()
+    {
+    	return [
+            'amount' => 'required|numeric|min:0',
+            'type' => 'required|in:1,-1',
+    	];
+    }
 }

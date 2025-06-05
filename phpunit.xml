@@ -17,6 +17,7 @@
     <server name="MYSQL_USER" value="root"/>
     <server name="MYSQL_PASSWORD" value="testing_password"/>
     <server name="MYSQL_DATABASE" value="testbench"/>
+    <server name="CACHE_DRIVER" value="file"/>
     <server name="USE_SCHEMA_DUMP" value="true"/>
     <server name="MAIL_MAILER" value="array"/>
     <server name="QUEUE_CONNECTION" value="sync"/>

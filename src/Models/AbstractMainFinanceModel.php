@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Models\Traits\HasEventsOnDbInteraction;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
@@ -26,7 +27,7 @@ abstract class AbstractMainFinanceModel extends Model
         }
 
         if (strpos($key, 'abs_') === 0) {
-            return abs($this->getAttribute(substr($key, 4)));
+            return new SafeDecimal(abs((float) (string) $this->getAttribute(substr($key, 4))));
         }
 
         $value = parent::getAttribute($key);

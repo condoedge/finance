@@ -6,9 +6,14 @@ use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
 use Condoedge\Finance\Models\InvoiceApply;
+use Condoedge\Utils\Kompo\Plugins\FormCanHaveTableWithFields;
 
 class ApplyPaymentToInvoiceModal extends Modal
 {
+    protected $plugins = [
+        FormCanHaveTableWithFields::class,
+    ];
+    
     public $_Title = 'translate.finance.apply-payment-to-invoice';
 
     public $class = 'max-w-6xl';

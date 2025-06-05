@@ -25,6 +25,7 @@ class InvoicesTest extends TestCase
 
     public function testCreateInvoice()
     {
+        /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
 
         if (!$user) throw new Exception('Unknown error creating user');
@@ -106,7 +107,7 @@ class InvoicesTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('fin_invoice_detail_taxes', [
-            'invoice_detail_id' => 1,
+            'invoice_detail_id' => $invoice->invoiceDetails[0]->id,
             'tax_id' => $taxes[0]->id,
             'tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes),
         ]);
@@ -126,6 +127,7 @@ class InvoicesTest extends TestCase
 
     public function testUpdateInvoice()
     {
+        /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
 
         if (!$user) throw new Exception('Unknown error creating user');

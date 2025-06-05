@@ -4,11 +4,12 @@ namespace Condoedge\Finance;
 
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
-use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
+use Condoedge\Finance\Services\DatabaseQueryInterceptor;
+use Condoedge\Finance\Observers\DatabaseIntegrityObserver;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -16,7 +17,6 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
-use Illuminate\Support\Collection;
 
 class CondoedgeFinanceServiceProvider extends ServiceProvider
 {
@@ -47,6 +47,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->loadCommands();
 
         $this->registerFacades();
+        
+        $this->bootDatabaseIntegritySystem();
         
         $this->loadRelationsMorphMap();
 
@@ -124,10 +126,14 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
 
         $this->app->bind(INVOICE_TYPE_ENUM_KEY, function () {
             return config('kompo-finance.' . INVOICE_TYPE_ENUM_KEY . '-namespace');
+        });        $this->app->bind(CUSTOMER_PAYMENT_MODEL_KEY, function () {
+            return new (config('kompo-finance.' . CUSTOMER_PAYMENT_MODEL_KEY . '-namespace'));
         });
 
-        $this->app->bind(CUSTOMER_PAYMENT_MODEL_KEY, function () {
-            return new (config('kompo-finance.' . CUSTOMER_PAYMENT_MODEL_KEY . '-namespace'));
+        // Register Database Integrity System
+        $this->app->singleton(DatabaseIntegrityObserver::class);
+        $this->app->singleton(DatabaseQueryInterceptor::class, function ($app) {
+            return new DatabaseQueryInterceptor($app->make(DatabaseIntegrityObserver::class));
         });
     }
 
@@ -197,5 +203,17 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('finance:ensure-integrity')->dailyAt('01:00');
         });
+    }
+    
+    /**
+     * Boot the database integrity checking system
+     */
+    protected function bootDatabaseIntegritySystem(): void
+    {
+        // Only enable in environments where we want database integrity checking
+        if (config('kompo-finance.database_integrity_interceptor', true)) {
+            $interceptor = $this->app->make(DatabaseQueryInterceptor::class);
+            $interceptor->enable();
+        }
     }
 }

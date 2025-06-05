@@ -14,6 +14,8 @@ if (!function_exists('finance_currency')) {
             return '-';
         }
 
+        $value = method_exists($value, 'toFloat') ? $value->toFloat() : (float) $value;
+
         $customFormatter  = config('kompo-finance.custom_currency_formatter', null);
         if ($customFormatter && is_callable($customFormatter)) {
             return call_user_func($customFormatter, $value);
@@ -47,6 +49,10 @@ if (!function_exists('finance_currency')) {
 
 if (!function_exists('db_decimal_format')) {
     function db_decimal_format($value, $precision = 5) {
+        if (is_object($value) && method_exists($value, 'toFloat')) {
+            $value = $value->toFloat();
+        }
+
         return number_format($value, $precision, '.', '');
     }
 }
@@ -54,6 +60,12 @@ if (!function_exists('db_decimal_format')) {
 if (!function_exists('db_datetime_format')) {
     function db_datetime_format($value) {
         return date('Y-m-d H:i:s', strtotime($value));
+    }
+}
+
+if (!function_exists('db_date_format')) {
+    function db_date_format($value) {
+        return date('Y-m-d', strtotime($value));
     }
 }
 

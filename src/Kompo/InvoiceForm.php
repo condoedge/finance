@@ -46,9 +46,9 @@ class InvoiceForm extends Form
 
 		if ($this->model->id) {
 			$sharedDtoData['id'] = $this->model->id;
-			InvoiceModel::updateInvoiceFromDto(new UpdateInvoiceDto($sharedDtoData));
+			$this->model(InvoiceModel::updateInvoiceFromDto(new UpdateInvoiceDto($sharedDtoData)));
 		} else {
-			InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto($sharedDtoData));
+			$this->model(InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto($sharedDtoData)));
 		}
 
 		return $this->response();

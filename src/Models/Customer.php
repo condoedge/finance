@@ -69,6 +69,11 @@ class Customer extends AbstractMainFinanceModel
         return $this->morphTo('customable', 'customable_type', 'customable_id', 'id');
     }
 
+    public function payments()
+    {
+        return $this->hasMany(CustomerPayment::class, 'customer_id');
+    }
+
     /* ATTRIBUTES */
 
     /* CALCULATED FIELDS */

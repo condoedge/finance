@@ -76,16 +76,6 @@
           "taxableAmount": 2500.0
         }
       ]
-    },
-    "customerStatement": [
-      {
-        "date": "2025-01-15",
-        "transaction": "Invoice",
-        "reference": "INV-001",
-        "amount": 4024.125,
-        "balance": 4024.125,
-        "docRemaining": "INV-001: 4024.125"
-      }
-    ]
+    }
   }
 }

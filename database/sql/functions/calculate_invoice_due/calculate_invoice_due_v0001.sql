@@ -1,6 +1,7 @@
 drop function if exists calculate_invoice_due;
 CREATE FUNCTION calculate_invoice_due(p_invoice_id INT) RETURNS DECIMAL(19,5)
 BEGIN
+    DECLARE credit_applicable_type INT DEFAULT 2; -- 2 = Credit Note
     DECLARE invoice_due DECIMAL(19,5);
     DECLARE invoice_total_paid DECIMAL(19,5);
     DECLARE invoice_total_substract DECIMAL(19,5);
@@ -14,7 +15,7 @@ BEGIN
 
     # If it's a credit note, we need to subtract the amount from the total amount.
     SELECT SUM(- IFNULL(ip.payment_applied_amount, 0)) INTO invoice_total_substract FROM fin_invoice_applies as ip
-    WHERE ip.applicable_type = 2 and ip.applicable_id = p_invoice_id and ip.deleted_at IS NULL;
+    WHERE ip.applicable_type = credit_applicable_type and ip.applicable_id = p_invoice_id and ip.deleted_at IS NULL;
 
     select IFNULL(invoice_total - IFNULL(invoice_total_paid, 0) - IFNULL(invoice_total_substract, 0), 0) into invoice_due;
 

@@ -37,7 +37,7 @@ class Tax extends AbstractMainFinanceModel
     /* ATTRIBUTES */
     public function getCompleteLabelAttribute()
     {
-        return $this->name . ' (' . $this->rate * 100 . '%)';
+        return $this->name . ' (' . $this->rate->multiply(100) . '%)';
     }
 
     

@@ -8,10 +8,15 @@ BEGIN
     select p.amount into payment_amount from fin_customer_payments as p
     where p.id = payment_id;
 
-    select sum(ABS(ifnull(pad.payment_applied_amount, 0))) into payment_amount_paid from fin_invoice_applies as pad
+    select sum(ifnull(pad.payment_applied_amount, 0)) into payment_amount_paid from fin_invoice_applies as pad
     where pad.applicable_id = payment_id and pad.applicable_type = 1 and pad.deleted_at is null;
 
     select COALESCE(payment_amount - payment_amount_paid, payment_amount, 0)  into payment_amount_left;
     
-    RETURN GREATEST(payment_amount_left, 0);
+    # If they have different sign it means that it's exceding the payment amount so we set it as 0
+    if (payment_amount * payment_amount_left < 0) then
+        set payment_amount_left = 0;
+    end if;
+
+    return payment_amount_left;
 END;

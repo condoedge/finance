@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Condoedge\Finance\Models\Dto\Invoices\ApplicableRecordDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
+use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 
 /**
  * Class InvoiceApply
@@ -38,6 +39,12 @@ class InvoiceApply extends AbstractMainFinanceModel
         return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 
+    // You can apply a credit to an invoice, so this morphTo relationship is used to link the applicable record and reload with the integrity checker.
+    public function credit()
+    {
+        return $this->morphTo(Invoice::class, 'applicable');
+    }
+
     public function applicable()
     {
         return $this->morphTo();
@@ -51,7 +58,7 @@ class InvoiceApply extends AbstractMainFinanceModel
         $paymentsCreated = [];
 
         foreach ($invoices as $invoice) {
-            $paymentsCreated[] = self::createForInvoice(new CreateApplyForInvoiceDto([
+            $paymentsCreated[] = static::createForInvoice(new CreateApplyForInvoiceDto([
                 'invoice_id' => $invoice['id'],
                 'apply_date' => $data->apply_date,
                 'applicable' => $data->applicable,
@@ -87,7 +94,7 @@ class InvoiceApply extends AbstractMainFinanceModel
      */
     public static function getAllApplicablesRecords($customerId = null)
     {
-        $types = self::getAllApplicablesTypes();
+        $types = static::getAllApplicablesTypes();
         $query = null;
 
         foreach ($types as $type) {
