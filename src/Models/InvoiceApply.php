@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Facades\PaymentService;
 use Illuminate\Support\Facades\DB;
 use Condoedge\Finance\Models\Dto\Invoices\ApplicableRecordDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
@@ -53,34 +54,12 @@ class InvoiceApply extends AbstractMainFinanceModel
     // ACTIONS
     public static function createForMultipleInvoices(CreateAppliesForMultipleInvoiceDto $data)
     {
-        $invoices = $data->amounts_to_apply;
-
-        $paymentsCreated = [];
-
-        foreach ($invoices as $invoice) {
-            $paymentsCreated[] = static::createForInvoice(new CreateApplyForInvoiceDto([
-                'invoice_id' => $invoice['id'],
-                'apply_date' => $data->apply_date,
-                'applicable' => $data->applicable,
-                'applicable_type' => $data->applicable_type,
-                'amount_applied' => $invoice['amount_applied'],
-            ]));
-        }
-
-        return $paymentsCreated;
+        return PaymentService::applyPaymentToInvoices($data);
     }
 
     public static function createForInvoice(CreateApplyForInvoiceDto $data)
     {
-        $invoicePayment = new self();
-        $invoicePayment->invoice_id = $data->invoice_id;
-        $invoicePayment->payment_applied_amount = $data->amount_applied;
-        $invoicePayment->apply_date = $data->apply_date;
-        $invoicePayment->applicable_id = $data->applicable->id;
-        $invoicePayment->applicable_type = $data->applicable_type;
-        $invoicePayment->save();
-
-        return $invoicePayment;
+        return PaymentService::applyPaymentToInvoice($data);
     }
 
     /**

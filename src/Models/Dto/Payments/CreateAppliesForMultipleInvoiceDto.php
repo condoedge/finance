@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models\Dto\Payments;
 
 use Carbon\Carbon;
+use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\ApplicableToInvoiceContract;
 use Condoedge\Finance\Rule\SafeDecimalRule;
@@ -11,15 +12,16 @@ use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\ObjectCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
+use WendellAdriel\ValidatedDTO\Concerns\EmptyRules;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 use stdClass;
 
 class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
 {
-    use EmptyDefaults;
+    use EmptyRules, EmptyDefaults;
 
-    #[Rules(['date_format:Y-m-d', 'required'])]
-    public string|Carbon $apply_date;
+    #[Rules(['date', 'required'])]
+    public string|\Carbon\Carbon $apply_date;
 
     #[Rules(['required'])]
     public stdClass $applicable;
@@ -63,8 +65,41 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
     {
         parent::after($validator);
         
-        $applicableType = $this->dtoData['applicable_type'] ?? null;
-        $applicable = $this->dtoData['applicable'] ?? null;
+        $this->validateInvoicesState($validator);
+        $this->validateIndividualAmounts($validator);
+        $this->validateTotalApplicableAmount($validator);
+    }
+
+    /**
+     * Validate that all invoices exist and are not in draft state
+     */
+    protected function validateInvoicesState(\Illuminate\Validation\Validator $validator): void
+    {
+        $amountsToApply = $this->dtoData['amounts_to_apply'] ?? null;
+
+        if (!is_null($amountsToApply)) {
+            $invoicesIds = collect($amountsToApply)->pluck('id')->all();
+            $invoices = InvoiceModel::whereIn('id', $invoicesIds)->get()->keyBy('id');
+
+            foreach ($amountsToApply as $amountToApply) {
+                if (!isset($amountToApply['id'])) {
+                    continue; // Will be validated by rules
+                }
+
+                $invoice = $invoices->get($amountToApply['id']);
+                if ($invoice && $invoice->is_draft) {
+                    $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('translate.validation.custom.finance.invoice-draft'));
+                    $validator->errors()->add('amounts_to_apply', __('translate.validation.custom.finance.invoice-draft'));
+                }
+            }
+        }
+    }
+
+    /**
+     * Validate individual amount applications don't exceed invoice due amounts
+     */
+    protected function validateIndividualAmounts(\Illuminate\Validation\Validator $validator): void
+    {
         $amountsToApply = $this->dtoData['amounts_to_apply'] ?? null;
 
         if (!is_null($amountsToApply)) {
@@ -73,31 +108,40 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
 
             foreach ($amountsToApply as $amountToApply) {
                 if (!isset($amountToApply['id']) || !isset($amountToApply['amount_applied'])) {
-                    // No need to validate because it will be validated by the rules. If we don't skip it here it will throw an error because we're trying to access a key that doesn't exist
-                    continue;
+                    continue; // Will be validated by rules
                 }
 
-                if ($invoices->get($amountToApply['id'])->invoice_due_amount->lessThan($amountToApply['amount_applied'])) {
+                $invoice = $invoices->get($amountToApply['id']);
+                $amount = new SafeDecimal($amountToApply['amount_applied']);
+
+                if ($invoice && $invoice->abs_invoice_due_amount->lessThan($amount)) {
                     $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('translate.validation.custom.finance.invoice-amount-exceeded'));
-
                     $validator->errors()->add('amounts_to_apply', __('translate.validation.custom.finance.invoice-amount-exceeded'));
-                }
-
-                if ($invoices->get($amountToApply['id'])->is_draft) {
-                    $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('translate.validation.custom.finance.invoice-draft'));
-
-                    $validator->errors()->add('amounts_to_apply', __('translate.validation.custom.finance.invoice-draft'));
                 }
             }
         }
+    }
 
-        if (!is_null($applicableType) && !is_null($applicable)) {
+    /**
+     * Validate total amount to apply doesn't exceed applicable amount left
+     */
+    protected function validateTotalApplicableAmount(\Illuminate\Validation\Validator $validator): void
+    {
+        $applicableType = $this->dtoData['applicable_type'] ?? null;
+        $applicable = $this->dtoData['applicable'] ?? null;
+        $amountsToApply = $this->dtoData['amounts_to_apply'] ?? null;
+
+        if (!is_null($applicableType) && !is_null($applicable) && !is_null($amountsToApply)) {
             /**
              * @var ApplicableToInvoiceContract $applicableModel
              */
             $applicableModel = getFinanceMorphableModel($applicableType, $applicable['id']);
+            
+            $totalAmount = collect($amountsToApply)->reduce(function ($carry, $amountToApply) {
+                return $carry->add(new SafeDecimal($amountToApply['amount_applied'] ?? '0.00'));
+            }, new SafeDecimal('0.00'));
 
-            if ($applicableModel->abs_applicable_amount_left->lessThan(collect($amountsToApply)->sumDecimals('amount_applied'))) {
+            if ($applicableModel->abs_applicable_amount_left->lessThan($totalAmount)) {
                 $validator->errors()->add('applicable', __('translate.validation.custom.finance.applicable-amount-exceeded'));
             }
         }

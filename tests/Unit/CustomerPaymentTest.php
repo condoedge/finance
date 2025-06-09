@@ -77,7 +77,7 @@ class CustomerPaymentTest extends TestCase
     {
         $customer = CustomerFactory::new()->create();
         $invoice = $this->createApprovedInvoice($customer->id, 1000);
-        
+
         // Customer owes 1000
         $customer->refresh();
         $this->assertEqualsDecimals(1000, $customer->customer_due_amount);

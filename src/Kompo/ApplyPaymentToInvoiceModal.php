@@ -6,6 +6,7 @@ use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
 use Condoedge\Finance\Models\InvoiceApply;
+use Condoedge\Finance\Services\Payment\PaymentServiceInterface;
 use Condoedge\Utils\Kompo\Plugins\FormCanHaveTableWithFields;
 
 class ApplyPaymentToInvoiceModal extends Modal
@@ -44,12 +45,14 @@ class ApplyPaymentToInvoiceModal extends Modal
         }
     }
 
-    public function handle()
+    public function handle(PaymentServiceInterface $paymentService)
     {
         $invoicesIds = $this->getInvoicesIdsToBeApplied();
         $amounts = collect(getTableInputValues('amount_applied_to_', $invoicesIds));
 
         $this->parseApplicable();
+
+        $paymentService->applyPaymentToInvoices()
 
         // This is validating the information, but we also have a trigger to not allow to apply more than the left amount
         InvoiceApply::createForMultipleInvoices(new CreateAppliesForMultipleInvoiceDto([

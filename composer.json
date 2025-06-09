@@ -25,7 +25,7 @@
         "wendelladriel/laravel-validated-dto": "^4.1",
         "kompo/kompo": "^3.0",
         "dedoc/scramble": "^0.12.19",
-        "kompo/auth": "0.6.8"
+        "kompo/auth": "^0.7.10"
     },
     "extra": {
         "laravel": {

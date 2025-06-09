@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Condoedge\Finance\Http\Controllers\GlTransactionController;
 
 Route::post('/payments/create', [\Condoedge\Finance\Http\PaymentsController::class, 'createCustomerPayment'])
     ->name('payments.create');
@@ -28,3 +29,20 @@ Route::post('/invoice-taxes/sync-many',  [\Condoedge\Finance\Http\TaxesControlle
 
 Route::post('/invoice-taxes/add',  [\Condoedge\Finance\Http\TaxesController::class, 'addTax'])
     ->name('invoice-taxes.add');
+
+// GL Transaction Routes
+Route::prefix('gl')->name('gl.')->group(function () {
+    Route::get('transactions', [GlTransactionController::class, 'index'])->name('transactions.index');
+    Route::post('transactions', [GlTransactionController::class, 'store'])->name('transactions.store');
+    Route::get('transactions/{transactionId}', [GlTransactionController::class, 'show'])->name('transactions.show');
+    Route::put('transactions/{transactionId}', [GlTransactionController::class, 'update'])->name('transactions.update');
+    Route::delete('transactions/{transactionId}', [GlTransactionController::class, 'destroy'])->name('transactions.destroy');
+    
+    // Transaction operations
+    Route::post('transactions/{transactionId}/post', [GlTransactionController::class, 'post'])->name('transactions.post');
+    Route::post('transactions/{transactionId}/reverse', [GlTransactionController::class, 'reverse'])->name('transactions.reverse');
+    
+    // Reports
+    Route::get('trial-balance', [GlTransactionController::class, 'trialBalance'])->name('reports.trial-balance');
+    Route::get('accounts/{accountId}/balance', [GlTransactionController::class, 'accountBalance'])->name('accounts.balance');
+});

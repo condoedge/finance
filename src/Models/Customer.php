@@ -6,12 +6,13 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\CustomerCreated;
 use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
 use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
+use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 
 /**
- * Class Invoice
+ * Class Customer
  * 
  * @package Condoedge\Finance\Models
  * 
@@ -77,57 +78,43 @@ class Customer extends AbstractMainFinanceModel
     /* ATTRIBUTES */
 
     /* CALCULATED FIELDS */
+    /**
+     * @deprecated Use CustomerService::getValidCustomableModels() instead
+     * Maintained for backward compatibility
+     */
     public static function getCustomables()
     {
-        $customables = collect(config('kompo-finance.customable_models'));
-
-        $customables->each(function ($customable) {
-            if (!in_array(CustomableContract::class, class_implements($customable))) {
-                throw new \Exception(__('translate.customable-model-must-implement', ['model' => $customable]));
-            }
-        });
-
-        return $customables;
+        return CustomerService::getValidCustomableModels();
     }
 
     /* SCOPES */
 
     /* ACTIONS */
+    /**
+     * @deprecated Use CustomerService::createOrUpdate() instead
+     * Maintained for backward compatibility
+     */
     public static function createOrEditFromDto(CreateOrUpdateCustomerDto $dto)
     {
-        if (isset($dto->id)) {
-            $customer = self::findorFail($dto->id);
-            $customer->name = $dto->name;
-            $customer->save();
-
-            return $customer;
-        }
-
-        $customer = new self;
-        $customer->name = $dto->name;
-        $customer->team_id = $dto->team_id ?? currentTeamId();
-        $customer->save();
-
-        Address::createMainForFromRequest($customer, $dto->address->toArray());
-
-        return $customer;
+        return CustomerService::createOrUpdate($dto);
     }
 
+    /**
+     * @deprecated Use CustomerService::createFromCustomable() instead
+     * Maintained for backward compatibility
+     */
     public static function createOrEditFromCustomable(CreateCustomerFromCustomable $dto)
     {
-        $customer = $dto->customable->upsertCustomerFromThisModel();
-
-        if ($dto->address) {
-            Address::createMainForFromRequest($customer, $dto->address->toArray());
-        }
-
-        return $customer;
+        return CustomerService::createFromCustomable($dto);
     }
 
+    /**
+     * @deprecated Use CustomerService::setDefaultAddress() instead
+     * Maintained for backward compatibility
+     */
     public function setDefaultAddress($addressId)
     {
-        $this->default_billing_address_id = $addressId;
-        $this->save();
+        return CustomerService::setDefaultAddress($this, $addressId);
     }
 
     public function setPrimaryBillingAddress($id)
@@ -142,19 +129,14 @@ class Customer extends AbstractMainFinanceModel
         $this->save();
     }
 
+    /**
+     * @deprecated Use CustomerService::fillInvoiceWithCustomerData() instead
+     * Maintained for backward compatibility
+     */
     public function fillInvoiceForCustomer(Invoice $initialInvoice)
     {
-        if (!$this->default_billing_address_id) {
-            throw new \Illuminate\Database\Eloquent\RelationNotFoundException(__('translate.customer-address-not-set'));
-        }
-
-        $invoice = $initialInvoice;
-        $invoice->customer_id = $this->id;
-        // $invoice->tax_group_id = $this->defaultAddress->tax_group_id ?? GlobalConfig::getOrFail('default_tax_group_id');
-        $invoice->payment_type_id = $this->default_payment_type_id ?? GlobalConfig::getOrFail('default_payment_type_id');
+        return CustomerService::fillInvoiceWithCustomerData($this, $initialInvoice);
     }
-
-    // SCOPES
 
     /* INTEGRITY */
     public static function columnsIntegrityCalculations()

@@ -13,6 +13,7 @@ class TaxGroupFactory extends Factory
     {
         return [
             'name' => $this->faker->word,
+            'team_id' => currentTeamId() ?? \Condoedge\Finance\Models\CustomableTeam::factory()->create()->id,
         ];
     }
 }

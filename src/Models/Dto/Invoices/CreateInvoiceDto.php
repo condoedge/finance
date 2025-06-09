@@ -10,6 +10,20 @@ use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
+/**
+ * Create Invoice DTO
+ * 
+ * Used to create new invoices with associated details and tax information.
+ * Supports both draft and final invoices creation.
+ * 
+ * @property int $customer_id The customer this invoice belongs to
+ * @property int $invoice_type_id Type of invoice (from InvoiceTypeEnum)
+ * @property int $payment_type_id Payment method type (from PaymentTypeEnum) 
+ * @property Carbon $invoice_date Date the invoice was issued
+ * @property Carbon|null $invoice_due_date Payment due date (optional)
+ * @property bool $is_draft Whether this invoice is a draft
+ * @property array $invoiceDetails Array of invoice line items
+ */
 class CreateInvoiceDto extends ValidatedDTO
 {
     public int $customer_id;
@@ -43,7 +57,7 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoiceDetails.*.description' => 'nullable|string|max:255',
             'invoiceDetails.*.quantity' => 'required|integer|min:1|max:2147483647',
             'invoiceDetails.*.unit_price' => 'required|numeric|gt:0|max:99999999999999.99999',
-            'invoiceDetails.*.revenue_account_id' => 'required|integer|exists:fin_accounts,id',
+            'invoiceDetails.*.revenue_account_id' => 'required|integer|exists:fin_gl_accounts,id',
             'invoiceDetails.*.taxesIds' => 'nullable|array',
             'invoiceDetails.*.taxesIds.*' => 'integer|exists:fin_taxes,id',
         ];

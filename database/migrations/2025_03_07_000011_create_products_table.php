@@ -16,7 +16,7 @@ class CreateProductsTable extends Migration
         Schema::create('fin_products', function (Blueprint $table) {
             addMetaData($table);
             $table->string('name');
-            $table->foreignId('default_revenue_account_id')->constrained('fin_accounts');
+            $table->foreignId('default_revenue_account_id')->constrained('fin_gl_accounts');
         });
     }
 

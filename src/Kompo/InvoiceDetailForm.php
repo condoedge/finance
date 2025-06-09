@@ -105,7 +105,7 @@ class InvoiceDetailForm extends Form
 			'quantity' => 'required',
 			'unit_price' => 'required',
 			'name' => 'sometimes|required',
-			'revenue_account_id' => 'required|exists:fin_accounts,id',
+			'revenue_account_id' => 'required|exists:fin_gl_accounts,id',
 		];
 	}
 }

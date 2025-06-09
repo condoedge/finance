@@ -7,6 +7,7 @@ use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\MorphablesEnum;
+use Condoedge\Finance\Services\Payment\PaymentServiceInterface;
 
 class PaymentForm extends Modal
 {
@@ -34,7 +35,7 @@ class PaymentForm extends Modal
         $this->goToApplyModelAfter = $this->prop('go_to_apply_model_after');
     }
 
-    public function handle()
+    public function handle(PaymentServiceInterface $paymentService)
     {
         $applyInformation = [
             'payment_date' => request('payment_date'),
@@ -42,13 +43,13 @@ class PaymentForm extends Modal
         ];
 
         if ($this->invoiceId) {
-            CustomerPayment::createForCustomerAndApply(new CreateCustomerPaymentForInvoiceDto([
+            $paymentService->createPaymentAndApplyToInvoice(new CreateCustomerPaymentForInvoiceDto([
                 'invoice_id' => $this->invoiceId,
                 ...$applyInformation,
             ]));
         } else {
-            $payment = CustomerPayment::createForCustomer(new \Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto([
-                'customer_id' => $this->customerId ?? request('customer_id'),
+            $payment = $paymentService->createPayment(new CreateCustomerPaymentForInvoiceDto([
+                'customer_id' => $this->customerId,
                 ...$applyInformation,
             ]));
 

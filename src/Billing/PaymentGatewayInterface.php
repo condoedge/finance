@@ -6,7 +6,18 @@ use Condoedge\Finance\Models\Account;
 
 interface PaymentGatewayInterface
 {
+    /**
+     * Get the cash account for this payment gateway
+     */
     public function getCashAccount(): Account;
+
+    /**
+     * Optional: Initialize gateway with context
+     * 
+     * This method is called by PaymentGatewayResolver::resolveWithContext()
+     * to provide additional context to the gateway
+     */
+    public function initializeContext(array $context = []): void;
 
     // COUPONS
 
@@ -25,5 +36,4 @@ interface PaymentGatewayInterface
 
     /* WEBHOOKS */
     public function setRoutes();
-
 }

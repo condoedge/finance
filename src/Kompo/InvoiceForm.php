@@ -8,6 +8,7 @@ use Condoedge\Finance\Facades\PaymentTypeEnum;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class InvoiceForm extends Form
@@ -31,25 +32,28 @@ class InvoiceForm extends Form
 		$this->team = currentTeam();
 	}
 
-	public function handle()
+	protected function parseRequestData()
 	{
-		$parsedDetails = collect(request()->get('invoiceDetails', []));
-
-		$parsedDetails->transform(function ($detail) {
-			$detail['id'] = $detail['multiFormKey'] ?? null;
-
-			return $detail;
-		});
-
-		$sharedDtoData = request()->all();
-		$sharedDtoData['invoiceDetails']  = $parsedDetails->toArray();
-
-		if ($this->model->id) {
-			$sharedDtoData['id'] = $this->model->id;
-			$this->model(InvoiceModel::updateInvoiceFromDto(new UpdateInvoiceDto($sharedDtoData)));
-		} else {
-			$this->model(InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto($sharedDtoData)));
+		// Ensure the request data is parsed correctly
+		$requestData = request()->all();
+		if (isset($requestData['invoiceDetails'])) {
+			$requestData['invoiceDetails'] = collect($requestData['invoiceDetails'])->map(function ($detail) {
+				return array_merge($detail, ['id' => $detail['multiFormKey'] ?? null]);
+			})->toArray();
 		}
+
+		return $requestData;
+	}
+
+	public function handle(InvoiceServiceInterface $invoiceService)
+	{
+		$invoiceData = $this->parseRequestData();
+
+		$dtoInvoiceData = $this->model->id ? 
+			new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]) : 
+			new CreateInvoiceDto($invoiceData);
+
+		$this->model($invoiceService->upsertInvoice($dtoInvoiceData));
 
 		return $this->response();
 	}

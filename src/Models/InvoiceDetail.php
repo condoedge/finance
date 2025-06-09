@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Events\InvoiceDetailGenerated;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
@@ -16,7 +17,7 @@ use Kompo\Auth\Models\Teams\PermissionTypeEnum;
  * 
  * @property int $id
  * @property int $invoice_id Foreign key to fin_invoices
- * @property int $revenue_account_id Foreign key to fin_accounts
+ * @property int $revenue_account_id Foreign key to fin_gl_accounts
  * @property int|null $product_id Foreign key to fin_products
  * @property int $quantity
  * @property string $name
@@ -77,50 +78,31 @@ class InvoiceDetail extends AbstractMainFinanceModel
     /* SCOPES */
 
     /* ACTIONS */
+    /**
+     * @deprecated Use InvoiceDetailService::createInvoiceDetail() instead
+     * Maintained for backward compatibility
+     */
     public static function createInvoiceDetail(CreateOrUpdateInvoiceDetail $dto)
     {
-        $invoiceDetail = new self();
-        $invoiceDetail->invoice_id = $dto->invoice_id;
-        $invoiceDetail->name = $dto->name;
-        $invoiceDetail->revenue_account_id = $dto->revenue_account_id;
-        $invoiceDetail->product_id = $dto->product_id;
-        $invoiceDetail->quantity = $dto->quantity;
-        $invoiceDetail->name = $dto->name;
-        $invoiceDetail->description = $dto->description;
-        $invoiceDetail->unit_price = $dto->unit_price;
-        $invoiceDetail->save();
-
-        InvoiceDetailTax::upsertManyForInvoiceDetail(new UpsertManyTaxDetailDto([
-            'taxes_ids' => $dto->taxesIds ?? [],
-            'invoice_detail_id' => $invoiceDetail->id,
-        ]));
-
-        return $invoiceDetail;
+        return InvoiceDetailService::createInvoiceDetail($dto);
     }
 
+    /**
+     * @deprecated Use InvoiceDetailService::updateInvoiceDetail() instead
+     * Maintained for backward compatibility
+     */
     public static function editInvoiceDetail(CreateOrUpdateInvoiceDetail $dto)
     {
-        $invoiceDetail = self::findOrFail($dto->id);
-        $invoiceDetail->name = $dto->name;
-        $invoiceDetail->revenue_account_id = $dto->revenue_account_id;
-        $invoiceDetail->product_id = $dto->product_id;
-        $invoiceDetail->quantity = $dto->quantity;
-        $invoiceDetail->name = $dto->name;
-        $invoiceDetail->description = $dto->description;
-        $invoiceDetail->unit_price = $dto->unit_price;
-        $invoiceDetail->save();
-
-        InvoiceDetailTax::upsertManyForInvoiceDetail(new UpsertManyTaxDetailDto([
-            'taxes_ids' => $dto->taxesIds ?? [],
-            'invoice_detail_id' => $invoiceDetail->id,
-        ]));
-
-        return $invoiceDetail;
+        return InvoiceDetailService::updateInvoiceDetail($dto);
     }
 
+    /**
+     * @deprecated Use InvoiceDetailService::validateCanModifyDetail() instead
+     * Maintained for backward compatibility
+     */
     public function deletable()
     {
-        return $this->invoice->invoice_status_id == InvoiceStatusEnum::DRAFT && auth()->user()->hasPermission('InvoiceDetail', PermissionTypeEnum::WRITE, $this->invoice->customer->team_id);
+        return $this->invoice->invoice_status_id == InvoiceStatusEnum::DRAFT;
     }
 
     /* INTEGRITY */
