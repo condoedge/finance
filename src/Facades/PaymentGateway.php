@@ -14,12 +14,12 @@ use Condoedge\Finance\Models\PaymentTypeEnum;
  * Supports both legacy (stateful) and new (stateless) approaches
  * 
  * Legacy usage (still supported):
- * @method static \Condoedge\Finance\Models\Account getCashAccount()
+ * @method static \Condoedge\Finance\Models\GlAccount getCashAccount()
  * @method static mixed setRoutes()
  * 
  * New stateless usage (recommended):
- * @method static \Condoedge\Finance\Models\Account getCashAccountForInvoice(\Condoedge\Finance\Models\Invoice $invoice)
- * @method static \Condoedge\Finance\Models\Account getCashAccountForPaymentType(\Condoedge\Finance\Models\PaymentTypeEnum $paymentType)
+ * @method static \Condoedge\Finance\Models\GlAccount getCashAccountForInvoice(\Condoedge\Finance\Models\Invoice $invoice)
+ * @method static \Condoedge\Finance\Models\GlAccount getCashAccountForPaymentType(\Condoedge\Finance\Models\PaymentTypeEnum $paymentType)
  * @method static \Condoedge\Finance\Billing\PaymentGatewayInterface getGatewayForInvoice(\Condoedge\Finance\Models\Invoice $invoice)
  * @method static \Condoedge\Finance\Billing\PaymentGatewayInterface getGatewayForPaymentType(\Condoedge\Finance\Models\PaymentTypeEnum $paymentType)
  * @method static array getAvailableGateways()

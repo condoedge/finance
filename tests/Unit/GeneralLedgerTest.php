@@ -7,7 +7,7 @@ use Condoedge\Finance\Models\FiscalPeriod;
 use Condoedge\Finance\Models\GlSequence;
 use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Models\GlTransactionLine;
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Tests\TestCase;
 use Carbon\Carbon;
 
@@ -118,18 +118,18 @@ class GeneralLedgerTest extends TestCase
     public function test_it_can_create_gl_transaction_with_multi_tenancy()
     {
         // Create test accounts
-        $assetAccount = Account::factory()->create([
+        $assetAccount = GlAccount::factory()->create([
             'team_id' => $this->team->id,
             'account_id' => 'ASSET-001',
-            'account_type' => Account::TYPE_ASSET,
+            'account_type' => GlAccount::TYPE_ASSET,
             'is_active' => true,
             'allow_manual_entry' => true,
         ]);
         
-        $liabilityAccount = Account::factory()->create([
+        $liabilityAccount = GlAccount::factory()->create([
             'team_id' => $this->team->id,
             'account_id' => 'LIAB-001',
-            'account_type' => Account::TYPE_LIABILITY,
+            'account_type' => GlAccount::TYPE_LIABILITY,
             'is_active' => true,
             'allow_manual_entry' => true,
         ]);
@@ -220,7 +220,7 @@ class GeneralLedgerTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Transaction is not balanced and cannot be posted.');
         
-        $assetAccount = Account::factory()->create([
+        $assetAccount = GlAccount::factory()->create([
             'team_id' => $this->team->id,
             'account_id' => 'ASSET-001',
             'is_active' => true,
@@ -271,14 +271,14 @@ class GeneralLedgerTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Period is closed for this transaction type.');
         
-        $assetAccount = Account::factory()->create([
+        $assetAccount = GlAccount::factory()->create([
             'team_id' => $this->team->id,
             'account_id' => 'ASSET-001',
             'is_active' => true,
             'allow_manual_entry' => true,
         ]);
         
-        $liabilityAccount = Account::factory()->create([
+        $liabilityAccount = GlAccount::factory()->create([
             'team_id' => $this->team->id,
             'account_id' => 'LIAB-001',
             'is_active' => true,

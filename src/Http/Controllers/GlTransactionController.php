@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Http\Controllers;
 
 use Condoedge\Finance\Services\GlTransactionService;
 use Condoedge\Finance\Models\GlTransactionHeader;
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\FiscalPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -291,7 +291,7 @@ class GlTransactionController extends Controller
                 $validated['posted_only'] ?? true
             );
             
-            $account = Account::findOrFail($accountId);
+            $account = GlAccount::findOrFail($accountId);
             
             return response()->json([
                 'account' => $account,

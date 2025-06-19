@@ -6,7 +6,7 @@ use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentTypeEnum;
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 
 /**
  * Stateless Payment Gateway Service
@@ -19,7 +19,7 @@ class PaymentGatewayService
     /**
      * Get cash account for a specific invoice
      */
-    public function getCashAccountForInvoice(Invoice $invoice): Account
+    public function getCashAccountForInvoice(Invoice $invoice): GlAccount
     {
         $gateway = PaymentGatewayResolver::resolveForInvoice($invoice);
         return $gateway->getCashAccount();
@@ -28,7 +28,7 @@ class PaymentGatewayService
     /**
      * Get cash account for a specific payment type
      */
-    public function getCashAccountForPaymentType(PaymentTypeEnum $paymentType): Account
+    public function getCashAccountForPaymentType(PaymentTypeEnum $paymentType): GlAccount
     {
         $gateway = PaymentGatewayResolver::resolveForPaymentType($paymentType);
         return $gateway->getCashAccount();

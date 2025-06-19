@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Database\Factories;
 
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Product;
@@ -20,7 +20,7 @@ class InvoiceDetailFactory extends Factory
         return [
             'name' => $this->faker->word,
             'invoice_id' => Invoice::factory(),
-            'revenue_account_id' => Account::factory(),
+            'revenue_account_id' => GlAccount::factory(),
             'product_id' => Product::factory(),
             'quantity' => $quantity,
             'description' => $this->faker->sentence,

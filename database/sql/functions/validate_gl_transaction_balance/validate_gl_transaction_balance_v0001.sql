@@ -1,6 +1,5 @@
-DELIMITER $$
-
-DROP FUNCTION IF EXISTS validate_gl_transaction_balance$$
+-- Validate GL transaction balance
+DROP FUNCTION IF EXISTS validate_gl_transaction_balance;
 
 CREATE FUNCTION validate_gl_transaction_balance(p_gl_transaction_id VARCHAR(50)) 
 RETURNS BOOLEAN
@@ -24,6 +23,4 @@ BEGIN
     SET is_balanced = ABS(total_debits - total_credits) < 0.00001;
     
     RETURN is_balanced;
-END$$
-
-DELIMITER ;
+END;

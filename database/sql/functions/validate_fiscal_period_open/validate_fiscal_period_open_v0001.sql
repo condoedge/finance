@@ -1,4 +1,5 @@
-DROP FUNCTION IF EXISTS validate_fiscal_period_open$$
+-- Validate if fiscal period is open for specific transaction type
+DROP FUNCTION IF EXISTS validate_fiscal_period_open;
 
 CREATE FUNCTION validate_fiscal_period_open(
     p_fiscal_date DATE, 
@@ -8,12 +9,13 @@ READS SQL DATA
 DETERMINISTIC
 BEGIN
     DECLARE period_open BOOLEAN DEFAULT FALSE;
-    DECLARE fiscal_period VARCHAR(10);
+    DECLARE fiscal_period_id INT;
     
-    -- Determine fiscal period from date
-    SELECT period_id INTO fiscal_period
+    -- Find the fiscal period for the given date
+    SELECT id INTO fiscal_period_id
     FROM fin_fiscal_periods 
     WHERE p_fiscal_date BETWEEN start_date AND end_date
+    AND deleted_at IS NULL
     LIMIT 1;
     
     -- Check if period is open for the specific module
@@ -25,7 +27,7 @@ BEGIN
         ELSE FALSE
     END INTO period_open
     FROM fin_fiscal_periods 
-    WHERE period_id = fiscal_period;
+    WHERE id = fiscal_period_id;
     
     RETURN COALESCE(period_open, FALSE);
-END$$
+END;

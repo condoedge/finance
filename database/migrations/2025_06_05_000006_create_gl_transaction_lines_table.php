@@ -20,7 +20,7 @@ class CreateGlTransactionLinesTable extends Migration
             $table->string('gl_transaction_id', 50);
             
             // Account reference  
-            $table->string('account_id', 50); // Links to fin_gl_accounts
+            $table->foreignId('account_id')->constrained('fin_gl_accounts')->onDelete('restrict');
             
             // Line details
             $table->string('line_description', 500)->nullable();
@@ -53,11 +53,6 @@ class CreateGlTransactionLinesTable extends Migration
             // Indexes for performance
             $table->index(['team_id', 'gl_transaction_id', 'line_sequence']);
             $table->index(['team_id', 'account_id', 'created_at']);
-            
-            // Constraints to ensure data integrity
-            $table->check('debit_amount >= 0');
-            $table->check('credit_amount >= 0');
-            $table->check('NOT (debit_amount > 0 AND credit_amount > 0)'); // Can't have both debit and credit
         });
     }
 

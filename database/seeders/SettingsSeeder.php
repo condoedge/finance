@@ -3,8 +3,6 @@
 namespace Condoedge\Finance\Database\Seeders;
 
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Models\GlAccountSegmentType;
-use Condoedge\Finance\Models\GlAccountSegmentTypeEnum;
 use Condoedge\Finance\Models\InvoiceStatus;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
 use Condoedge\Finance\Models\PaymentType;
@@ -56,17 +54,5 @@ class SettingsSeeder extends Seeder
             $type->payment_gateway = $enum->getPaymentGateway();
             $type->save();
         });
-
-        // collect(GlAccountSegmentTypeEnum::cases())->each(function ($enum) {
-        //     $type = new GlAccountSegmentType();
-
-        //     if (GlAccountSegmentType::find($enum->value)) {
-        //         return null;
-        //     }
-
-        //     $type->id = $enum->value;
-        //     $type->name = $enum->label();
-        //     $type->save();
-        // });
     }
 }

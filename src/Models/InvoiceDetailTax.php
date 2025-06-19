@@ -43,7 +43,7 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
 
     public function account()
     {
-        return $this->belongsTo(Account::class, 'account_id');
+        return $this->belongsTo(GlAccount::class, 'account_id');
     }
 
     public function tax()
@@ -56,7 +56,7 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
     /* CALCULATED FIELDS */
     public function getCompleteLabelAttribute()
     {
-        return $this->tax->name . ' (' . $this->tax_rate * 100 . '%)';
+        return $this->tax->name . ' (' . $this->tax_rate->multiply(100) . '%)';
     }
 
     public function getCompleteLabelHtmlAttribute()

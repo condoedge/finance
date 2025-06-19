@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Services\Account;
 
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
@@ -19,10 +19,10 @@ interface GlAccountServiceInterface
      * Create account with full validation
      * 
      * @param array $attributes Account attributes including account_id, team_id
-     * @return Account
+     * @return GlAccount
      * @throws \Exception When validation fails or account already exists
      */
-    public function createAccount(array $attributes): Account;
+    public function createAccount(array $attributes): GlAccount;
     
     /**
      * Validate account ID format and segment values
@@ -37,13 +37,13 @@ interface GlAccountServiceInterface
     /**
      * Get account balance for date range
      * 
-     * @param Account $account
+     * @param GlAccount $account
      * @param Carbon|null $startDate
      * @param Carbon|null $endDate
      * @param bool $includeUnposted Include unposted transactions
      * @return SafeDecimal
      */
-    public function getAccountBalance(Account $account, ?Carbon $startDate = null, ?Carbon $endDate = null, bool $includeUnposted = false): SafeDecimal;
+    public function getAccountBalance(GlAccount $account, ?Carbon $startDate = null, ?Carbon $endDate = null, bool $includeUnposted = false): SafeDecimal;
     
     /**
      * Get accounts by type for team
@@ -51,7 +51,7 @@ interface GlAccountServiceInterface
      * @param string $accountType Account::TYPE_* constants
      * @param int|null $teamId
      * @param bool $activeOnly
-     * @return Collection<Account>
+     * @return Collection<GlAccount>
      */
     public function getAccountsByType(string $accountType, ?int $teamId = null, bool $activeOnly = true): Collection;
     
@@ -60,7 +60,7 @@ interface GlAccountServiceInterface
      * 
      * @param string $pattern Account ID pattern (e.g., "10-***-****")
      * @param int|null $teamId
-     * @return Collection<Account>
+     * @return Collection<GlAccount>
      */
     public function searchAccountsByPattern(string $pattern, ?int $teamId = null): Collection;
     
@@ -94,10 +94,10 @@ interface GlAccountServiceInterface
     /**
      * Check if account can accept manual journal entries
      * 
-     * @param Account $account
+     * @param GlAccount $account
      * @return bool
      */
-    public function canAcceptManualEntries(Account $account): bool;
+    public function canAcceptManualEntries(GlAccount $account): bool;
     
     /**
      * Get trial balance for date range
@@ -112,31 +112,31 @@ interface GlAccountServiceInterface
     /**
      * Archive/deactivate account
      * 
-     * @param Account $account
+     * @param GlAccount $account
      * @param string $reason
-     * @return Account
+     * @return GlAccount
      * @throws \Exception When account cannot be archived (has active transactions)
      */
-    public function archiveAccount(Account $account, string $reason): Account;
+    public function archiveAccount(GlAccount $account, string $reason): GlAccount;
     
     /**
      * Merge account into another account
      * 
-     * @param Account $fromAccount
-     * @param Account $toAccount
+     * @param GlAccount $fromAccount
+     * @param GlAccount $toAccount
      * @param string $reason
      * @return bool Success status
      * @throws \Exception When accounts cannot be merged
      */
-    public function mergeAccounts(Account $fromAccount, Account $toAccount, string $reason): bool;
+    public function mergeAccounts(GlAccount $fromAccount, GlAccount $toAccount, string $reason): bool;
     
     /**
      * Get account usage statistics
      * 
-     * @param Account $account
+     * @param GlAccount $account
      * @param Carbon|null $startDate
      * @param Carbon|null $endDate
      * @return array Statistics including transaction count, balance history
      */
-    public function getAccountUsageStats(Account $account, ?Carbon $startDate = null, ?Carbon $endDate = null): array;
+    public function getAccountUsageStats(GlAccount $account, ?Carbon $startDate = null, ?Carbon $endDate = null): array;
 }

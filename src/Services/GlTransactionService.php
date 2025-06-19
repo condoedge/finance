@@ -5,14 +5,80 @@ namespace Condoedge\Finance\Services;
 use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Models\GlTransactionLine;
 use Condoedge\Finance\Models\FiscalPeriod;
-use Condoedge\Finance\Models\Account;
-use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
-use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionLineDto;
+use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\Dto\CreateGlTransactionDto;
+use Condoedge\Finance\Models\Dto\CreateGlTransactionLineDto;
+use Condoedge\Finance\Casts\SafeDecimal;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class GlTransactionService
 {
+    /**
+     * Create a manual GL transaction (Journal Entry)
+     */
+    public function createManualGlTransaction(CreateGlTransactionDto $dto): GlTransactionHeader
+    {
+        // Validate DTO
+        if (!$dto->isBalanced()) {
+            throw new \Exception('Transaction must balance. Debits: ' . $dto->getTotalDebits() . ', Credits: ' . $dto->getTotalCredits());
+        }
+        
+        // Validate all lines
+        foreach ($dto->lines as $index => $line) {
+            if (!$line->isValid()) {
+                throw new \Exception("Line {$index} must have either debit or credit amount, not both or neither");
+            }
+        }
+        
+        return DB::transaction(function() use ($dto) {
+            // Create header
+            $header = GlTransactionHeader::createTransaction([
+                'fiscal_date' => $dto->fiscal_date,
+                'transaction_description' => $dto->transaction_description,
+                'gl_transaction_type' => GlTransactionHeader::TYPE_MANUAL_GL,
+                'team_id' => currentTeamId(),
+            ]);
+            
+            // Create lines
+            foreach ($dto->lines as $lineDto) {
+                // Validate account allows manual entry
+                $account = GlAccount::where('account_id', $lineDto->account_id)
+                    ->forTeam()
+                    ->first();
+                    
+                if (!$account) {
+                    throw new \Exception("Account not found: {$lineDto->account_id}");
+                }
+                
+                if (!$account->is_active) {
+                    throw new \Exception("Account is inactive: {$lineDto->account_id}");
+                }
+                
+                if (!$account->allow_manual_entry) {
+                    throw new \Exception("Account does not allow manual entry: {$lineDto->account_id}");
+                }
+                
+                GlTransactionLine::create([
+                    'gl_transaction_id' => $header->gl_transaction_id,
+                    'account_id' => $lineDto->account_id,
+                    'line_description' => $lineDto->line_description,
+                    'debit_amount' => $lineDto->debit_amount,
+                    'credit_amount' => $lineDto->credit_amount,
+                ]);
+            }
+            
+            // Refresh to get updated balance status from triggers
+            $header->refresh();
+            
+            if (!$header->is_balanced) {
+                throw new \Exception('Transaction is not balanced after creation');
+            }
+            
+            return $header;
+        });
+    }
+    
     /**
      * Create a complete GL transaction with lines
      */
@@ -47,7 +113,7 @@ class GlTransactionService
     public function createTransactionLine(array $lineData): GlTransactionLine
     {
         // Validate account exists and is usable
-        $account = Account::find($lineData['account_id']);
+        $account = GlAccount::find($lineData['account_id']);
         if (!$account) {
             throw new \Exception('Account not found: ' . $lineData['account_id']);
         }
@@ -96,9 +162,13 @@ class GlTransactionService
     /**
      * Post a transaction (make it final)
      */
-    public function postTransaction(string $transactionId): GlTransactionHeader
+    public function postTransaction($transaction): GlTransactionHeader
     {
-        $transaction = GlTransactionHeader::findOrFail($transactionId);
+        if (is_string($transaction)) {
+            $transaction = GlTransactionHeader::where('gl_transaction_id', $transaction)
+                ->forTeam()
+                ->firstOrFail();
+        }
         
         if ($transaction->is_posted) {
             throw new \Exception('Transaction is already posted');
@@ -171,7 +241,7 @@ class GlTransactionService
         \Carbon\Carbon $endDate = null,
         bool $postedOnly = true
     ): SafeDecimal {
-        $account = Account::findOrFail($accountId);
+        $account = GlAccount::findOrFail($accountId);
         
         $query = GlTransactionLine::where('account_id', $accountId)
             ->whereHas('header', function($q) use ($startDate, $endDate, $postedOnly) {
@@ -205,7 +275,7 @@ class GlTransactionService
         \Carbon\Carbon $endDate,
         bool $postedOnly = true
     ): array {
-        $accounts = Account::active()->get();
+        $accounts = GlAccount::active()->get();
         $trialBalance = [];
         
         foreach ($accounts as $account) {

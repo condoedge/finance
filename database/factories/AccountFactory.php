@@ -2,12 +2,12 @@
 
 namespace Condoedge\Finance\Database\Factories;
 
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AccountFactory extends Factory
 {
-    protected $model = Account::class;
+    protected $model = GlAccount::class;
 
     public function definition()
     {

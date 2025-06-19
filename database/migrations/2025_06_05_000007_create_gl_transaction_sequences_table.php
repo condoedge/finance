@@ -21,11 +21,8 @@ class CreateGlTransactionSequencesTable extends Migration
             $table->unsignedBigInteger('last_number')->default(0); // Last used number
             
             // Ensure unique sequence per fiscal year
-            $table->unique(['sequence_name', 'fiscal_year']);        });
-
-        // Create the function to get next GL transaction number
-        $sqlFunction = file_get_contents(database_path('sql/functions/get_next_gl_transaction_number/get_next_gl_transaction_number_v0002.sql'));
-        DB::unprepared($sqlFunction);
+            $table->unique(['sequence_name', 'fiscal_year']);        
+        });
     }
 
     /**
@@ -35,7 +32,6 @@ class CreateGlTransactionSequencesTable extends Migration
      */
     public function down()
     {
-        DB::unprepared("DROP FUNCTION IF EXISTS get_next_gl_transaction_number;");
         Schema::dropIfExists('fin_gl_transaction_sequences');
     }
 }

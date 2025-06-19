@@ -68,7 +68,7 @@ class InvoiceDetail extends AbstractMainFinanceModel
 
     public function revenueAccount()
     {
-        return $this->belongsTo(Account::class, 'revenue_account_id');
+        return $this->belongsTo(GlAccount::class, 'revenue_account_id');
     }
 
     /* ATTRIBUTES */

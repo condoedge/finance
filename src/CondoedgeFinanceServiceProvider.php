@@ -198,6 +198,11 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Condoedge\Finance\Command\EnsureIntegrityCommand::class,
+                \Condoedge\Finance\Command\SetupAccountSegmentSystemCommand::class,
+                \Condoedge\Finance\Command\GenerateFiscalPeriodsCommand::class,
+                \Condoedge\Finance\Command\CloseFiscalPeriodCommand::class,
+                \Condoedge\Finance\Command\OpenFiscalPeriodCommand::class,
+                \Condoedge\Finance\Command\ViewFiscalPeriodStatusCommand::class,
             ]);
         }
     }
@@ -244,6 +249,15 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             \Condoedge\Finance\Services\Account\GlAccountServiceInterface::class,
             \Condoedge\Finance\Services\Account\GlAccountService::class
         );
+        
+        // Account Segment Service (new segment-based system)
+        $this->app->singleton(\Condoedge\Finance\Services\AccountSegmentService::class);
+        
+        // Legacy GL Segment Service (for backward compatibility)
+        $this->app->singleton(\Condoedge\Finance\Services\GlSegmentService::class);
+        
+        // Fiscal Year Service
+        $this->app->singleton(\Condoedge\Finance\Services\FiscalYearService::class);
         
         // Invoice Detail Service
         $this->app->bind(

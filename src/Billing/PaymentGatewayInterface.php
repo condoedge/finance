@@ -2,14 +2,14 @@
 
 namespace Condoedge\Finance\Billing;
 
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 
 interface PaymentGatewayInterface
 {
     /**
      * Get the cash account for this payment gateway
      */
-    public function getCashAccount(): Account;
+    public function getCashAccount(): GlAccount;
 
     /**
      * Optional: Initialize gateway with context

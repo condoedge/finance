@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Database\Factories;
 
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentTypeEnum;
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\Tax;
@@ -27,7 +27,7 @@ class InvoiceFactory extends Factory
             'customer_id' => Customer::factory(),
             'invoice_type_id' => collect(InvoiceTypeEnum::cases())->random()->value,
             'payment_type_id' => collect(PaymentTypeEnum::cases())->random()->value,
-            'account_receivable_id' => Account::factory(),
+            'account_receivable_id' => GlAccount::factory(),
         ];
     }
 }

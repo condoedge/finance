@@ -8,7 +8,7 @@ use Condoedge\Finance\Models\FiscalYearSetup;
 use Condoedge\Finance\Models\FiscalPeriod;
 use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Models\GlTransactionLine;
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -45,7 +45,7 @@ class GlTransactionIntegrityTest extends TestCase
         ]);
         
         // Setup accounts
-        $this->account1 = Account::create([
+        $this->account1 = GlAccount::create([
             'account_id' => '01-100-1000',
             'account_description' => 'Cash Account',
             'is_active' => true,
@@ -53,7 +53,7 @@ class GlTransactionIntegrityTest extends TestCase
             'account_type' => 'ASSET',
         ]);
         
-        $this->account2 = Account::create([
+        $this->account2 = GlAccount::create([
             'account_id' => '02-400-4000',
             'account_description' => 'Revenue Account',
             'is_active' => true,

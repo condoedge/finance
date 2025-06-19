@@ -2,75 +2,104 @@
 
 namespace Condoedge\Finance\Services\Account;
 
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Models\GlTransactionLine;
-use Condoedge\Finance\Models\GlAccountSegment;
-use Condoedge\Finance\Services\GlSegmentService;
+use Condoedge\Finance\Models\AccountSegmentAssignment;
+use Condoedge\Finance\Models\SegmentValue;
+use Condoedge\Finance\Services\AccountSegmentService;
 use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Models\Dto\Gl\CreateAccountFromSegmentsDto;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
 /**
- * GL Account Service Implementation
+ * GL Account Service Implementation - Updated for Segment-Based Architecture
  * 
- * Handles all account business logic including creation, validation,
- * balance calculations, hierarchy management, and usage statistics.
- * 
- * This implementation can be easily overridden by binding a custom 
- * implementation to the GlAccountServiceInterface in your service provider.
+ * Handles all account business logic using the new segment assignment system where:
+ * - Accounts are created by combining reusable segment values
+ * - Segment assignments are stored in fin_account_segment_assignments
+ * - Account IDs are computed from segment combinations (e.g., "10-03-4000")
  */
 class GlAccountService implements GlAccountServiceInterface
 {
-    protected GlSegmentService $segmentService;
+    protected AccountSegmentService $segmentService;
     
-    public function __construct(GlSegmentService $segmentService)
+    public function __construct(AccountSegmentService $segmentService)
     {
         $this->segmentService = $segmentService;
     }
     
     /**
-     * Create account with full validation
+     * Create account with full validation using segment system
      */
-    public function createAccount(array $attributes): Account
+    public function createAccount(array $attributes): GlAccount
     {
         return DB::transaction(function () use ($attributes) {
             // Validate required attributes
             $this->validateAccountAttributes($attributes);
             
-            // Validate account ID format and segments
-            $this->validateAccountId($attributes['account_id'], $attributes['team_id']);
+            // If account_id is provided, parse segments and use segment creation
+            if (isset($attributes['account_id'])) {
+                $segmentCodes = $this->segmentService->parseAccountId($attributes['account_id']);
+                return $this->createAccountFromSegments($segmentCodes, $attributes);
+            }
+            
+            throw new ValidationException('account_id must be provided or use createAccountFromSegments method');
+        });
+    }
+    
+    /**
+     * Create account from segment codes
+     */
+    public function createAccountFromSegments(array $segmentCodes, array $attributes): GlAccount
+    {
+        return DB::transaction(function () use ($segmentCodes, $attributes) {
+            // Validate segment combination
+            $this->validateSegmentCombination($segmentCodes);
             
             // Check account doesn't already exist
-            $this->validateAccountDoesNotExist($attributes['account_id'], $attributes['team_id']);
+            $accountId = $this->segmentService->buildAccountId($segmentCodes);
+            $this->validateAccountDoesNotExist($accountId, $attributes['team_id']);
             
             // Auto-generate description if not provided
             if (empty($attributes['account_description'])) {
-                $attributes['account_description'] = $this->generateAccountDescription(
-                    $attributes['account_id'], 
-                    $attributes['team_id']
-                );
+                $attributes['account_description'] = $this->segmentService->getAccountDescription($segmentCodes);
             }
             
             // Set default values
             $attributes = $this->setDefaultAccountAttributes($attributes);
             
-            // Create account
-            $account = Account::create($attributes);
-            
-            return $account->refresh();
+            // Create account using the segment service
+            return $this->segmentService->createAccount($segmentCodes, $attributes);
         });
     }
     
     /**
-     * Validate account ID
+     * Create account from DTO
+     */
+    public function createAccountFromDto(CreateAccountFromSegmentsDto $dto): GlAccount
+    {
+        return $this->createAccountFromSegments($dto->segmentCodes, $dto->toAccountAttributes());
+    }
+    
+    /**
+     * Find or create account from segment codes
+     */
+    public function findOrCreateAccountFromSegments(array $segmentCodes, array $attributes): GlAccount
+    {
+        return $this->segmentService->findOrCreateAccount($segmentCodes, $attributes);
+    }
+    
+    /**
+     * Validate account ID using segment system
      */
     public function validateAccountId(string $accountId, int $teamId): bool
     {
-        // Delegate to segment service for detailed validation
-        $isValid = $this->segmentService->validateAccountId($accountId, $teamId);
+        $segmentCodes = $this->segmentService->parseAccountId($accountId);
+        $isValid = $this->segmentService->validateSegmentCombination($segmentCodes);
         
         if (!$isValid) {
             throw new ValidationException("Invalid account ID format or segment values: {$accountId}");
@@ -82,7 +111,7 @@ class GlAccountService implements GlAccountServiceInterface
     /**
      * Get account balance
      */
-    public function getAccountBalance(Account $account, ?Carbon $startDate = null, ?Carbon $endDate = null, bool $includeUnposted = false): SafeDecimal
+    public function getAccountBalance(GlAccount $account, ?Carbon $startDate = null, ?Carbon $endDate = null, bool $includeUnposted = false): SafeDecimal
     {
         $query = $account->glTransactionLines()
             ->whereHas('header', function($q) use ($startDate, $endDate, $includeUnposted) {
@@ -109,7 +138,7 @@ class GlAccountService implements GlAccountServiceInterface
      */
     public function getAccountsByType(string $accountType, ?int $teamId = null, bool $activeOnly = true): Collection
     {
-        $query = Account::byType($accountType)
+        $query = GlAccount::byType($accountType)
             ->forTeam($teamId);
             
         if ($activeOnly) {
@@ -120,30 +149,49 @@ class GlAccountService implements GlAccountServiceInterface
     }
     
     /**
-     * Search accounts by pattern
+     * Search accounts by segment pattern
+     * Example: searchAccountsBySegmentPattern(['*', '03', '*'], 1) finds all accounts with team '03'
+     */
+    public function searchAccountsBySegmentPattern(array $segmentPattern, ?int $teamId = null): Collection
+    {
+        $teamId = $teamId ?? currentTeamId();
+        return $this->segmentService->searchAccountsBySegmentPattern($segmentPattern, $teamId);
+    }
+    
+    /**
+     * Search accounts by pattern (supports wildcards)
      */
     public function searchAccountsByPattern(string $pattern, ?int $teamId = null): Collection
     {
         // Convert pattern to SQL LIKE pattern
         $sqlPattern = str_replace('*', '%', $pattern);
         
-        return Account::forTeam($teamId)
+        return GlAccount::forTeam($teamId)
             ->where('account_id', 'LIKE', $sqlPattern)
             ->orderBy('account_id')
             ->get();
     }
     
     /**
-     * Get account hierarchy
+     * Get account hierarchy grouped by segment values
      */
     public function getAccountHierarchy(?int $teamId = null): Collection
     {
-        $accounts = Account::forTeam($teamId)
+        $accounts = GlAccount::forTeam($teamId)
             ->active()
             ->orderBy('account_id')
             ->get();
         
-        return $this->buildAccountHierarchy($accounts);
+        return $this->buildAccountHierarchyBySegments($accounts);
+    }
+    
+    /**
+     * Get accounts that share specific segment values
+     */
+    public function getAccountsWithSegmentValue(int $position, string $value, ?int $teamId = null): Collection
+    {
+        $teamId = $teamId ?? currentTeamId();
+        return $this->segmentService->getAccountsWithSegmentValue($position, $value, $teamId);
     }
     
     /**
@@ -151,25 +199,32 @@ class GlAccountService implements GlAccountServiceInterface
      */
     public function generateAccountId(array $segments, int $teamId): string
     {
-        // Validate segment count and values
-        $this->validateSegments($segments, $teamId);
+        // Validate segment combination
+        $this->validateSegmentCombination($segments);
         
-        // Delegate to segment service for formatting
-        return $this->segmentService->formatAccountId($segments, $teamId);
+        return $this->segmentService->buildAccountId($segments);
     }
     
     /**
-     * Get available segment values
+     * Get available segment values for a position
      */
     public function getAvailableSegmentValues(int $segmentPosition, int $teamId): Collection
     {
-        return $this->segmentService->getAvailableSegmentValues($segmentPosition, $teamId);
+        return $this->segmentService->getAvailableSegmentValues($segmentPosition);
+    }
+    
+    /**
+     * Get segment value options for dropdown
+     */
+    public function getSegmentValueOptions(int $position): Collection
+    {
+        return $this->segmentService->getSegmentValueOptions($position);
     }
     
     /**
      * Check if account can accept manual entries
      */
-    public function canAcceptManualEntries(Account $account): bool
+    public function canAcceptManualEntries(GlAccount $account): bool
     {
         return $account->is_active && $account->allow_manual_entry;
     }
@@ -179,7 +234,7 @@ class GlAccountService implements GlAccountServiceInterface
      */
     public function getTrialBalance(?Carbon $startDate = null, ?Carbon $endDate = null, ?int $teamId = null): Collection
     {
-        $accounts = Account::forTeam($teamId)
+        $accounts = GlAccount::forTeam($teamId)
             ->active()
             ->orderBy('account_id')
             ->get();
@@ -195,6 +250,7 @@ class GlAccountService implements GlAccountServiceInterface
                     'account_id' => $account->account_id,
                     'account_description' => $account->account_description,
                     'account_type' => $account->account_type,
+                    'segment_details' => $account->segment_details,
                     'debit_balance' => $account->isNormalDebitAccount() && $balance->greaterThan(new SafeDecimal('0.00')) ? $balance : new SafeDecimal('0.00'),
                     'credit_balance' => $account->isNormalCreditAccount() && $balance->greaterThan(new SafeDecimal('0.00')) ? $balance : new SafeDecimal('0.00'),
                     'balance' => $balance,
@@ -208,7 +264,7 @@ class GlAccountService implements GlAccountServiceInterface
     /**
      * Archive account
      */
-    public function archiveAccount(Account $account, string $reason): Account
+    public function archiveAccount(GlAccount $account, string $reason): GlAccount
     {
         return DB::transaction(function () use ($account, $reason) {
             // Check if account has unposted transactions
@@ -227,7 +283,7 @@ class GlAccountService implements GlAccountServiceInterface
     /**
      * Merge accounts
      */
-    public function mergeAccounts(Account $fromAccount, Account $toAccount, string $reason): bool
+    public function mergeAccounts(GlAccount $fromAccount, GlAccount $toAccount, string $reason): bool
     {
         return DB::transaction(function () use ($fromAccount, $toAccount, $reason) {
             // Validate merge is possible
@@ -247,7 +303,7 @@ class GlAccountService implements GlAccountServiceInterface
     /**
      * Get account usage statistics
      */
-    public function getAccountUsageStats(Account $account, ?Carbon $startDate = null, ?Carbon $endDate = null): array
+    public function getAccountUsageStats(GlAccount $account, ?Carbon $startDate = null, ?Carbon $endDate = null): array
     {
         $query = $account->glTransactionLines()
             ->whereHas('header', function($q) use ($startDate, $endDate) {
@@ -270,9 +326,26 @@ class GlAccountService implements GlAccountServiceInterface
             'total_debits' => $totalDebits,
             'total_credits' => $totalCredits,
             'current_balance' => $currentBalance,
+            'segment_details' => $account->segment_details,
             'last_transaction_date' => $query->max('created_at'),
             'first_transaction_date' => $query->min('created_at'),
         ];
+    }
+    
+    /**
+     * Bulk create accounts from segment combinations
+     */
+    public function bulkCreateAccountsFromSegments(array $segmentCombinations, array $baseAttributes): Collection
+    {
+        return $this->segmentService->bulkCreateAccounts($segmentCombinations, $baseAttributes);
+    }
+    
+    /**
+     * Get account format mask
+     */
+    public function getAccountFormatMask(): string
+    {
+        return $this->segmentService->getAccountFormatMask();
     }
     
     /* PROTECTED METHODS - Can be overridden for customization */
@@ -282,7 +355,7 @@ class GlAccountService implements GlAccountServiceInterface
      */
     protected function validateAccountAttributes(array $attributes): void
     {
-        $required = ['account_id', 'team_id', 'account_type'];
+        $required = ['account_type', 'team_id'];
         
         foreach ($required as $field) {
             if (empty($attributes[$field])) {
@@ -291,16 +364,20 @@ class GlAccountService implements GlAccountServiceInterface
         }
         
         // Validate account type
-        $validTypes = [
-            Account::TYPE_ASSET,
-            Account::TYPE_LIABILITY,
-            Account::TYPE_EQUITY,
-            Account::TYPE_REVENUE,
-            Account::TYPE_EXPENSE,
-        ];
+        $validTypes = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];
         
         if (!in_array($attributes['account_type'], $validTypes)) {
             throw new ValidationException("Invalid account type: {$attributes['account_type']}");
+        }
+    }
+    
+    /**
+     * Validate segment combination
+     */
+    protected function validateSegmentCombination(array $segmentCodes): void
+    {
+        if (!$this->segmentService->validateSegmentCombination($segmentCodes)) {
+            throw new ValidationException('Invalid segment combination: ' . implode('-', $segmentCodes));
         }
     }
     
@@ -309,21 +386,13 @@ class GlAccountService implements GlAccountServiceInterface
      */
     protected function validateAccountDoesNotExist(string $accountId, int $teamId): void
     {
-        $exists = Account::where('account_id', $accountId)
+        $exists = GlAccount::where('account_id', $accountId)
             ->where('team_id', $teamId)
             ->exists();
             
         if ($exists) {
             throw new ValidationException("Account {$accountId} already exists");
         }
-    }
-    
-    /**
-     * Generate account description
-     */
-    protected function generateAccountDescription(string $accountId, int $teamId): string
-    {
-        return $this->segmentService->getAccountDescription($accountId, $teamId);
     }
     
     /**
@@ -343,7 +412,7 @@ class GlAccountService implements GlAccountServiceInterface
     /**
      * Calculate normal balance
      */
-    protected function calculateNormalBalance(Account $account, SafeDecimal $debits, SafeDecimal $credits): SafeDecimal
+    protected function calculateNormalBalance(GlAccount $account, SafeDecimal $debits, SafeDecimal $credits): SafeDecimal
     {
         if ($account->isNormalDebitAccount()) {
             return $debits->subtract($credits);
@@ -353,17 +422,22 @@ class GlAccountService implements GlAccountServiceInterface
     }
     
     /**
-     * Build account hierarchy from flat list
+     * Build account hierarchy grouped by segment values
      */
-    protected function buildAccountHierarchy(Collection $accounts): Collection
+    protected function buildAccountHierarchyBySegments(Collection $accounts): Collection
     {
-        // Group by first segment (account type/category)
+        // Group by first segment (typically parent team or account type)
         return $accounts->groupBy(function ($account) {
-            $segments = GlAccountSegment::parseAccountId($account->account_id);
-            return $segments[0] ?? 'unknown';
+            $segmentCodes = $this->segmentService->parseAccountId($account->account_id);
+            return $segmentCodes[1] ?? 'unknown'; // First segment
         })->map(function ($groupAccounts, $firstSegment) {
+            // Get segment value description
+            $segmentValue = SegmentValue::findByPositionAndValue(1, $firstSegment);
+            $segmentDescription = $segmentValue ? $segmentValue->segment_description : $firstSegment;
+            
             return [
-                'segment' => $firstSegment,
+                'segment_value' => $firstSegment,
+                'segment_description' => $segmentDescription,
                 'accounts' => $groupAccounts,
                 'count' => $groupAccounts->count(),
             ];
@@ -371,23 +445,9 @@ class GlAccountService implements GlAccountServiceInterface
     }
     
     /**
-     * Validate segments
-     */
-    protected function validateSegments(array $segments, int $teamId): void
-    {
-        foreach ($segments as $position => $value) {
-            $segmentNumber = $position + 1;
-            
-            if (!$this->segmentService->isValidSegmentValue($segmentNumber, $value, $teamId)) {
-                throw new ValidationException("Invalid segment value '{$value}' for segment {$segmentNumber}");
-            }
-        }
-    }
-    
-    /**
      * Validate can archive account
      */
-    protected function validateCanArchiveAccount(Account $account): void
+    protected function validateCanArchiveAccount(GlAccount $account): void
     {
         $hasUnpostedTransactions = $account->glTransactionLines()
             ->whereHas('header', function($q) {
@@ -403,7 +463,7 @@ class GlAccountService implements GlAccountServiceInterface
     /**
      * Validate account merge
      */
-    protected function validateAccountMerge(Account $fromAccount, Account $toAccount): void
+    protected function validateAccountMerge(GlAccount $fromAccount, GlAccount $toAccount): void
     {
         // Must be same account type
         if ($fromAccount->account_type !== $toAccount->account_type) {

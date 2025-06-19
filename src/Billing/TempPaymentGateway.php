@@ -3,16 +3,16 @@
 namespace Condoedge\Finance\Billing;
 
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Illuminate\Support\Facades\Log;
 
 class TempPaymentGateway implements PaymentGatewayInterface
 {
     protected array $context = [];
 
-    public function getCashAccount(): Account 
+    public function getCashAccount(): GlAccount 
     {
-        return Account::latest()->first();
+        return GlAccount::latest()->first();
     }
 
     /**

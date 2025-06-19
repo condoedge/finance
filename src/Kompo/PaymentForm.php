@@ -64,6 +64,8 @@ class PaymentForm extends Modal
 
     public function body()
     {
+        $paymentType = $this->invoice->invoice_type_id->signMultiplier() < 0 ? -1 : 1;
+
         return [
             !$this->invoice ? null : _CardLevel5(
                 _FinanceCurrency($this->invoice->abs_invoice_due_amount)->class('font-bold text-3xl'),
@@ -80,8 +82,8 @@ class PaymentForm extends Modal
             _Date('finance-payment-date')->name('payment_date')->default(now())
                 ->placeholder('finance-payment-date'),
 
-            _ButtonGroup('translate.select-type')->name('type')
-                ->when($this->invoice, fn($e) => $e->default($this->invoice->invoice_type_id->signMultiplier() < 0 ? -1 : 1))
+            $this->invoice ? _Hidden()->name('type')->default($paymentType) : _ButtonGroup('translate.select-type')->name('type')
+                ->when($this->invoice, fn($e) => $e->default($paymentType))
                 ->options([
                     1 => __('translate.finance.from-customer'),
                     -1 => __('translate.finance.to-customer'),

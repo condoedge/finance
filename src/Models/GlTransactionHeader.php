@@ -3,12 +3,15 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
+use Condoedge\Finance\Models\Traits\ValidatesFiscalPeriod;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class GlTransactionHeader extends AbstractMainFinanceModel
 {
     use HasIntegrityCheck;
+    use ValidatesFiscalPeriod;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     
     protected $table = 'fin_gl_transaction_headers';
@@ -48,8 +51,46 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     const TYPE_PAYABLE = 4;
     
     /**
+     * Override fiscal period validation methods
+     */
+    protected function getFiscalDateForValidation(): ?Carbon
+    {
+        return $this->fiscal_date ? Carbon::parse($this->fiscal_date) : null;
+    }
+    
+    protected function getModuleForValidation(): ?string
+    {
+        return $this->mapTransactionTypeToModule($this->gl_transaction_type ?? self::TYPE_MANUAL_GL);
+    }
+    
+    protected function shouldValidateFiscalPeriod(): bool
+    {
+        // Skip validation for posted transactions (they're immutable)
+        if ($this->is_posted) {
+            return false;
+        }
+        
+        return parent::shouldValidateFiscalPeriod();
+    }
+    
+    /**
+     * Map GL transaction type to fiscal module
+     */
+    protected function mapTransactionTypeToModule(int $transactionType): string
+    {
+        return match($transactionType) {
+            self::TYPE_MANUAL_GL => 'GL',
+            self::TYPE_BANK => 'BNK',
+            self::TYPE_RECEIVABLE => 'RM',
+            self::TYPE_PAYABLE => 'PM',
+            default => 'GL',
+        };
+    }
+    
+    /**
      * Relationships
-     */    public function lines()
+     */
+    public function lines()
     {
         return $this->hasMany(GlTransactionLine::class, 'gl_transaction_id', 'gl_transaction_id');
     }

@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 
 class FiscalPeriod extends AbstractMainFinanceModel
@@ -10,22 +11,6 @@ class FiscalPeriod extends AbstractMainFinanceModel
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     
     protected $table = 'fin_fiscal_periods';
-    protected $primaryKey = 'period_id';
-    protected $keyType = 'string';
-    public $incrementing = false;
-    
-    protected $fillable = [
-        'period_id',
-        'fiscal_year',
-        'period_number',
-        'start_date',
-        'end_date',
-        'team_id',
-        'is_open_gl',
-        'is_open_bnk',
-        'is_open_rm',
-        'is_open_pm',
-    ];
     
     protected $casts = [
         'fiscal_year' => 'integer',
@@ -54,51 +39,33 @@ class FiscalPeriod extends AbstractMainFinanceModel
     /**
      * Check if period is open for specific module
      */
-    public function isOpenForModule(string $module): bool
+    public function isOpenForModule(GlTransactionTypeEnum $module): bool
     {
-        return match(strtoupper($module)) {
-            'GL' => $this->is_open_gl,
-            'BNK' => $this->is_open_bnk,
-            'RM' => $this->is_open_rm,
-            'PM' => $this->is_open_pm,
-            default => false,
-        };
-    }
-    
-    /**
-     * Check if period is open for transaction type
-     */
-    public function isOpenForTransactionType(int $transactionType): bool
-    {
-        return match($transactionType) {
-            1 => $this->is_open_gl,  // Manual GL
-            2 => $this->is_open_bnk, // Bank
-            3 => $this->is_open_rm,  // Receivable
-            4 => $this->is_open_pm,  // Payable
-            default => false,
-        };
+        $column = $module->getFiscalPeriodOpenField();
+
+        return $this->{$column} ?? false;
     }
     
     /**
      * Close period for specific module
      */
-    public function closeForModule(string $module): void
+    public function closeForModule(GlTransactionTypeEnum $module): void
     {
-        $field = 'is_open_' . strtolower($module);
-        if (in_array($field, $this->fillable)) {
-            $this->update([$field => false]);
-        }
+        $column = $module->getFiscalPeriodOpenField();
+
+        $this->$column = false;
+        $this->save();
     }
     
     /**
      * Open period for specific module
      */
-    public function openForModule(string $module): void
+    public function openForModule(GlTransactionTypeEnum $module): void
     {
-        $field = 'is_open_' . strtolower($module);
-        if (in_array($field, $this->fillable)) {
-            $this->update([$field => true]);
-        }
+        $column = $module->getFiscalPeriodOpenField();
+
+        $this->$column = true;
+        $this->save();
     }
     
     /**

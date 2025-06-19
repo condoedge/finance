@@ -1,6 +1,5 @@
-DELIMITER $$
-
-DROP TRIGGER IF EXISTS ensure_gl_line_integrity$$
+-- GL Transaction Line integrity triggers
+DROP TRIGGER IF EXISTS ensure_gl_line_integrity;
 
 CREATE TRIGGER ensure_gl_line_integrity
     BEFORE INSERT ON fin_gl_transaction_lines
@@ -9,11 +8,16 @@ BEGIN
     DECLARE account_active BOOLEAN DEFAULT TRUE;
     DECLARE account_manual_allowed BOOLEAN DEFAULT TRUE;
     DECLARE transaction_type TINYINT;
+    DECLARE transaction_posted BOOLEAN DEFAULT FALSE;
     
-    -- Get transaction type
-    SELECT gl_transaction_type INTO transaction_type
+    -- Check if transaction is already posted
+    SELECT is_posted, gl_transaction_type INTO transaction_posted, transaction_type
     FROM fin_gl_transaction_headers 
     WHERE gl_transaction_id = NEW.gl_transaction_id;
+    
+    IF transaction_posted THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot modify posted transaction';
+    END IF;
     
     -- Check account status
     SELECT is_active, allow_manual_entry 
@@ -36,14 +40,13 @@ BEGIN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Line cannot have both debit and credit amounts';
     END IF;
     
-    IF (NEW.debit_amount = 0 AND NEW.credit_amount = 0) THEN
+    IF (COALESCE(NEW.debit_amount, 0) = 0 AND COALESCE(NEW.credit_amount, 0) = 0) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Line must have either debit or credit amount';
     END IF;
-    
-END$$
+END;
 
--- Trigger to update header balance status
-DROP TRIGGER IF EXISTS update_gl_header_balance$$
+-- Update header balance status after line insert
+DROP TRIGGER IF EXISTS update_gl_header_balance;
 
 CREATE TRIGGER update_gl_header_balance
     AFTER INSERT ON fin_gl_transaction_lines
@@ -59,11 +62,10 @@ BEGIN
     SET is_balanced = is_balanced,
         updated_at = NOW()
     WHERE gl_transaction_id = NEW.gl_transaction_id;
-    
-END$$
+END;
 
--- Also update on UPDATE and DELETE
-DROP TRIGGER IF EXISTS update_gl_header_balance_on_update$$
+-- Update header balance status after line update
+DROP TRIGGER IF EXISTS update_gl_header_balance_on_update;
 
 CREATE TRIGGER update_gl_header_balance_on_update
     AFTER UPDATE ON fin_gl_transaction_lines
@@ -77,10 +79,10 @@ BEGIN
     SET is_balanced = is_balanced,
         updated_at = NOW()
     WHERE gl_transaction_id = NEW.gl_transaction_id;
-    
-END$$
+END;
 
-DROP TRIGGER IF EXISTS update_gl_header_balance_on_delete$$
+-- Update header balance status after line delete
+DROP TRIGGER IF EXISTS update_gl_header_balance_on_delete;
 
 CREATE TRIGGER update_gl_header_balance_on_delete
     AFTER DELETE ON fin_gl_transaction_lines
@@ -94,7 +96,4 @@ BEGIN
     SET is_balanced = is_balanced,
         updated_at = NOW()
     WHERE gl_transaction_id = OLD.gl_transaction_id;
-    
-END$$
-
-DELIMITER ;
+END;

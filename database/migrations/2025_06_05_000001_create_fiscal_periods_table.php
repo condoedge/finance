@@ -16,7 +16,6 @@ class CreateFiscalPeriodsTable extends Migration
         Schema::create('fin_fiscal_periods', function (Blueprint $table) {
             addMetaData($table);
             
-            $table->string('period_id', 10)->unique(); // e.g., 'per01', 'per02'
             $table->unsignedSmallInteger('fiscal_year'); // e.g., 2025
             $table->unsignedTinyInteger('period_number'); // 1-12
             $table->date('start_date');
