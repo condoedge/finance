@@ -14,7 +14,7 @@ class ApplyPaymentToInvoiceModal extends Modal
         FormCanHaveTableWithFields::class,
     ];
     
-    public $_Title = 'translate.finance.apply-payment-to-invoice';
+    public $_Title = 'finance-apply-payment-to-invoice';
 
     public $class = 'max-w-6xl';
 
@@ -113,11 +113,11 @@ class ApplyPaymentToInvoiceModal extends Modal
 
         return _CardLevel5(
             _FlexBetween(
-                _Html('translate.payment-amount')->class('font-semibold text-gray-600'),
+                _Html('finance-payment-amount')->class('font-semibold text-gray-600'),
                 _FinanceCurrency($this->applicableModel->applicable_total_amount ?? 0)->class('font-bold text-3xl text-gray-800'),
             )->class('!items-end flex-1'),
             _FlexBetween(
-                _Html('translate.remaining')->class('font-semibold text-gray-600'),
+                _Html('finance-remaining')->class('font-semibold text-gray-600'),
                 _FinanceCurrency($this->applicableModel->applicable_amount_left ?? 0)->class('font-bold text-3xl text-gray-800'),
             )->class('!items-end flex-1 mb-4'),
         )->class('h-full gap-4 py-8 !px-6 justify-center');
@@ -129,7 +129,7 @@ class ApplyPaymentToInvoiceModal extends Modal
             return null;
         }
 
-        return _Select('translate.finance.customer-payment')->name('applicable', false)
+        return _Select('finance.customer-payment')->name('applicable', false)
             ->selfGet('getPaymentInfo')->inPanel('payment-info')
             ->default($this->applicableKey)
             ->options(InvoiceApply::getAllApplicablesRecords($customerId)

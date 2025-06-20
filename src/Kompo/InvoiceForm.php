@@ -74,10 +74,10 @@ class InvoiceForm extends Form
 			)->class('mb-6'),
 
             _CardWhiteP4(
-				$this->model->id ? null : _Select('translate.finance.invoice-type')
+				$this->model->id ? null : _Select('finance-invoice-type')
 					->name('invoice_type_id')
 					->options(InvoiceTypeEnum::optionsWithLabels()),
-				_Select('translate.finance.payment-type')
+				_Select('finance-payment-type')
 					->name('payment_type_id')
 					->options(PaymentTypeEnum::optionsWithLabels()),
 				$this->model->id ? null : _Columns(

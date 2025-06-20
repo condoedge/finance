@@ -47,9 +47,9 @@ class InvoicesTable extends WhiteTable
                 _FlexEnd4(
                     _Dropdown('finance-actions')->togglerClass('vlBtn')->rIcon('icon-down')
                         ->content(
-                            _DropdownLink('translate.finance.new-transaction')
+                            _DropdownLink('finance-new-transaction')
                                 ->href('invoices.form'),
-                            _DropdownLink('translate.finance-create-payment')
+                            _DropdownLink('finance-create-payment')
                                 ->selfGet('getPaymentForm')->inModal(),
                         )
                         ->alignRight()

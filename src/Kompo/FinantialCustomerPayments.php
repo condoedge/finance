@@ -21,7 +21,7 @@ class FinantialCustomerPayments extends Table
     public function top()
     {
         return _FlexBetween(
-            _Button('translate.create-payment')->selfGet('getCreatePaymentModal')->inModal(),
+            _Button('finance-create-payment')->selfGet('getCreatePaymentModal')->inModal(),
         );
     }
 
@@ -47,7 +47,7 @@ class FinantialCustomerPayments extends Table
             _FinanceCurrency($customerPayment->amount_left),
 
             _TripleDotsDropdown(
-                $customerPayment->amount_left->lessThanOrEqual(0) ? null : _DropdownLink('translate.apply-payment')->selfGet('getApplyPaymentToInvoiceModal', [
+                $customerPayment->amount_left->lessThanOrEqual(0) ? null : _DropdownLink('finance-apply-payment')->selfGet('getApplyPaymentToInvoiceModal', [
                     'customer_payment_id' => $customerPayment->id,
                 ])
                     ->inModal(),

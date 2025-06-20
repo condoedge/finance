@@ -11,7 +11,7 @@ enum PaymentTypeEnum: int
     public function label(): string
     {
         return match ($this) {
-            self::CASH => __('translate.cash'),
+            self::CASH => __('finance-cash'),
         };
     }
 

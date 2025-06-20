@@ -27,11 +27,11 @@ class CustomerInvoicesToBeAppliedTable extends WhiteTable
     public function headers()
     {
         return [
-            _Th('translate.finance.invoice-reference'),
-            _Th('translate.finance.invoice-date'),
-            _Th('translate.finance.invoice-total-amount'),
-            _Th('translate.finance.invoice-due-amount'),
-            _Th('translate.finance.invoice-apply'),
+            _Th('finance-invoice-reference'),
+            _Th('finance-invoice-date'),
+            _Th('finance-invoice-total-amount'),
+            _Th('finance-invoice-due-amount'),
+            _Th('finance-invoice-apply'),
         ];
     }
 

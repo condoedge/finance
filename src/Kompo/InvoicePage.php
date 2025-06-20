@@ -94,7 +94,7 @@ class InvoicePage extends Form
 						)
 					),
 				!$this->model->canBePaid() ? null : _FlexEnd(
-					_Link('translate.finance.record-payment')
+					_Link('finance-record-payment')
 						->outlined()
 						->selfUpdate('getApplyPaymentToInvoiceModal')->inModal()
 				)
@@ -168,13 +168,13 @@ class InvoicePage extends Form
 	{
 		return _FlexEnd4(
 			$this->amountDue(),
-			_MiniLabelDate('translate.finance.due-date', $this->model->invoice_due_date, $this->bigClass)->class('border-l border-gray-200 pl-4'),
+			_MiniLabelDate('finance-due-date', $this->model->invoice_due_date, $this->bigClass)->class('border-l border-gray-200 pl-4'),
 		);
 	}
 
 	protected function amountDue()
 	{
-		return _MiniLabelFinanceCcy('translate.finance.amount-due', $this->model->abs_invoice_due_amount, $this->bigClass);
+		return _MiniLabelFinanceCcy('finance-amount-due', $this->model->abs_invoice_due_amount, $this->bigClass);
 	}
 
 	protected function lastPaymentWithDate()

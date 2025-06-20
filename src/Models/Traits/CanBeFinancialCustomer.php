@@ -28,7 +28,7 @@ trait CanBeFinancialCustomer
         
         $customer = $this->upsertCustomerFromThisModel();
         // if (!$this->customer) {
-        //     throw new ModelNotFoundException(__('translate.create-customer-first'));
+        //     throw new ModelNotFoundException(__('finance-create-customer-first'));
         // }
 
         InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([

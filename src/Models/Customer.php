@@ -83,7 +83,7 @@ class Customer extends AbstractMainFinanceModel
 
         $customables->each(function ($customable) {
             if (!in_array(CustomableContract::class, class_implements($customable))) {
-                throw new \Exception(__('translate.customable-model-must-implement', ['model' => $customable]));
+                throw new \Exception(__('finance-customable-model-must-implement', ['model' => $customable]));
             }
         });
 
@@ -145,7 +145,7 @@ class Customer extends AbstractMainFinanceModel
     public function fillInvoiceForCustomer(Invoice $initialInvoice)
     {
         if (!$this->default_billing_address_id) {
-            throw new \Illuminate\Database\Eloquent\RelationNotFoundException(__('translate.customer-address-not-set'));
+            throw new \Illuminate\Database\Eloquent\RelationNotFoundException(__('finance-customer-address-not-set'));
         }
 
         $invoice = $initialInvoice;

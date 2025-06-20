@@ -12,8 +12,8 @@ enum InvoiceTypeEnum: int
     public function label(): string
     {
         return match ($this) {
-            self::INVOICE => __('translate.invoice'),
-            self::CREDIT => __('translate.credit'),
+            self::INVOICE => __('finance-invoice'),
+            self::CREDIT => __('finance-credit'),
         };
     }
 
