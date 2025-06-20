@@ -294,14 +294,14 @@ class FiscalYearService
         if (!$period) {
             throw new HttpException(
                 403,
-                __('translate.fiscal-year-no-period'),
+                __('finance-fiscal-year-no-period'),
             );
         }
         
         if (!$period->isOpenForModule($module)) {
             throw new HttpException(
                 403,
-                __('translate.fiscal-year-period-closed', ['module' => $module->label()]),
+                __('finance-fiscal-year-period-closed', ['module' => $module->label()]),
             );
         }
         

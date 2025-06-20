@@ -82,7 +82,7 @@ class PaymentForm extends Modal
             _Date('finance-payment-date')->name('payment_date')->default(now())
                 ->placeholder('finance-payment-date'),
 
-            $this->invoice ? _Hidden()->name('type')->default($paymentType) : _ButtonGroup('translate.select-type')->name('type')
+            $this->invoice ? _Hidden()->name('type')->default($paymentType) : _ButtonGroup('finance-select-type')->name('type')
                 ->when($this->invoice, fn($e) => $e->default($paymentType))
                 ->options([
                     1 => __('finance-from-customer'),
