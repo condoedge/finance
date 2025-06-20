@@ -32,7 +32,7 @@ class FinantialCustomersTable extends Table
         return _TableRow(
             _Html($customer->name),
             _FinanceCurrency($customer->customer_due_amount),
-        )->href('finantial-customers.page', [
+        )->href('finance.customers.page', [
             'id' => $customer->id,
         ]);
     }

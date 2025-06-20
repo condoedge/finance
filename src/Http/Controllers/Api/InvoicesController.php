@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Http;
+namespace Condoedge\Finance\Http\Controllers\Api;
 
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\InvoiceModel;

@@ -12,11 +12,12 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
  * @TRIGGERED BY: tr_invoice_details_after_insert (insert_invoice_taxes_v0001.sql)
  * 
  * @property int $id
+ * @property string $name
  * @property int $invoice_detail_id Foreign key to fin_invoices
- * @property int $account_id Foreign key to fin_accounts
+ * @property int $account_id Foreign key to fin_gl_accounts
  * @property int $tax_id Foreign key to the original tax fin_taxes. The tax rate can mismatch if it was changed
- * @property int|null $tax_amount Tax amount 
- * @property \Condoedge\Finance\Casts\SafeDecimal $tax_rate Tax rate as percentage / 100
+ * @property \Condoedge\Finance\Casts\SafeDecimal $tax_amount Tax amount 
+ * @property \Condoedge\Finance\Casts\SafeDecimal $rate Tax rate as percentage / 100
  * 
  * @property-read \Condoedge\Finance\Models\Invoice $invoice
  */
@@ -27,7 +28,7 @@ class Tax extends AbstractMainFinanceModel
     protected $casts = [
         'rate' => SafeDecimalCast::class,
     ];
-    
+
     /* RELATIONSHIPS */
     public function groups()
     {
@@ -40,7 +41,6 @@ class Tax extends AbstractMainFinanceModel
         return $this->name . ' (' . $this->rate->multiply(100) . '%)';
     }
 
-    
     public function getCompleteLabelHtmlAttribute()
     {
         return '<span data-name="'.$this->name.'" data-tax="'.$this->rate.'" data-id="'.$this->id.'">'.$this->complete_label.'</span>';

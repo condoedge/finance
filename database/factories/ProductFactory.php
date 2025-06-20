@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Database\Factories;
 
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -14,7 +14,7 @@ class ProductFactory extends Factory
     {
         return [
             'name' => $this->faker->word,
-            'default_revenue_account_id' => Account::factory(),
+            'default_revenue_account_id' => GlAccount::factory(),
             
         ];
     }

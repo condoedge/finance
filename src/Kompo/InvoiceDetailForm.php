@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\TaxModel;
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Tax;
 use Kompo\Form;
 
@@ -49,7 +49,7 @@ class InvoiceDetailForm extends Form
 							->class('w-28 mb-0')
 							->run('calculateTotals'),
 
-						_Hidden()->name('revenue_account_id')->value(Account::first()->id),
+						_Hidden()->name('revenue_account_id')->value(GlAccount::first()->id),
 						// _Rows(
 						// 	_Select()->placeholder('account')
 						// 		->class('w-36 mb-0')
@@ -76,7 +76,7 @@ class InvoiceDetailForm extends Form
 						_TaxesInfoLink()->class('left-0 top-1 ml-1'),
 						_Rows(
 							$this->model->invoiceTaxes()->get()->map(
-								fn($it) => _FinanceCurrency($this->model->extended_price * $it->tax_rate)
+								fn($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate))
 							)
 						)->class('w-32 item-taxes font-semibold text-level1 text-right')
 					)->class('relative'),
@@ -105,7 +105,7 @@ class InvoiceDetailForm extends Form
 			'quantity' => 'required',
 			'unit_price' => 'required',
 			'name' => 'sometimes|required',
-			'revenue_account_id' => 'required|exists:fin_accounts,id',
+			'revenue_account_id' => 'required|exists:fin_gl_accounts,id',
 		];
 	}
 }

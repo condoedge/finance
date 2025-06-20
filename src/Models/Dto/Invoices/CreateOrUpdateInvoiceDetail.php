@@ -43,7 +43,7 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
             'name' => 'required|string|max:255',
             'quantity' => 'required|integer|min:1',
             'unit_price' => 'required|numeric|min:0',
-            'revenue_account_id' => 'required|integer|exists:fin_accounts,id',
+            'revenue_account_id' => 'required|integer|exists:fin_gl_accounts,id',
 
             'taxesIds' => 'nullable|array',
             'taxesIds.*' => 'integer|exists:fin_taxes,id',

@@ -2,11 +2,22 @@
 
 namespace Condoedge\Finance\Billing;
 
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 
 interface PaymentGatewayInterface
 {
-    public function getCashAccount(): Account;
+    /**
+     * Get the cash account for this payment gateway
+     */
+    public function getCashAccount(): GlAccount;
+
+    /**
+     * Optional: Initialize gateway with context
+     * 
+     * This method is called by PaymentGatewayResolver::resolveWithContext()
+     * to provide additional context to the gateway
+     */
+    public function initializeContext(array $context = []): void;
 
     // COUPONS
 
@@ -25,5 +36,4 @@ interface PaymentGatewayInterface
 
     /* WEBHOOKS */
     public function setRoutes();
-
 }

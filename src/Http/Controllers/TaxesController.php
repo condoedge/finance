@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Http;
+namespace Condoedge\Finance\Http\Controllers;
 
 use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;

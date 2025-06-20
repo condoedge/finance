@@ -18,11 +18,11 @@ return [
     | This configuration defines the relationships between models for integrity verification.
     | The keys are parent model classes and the values are arrays of child model classes.
     |
-    */
-    'model_integrity_relations' => [
+    */    'model_integrity_relations' => [
         \Condoedge\Finance\Models\Customer::class => [
             \Condoedge\Finance\Models\Invoice::class,
             \Condoedge\Finance\Models\CustomerPayment::class,
+            // \Condoedge\Finance\Models\GlTransactionHeader::class, // GL transactions linked to customers
         ],
         \Condoedge\Finance\Models\Invoice::class => [
             \Condoedge\Finance\Models\InvoiceDetail::class,
@@ -32,10 +32,17 @@ return [
         \Condoedge\Finance\Models\InvoiceDetailTax::class => [
            \Condoedge\Finance\Models\InvoiceDetail::class,
         ],
-
         \Condoedge\Finance\Models\CustomerPayment::class => [
             \Condoedge\Finance\Models\InvoiceApply::class,
-        ]
+        ],
+        // GL Module relationships
+        // \Condoedge\Finance\Models\GlTransactionHeader::class => [
+        //     \Condoedge\Finance\Models\GlTransactionLine::class,
+        // ],
+        // Account hierarchy (accounts can have sub-accounts in future)
+        // \Condoedge\Finance\Models\Account::class => [
+            // \Condoedge\Finance\Models\GlTransactionLine::class,
+        // ],
     ],
 
     'invoice_applicable_types' => [
@@ -45,10 +52,6 @@ return [
 
     'customable_models' => [
         'customable_team' => CustomableTeam::class,
-    ],
-
-    'payment_gateways' => [
-        \Condoedge\Finance\Models\PaymentTypeEnum::CASH->value => TempPaymentGateway::class,
     ],
 
     // These are used to bind "config-currency" to the locale in our service provider

@@ -17,7 +17,7 @@ class CreateInvoiceDetailsTable extends Migration
             addMetaData($table);
 
             $table->foreignId('invoice_id')->constrained('fin_invoices');
-            $table->foreignId('revenue_account_id')->constrained('fin_accounts');
+            $table->foreignId('revenue_account_id')->constrained('fin_gl_accounts');
             $table->foreignId('product_id')->nullable()->constrained('fin_products');
             $table->unsignedInteger('quantity');
             $table->string('name');

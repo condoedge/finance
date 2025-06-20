@@ -24,12 +24,12 @@ class CreateInvoicesTable extends Migration
             // BUILDED FROM invoice_type_id and invoice_number using get_invoice_reference function
             $table->string('invoice_reference')->nullable();
 
-            $table->foreignId('account_receivable_id')->constrained('fin_accounts');
+            $table->foreignId('account_receivable_id')->constrained('fin_gl_accounts');
 
             /**
              * @see Condoedge\Finance\Models\PaymentTypeEnum::class
             */
-            $table->tinyInteger('payment_type_id');
+            $table->foreignId('payment_type_id')->constrained('fin_payment_types');
 
             $table->boolean('is_draft')->default(true);
             

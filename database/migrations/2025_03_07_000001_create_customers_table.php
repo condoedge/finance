@@ -12,12 +12,11 @@ class CreateCustomersTable extends Migration
      * @return void
      */
     public function up()
-    {
-        Schema::create('fin_customers', function (Blueprint $table) {
+    {        Schema::create('fin_customers', function (Blueprint $table) {
             addMetaData($table);
 
             $table->string('name');
-            $table->tinyInteger('default_payment_type_id')->nullable();
+            $table->foreignId('default_payment_type_id')->nullable()->constrained('fin_payment_types');
             $table->unsignedBigInteger('default_billing_address_id')->nullable();
 
             $table->foreignId('team_id')->constrained('teams');

@@ -12,6 +12,16 @@ use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
+/**
+ * Create Customer Payment DTO
+ * 
+ * Used to create new customer payments. Payments can be applied to specific invoices
+ * or remain as credit on the customer account.
+ * 
+ * @property int $customer_id The customer making the payment
+ * @property \Carbon\Carbon|string $payment_date Date the payment was received
+ * @property SafeDecimal $amount Payment amount with decimal precision
+ */
 class CreateCustomerPaymentDto extends ValidatedDTO
 {
     use EmptyDefaults;

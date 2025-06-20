@@ -60,22 +60,47 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
     {
         parent::after($validator);
 
-        $applicable = $this->dtoData['applicable'] ?? null;
-        $applicableType = $this->dtoData['applicable_type'] ?? null;
+        $this->validateInvoiceState($validator);
+        $this->validateAmountApplied($validator);
+        $this->validateApplicableAmounts($validator);
+        $this->validateCustomerMatching($validator);
+    }
 
-        $amountApplied = new SafeDecimal($this->dtoData['amount_applied'] ?? null);
-
+    /**
+     * Validate invoice state (not draft, exists)
+     */
+    protected function validateInvoiceState(\Illuminate\Validation\Validator $validator): void
+    {
         $invoiceId = $this->dtoData['invoice_id'] ?? null;
-
         $invoice = InvoiceModel::find($invoiceId);
 
-        if ($invoice?->is_draft){
+        if ($invoice?->is_draft) {
             $validator->errors()->add('invoice_id', __('translate.validation.custom.finance.invoice-draft'));
         }
+    }
+
+    /**
+     * Validate amount applied is not zero
+     */
+    protected function validateAmountApplied(\Illuminate\Validation\Validator $validator): void
+    {
+        $amountApplied = new SafeDecimal($this->dtoData['amount_applied'] ?? null);
 
         if ($amountApplied->equals(0)) {
             $validator->errors()->add('amount_applied', __('translate.validation.custom.finance.amount-applied-zero'));
         }
+    }
+
+    /**
+     * Validate applicable amounts and sign consistency
+     */
+    protected function validateApplicableAmounts(\Illuminate\Validation\Validator $validator): void
+    {
+        $applicable = $this->dtoData['applicable'] ?? null;
+        $applicableType = $this->dtoData['applicable_type'] ?? null;
+        $amountApplied = new SafeDecimal($this->dtoData['amount_applied'] ?? null);
+        $invoiceId = $this->dtoData['invoice_id'] ?? null;
+        $invoice = InvoiceModel::find($invoiceId);
 
         if (!is_null($applicableType) && !is_null($applicable) && !is_null($amountApplied)) {
             /**
@@ -88,27 +113,36 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
                 ? $amountApplied->multiply(-1)
                 : $amountApplied;
 
-            // If we subtract the applied amount and it's greater than the original, it means it's a negative value. - if it is a invoice and + if it is a credit
-            // payment_left * (payment_left - applied_amount) > 0
+            // Validate amount doesn't exceed available
             $paymentLeftResult = $applicableModel->applicable_amount_left->subtract($amountApplied);
-
             if ($paymentLeftResult->multiply($applicableModel->applicable_amount_left)->lessThan(0)) {
                 $validator->errors()->add('applicable', __('translate.validation.custom.finance.applicable-amount-exceeded'));
             }
 
-            // You cannot apply a negative payment to a positive invoice
-            // This means you're trying to apply a credit payment to an invoice
-            // or a positive payment to a credit invoice, that would increase the amount due
-            if($applicableModel->applicable_amount_left->multiply($invoice->invoice_type_id->signMultiplier())->lessThan(0)) {
+            // Validate sign consistency (cannot apply negative payment to positive invoice)
+            if ($applicableModel->applicable_amount_left->multiply($invoice->invoice_type_id->signMultiplier())->lessThan(0)) {
                 $validator->errors()->add('applicable', __('translate.validation.custom.finance.applicable-amount-negative'));
             }
         }
+    }
 
-        if (!is_null($invoiceId) && !is_null($amountApplied) && ($invoice = InvoiceModel::find($invoiceId)) && !is_null($applicable)) {
+    /**
+     * Validate customer matching and invoice amounts
+     */
+    protected function validateCustomerMatching(\Illuminate\Validation\Validator $validator): void
+    {
+        $invoiceId = $this->dtoData['invoice_id'] ?? null;
+        $amountApplied = new SafeDecimal($this->dtoData['amount_applied'] ?? null);
+        $applicable = $this->dtoData['applicable'] ?? null;
+        $invoice = InvoiceModel::find($invoiceId);
+
+        if (!is_null($invoiceId) && !is_null($amountApplied) && $invoice && !is_null($applicable)) {
+            // Validate customer matches
             if ($invoice->customer_id != $applicable['customer_id']) {
                 $validator->errors()->add('applicable', __('translate.validation.custom.finance.invoice-customer-mismatch'));
             }
 
+            // Validate amount doesn't exceed invoice due
             if ($invoice->abs_invoice_due_amount->lessThan($amountApplied)) {
                 $validator->errors()->add('amount_applied', __('translate.validation.custom.finance.invoice-amount-exceeded'));
             }

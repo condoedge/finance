@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  * 
  * @property int $id
  * @property int $invoice_detail_id Foreign key to fin_invoices
- * @property int $account_id Foreign key to fin_accounts
+ * @property int $account_id Foreign key to fin_gl_accounts
  * @property int $tax_id Foreign key to the original tax fin_taxes. The tax rate can mismatch if it was changed
  * @property int|null $tax_amount Tax amount 
  * @property \Condoedge\Finance\Casts\SafeDecimal $tax_rate Tax rate as percentage / 100
@@ -42,7 +43,7 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
 
     public function account()
     {
-        return $this->belongsTo(Account::class, 'account_id');
+        return $this->belongsTo(GlAccount::class, 'account_id');
     }
 
     public function tax()
@@ -55,7 +56,7 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
     /* CALCULATED FIELDS */
     public function getCompleteLabelAttribute()
     {
-        return $this->tax->name . ' (' . $this->tax_rate * 100 . '%)';
+        return $this->tax->name . ' (' . $this->tax_rate->multiply(100) . '%)';
     }
 
     public function getCompleteLabelHtmlAttribute()
@@ -66,56 +67,45 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
     /* SCOPES */
 
     /* ACTIONS */
+    /**
+     * @deprecated Use InvoiceDetailService::applyTaxesToDetail() instead
+     * Maintained for backward compatibility
+     */
     public static function upsertForInvoiceDetailFromTax(UpsertTaxDetailDto $data)
     {
-        if ($invoiceDetailTax = static::where('invoice_detail_id', $data->invoice_detail_id)->where('tax_id', $data->tax_id)->first()) {
-            return $invoiceDetailTax;
-        }
-
-        $tax = TaxModel::findOrFail($data->tax_id);
         $invoiceDetail = InvoiceDetailModel::findOrFail($data->invoice_detail_id);
-
-        $invoiceDetailTax = new self();
-        $invoiceDetailTax->invoice_detail_id = $data->invoice_detail_id;
-        $invoiceDetailTax->tax_id = $tax->id;
-        $invoiceDetailTax->tax_rate = $tax->rate;
-        // It will be recaculated so it doesn't matter
-        $invoiceDetailTax->tax_amount = $invoiceDetail->extended_price->multiply($tax->rate);
-        $invoiceDetailTax->save();
-
-        return $invoiceDetailTax;
+        $taxes = InvoiceDetailService::applyTaxesToDetail($invoiceDetail, collect([$data->tax_id]));
+        return $taxes->first();
     }
 
+    /**
+     * @deprecated Use InvoiceDetailService::applyTaxesToDetail() instead
+     * Maintained for backward compatibility
+     */
     public static function upsertManyForInvoiceDetail(UpsertManyTaxDetailDto $data)
     {
-
-        foreach (($data->taxes_ids ?? []) as $taxId) {
-            InvoiceDetailTax::upsertForInvoiceDetailFromTax(new UpsertTaxDetailDto([
-                'invoice_detail_id' => $data->invoice_detail_id,
-                'tax_id' => $taxId,
-            ]));
-        }
-
         $invoiceDetail = InvoiceDetailModel::findOrFail($data->invoice_detail_id);
-
-        $invoiceDetail->invoiceTaxes()->whereNotIn('tax_id', $data->taxes_ids ?? [])->get()->each->delete();
+        return InvoiceDetailService::applyTaxesToDetail($invoiceDetail, collect($data->taxes_ids ?? []));
     }
 
+    /**
+     * @deprecated Use InvoiceDetailService::getDetailTaxes() instead
+     * Maintained for backward compatibility
+     */
     public static function getAllForInvoiceDetail(int $invoiceDetailId, ?string $taxName = null)
     {
-        return static::where('invoice_detail_id', $invoiceDetailId)
-            ->when($taxName, fn($q) => $q->whereHas('tax', function ($query) use ($taxName) {
-                $query->where('name', $taxName);
-            })->withAggregate('tax', 'name')->get());
+        $invoiceDetail = InvoiceDetailModel::findOrFail($invoiceDetailId);
+        return InvoiceDetailService::getDetailTaxes($invoiceDetail, $taxName);
     }
 
+    /**
+     * @deprecated Use InvoiceDetailService::getInvoiceTaxes() instead
+     * Maintained for backward compatibility
+     */
     public static function getAllForInvoice(int $invoiceId, ?string $taxName = null)
     {
-        return static::whereHas('invoiceDetail', function ($query) use ($invoiceId) {
-            $query->where('invoice_id', $invoiceId);
-        })->when($taxName, fn($q) => $q->whereHas('tax', function ($query) use ($taxName) {
-            $query->where('name', $taxName);
-        })->withAggregate('tax', 'name')->get());
+        $invoice = Invoice::findOrFail($invoiceId);
+        return InvoiceDetailService::getInvoiceTaxes($invoice, $taxName);
     }
 
     /* INTEGRITY */

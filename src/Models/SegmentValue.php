@@ -1,0 +1,163 @@
+<?php
+
+namespace Condoedge\Finance\Models;
+
+use Condoedge\Utils\Models\Model;
+
+/**
+ * Segment Value Model
+ * 
+ * Stores reusable segment values that can be shared across different accounts
+ * Example: segment_value="10" with description="parent_team_10" for position 1
+ * 
+ * @property int $id
+ * @property int $segment_definition_id References fin_account_segments
+ * @property string $segment_value The actual code ('10', '03', '4000')
+ * @property string $segment_description Human-readable description
+ * @property bool $is_active
+ */
+class SegmentValue extends Model
+{
+    protected $table = 'fin_segment_values';
+    
+    protected $fillable = [
+        'segment_definition_id',
+        'segment_value',
+        'segment_description',
+        'is_active',
+    ];
+    
+    protected $casts = [
+        'segment_definition_id' => 'integer',
+        'is_active' => 'boolean',
+    ];
+    
+    /**
+     * Get the segment definition this value belongs to
+     */
+    public function segmentDefinition()
+    {
+        return $this->belongsTo(AccountSegment::class, 'segment_definition_id');
+    }
+    
+    /**
+     * Get all account assignments for this segment value
+     */
+    public function accountAssignments()
+    {
+        return $this->hasMany(AccountSegmentAssignment::class, 'segment_value_id');
+    }
+    
+    /**
+     * Get all accounts that use this segment value
+     */
+    public function accounts()
+    {
+        return $this->belongsToMany(GlAccount::class, 'fin_account_segment_assignments', 'segment_value_id', 'account_id');
+    }
+    
+    /**
+     * Scope for active values
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+    
+    /**
+     * Scope for specific segment position
+     */
+    public function scopeForPosition($query, int $position)
+    {
+        return $query->whereHas('segmentDefinition', function($q) use ($position) {
+            $q->where('segment_position', $position);
+        });
+    }
+    
+    /**
+     * Get segment values for a specific position
+     */
+    public static function getForPosition(int $position, bool $activeOnly = true): \Illuminate\Support\Collection
+    {
+        $query = static::forPosition($position);
+        
+        if ($activeOnly) {
+            $query->active();
+        }
+        
+        return $query->orderBy('segment_value')->get();
+    }
+    
+    /**
+     * Get options for dropdown (value => description)
+     */
+    public static function getOptionsForPosition(int $position): \Illuminate\Support\Collection
+    {
+        return static::getForPosition($position)
+            ->pluck('segment_description', 'segment_value');
+    }
+    
+    /**
+     * Find segment value by position and value
+     */
+    public static function findByPositionAndValue(int $position, string $value): ?self
+    {
+        return static::forPosition($position)
+            ->where('segment_value', $value)
+            ->first();
+    }
+    
+    /**
+     * Validate that a segment value exists for a position
+     */
+    public static function validateValue(int $position, string $value): bool
+    {
+        return static::findByPositionAndValue($position, $value) !== null;
+    }
+    
+    /**
+     * Create segment value with validation
+     */
+    public static function createWithValidation(array $attributes): self
+    {
+        // Validate segment definition exists
+        $segmentDefinition = AccountSegment::find($attributes['segment_definition_id']);
+        if (!$segmentDefinition) {
+            throw new \InvalidArgumentException('Invalid segment_definition_id');
+        }
+        
+        // Validate segment value length
+        if (strlen($attributes['segment_value']) !== $segmentDefinition->segment_length) {
+            throw new \InvalidArgumentException(
+                "Segment value length must be {$segmentDefinition->segment_length} characters"
+            );
+        }
+        
+        // Check for duplicates
+        $exists = static::where('segment_definition_id', $attributes['segment_definition_id'])
+            ->where('segment_value', $attributes['segment_value'])
+            ->exists();
+            
+        if ($exists) {
+            throw new \InvalidArgumentException('Segment value already exists for this position');
+        }
+        
+        return static::create($attributes);
+    }
+    
+    /**
+     * Get usage count (how many accounts use this segment value)
+     */
+    public function getUsageCount(): int
+    {
+        return $this->accountAssignments()->count();
+    }
+    
+    /**
+     * Check if this segment value can be deleted
+     */
+    public function canBeDeleted(): bool
+    {
+        return $this->getUsageCount() === 0;
+    }
+}

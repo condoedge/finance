@@ -9,6 +9,9 @@ use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
 use Condoedge\Finance\Services\DatabaseQueryInterceptor;
+use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
+use Condoedge\Finance\Services\Invoice\InvoiceService;
+use Condoedge\Finance\Services\PaymentGatewayService;
 use Condoedge\Finance\Observers\DatabaseIntegrityObserver;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
@@ -29,6 +32,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->registerServiceLayer();
+        
         EloquentFactory::guessFactoryNamesUsing(function (string $modelName) {
             return 'Condoedge\\Finance\\Database\\Factories\\'.class_basename($modelName).'Factory';
         });
@@ -193,6 +198,11 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Condoedge\Finance\Command\EnsureIntegrityCommand::class,
+                \Condoedge\Finance\Command\SetupAccountSegmentSystemCommand::class,
+                \Condoedge\Finance\Command\GenerateFiscalPeriodsCommand::class,
+                \Condoedge\Finance\Command\CloseFiscalPeriodCommand::class,
+                \Condoedge\Finance\Command\OpenFiscalPeriodCommand::class,
+                \Condoedge\Finance\Command\ViewFiscalPeriodStatusCommand::class,
             ]);
         }
     }
@@ -203,6 +213,57 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('finance:ensure-integrity')->dailyAt('01:00');
         });
+    }
+    
+    /**
+     * Register service layer bindings
+     */
+    protected function registerServiceLayer(): void
+    {
+        // Invoice Service (existing)
+        $this->app->bind(InvoiceServiceInterface::class, InvoiceService::class);
+        
+        // Payment Gateway Service (existing)
+        $this->app->singleton(PaymentGatewayService::class);
+        
+        // Customer Service
+        $this->app->bind(
+            \Condoedge\Finance\Services\Customer\CustomerServiceInterface::class,
+            \Condoedge\Finance\Services\Customer\CustomerService::class
+        );
+        
+        // Payment Service
+        $this->app->bind(
+            \Condoedge\Finance\Services\Payment\PaymentServiceInterface::class,
+            \Condoedge\Finance\Services\Payment\PaymentService::class
+        );
+        
+        // Tax Service
+        $this->app->bind(
+            \Condoedge\Finance\Services\Tax\TaxServiceInterface::class,
+            \Condoedge\Finance\Services\Tax\TaxService::class
+        );
+        
+        // GL Account Service
+        $this->app->bind(
+            \Condoedge\Finance\Services\Account\GlAccountServiceInterface::class,
+            \Condoedge\Finance\Services\Account\GlAccountService::class
+        );
+        
+        // Account Segment Service (new segment-based system)
+        $this->app->singleton(\Condoedge\Finance\Services\AccountSegmentService::class);
+        
+        // Legacy GL Segment Service (for backward compatibility)
+        $this->app->singleton(\Condoedge\Finance\Services\GlSegmentService::class);
+        
+        // Fiscal Year Service
+        $this->app->singleton(\Condoedge\Finance\Services\FiscalYearService::class);
+        
+        // Invoice Detail Service
+        $this->app->bind(
+            \Condoedge\Finance\Services\InvoiceDetail\InvoiceDetailServiceInterface::class,
+            \Condoedge\Finance\Services\InvoiceDetail\InvoiceDetailService::class
+        );
     }
     
     /**

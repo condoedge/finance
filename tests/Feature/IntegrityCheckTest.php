@@ -6,7 +6,7 @@ use Condoedge\Finance\Facades\IntegrityChecker;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Customer;
-use Condoedge\Finance\Models\Account;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\InvoiceType;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,7 +28,7 @@ class IntegrityCheckTest extends TestCase
         // Create test data using seeded data
         $this->customer = Customer::factory()->create();
         $this->invoiceType = InvoiceType::first(); // Use seeded data
-        $this->account = Account::factory()->create();
+        $this->account = GlAccount::factory()->create();
     }
 
     private function createInvoiceDetail($invoice, $unitPrice = '50.00', $quantity = 1, $name = 'Test Product')

@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Http;
+namespace Condoedge\Finance\Http\Controllers\Api;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;

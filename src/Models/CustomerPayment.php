@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
@@ -36,36 +37,22 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
     ];
 
     // ACTIONS
+    /**
+     * @deprecated Use PaymentService::createPayment() instead
+     * Maintained for backward compatibility
+     */
     public static function createForCustomer(CreateCustomerPaymentDto $data)
     {
-        $customerPayment = new self();
-        $customerPayment->customer_id = $data->customer_id;
-        $customerPayment->payment_date = $data->payment_date;
-        $customerPayment->amount = $data->amount;
-        $customerPayment->save();
-
-        return $customerPayment->refresh();
+        return PaymentService::createPayment($data);
     }
 
+    /**
+     * @deprecated Use PaymentService::createPaymentAndApplyToInvoice() instead
+     * Maintained for backward compatibility
+     */
     public static function createForCustomerAndApply(CreateCustomerPaymentForInvoiceDto $data)
     {
-        $payment = null;
-        try {
-            $payment = static::createForCustomer(new CreateCustomerPaymentDto($data->toArray()));
-
-            InvoicePaymentModel::createForInvoice(new CreateApplyForInvoiceDto([
-                'invoice_id' => $data->invoice_id,
-                'applicable' => $payment,
-                'apply_date' => now(),
-                'amount_applied' => $payment->amount,
-                'applicable_type' => MorphablesEnum::PAYMENT->value,
-            ]));
-        } catch (\Exception $e) {
-            // Rollback the payment creation if invoice payment fails
-            $payment?->delete();
-
-            throw $e;
-        }
+        return PaymentService::createPaymentAndApplyToInvoice($data);
     }
 
     // SCOPES

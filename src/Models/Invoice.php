@@ -11,6 +11,7 @@ use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Facades\PaymentGateway;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
@@ -216,88 +217,64 @@ class Invoice extends AbstractMainFinanceModel
         $this->save();
     }
 
+    /* 
+     * STATIC METHODS - These now delegate to InvoiceService
+     * 
+     * ARCHITECTURE NOTE: These static methods are maintained for backward compatibility.
+     * New code should use InvoiceService facade directly for better testability and flexibility.
+     * 
+     * Example of recommended usage:
+     *   InvoiceService::createInvoice($dto) instead of Invoice::createInvoiceFromDto($dto)
+     */
+
+    /**
+     * Create invoice from DTO
+     * 
+     * @deprecated Use InvoiceService::createInvoice() instead for better architecture
+     */
     public static function createInvoiceFromDto(CreateInvoiceDto $dto): self
     {
-        $invoice = new self();
-        $invoice->customer_id = $dto->customer_id;
-        $invoice->invoice_type_id = $dto->invoice_type_id;
-        $invoice->payment_type_id = $dto->payment_type_id;
-        $invoice->invoice_date = $dto->invoice_date;
-        $invoice->invoice_due_date = $dto->invoice_due_date;
-        $invoice->is_draft = $dto->is_draft;
-
-        
-		// This is a tool to set the context in the PaymentGatewayResolver (it needs the invoice model to get details)
-		PaymentGatewayResolver::setContext($invoice);
-
-		// After setting the context the resolver will return the correct payment gateway using logic behind (for now payment_type_id) 
-		$invoice->account_receivable_id = PaymentGateway::getCashAccount()->id;
-
-		/**
-		 * @var \Condoedge\Finance\Models\Customer $customer
-		 */
-		$customer = CustomerModel::find($dto->customer_id);
-
-		// We decorate the invoice with the customer data preferences
-		$customer->fillInvoiceForCustomer($invoice);
-
-        $invoice->save();
-
-        foreach ($dto->invoiceDetails as $detail) {
-            InvoiceDetailModel::createInvoiceDetail(new CreateOrUpdateInvoiceDetail($detail + [
-                'invoice_id' => $invoice->id,
-            ]));
-        }
-
-        return $invoice->refresh();
+        return InvoiceService::createInvoice($dto);
     }
 
+    /**
+     * Update invoice from DTO
+     * 
+     * @deprecated Use InvoiceService::updateInvoice() instead for better architecture
+     */
     public static function updateInvoiceFromDto(UpdateInvoiceDto $dto): self
     {
-        $invoice = self::findOrFail($dto->id);
-
-        $invoice->payment_type_id = $dto->payment_type_id;
-        $invoice->invoice_date = $dto->invoice_date;
-        $invoice->invoice_due_date = $dto->invoice_due_date;
-        $invoice->save();
-
-        foreach ($dto->invoiceDetails as $detail) {
-            $id = $detail['id'] ?? null;
-
-            $data = new CreateOrUpdateInvoiceDetail($detail + [
-                'invoice_id' => $invoice->id,
-            ]);
-
-            if ($id) {
-                InvoiceDetailModel::editInvoiceDetail($data);
-            } else {
-                InvoiceDetailModel::createInvoiceDetail($data);
-            }
-        }
-
-        return $invoice->refresh();
+        return InvoiceService::updateInvoice($dto);
     }
 
-    public static function approveInvoice(ApproveInvoiceDto $data)
+    /**
+     * Approve single invoice
+     * 
+     * @deprecated Use InvoiceService::approveInvoice() instead for better architecture
+     */
+    public static function approveInvoice(ApproveInvoiceDto $data): self
     {
-		static::findOrFail($data->invoice_id)->markApproved();
+        return InvoiceService::approveInvoice($data);
     }
 
+    /**
+     * Approve multiple invoices
+     * 
+     * @deprecated Use InvoiceService::approveMany() instead for better architecture
+     */
     public function approveManyInvoices(ApproveManyInvoicesDto $data)
     {
-        $invoices = self::whereIn('id', $data->invoices_ids)->get();
-
-        foreach ($invoices as $invoice) {
-            $invoice->markApproved();
-        }
+        return InvoiceService::approveMany($data);
     }
 
+    /**
+     * Get default taxes IDs for this invoice
+     * 
+     * @deprecated Use InvoiceService::getDefaultTaxesIds() instead for better architecture
+     */
     public function getDefaultTaxesIds()
     {
-        $taxGroupId = $this->customer?->defaultAddress->tax_group_id ?? GlobalConfig::getOrFail('default_tax_group_id');
-        $taxGroup = TaxGroup::findOrFail($taxGroupId);
-
-        return $taxGroup->taxes()->pluck('fin_taxes.id');
+        return InvoiceService::getDefaultTaxesIds($this);
     }
 
     /* ELEMENTS */

@@ -17,7 +17,7 @@ class CreateEntriesTable extends Migration
             addMetaData($table);
             
             $table->foreignId('transaction_id')->constrained('fin_transactions');
-            $table->foreignId('account_id')->constrained('fin_accounts');
+            $table->foreignId('account_id')->constrained('fin_gl_accounts');
             $table->decimal('debit_amount', 19, config('kompo-finance.decimal-scale'));
             $table->decimal('credit_amount', 19, config('kompo-finance.decimal-scale'));
         });

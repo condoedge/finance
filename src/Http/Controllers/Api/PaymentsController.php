@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Http;
+namespace Condoedge\Finance\Http\Controllers\Api;
 
 use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
