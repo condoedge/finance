@@ -3,6 +3,8 @@
 namespace Condoedge\Finance\Models\GlobalScopesTypes;
 
 use Condoedge\Finance\Facades\CustomerPaymentModel;
+use Condoedge\Finance\Facades\InvoiceService;
+use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\ApplicableToInvoiceContract;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
@@ -30,9 +32,9 @@ class Credit extends Invoice implements ApplicableToInvoiceContract
     {
         $dto->invoice_type_id = ModelsInvoiceTypeEnum::CREDIT->value;
 
-        $credit = static::createInvoiceFromDto($dto);
+        $credit = InvoiceService::createInvoice($dto)
 
-        CustomerPaymentModel::createForCustomerAndApply(new CreateCustomerPaymentForInvoiceDto([
+        PaymentService::createPaymentAndApplyToInvoice(new CreateCustomerPaymentForInvoiceDto([
             'customer_id' => $dto->customer_id,
             'invoice_id' => $credit->id,
             'amount' => $credit->invoice_due_amount,

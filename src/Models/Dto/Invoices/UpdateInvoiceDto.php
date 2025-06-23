@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models\Dto\Invoices;
 
 use Carbon\Carbon;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -15,7 +15,7 @@ class UpdateInvoiceDto extends ValidatedDTO
     use EmptyDefaults;
 
     public int $id;
-    public int $payment_type_id;
+    public int $payment_method_id;
     public Carbon $invoice_date;
     public Carbon $invoice_due_date;
 
@@ -26,7 +26,7 @@ class UpdateInvoiceDto extends ValidatedDTO
     {
         return [
             'id' => 'required|integer|exists:fin_invoices,id',
-            'payment_type_id' => 'required|integer|in:' . collect(PaymentTypeEnum::getEnumClass()::cases())->pluck('value')->implode(','),
+            'payment_method_id' => 'required|integer|in:' . collect(PaymentMethodEnum::getEnumClass()::cases())->pluck('value')->implode(','),
             'invoice_date' => 'required|date',
             'invoice_due_date' => 'required|date|after_or_equal:invoice_date',
 
@@ -53,7 +53,7 @@ class UpdateInvoiceDto extends ValidatedDTO
     {
         return [
             'id' => new IntegerCast,
-            'payment_type_id' => new IntegerCast,
+            'payment_method_id' => new IntegerCast,
             'invoice_date' => new CarbonCast,
             'invoice_due_date' => new CarbonCast,
             'invoiceDetails' => new ArrayCast,

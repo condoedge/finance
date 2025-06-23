@@ -3,24 +3,19 @@
 namespace Condoedge\Finance\Services\Invoice;
 
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceStatusEnum;
-use Condoedge\Finance\Models\InvoiceTypeEnum;
 use Condoedge\Finance\Models\TaxGroup;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
-use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Services\PaymentGatewayService;
-use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Facades\InvoiceDetailModel;
-use Condoedge\Finance\Facades\PaymentGateway;
+use Condoedge\Finance\Facades\CustomerService;
+use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Invoice Service Implementation
@@ -128,7 +123,7 @@ class InvoiceService implements InvoiceServiceInterface
     /**
      * Get default tax IDs for invoice
      */
-    public function getDefaultTaxesIds(Invoice $invoice): Collection
+    public function getDefaultTaxesIds(?Invoice $invoice): Collection
     {
         $taxGroupId = $this->resolveTaxGroupId($invoice);
         $taxGroup = TaxGroup::findOrFail($taxGroupId);
@@ -146,10 +141,14 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice = new Invoice();
         $invoice->customer_id = $dto->customer_id;
         $invoice->invoice_type_id = $dto->invoice_type_id;
-        $invoice->payment_type_id = $dto->payment_type_id;
+        $invoice->payment_method_id = $dto->payment_method_id;
         $invoice->invoice_date = $dto->invoice_date;
         $invoice->invoice_due_date = $dto->invoice_due_date;
         $invoice->is_draft = $dto->is_draft;
+        $invoice->possible_payment_installments = $dto->possible_payment_installments;
+        $invoice->possible_payment_methods = $dto->possible_payment_methods;
+        $invoice->invoiceable_type = $dto->invoiceable_type;
+        $invoice->invoiceable_id = $dto->invoiceable_id;
         
         return $invoice;
     }
@@ -172,7 +171,7 @@ class InvoiceService implements InvoiceServiceInterface
         $customer = CustomerModel::find($customerId);
         
         // Fill invoice with customer preferences/data
-        $customer->fillInvoiceForCustomer($invoice);
+        CustomerService::fillInvoiceWithCustomerData($customer, $invoice);
     }
     
     /**
@@ -181,7 +180,7 @@ class InvoiceService implements InvoiceServiceInterface
     protected function createInvoiceDetails(Invoice $invoice, array $detailsData): void
     {
         foreach ($detailsData as $detail) {
-            InvoiceDetailModel::createInvoiceDetail(new CreateOrUpdateInvoiceDetail($detail + [
+            InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail($detail + [
                 'invoice_id' => $invoice->id,
             ]));
         }
@@ -192,7 +191,7 @@ class InvoiceService implements InvoiceServiceInterface
      */
     protected function updateInvoiceFields(Invoice $invoice, UpdateInvoiceDto $dto): void
     {
-        $invoice->payment_type_id = $dto->payment_type_id;
+        $invoice->payment_method_id = $dto->payment_method_id;
         $invoice->invoice_date = $dto->invoice_date;
         $invoice->invoice_due_date = $dto->invoice_due_date;
         $invoice->save();
@@ -211,9 +210,9 @@ class InvoiceService implements InvoiceServiceInterface
             ]);
             
             if ($id) {
-                InvoiceDetailModel::editInvoiceDetail($data);
+                InvoiceDetailService::updateInvoiceDetail($data);
             } else {
-                InvoiceDetailModel::createInvoiceDetail($data);
+                InvoiceDetailService::createInvoiceDetail($data);
             }
         }
     }
@@ -223,15 +222,18 @@ class InvoiceService implements InvoiceServiceInterface
      */
     protected function applyApprovalToInvoice(Invoice $invoice): void
     {
-        $invoice->markApproved();
+        $invoice->is_draft = false;
+        $invoice->approved_by = auth()->user()->id;
+        $invoice->approved_at = now();
+        $invoice->save();
     }
     
     /**
      * Resolve tax group ID for invoice
      */
-    protected function resolveTaxGroupId(Invoice $invoice): int
+    protected function resolveTaxGroupId(?Invoice $invoice): int
     {
-        return $invoice->customer?->defaultAddress->tax_group_id 
+        return $invoice?->customer?->defaultAddress->tax_group_id 
             ?? GlobalConfig::getOrFail('default_tax_group_id');
     }
 }

@@ -64,7 +64,7 @@ class PaymentForm extends Modal
 
     public function body()
     {
-        $paymentType = $this->invoice->invoice_type_id->signMultiplier() < 0 ? -1 : 1;
+        $paymentType = $this->invoice?->invoice_type_id->signMultiplier() < 0 ? -1 : 1;
 
         return [
             !$this->invoice ? null : _CardLevel5(

@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\GlAccountService;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 use Condoedge\Utils\Models\Model;
@@ -101,6 +102,11 @@ class GlAccount extends AbstractMainFinanceModel
     {
         return $query->where('is_active', true);
     }
+
+    public function scopeInactive($query)
+    {
+        return $query->withTrashed()->where('is_active', 0);
+    }
     
     public function scopeAllowManualEntry($query)
     {
@@ -112,57 +118,13 @@ class GlAccount extends AbstractMainFinanceModel
         return $query->where('account_type', $accountType);
     }
     
-    public function scopeForTeam($query, ?int $teamId = null)
-    {
-        $teamId = $teamId ?? currentTeamId();
-        return $query->where('team_id', $teamId);
-    }
-    
     public function scopeWithSegmentValue($query, int $segmentValueId)
     {
         return $query->whereHas('segmentAssignments', function ($q) use ($segmentValueId) {
             $q->where('segment_value_id', $segmentValueId);
         });
     }
-    
-    /**
-     * Create account from segment value IDs
-     * 
-     * @param array $segmentValueIds Array of segment value IDs
-     * @param array $attributes Additional account attributes
-     */
-    public static function createFromSegmentValues(array $segmentValueIds, array $attributes): self
-    {
-        return DB::transaction(function () use ($segmentValueIds, $attributes) {
-            // Validate segment combination
-            if (!AccountSegmentAssignment::validateSegmentValueCombination($segmentValueIds)) {
-                throw new \InvalidArgumentException('Invalid segment combination - missing required segments');
-            }
-            
-            // Check if account already exists
-            $existingAccounts = AccountSegmentAssignment::findAccountsBySegmentValues(
-                $segmentValueIds, 
-                $attributes['team_id']
-            );
-            
-            if ($existingAccounts->isNotEmpty()) {
-                return $existingAccounts->first();
-            }
-            
-            // Create account with temporary values (will be updated by trigger)
-            $account = static::create(array_merge($attributes, [
-                'account_id' => 'TEMP-' . uniqid(),
-                'account_segments_descriptor' => 'TEMP',
-            ]));
-            
-            // Create segment assignments
-            AccountSegmentAssignment::createForAccount($account->id, $segmentValueIds);
-            
-            // Trigger will update computed fields, refresh to get them
-            return $account->refresh();
-        });
-    }
-    
+
     /**
      * Update the last segment value of an account
      * Used in Chart of Accounts for editing
@@ -227,28 +189,12 @@ class GlAccount extends AbstractMainFinanceModel
     /**
      * Get account balance for a specific date range
      */
-    public function getBalance(?\Carbon\Carbon $startDate = null, ?\Carbon\Carbon $endDate = null): float
+    public function getBalance(?\Carbon\Carbon $startDate = null, ?\Carbon\Carbon $endDate = null): SafeDecimal
     {
         $balance = GlAccountService::getAccountBalance($this, $startDate, $endDate);
-        return (float) $balance->toFloat();
-    }
-    
-    /**
-     * Force refresh computed fields from database functions
-     */
-    public function refreshComputedFields(): self
-    {
-        DB::statement(
-            'UPDATE fin_gl_accounts SET 
-                account_id = build_account_id(id),
-                account_segments_descriptor = build_account_descriptor(id)
-            WHERE id = ?',
-            [$this->id]
-        );
-        
-        return $this->refresh();
-    }
 
+        return $balance;
+    }
     
     /**
      * Columns for integrity check (none for accounts)

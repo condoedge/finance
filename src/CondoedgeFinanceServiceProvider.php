@@ -5,6 +5,7 @@ namespace Condoedge\Finance;
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Facades\CustomerModel;
+use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
@@ -125,8 +126,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             return new (config('kompo-finance.'. TAX_GROUP_MODEL_KEY .'-namespace'));
         });
 
-        $this->app->bind(PAYMENT_TYPE_ENUM_KEY, function () {
-            return config('kompo-finance.' . PAYMENT_TYPE_ENUM_KEY . '-namespace');
+        $this->app->bind(PAYMENT_METHOD_ENUM_KEY, function () {
+            return config('kompo-finance.' . PAYMENT_METHOD_ENUM_KEY . '-namespace');
         });
 
         $this->app->bind(INVOICE_TYPE_ENUM_KEY, function () {
@@ -188,7 +189,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     {
         Relation::morphMap(array_merge([
             
-        ], CustomerModel::getCustomables()->all() , collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
+        ], CustomerService::getValidCustomableModels()->all() , collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
                 return [$case->value => $case->getMorphableClass()];
         })->all()));
     }

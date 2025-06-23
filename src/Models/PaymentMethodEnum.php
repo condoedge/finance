@@ -9,9 +9,9 @@ use Condoedge\Finance\Services\PaymentGatewayService;
  * Payment Type Enum
  * 
  * Defines the available payment types in the system.
- * This enum is linked to the fin_payment_types table for referential integrity.
+ * This enum is linked to the fin_payment_methods table for referential integrity.
  */
-enum PaymentTypeEnum: int
+enum PaymentMethodEnum: int
 {
     use \Kompo\Models\Traits\EnumKompo;
     
@@ -80,6 +80,14 @@ enum PaymentTypeEnum: int
     {
         return match ($this) {
             default => TempPaymentGateway::class,
+        };
+    }
+
+    public function online()
+    {
+        return match ($this) {
+            self::CREDIT_CARD, self::BANK_TRANSFER => true,
+            default => false,
         };
     }
 }

@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models\Traits;
 
 use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 
 trait CanBeFinancialCustomer
@@ -24,14 +24,9 @@ trait CanBeFinancialCustomer
 
     public function createInvoiceForThisModel() 
     {
-        throw new \Exception('Not implemented yet');
-        
         $customer = $this->upsertCustomerFromThisModel();
-        // if (!$this->customer) {
-        //     throw new ModelNotFoundException(__('translate.create-customer-first'));
-        // }
 
-        InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
         ]));
     }

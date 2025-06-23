@@ -28,6 +28,8 @@ class CreateInvoiceDetailsTable extends Migration
             $table->decimal('tax_amount', 19, config('kompo-finance.decimal-scale'))->nullable();
 
             $table->decimal('total_amount', 19, config('kompo-finance.decimal-scale'))->nullable()->storedAs('extended_price + tax_amount');
+
+            $table->nullableMorphs('invoiceable');
         });
     }
 

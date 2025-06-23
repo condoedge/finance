@@ -20,6 +20,12 @@ use Illuminate\Support\Facades\DB;
  */
 class AccountSegmentService
 {
+    public function getLastSegmentPosition(): int
+    {
+        // Get the highest segment position currently defined
+        return AccountSegment::max('segment_position') ?? 0;
+    }
+
     /**
      * Get the current segment structure
      */
@@ -27,7 +33,7 @@ class AccountSegmentService
     {
         return AccountSegment::orderBy('segment_position')->get();
     }
-    
+
     /**
      * Create or update segment definition
      */
@@ -38,11 +44,11 @@ class AccountSegmentService
             $existing = AccountSegment::where('segment_position', $data['segment_position'])
                 ->where('id', '!=', $data['id'] ?? 0)
                 ->first();
-                
+
             if ($existing) {
                 throw new \InvalidArgumentException("Position {$data['segment_position']} is already taken");
             }
-            
+
             return AccountSegment::updateOrCreate(
                 ['id' => $data['id'] ?? null],
                 [
@@ -54,29 +60,29 @@ class AccountSegmentService
             );
         });
     }
-    
+
     /**
      * Create segment value with validation
      */
     public function createSegmentValue(int $segmentDefinitionId, string $value, string $description): SegmentValue
     {
         $segmentDefinition = AccountSegment::findOrFail($segmentDefinitionId);
-        
+
         // Validate value length
         if (strlen($value) > $segmentDefinition->segment_length) {
             throw new \InvalidArgumentException(
                 "Value '{$value}' exceeds maximum length of {$segmentDefinition->segment_length}"
             );
         }
-        
+
         return SegmentValue::create([
             'segment_definition_id' => $segmentDefinition->id,
-            'segment_value' => $value,
+            'segment_value' => str_pad($value, $segmentDefinition->segment_length, 0, STR_PAD_LEFT),
             'segment_description' => $description,
             'is_active' => true,
         ]);
     }
-    
+
     /**
      * Create account from segment value IDs (not codes)
      * This is the dynamic approach that doesn't assume positions
@@ -90,7 +96,7 @@ class AccountSegmentService
                 ->with('segmentDefinition')
                 ->get()
                 ->keyBy('segmentDefinition.segment_position');
-            
+
             foreach ($requiredSegments as $segment) {
                 if (!isset($providedSegments[$segment->segment_position])) {
                     throw new \InvalidArgumentException(
@@ -98,13 +104,13 @@ class AccountSegmentService
                     );
                 }
             }
-            
+
             // Create the account record
             $account = GlAccount::create(array_merge($accountAttributes, [
                 'account_id' => 'TEMP-' . uniqid(), // Temporary ID, will be updated by trigger
                 'account_segments_descriptor' => 'TEMP', // Will be updated by trigger
             ]));
-            
+
             // Create segment assignments
             foreach ($segmentValueIds as $segmentValueId) {
                 AccountSegmentAssignment::create([
@@ -112,12 +118,12 @@ class AccountSegmentService
                     'segment_value_id' => $segmentValueId,
                 ]);
             }
-            
+
             // Refresh to get computed fields from database
             return $account->refresh();
         });
     }
-    
+
     /**
      * Find account by segment value combination
      */
@@ -130,11 +136,11 @@ class AccountSegmentService
             ->groupBy('account_id')
             ->havingRaw('COUNT(DISTINCT segment_value_id) = ?', [count($segmentValueIds)])
             ->pluck('account_id');
-        
+
         if ($accountIds->isEmpty()) {
             return null;
         }
-        
+
         // Verify the account has ONLY these segments (no extra ones)
         $validAccountIds = [];
         foreach ($accountIds as $accountId) {
@@ -143,37 +149,37 @@ class AccountSegmentService
                 $validAccountIds[] = $accountId;
             }
         }
-        
+
         if (empty($validAccountIds)) {
             return null;
         }
-        
+
         return GlAccount::whereIn('id', $validAccountIds)
             ->where('team_id', $teamId)
             ->first();
     }
-    
+
     /**
      * Get available segment values for a segment definition
      */
     public function getSegmentValues(int $segmentDefinitionId, bool $activeOnly = true): Collection
     {
         $query = SegmentValue::where('segment_definition_id', $segmentDefinitionId);
-        
+
         if ($activeOnly) {
             $query->where('is_active', true);
         }
-        
+
         return $query->orderBy('segment_value')->get();
     }
-    
+
     /**
      * Get segment values grouped by segment definition
      */
     public function getSegmentValuesGrouped(bool $activeOnly = true): Collection
     {
         $segments = $this->getSegmentStructure();
-        
+
         return $segments->mapWithKeys(function ($segment) use ($activeOnly) {
             return [
                 $segment->id => [
@@ -183,7 +189,7 @@ class AccountSegmentService
             ];
         });
     }
-    
+
     /**
      * Update account segments (for editing last segment only)
      */
@@ -192,7 +198,7 @@ class AccountSegmentService
         return DB::transaction(function () use ($account, $newSegmentValueId) {
             // Get the new segment value and validate it
             $newSegmentValue = SegmentValue::findOrFail($newSegmentValueId);
-            
+
             // Get current assignments ordered by position
             $currentAssignments = $account->segmentAssignments()
                 ->join('fin_segment_values', 'fin_account_segment_assignments.segment_value_id', '=', 'fin_segment_values.id')
@@ -200,27 +206,27 @@ class AccountSegmentService
                 ->orderBy('fin_account_segments.segment_position')
                 ->select('fin_account_segment_assignments.*', 'fin_account_segments.segment_position')
                 ->get();
-            
+
             if ($currentAssignments->isEmpty()) {
                 throw new \InvalidArgumentException('Account has no segment assignments');
             }
-            
+
             // Get the last segment assignment
             $lastAssignment = $currentAssignments->last();
-            
+
             // Validate new value is for the same segment position
             if ($newSegmentValue->segmentDefinition->segment_position !== $lastAssignment->segment_position) {
                 throw new \InvalidArgumentException('New segment value must be for the last segment position');
             }
-            
+
             // Update the assignment
             $lastAssignment->update(['segment_value_id' => $newSegmentValueId]);
-            
+
             // Account ID and descriptor will be updated by database trigger
             return $account->refresh();
         });
     }
-    
+
     /**
      * Search accounts by partial segment pattern
      * @param array $segmentValueIds Array of segment value IDs (use null for wildcards)
@@ -228,7 +234,7 @@ class AccountSegmentService
     public function searchAccountsByPattern(array $segmentValueIds, int $teamId): Collection
     {
         $query = GlAccount::where('team_id', $teamId);
-        
+
         // Join with assignments for each non-null segment value
         foreach ($segmentValueIds as $index => $segmentValueId) {
             if ($segmentValueId !== null) {
@@ -241,66 +247,102 @@ class AccountSegmentService
                 )->where("{$alias}.segment_value_id", $segmentValueId);
             }
         }
-        
-        return $query->distinct()->orderBy('account_id')->get();
+
+        return $query->distinct()->get();
     }
-    
+
     /**
      * Validate segment structure completeness
      */
-    public function validateStructure(): array
+    public function validateSegmentStructure(): array
     {
         $issues = [];
         $segments = $this->getSegmentStructure();
-        
+
         // Check for position gaps
         $positions = $segments->pluck('segment_position')->sort()->values();
         for ($i = 1; $i <= $positions->last(); $i++) {
             if (!$positions->contains($i)) {
-                $issues[] = "Missing segment definition for position {$i}";
+                $issues[] = __('translate-with-values-missing-definition-of-position', ['position' => $i]);
             }
         }
-        
+
         // Check each active segment has values
-        foreach ($segments->where('is_active', true) as $segment) {
-            if ($segment->segmentValues()->where('is_active', true)->count() === 0) {
-                $issues[] = "Segment '{$segment->segment_description}' (position {$segment->segment_position}) has no active values";
+        foreach ($segments as $segment) {
+            if ($segment->segmentValues()->whereRaw('LENGTH(fin_segment_values.segment_value) != ' . $segment->segment_length)->count() > 1) {
+                $issues[] = __('translate.with-values.you-have-values-with-the-wrong-length-in', [
+                    'segment' => $segment->segment_description,
+                ]);
             }
         }
-        
+
         return $issues;
     }
-    
+
+    public function getAccountFormatMask()
+    {
+        $segments = $this->getSegmentStructure();
+        $parts = [];
+
+        foreach ($segments as $segment) {
+            $parts[] = str_repeat('X', $segment->segment_length);
+        }
+
+        return implode('-', $parts);
+    }
+
     /**
      * Get account format example based on current structure
      */
     public function getAccountFormatExample(): string
     {
         $segments = $this->getSegmentStructure();
-        $parts = [];
-        
+        $examples = [];
+
         foreach ($segments as $segment) {
-            $parts[] = str_repeat('X', $segment->segment_length);
+            $value = $segment->activeSegmentValues()->first();
+            $examples[] = $value ? $value->segment_value : str_repeat('0', $segment->segment_length);
         }
-        
-        return implode('-', $parts);
+
+        return implode('-', $examples);
     }
-    
+
     /**
-     * Bulk update accounts when segment structure changes
-     * This should be called after segment definition changes
+     * Get segment statistics
      */
-    public function refreshAllAccountComputedFields(): void
+    public function getSegmentStatistics()
     {
-        DB::statement('
-            UPDATE fin_gl_accounts 
-            SET 
-                account_id = build_account_id(id),
-                account_segments_descriptor = build_account_descriptor(id)
-            WHERE EXISTS (
-                SELECT 1 FROM fin_account_segment_assignments 
-                WHERE account_id = fin_gl_accounts.id
-            )
-        ');
+        return [
+            'total_segments' => AccountSegment::count(),
+            'total_values' => SegmentValue::count(),
+            'active_values' => SegmentValue::where('is_active', true)->count(),
+            'total_accounts' => GlAccount::forTeam()->count(),
+        ];
+    }
+
+    public function getSegmentsCoverageData()
+    {
+        return AccountSegment::orderedByPosition()->withCount([
+            'segmentValues',
+            'activeSegmentValues',
+            'segmentValues as used_segment_values_count' => function ($query) {
+                $query->whereHas('accountAssignments');
+            },
+        ])->get()->map(function ($segment) {
+            $totalValues = $segment->segment_values_count;
+            $activeValues = $segment->active_segment_values_count;
+            $usedValues = $segment->used_segment_values_count;
+
+            $usagePercentage = $totalValues > 0 ?
+                round(($usedValues / $totalValues) * 100, 1) : 0;
+
+            return [
+                'segment_description' => $segment->segment_description,
+                'total_values' => $totalValues,
+                'active_values' => $activeValues,
+                'used_values' => $usedValues,
+                'usage_percentage' => $usagePercentage,
+            ];
+        });
     }
 }

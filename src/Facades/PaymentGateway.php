@@ -6,7 +6,7 @@ use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Services\PaymentGatewayService;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\PaymentTypeEnum;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 
 /**
  * Payment Gateway Facade
@@ -19,12 +19,12 @@ use Condoedge\Finance\Models\PaymentTypeEnum;
  * 
  * New stateless usage (recommended):
  * @method static \Condoedge\Finance\Models\GlAccount getCashAccountForInvoice(\Condoedge\Finance\Models\Invoice $invoice)
- * @method static \Condoedge\Finance\Models\GlAccount getCashAccountForPaymentType(\Condoedge\Finance\Models\PaymentTypeEnum $paymentType)
+ * @method static \Condoedge\Finance\Models\GlAccount getCashAccountForPaymentType(\Condoedge\Finance\Models\PaymentMethodEnum $paymentType)
  * @method static \Condoedge\Finance\Billing\PaymentGatewayInterface getGatewayForInvoice(\Condoedge\Finance\Models\Invoice $invoice)
- * @method static \Condoedge\Finance\Billing\PaymentGatewayInterface getGatewayForPaymentType(\Condoedge\Finance\Models\PaymentTypeEnum $paymentType)
+ * @method static \Condoedge\Finance\Billing\PaymentGatewayInterface getGatewayForPaymentType(\Condoedge\Finance\Models\PaymentMethodEnum $paymentType)
  * @method static array getAvailableGateways()
  * @method static void processRefund(\Condoedge\Finance\Models\Invoice $invoice)
- * @method static bool validatePaymentType(\Condoedge\Finance\Models\PaymentTypeEnum $paymentType)
+ * @method static bool validatePaymentType(\Condoedge\Finance\Models\PaymentMethodEnum $paymentType)
  * 
  * @mixin \Condoedge\Finance\Billing\PaymentGatewayInterface
  * @mixin \Condoedge\Finance\Services\PaymentGatewayService
@@ -61,7 +61,7 @@ class PaymentGateway extends \Illuminate\Support\Facades\Facade
     /**
      * Stateless method: Get cash account for specific payment type
      */
-    public static function getCashAccountForPaymentType(PaymentTypeEnum $paymentType)
+    public static function getCashAccountForPaymentType(PaymentMethodEnum $paymentType)
     {
         return self::getPaymentGatewayService()->getCashAccountForPaymentType($paymentType);
     }
@@ -77,7 +77,7 @@ class PaymentGateway extends \Illuminate\Support\Facades\Facade
     /**
      * Stateless method: Get gateway for payment type
      */
-    public static function getGatewayForPaymentType(PaymentTypeEnum $paymentType)
+    public static function getGatewayForPaymentType(PaymentMethodEnum $paymentType)
     {
         return self::getPaymentGatewayService()->getGatewayForPaymentType($paymentType);
     }
@@ -85,7 +85,7 @@ class PaymentGateway extends \Illuminate\Support\Facades\Facade
     /**
      * Stateless method: Get gateway with context
      */
-    public static function getGatewayWithContext(PaymentTypeEnum $paymentType, array $context = [])
+    public static function getGatewayWithContext(PaymentMethodEnum $paymentType, array $context = [])
     {
         return self::getPaymentGatewayService()->getGatewayWithContext($paymentType, $context);
     }
@@ -109,7 +109,7 @@ class PaymentGateway extends \Illuminate\Support\Facades\Facade
     /**
      * Validate payment type
      */
-    public static function validatePaymentType(PaymentTypeEnum $paymentType)
+    public static function validatePaymentType(PaymentMethodEnum $paymentType)
     {
         return self::getPaymentGatewayService()->validatePaymentType($paymentType);
     }

@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\CustomerModel;
+use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
 use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
@@ -31,12 +32,12 @@ class CustomerForm extends Modal
         $modelInstance = $this->getModelRelationInstance();
 
         if (!$modelInstance) {
-            CustomerModel::createOrEditFromDto(new CreateOrUpdateCustomerDto([
+            CustomerService::createOrUpdate(new CreateOrUpdateCustomerDto([
                 'name' => request('name'),
                 'address' => parsePlaceFromRequest('address'),
             ]));
         } else {
-            CustomerModel::createOrEditFromCustomable(new CreateCustomerFromCustomable([
+            CustomerService::createFromCustomable(new CreateCustomerFromCustomable([
                 'customable_id' => $modelInstance->id,
                 'customable_type' => request('from_model'),
                 'address' => parsePlaceFromRequest('address'),
@@ -49,7 +50,7 @@ class CustomerForm extends Modal
         return _Rows(
             // Create from other customable model or...
             _Select('translate.from-entity')->name('from_model', false)->class('!mb-2')
-                ->options(CustomerModel::getCustomables()->mapWithKeys(function ($customable, $morphableType) {
+                ->options(CustomerService::getValidCustomableModels()->mapWithKeys(function ($customable, $morphableType) {
                     return [$morphableType => $customable::getVisualName()];
                 }))
                 ->selfGet('getCustomableOptions')->inPanel('customableOptionsPanel'),

@@ -3,12 +3,8 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use Condoedge\Finance\Facades\PaymentService;
 use Illuminate\Support\Facades\DB;
 use Condoedge\Finance\Models\Dto\Invoices\ApplicableRecordDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
-use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 
 /**
  * Class InvoiceApply
@@ -52,15 +48,6 @@ class InvoiceApply extends AbstractMainFinanceModel
     }
 
     // ACTIONS
-    public static function createForMultipleInvoices(CreateAppliesForMultipleInvoiceDto $data)
-    {
-        return PaymentService::applyPaymentToInvoices($data);
-    }
-
-    public static function createForInvoice(CreateApplyForInvoiceDto $data)
-    {
-        return PaymentService::applyPaymentToInvoice($data);
-    }
 
     /**
      * Returns the required information of all applicable records to apply payments to invoices.

@@ -3,11 +3,6 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use Condoedge\Finance\Facades\PaymentService;
-use Condoedge\Finance\Facades\InvoicePaymentModel;
-use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -37,23 +32,6 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
     ];
 
     // ACTIONS
-    /**
-     * @deprecated Use PaymentService::createPayment() instead
-     * Maintained for backward compatibility
-     */
-    public static function createForCustomer(CreateCustomerPaymentDto $data)
-    {
-        return PaymentService::createPayment($data);
-    }
-
-    /**
-     * @deprecated Use PaymentService::createPaymentAndApplyToInvoice() instead
-     * Maintained for backward compatibility
-     */
-    public static function createForCustomerAndApply(CreateCustomerPaymentForInvoiceDto $data)
-    {
-        return PaymentService::createPaymentAndApplyToInvoice($data);
-    }
 
     // SCOPES
     public function scopeForCustomer($query, $customerId)

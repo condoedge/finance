@@ -6,19 +6,15 @@ use Condoedge\Finance\Database\Factories\AccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
 use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Facades\CustomerPaymentModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
+use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Facades\TaxModel;
-use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
-use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceApply;
 use Condoedge\Finance\Models\InvoiceDetailTax;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Tests\TestCase;
@@ -140,11 +136,11 @@ class JsonCasesTest extends TestCase
 
     protected function createCreditNote($transaction)
     {
-        $credit = Invoice::createInvoiceFromDto(new CreateInvoiceDto([
+        $credit = InvoiceService::createInvoice(new CreateInvoiceDto([
             'is_draft' => false,
             'customer_id' => $this->setupValues['customer']->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumCase('CASH')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => $transaction['date'],
             'invoiceDetails' => collect($transaction['lineItems'])->map(function ($line) {
                 return [
@@ -161,7 +157,7 @@ class JsonCasesTest extends TestCase
         ]));
 
         if (count($transaction['applications'] ?? []) > 0) {
-            InvoiceApply::createForMultipleInvoices(new CreateAppliesForMultipleInvoiceDto([
+            PaymentService::applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
                 'apply_date' => $transaction['date'],
                 'applicable' => $credit,
                 'applicable_type' => MorphablesEnum::CREDIT->value,
@@ -192,7 +188,7 @@ class JsonCasesTest extends TestCase
         }
 
         if (!collect($transaction['applications'] ?? [])->isEmpty()) {
-            InvoiceApply::createForMultipleInvoices(new CreateAppliesForMultipleInvoiceDto([
+            PaymentService::applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
                 'apply_date' => $transaction['date'],
                 'applicable' => $credit,
                 'applicable_type' => MorphablesEnum::CREDIT->value,
@@ -213,7 +209,7 @@ class JsonCasesTest extends TestCase
 
     protected function createPayment($transaction)
     {
-        $payment = CustomerPayment::createForCustomer(new CreateCustomerPaymentDto([
+        $payment = PaymentService::createPayment(new CreateCustomerPaymentDto([
             'customer_id' => $this->setupValues['customer']->id,
             'payment_date' => $transaction['date'],
             'amount' => $transaction['amount'],
@@ -223,7 +219,7 @@ class JsonCasesTest extends TestCase
             return $payment;
         }
 
-        InvoiceApply::createForMultipleInvoices(new CreateAppliesForMultipleInvoiceDto([
+        PaymentService::applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
             'apply_date' => $transaction['date'],
             'applicable' => $payment,
             'applicable_type' => MorphablesEnum::PAYMENT->value,
@@ -243,11 +239,11 @@ class JsonCasesTest extends TestCase
 
     protected function createInvoice($transaction) 
     {
-        return Invoice::createInvoiceFromDto(new CreateInvoiceDto([
+        return InvoiceService::createInvoice(new CreateInvoiceDto([
             'is_draft' => false,
             'customer_id' => $this->setupValues['customer']->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumCase('CASH')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => $transaction['date'],
             'invoice_due_date' => $transaction['dueDate'],
             'invoiceDetails' => collect($transaction['lineItems'])->map(function ($line) {

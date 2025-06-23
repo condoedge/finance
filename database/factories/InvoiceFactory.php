@@ -3,12 +3,10 @@
 namespace Condoedge\Finance\Database\Factories;
 
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\Tax;
-use Condoedge\Finance\Models\TaxGroup;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class InvoiceFactory extends Factory
@@ -26,7 +24,7 @@ class InvoiceFactory extends Factory
             'invoice_tax_amount' => $this->faker->randomFloat(2, 10, 100),
             'customer_id' => Customer::factory(),
             'invoice_type_id' => collect(InvoiceTypeEnum::cases())->random()->value,
-            'payment_type_id' => collect(PaymentTypeEnum::cases())->random()->value,
+            'payment_method_id' => collect(PaymentMethodEnum::cases())->random()->value,
             'account_receivable_id' => GlAccount::factory(),
         ];
     }

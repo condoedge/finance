@@ -68,14 +68,14 @@ class AccountSegmentAssignment extends Model
     {
         DB::transaction(function () use ($accountId, $segmentValueIds) {
             // Clear existing assignments
-            static::where('account_id', $accountId)->delete();
+            static::where('id', $accountId)->delete();
             
             // Create new assignments
             foreach ($segmentValueIds as $segmentValueId) {
-                static::create([
-                    'account_id' => $accountId,
-                    'segment_value_id' => $segmentValueId,
-                ]);
+                $assigment = new static();
+                $assigment->account_id = $accountId;
+                $assigment->segment_value_id = $segmentValueId;
+                $assigment->save();
             }
         });
     }
@@ -110,7 +110,7 @@ class AccountSegmentAssignment extends Model
      * @param int $teamId
      * @return \Illuminate\Support\Collection
      */
-    public static function findAccountsBySegmentValues(array $segmentValueIds, int $teamId): \Illuminate\Support\Collection
+    public static function findAccountsBySegmentValues(array $segmentValueIds): \Illuminate\Support\Collection
     {
         $accountIds = DB::table('fin_account_segment_assignments')
             ->select('account_id')

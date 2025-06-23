@@ -2,33 +2,24 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Database\Factories\AccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
-use Condoedge\Finance\Database\Factories\CustomerPaymentFactory;
-use Condoedge\Finance\Database\Factories\InvoiceFactory;
-use Condoedge\Finance\Database\Factories\TaxFactory;
-use Condoedge\Finance\Facades\ApplicableTypeEnum;
 use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
+use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
-use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceApply;
-use Condoedge\Finance\Models\InvoiceStatusEnum;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Exception;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Database\QueryException;
 use Kompo\Auth\Database\Factories\UserFactory;
 use Tests\TestCase;
 
@@ -54,7 +45,7 @@ class CustomerPaymentTest extends TestCase
         $amount = -500.00; // Negative amount (to customer)
         $paymentDate = now();
 
-        $payment = CustomerPayment::createForCustomer(new CreateCustomerPaymentDto([
+        $payment = PaymentService::createPayment(new CreateCustomerPaymentDto([
             'customer_id' => $customer->id,
             'amount' => $amount,
             'payment_date' => $paymentDate,
@@ -95,7 +86,7 @@ class CustomerPaymentTest extends TestCase
         $negativePayment = $this->createCustomerPayment($customer->id, -200);
 
         // Apply negative payment to credit note
-        $invoiceApply = InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        $invoiceApply = PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $negativePayment->id,
@@ -128,7 +119,7 @@ class CustomerPaymentTest extends TestCase
 
         $this->expectException(ValidationException::class);
 
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $negativePayment->id,
@@ -152,7 +143,7 @@ class CustomerPaymentTest extends TestCase
         $this->assertDatabaseHas('fin_invoices', [
             'id' => $creditNote->id,
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::CREDIT->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
             'invoice_total_amount' => db_decimal_format(-$amount), // Credits are negative
         ]);
 
@@ -185,7 +176,7 @@ class CustomerPaymentTest extends TestCase
         $creditNote = $this->createCreditNote($customer->id, 300);
 
         // Apply credit note to invoice
-        $invoiceApply = InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        $invoiceApply = PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $creditNote->id,
@@ -222,7 +213,7 @@ class CustomerPaymentTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('applicable-amount-exceeded');
 
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $creditNote->id,
@@ -241,7 +232,7 @@ class CustomerPaymentTest extends TestCase
         $invoice2 = $this->createApprovedInvoice($customer->id, 300);
         $creditNote = $this->createCreditNote($customer->id, 500);
 
-        InvoiceApply::createForMultipleInvoices(new CreateAppliesForMultipleInvoiceDto([
+        PaymentService::applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $creditNote->id,
@@ -295,7 +286,7 @@ class CustomerPaymentTest extends TestCase
         $regularPayment = $this->createCustomerPayment($customer->id, 300);
 
         // Apply credit note to invoice
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $creditNote->id,
@@ -307,7 +298,7 @@ class CustomerPaymentTest extends TestCase
         ]));
 
         // Apply regular payment to remaining invoice balance
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $regularPayment->id,
@@ -319,7 +310,7 @@ class CustomerPaymentTest extends TestCase
         ]));
 
         // Apply negative payment to remaining credit balance
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $negativePayment->id,
@@ -404,7 +395,7 @@ class CustomerPaymentTest extends TestCase
 
         $this->expectException(\Illuminate\Validation\ValidationException::class);
         
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $negativePayment->id,
@@ -427,7 +418,7 @@ class CustomerPaymentTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('amount-applied-zero');
 
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -445,7 +436,7 @@ class CustomerPaymentTest extends TestCase
         $invoice = $this->createApprovedInvoice($customer->id, 100.123);
         $payment = $this->createCustomerPayment($customer->id, 50.567);
 
-        $invoiceApply = InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        $invoiceApply = PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -473,7 +464,7 @@ class CustomerPaymentTest extends TestCase
         $regularInvoice = $this->createApprovedInvoice($customer->id, 500);
         $regularPayment = $this->createCustomerPayment($customer->id, 300);
         
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $regularPayment->id,
@@ -488,7 +479,7 @@ class CustomerPaymentTest extends TestCase
         $creditNote = $this->createCreditNote($customer->id, 500);
         $negativePayment = $this->createCustomerPayment($customer->id, -300);
         
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $negativePayment->id,
@@ -538,7 +529,7 @@ class CustomerPaymentTest extends TestCase
         // Create a payment and apply it to the credit note (simulating the service behavior)
         $payment = $this->createCustomerPayment($customer->id, $creditNote->invoice_due_amount);
         
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -552,7 +543,7 @@ class CustomerPaymentTest extends TestCase
         // Verify credit note was created
         $this->assertDatabaseHas('fin_invoices', [
             'id' => $creditNote->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::CREDIT->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
         ]);
 
         // Verify payment was created and applied
@@ -574,7 +565,7 @@ class CustomerPaymentTest extends TestCase
         $payment = $this->createCustomerPayment($customer2->id, 300);
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('invoice-customer-mismatch');        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        $this->expectExceptionMessage('invoice-customer-mismatch');        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -596,7 +587,7 @@ class CustomerPaymentTest extends TestCase
         $negativePayment = $this->createCustomerPayment($customer->id, -300);
 
         try {
-            InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+            PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
                 'apply_date' => now(),
                 'applicable' => (object) [
                     'id' => $negativePayment->id,
@@ -637,10 +628,10 @@ class CustomerPaymentTest extends TestCase
         $quantity = 1;
         $unitPrice = $amount ?? $this->faker->randomFloat(2, 100, 1000);
 
-        $invoice = InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::INVOICE->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => now(),
             'invoice_due_date' => now()->addDays(30),
             'is_draft' => false,
@@ -664,10 +655,10 @@ class CustomerPaymentTest extends TestCase
     {
         $customer = CustomerModel::find($customerId);
 
-        $creditNote = InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        $creditNote = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::CREDIT->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => now(),
             'invoice_due_date' => now()->addDays(30),
             'is_draft' => false,
@@ -689,7 +680,7 @@ class CustomerPaymentTest extends TestCase
 
     private function createCustomerPayment($customerId, $amount): CustomerPayment
     {
-        return CustomerPayment::createForCustomer(new CreateCustomerPaymentDto([
+        return PaymentService::createPayment(new CreateCustomerPaymentDto([
             'customer_id' => $customerId,
             'amount' => $amount,
             'payment_date' => now(),
@@ -704,7 +695,7 @@ class CustomerPaymentTest extends TestCase
         $negativePayment = $this->createCustomerPayment($customer->id, -300);
 
         // This should work - negative payment can be applied to credit note
-        $invoiceApply = InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        $invoiceApply = PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object) [
                 'id' => $negativePayment->id,

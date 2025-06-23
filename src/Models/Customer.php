@@ -4,12 +4,10 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\CustomerCreated;
-use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
-use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
 use Condoedge\Finance\Facades\CustomerService;
-use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
+use Condoedge\Utils\Facades\TeamModel;
 
 /**
  * Class Customer
@@ -24,7 +22,7 @@ use Condoedge\Utils\Models\ContactInfo\Maps\Address;
  * @property int $team_id 
  * @property \Condoedge\Finance\Casts\SafeDecimal $customer_due_amount @CALCULATED BY calculate_customer_due() - Remaining amount to be paid
  * @property int|null $default_billing_address_id Foreign key to fin_addresses
- * @property int|null $default_payment_type_id Foreign key to fin_payment_types
+ * @property int|null $default_payment_method_id Foreign key to fin_payment_methods
  * @property int|null $default_tax_group_id Foreign key to fin_taxes_groups
  */
 class Customer extends AbstractMainFinanceModel
@@ -78,44 +76,17 @@ class Customer extends AbstractMainFinanceModel
     /* ATTRIBUTES */
 
     /* CALCULATED FIELDS */
-    /**
-     * @deprecated Use CustomerService::getValidCustomableModels() instead
-     * Maintained for backward compatibility
-     */
-    public static function getCustomables()
-    {
-        return CustomerService::getValidCustomableModels();
-    }
+
 
     /* SCOPES */
+    public function scopeForTeam($query, $teamId)
+    {
+        $teamIds = TeamModel::findOrFail($teamId)->getDescendants();
+
+        return $query->whereIn('team_id', $teamIds);
+    }
 
     /* ACTIONS */
-    /**
-     * @deprecated Use CustomerService::createOrUpdate() instead
-     * Maintained for backward compatibility
-     */
-    public static function createOrEditFromDto(CreateOrUpdateCustomerDto $dto)
-    {
-        return CustomerService::createOrUpdate($dto);
-    }
-
-    /**
-     * @deprecated Use CustomerService::createFromCustomable() instead
-     * Maintained for backward compatibility
-     */
-    public static function createOrEditFromCustomable(CreateCustomerFromCustomable $dto)
-    {
-        return CustomerService::createFromCustomable($dto);
-    }
-
-    /**
-     * @deprecated Use CustomerService::setDefaultAddress() instead
-     * Maintained for backward compatibility
-     */
-    public function setDefaultAddress($addressId)
-    {
-        return CustomerService::setDefaultAddress($this, $addressId);
-    }
 
     public function setPrimaryBillingAddress($id)
     {

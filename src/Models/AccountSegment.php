@@ -67,9 +67,9 @@ class AccountSegment extends Model
     /**
      * Get all segment definitions ordered by position
      */
-    public static function getAllOrdered(): \Illuminate\Support\Collection
+    public static function getAllOrdered($with = []): \Illuminate\Support\Collection
     {
-        return static::orderedByPosition()->get();
+        return static::orderedByPosition()->with($with)->get();
     }
     
     /**

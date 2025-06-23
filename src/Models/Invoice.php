@@ -3,21 +3,15 @@
 namespace Condoedge\Finance\Models;
 
 use App\Models\User;
-use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceGenerated;
-use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\InvoicePaymentModel;
-use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
-use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -36,24 +30,36 @@ use Illuminate\Support\Facades\DB;
  * @property InvoiceStatusEnum $invoice_status_id @CALCULATED BY calculate_invoice_status()
  * @property \DateTime $invoice_date
  * @property \DateTime $invoice_due_date
- * @property PaymentTypeEnum $payment_type_id
+ * @property PaymentMethodEnum $payment_method_id
  * @property bool $is_draft Default: true
  * @property int|null $approved_by Foreign key to users table
  * @property \DateTime|null $approved_at
  * @property int $historical_customer_id Foreign key to fin_historical_customers
  * @property int $customer_id Foreign key to fin_customers
  * 
+ * @property string $invoiceable_type The type of the invoiceable model (it could have information about what the client is paying)
+ * @property int $invoiceable_id The id of the invoiceable model (it could have information about what the client is paying)
+ * 
+ * @property PaymentInstallmentEnum $payment_installment The payment installment type (One-time, Monthly, etc.)
+ * @property PaymentMethodEnum $payment_method The payment method type (Cash, Credit Card, etc.)
+ * 
+ * @property int[] $possible_payment_installments An array with the ids of available installments in the current invoice
+ * @property int[] $possible_payment_methods An array with the ids of available payment methods in the current invoice
+ * 
+ * @property int $account_receivable_id
+ * 
  * @property-read string $customer_label The name of the customer
  * @property-read string $invoice_type_label The invoice type label (Invoice, Credit, etc.)
  * @property-read string $invoice_status_label The invoice status label (Draft, Paid, etc.)
  * @property-read SafeDecimal $abs_invoice_total_amount The absolute value of the invoice amount
  * @property-read SafeDecimal $abs_invoice_due_amount The absolute value of the invoice due amount
- * @property-read string $payment_type_label The payment type label (Cash, Credit Card, etc.)
+ * @property-read string $payment_method_label The payment type label (Cash, Credit Card, etc.)
  * 
  */
 class Invoice extends AbstractMainFinanceModel
 {
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
+    use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     
     protected $table = 'fin_invoices';
 
@@ -62,11 +68,16 @@ class Invoice extends AbstractMainFinanceModel
         'invoice_due_date' => 'date',
         'invoice_status_id' => InvoiceStatusEnum::class,
         'invoice_type_id' => InvoiceTypeEnum::class,
-        'payment_type_id' => PaymentTypeEnum::class,
+        'payment_method_id' => PaymentMethodEnum::class,
         'approved_at' => 'datetime',
         'invoice_total_amount' => SafeDecimalCast::class,
         'invoice_due_amount' => SafeDecimalCast::class,
         'invoice_tax_amount' => SafeDecimalCast::class,
+
+        'payment_method' => PaymentMethodEnum::class,
+        'payment_installment' => PaymentInstallmentEnum::class,
+        'possible_payment_methods' => 'array',
+        'possible_payment_installments' => 'array',
     ];
 
     public function save(array $options = [])
@@ -115,12 +126,12 @@ class Invoice extends AbstractMainFinanceModel
         return $this->hasMany(InvoicePaymentModel::getClass(), 'invoice_id');
     }
 
-    /* ATTRIBUTES */
-    public function getCustomerLabelAttribute()
+    public function invoiceable()
     {
-        return $this->customer->name;
+        return $this->morphTo();
     }
 
+    /* ATTRIBUTES */
     public function getInvoiceTypeLabelAttribute()
     {
         return $this->invoice_type_id?->label();
@@ -143,20 +154,26 @@ class Invoice extends AbstractMainFinanceModel
 
     public function getPaymentTypeLabelAttribute()
     {
-        return $this->payment_type_id?->label();
+        return $this->payment_method_id?->label();
+    }
+
+    public function getCustomerLabelAttribute()
+    {
+        return $this->customer->name;
     }
 
     /* SCOPES */
     public function scopeForTeam($query, $teamId)
     {
-        $query->whereHas('customer', function ($query) use ($teamId) {
-            $query->where('team_id', $teamId);
-        });
+        return $query->whereHas('customer', fn($q) => $q->forTeam($teamId));
     }
 
     public function scopeForCustomer($query, $customerId)
     {
-        return $query->where('customer_id', $customerId);
+        return $query->where('customer_id', $customerId)
+            ->orWhereHas('customer', function ($q) use ($customerId) {
+                $q->where('customer_id', $customerId);
+            });
     }
 
     public function scopePending($query)
@@ -211,70 +228,7 @@ class Invoice extends AbstractMainFinanceModel
     /* ACTIONS */
     public function markApproved()
     {
-        $this->is_draft = false;
-        $this->approved_by = auth()->user()->id;
-        $this->approved_at = now();
-        $this->save();
-    }
-
-    /* 
-     * STATIC METHODS - These now delegate to InvoiceService
-     * 
-     * ARCHITECTURE NOTE: These static methods are maintained for backward compatibility.
-     * New code should use InvoiceService facade directly for better testability and flexibility.
-     * 
-     * Example of recommended usage:
-     *   InvoiceService::createInvoice($dto) instead of Invoice::createInvoiceFromDto($dto)
-     */
-
-    /**
-     * Create invoice from DTO
-     * 
-     * @deprecated Use InvoiceService::createInvoice() instead for better architecture
-     */
-    public static function createInvoiceFromDto(CreateInvoiceDto $dto): self
-    {
-        return InvoiceService::createInvoice($dto);
-    }
-
-    /**
-     * Update invoice from DTO
-     * 
-     * @deprecated Use InvoiceService::updateInvoice() instead for better architecture
-     */
-    public static function updateInvoiceFromDto(UpdateInvoiceDto $dto): self
-    {
-        return InvoiceService::updateInvoice($dto);
-    }
-
-    /**
-     * Approve single invoice
-     * 
-     * @deprecated Use InvoiceService::approveInvoice() instead for better architecture
-     */
-    public static function approveInvoice(ApproveInvoiceDto $data): self
-    {
-        return InvoiceService::approveInvoice($data);
-    }
-
-    /**
-     * Approve multiple invoices
-     * 
-     * @deprecated Use InvoiceService::approveMany() instead for better architecture
-     */
-    public function approveManyInvoices(ApproveManyInvoicesDto $data)
-    {
-        return InvoiceService::approveMany($data);
-    }
-
-    /**
-     * Get default taxes IDs for this invoice
-     * 
-     * @deprecated Use InvoiceService::getDefaultTaxesIds() instead for better architecture
-     */
-    public function getDefaultTaxesIds()
-    {
-        return InvoiceService::getDefaultTaxesIds($this);
+        InvoiceService::applyApprovalToInvoice($this);
     }
 
     /* ELEMENTS */
@@ -292,6 +246,30 @@ class Invoice extends AbstractMainFinanceModel
     public function approvedByLabel()
     {
         return _Html('<b>'.__('finance-approved-by').'</b> '.$this->approvedBy->name);
+    }
+
+    public function getScheduleElement($from = null)
+    {
+        $date = $from ?: now();
+        $installment = $this->payment_installment ?: PaymentInstallmentEnum::ONE_TIME;
+
+        $payments = collect([]);
+
+        for ($i = 0; $i <= $installment->getTimes() - 1; $i++) {
+            $payments->push((object) [
+                'date' => $i == 0 && !$from ? __('events.now') : $date->format('Y-m-d'),
+                'amount' => $this->invoice_total_amount / $installment->getTimes(),
+            ]);
+
+            $date = $installment->getNextDate($date);
+        }
+
+        return _Rows(
+            $payments->map(fn ($payment) => _FlexBetween(
+                _Html($payment->date),
+                _FinanceCurrency($payment->amount),
+            ))
+        )->class('gap-2');
     }
 
 

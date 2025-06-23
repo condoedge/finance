@@ -2,8 +2,8 @@
 
 namespace Condoedge\Finance\Http\Controllers\Api;
 
-use Condoedge\Finance\Facades\InvoiceDetailModel;
-use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceDetailService;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
@@ -16,7 +16,7 @@ class InvoicesController extends Controller
      */
     public function createInvoice(CreateInvoiceDto $data)
     {
-        InvoiceModel::createInvoiceFromDto($data);
+        InvoiceService::createInvoice($data);
 
         return response()->json([
             'message' => __('translate.invoice-created'),
@@ -28,7 +28,7 @@ class InvoicesController extends Controller
      */
     public function updateInvoice(UpdateInvoiceDto $data)
     {
-        InvoiceModel::updateInvoiceFromDto($data);
+        InvoiceService::updateInvoice($data);
 
         return response()->json([
             'message' => __('translate.invoice-updated'),
@@ -41,9 +41,9 @@ class InvoicesController extends Controller
     public function saveInvoiceDetail(CreateOrUpdateInvoiceDetail $data)
     {
         if ($data->id) {
-            InvoiceDetailModel::editInvoiceDetail($data);
+            InvoiceDetailService::updateInvoiceDetail($data);
         } else {
-            InvoiceDetailModel::createInvoiceDetail($data);
+            InvoiceDetailService::createInvoiceDetail($data);
         }
 
         return response()->json([

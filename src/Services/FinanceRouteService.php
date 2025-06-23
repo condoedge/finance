@@ -42,7 +42,6 @@ class FinanceRouteService
             Route::get('/page/{id}', \Condoedge\Finance\Kompo\FinantialCustomerPage::class)->name('page');
             Route::get('/form/{id?}', \Condoedge\Finance\Kompo\CustomerForm::class)->name('form');
             Route::get('/{id}/payments', \Condoedge\Finance\Kompo\FinantialCustomerPayments::class)->name('payments');
-            Route::get('/invoices-to-apply/{id}', \Condoedge\Finance\Kompo\CustomerInvoicesToBeAppliedTable::class)->name('invoices-to-apply');
         });
     }
 
@@ -53,9 +52,7 @@ class FinanceRouteService
     {
         Route::prefix('finance/accounting')->name('finance.')->group(function () {
             // Chart of Accounts
-            Route::get('/chart-of-accounts', \Condoedge\Finance\Kompo\ChartOfAccounts::class)->name('chart-of-accounts');
-            Route::get('/chart-of-accounts-v2', \Condoedge\Finance\Kompo\ChartOfAccounts\ChartOfAccountsV2::class)->name('chart-of-accounts-v2');
-            Route::get('/accounts-list', \Condoedge\Finance\Kompo\AccountsList::class)->name('accounts-list');
+            Route::get('/chart-of-accounts', \Condoedge\Finance\Kompo\ChartOfAccounts\ChartOfAccounts::class)->name('chart-of-accounts');
             
             // Segment Management
             Route::get('/segments', \Condoedge\Finance\Kompo\SegmentManagement\SegmentManager::class)->name('segment-manager');

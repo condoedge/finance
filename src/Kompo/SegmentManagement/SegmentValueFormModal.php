@@ -5,98 +5,64 @@ namespace Condoedge\Finance\Kompo\SegmentManagement;
 use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Facades\AccountSegmentService;
-use Kompo\Form;
+use Condoedge\Finance\Models\AccountTypeEnum;
+use Condoedge\Utils\Kompo\Common\Modal;
 
-class SegmentValueFormModal extends Form
+class SegmentValueFormModal extends Modal
 {
+    public $_Title = 'translate.create-account-segment-value';
     public $model = SegmentValue::class;
-    
+
     protected $position;
-    protected $isEditMode = false;
     
     public function created()
     {
-        $this->position = $this->prop('position');
-        
-        if ($this->model->id) {
-            $this->isEditMode = true;
-            $this->position = $this->model->segmentDefinition->segment_position;
-        }
+        $this->position = $this->model->segmentDefinition?->segment_position ?: $this->prop('segment_position') ?: AccountSegmentService::getLastSegmentPosition();
+    }
+
+    public function beforeSave()
+    {
+        $this->model->segment_definition_id = AccountSegment::getByPosition($this->position)->id;
     }
     
-    public function render()
+    public function body()
     {
         $segment = AccountSegment::getByPosition($this->position);
         
         if (!$segment) {
-            return _Alert('finance-invalid-segment-position')->error();
+            return _Html('finance-invalid-segment-position');
         }
-        
-        return _Modal(
-            _ModalHeader(
-                _Title($this->isEditMode ? 
-                    __('finance-edit-segment-value') : 
-                    sprintf(__('finance-add-value-for-segment'), $segment->segment_description)
-                ),
-                _SubmitButton('general.save')
-            ),
-            
-            _ModalBody(
-                _Hidden('segment_definition_id')->value($segment->id),
-                
-                _Input('finance-segment-value')
-                    ->name('segment_value')
-                    ->placeholder(sprintf(__('finance-max-n-characters'), $segment->segment_length))
-                    ->maxlength($segment->segment_length)
-                    ->required()
-                    ->disabled($this->isEditMode) // Cannot change value once created
-                    ->comment($this->isEditMode ? __('finance-value-cannot-be-changed') : null),
-                
-                _Input('finance-description')
-                    ->name('segment_description')
-                    ->placeholder('finance-enter-description')
-                    ->maxlength(255)
-                    ->required(),
-                
-                _Checkbox('finance-active')
-                    ->name('is_active')
-                    ->value(1)
-                    ->default($this->isEditMode ? $this->model->is_active : true),
-                
-                // Show usage information if editing
-                $this->isEditMode && $this->model->getUsageCount() > 0 ?
-                    _Alert(sprintf(__('finance-value-used-in-n-accounts'), $this->model->getUsageCount()))
-                        ->info()
-                        ->class('mt-4') : null,
-            )
-        )->class('max-w-lg');
+
+        $segmentLenght = $segment->segment_length;
+
+        return _Rows(
+            _CardGray200(
+                _Html(__('translate.example-account-value', ['example' => 
+                    str_pad('', $segmentLenght, 'X'),
+                ])),
+            )->p4(),
+
+            _ValidatedInput('translate.account-value')->name('segment_value')->allow("^[0-9]{0,$segmentLenght}$")
+                ->placeholder('Enter segment value')
+                ->required(),
+
+            _Input('translate.account-segment-description')
+                ->name('segment_description')
+                ->placeholder('Select segment description')
+                ->required(),
+
+            AccountSegmentService::getLastSegmentPosition() != $this->position ? null : _Select('account-type')->name('account_type')
+                ->options(AccountTypeEnum::optionsWithLabels())
+                ->placeholder('Select account type')
+                ->required()
+        );
     }
     
-    public function beforeSave()
+    public function headerButtons()
     {
-        // Validate segment value length
-        $segment = AccountSegment::find(request('segment_definition_id'));
-        $value = request('segment_value');
-        
-        if (strlen($value) !== $segment->segment_length) {
-            throw new \Exception(sprintf(
-                __('finance-value-must-be-n-characters'), 
-                $segment->segment_length
-            ));
-        }
-        
-        // Check for duplicates
-        if (!$this->isEditMode) {
-            $exists = SegmentValue::where('segment_definition_id', $segment->id)
-                ->where('segment_value', $value)
-                ->exists();
-                
-            if ($exists) {
-                throw new \Exception(__('finance-segment-value-already-exists'));
-            }
-        }
+        return $this->hasSubmitButton ? _SubmitButton('general.save')->closeModal()->refresh('segments-values-page') : null;
     }
-    
+
     public function rules()
     {
         return [

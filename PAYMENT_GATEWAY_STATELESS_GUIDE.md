@@ -229,7 +229,7 @@ $gateway = PaymentGateway::getGatewayWithContext(PaymentTypeEnum::STRIPE, [
 $availableGateways = PaymentGateway::getAvailableGateways();
 
 foreach ($availableGateways as $gatewayInfo) {
-    $isWorking = PaymentGateway::validatePaymentType($gatewayInfo['payment_type']);
+    $isWorking = PaymentGateway::validatePaymentType($gatewayInfo['payment_method']);
     
     if (!$isWorking) {
         Log::warning("Gateway not working: " . $gatewayInfo['label']);

@@ -27,9 +27,17 @@ class CreateInvoicesTable extends Migration
             $table->foreignId('account_receivable_id')->constrained('fin_gl_accounts');
 
             /**
-             * @see Condoedge\Finance\Models\PaymentTypeEnum::class
+             * @see Condoedge\Finance\Models\PaymentMethodEnum::class
             */
-            $table->foreignId('payment_type_id')->constrained('fin_payment_types');
+            $table->foreignId('payment_method_id')->nullable()->constrained('fin_payment_methods');
+
+            /**
+             * @see Condoedge\Finance\Models\PaymentMethodEnum::class
+            */
+            $table->foreignId('payment_installment_id')->nullable()->constrained('fin_payment_installments');
+
+            $table->json('possible_payment_methods')->nullable();
+            $table->json('possible_payment_installments')->nullable();
 
             $table->boolean('is_draft')->default(true);
             

@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
@@ -82,8 +82,8 @@ class InvoiceForm extends Form
 					->name('invoice_type_id')
 					->options(InvoiceTypeEnum::optionsWithLabels()),
 				_Select('translate.finance.payment-type')
-					->name('payment_type_id')
-					->options(PaymentTypeEnum::optionsWithLabels()),
+					->name('payment_method_id')
+					->options(PaymentMethodEnum::optionsWithLabels()),
 				$this->model->id ? null : _Columns(
 					new SelectCustomer(null, [
 						'team_id' => $this->team?->id,
@@ -102,6 +102,7 @@ class InvoiceForm extends Form
 			_MultiForm()->noLabel()->name('invoiceDetails')
 				->formClass(InvoiceDetailForm::class, [
 					'team_id' => $this->team->id,
+					'invoice_id' => $this->model->id,
 				])
 				->asTable([
 					__('finance-product-service'),
@@ -163,7 +164,7 @@ class InvoiceForm extends Form
 		return [
 			// 'invoice_due_date' => 'required',
 			// 'invoice_date' => 'required',
-			// 'payment_type_id' => 'required',
+			// 'payment_method_id' => 'required',
 			// 'invoice_type_id' => 'required',
 		];
 	}

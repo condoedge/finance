@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Utils\Models\Model;
+use Condoedge\Utils\Facades\TeamModel;
 
 /**
  * @TRIGGERED BY: tr_historical_customers_after_insert (insert_historical_customers_v0001.sql)
@@ -27,5 +28,13 @@ class HistoricalCustomer extends Model
     public function invoices()
     {
         return $this->hasMany(Invoice::class, 'historical_customer_id');
+    }
+
+    // SCOPES
+    public function scopeForTeam($query, $teamId)
+    {
+        $teamIds = TeamModel::findOrFail($teamId)->getDescendants();
+
+        return $query->whereIn('team_id', $teamIds);
     }
 }

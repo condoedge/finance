@@ -14,6 +14,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
+use Condoedge\Finance\Models\AccountTypeEnum;
 
 /**
  * GL Account Service Implementation - Updated for Segment-Based Architecture
@@ -145,7 +146,7 @@ class GlAccountService implements GlAccountServiceInterface
             $query->active();
         }
         
-        return $query->orderBy('account_id')->get();
+        return $query->orderBy('id')->get();
     }
     
     /**
@@ -167,8 +168,8 @@ class GlAccountService implements GlAccountServiceInterface
         $sqlPattern = str_replace('*', '%', $pattern);
         
         return GlAccount::forTeam($teamId)
-            ->where('account_id', 'LIKE', $sqlPattern)
-            ->orderBy('account_id')
+            ->where('accaccount_segments_descriptor', 'LIKE', $sqlPattern)
+            ->orderBy('id')
             ->get();
     }
     
@@ -179,7 +180,6 @@ class GlAccountService implements GlAccountServiceInterface
     {
         $accounts = GlAccount::forTeam($teamId)
             ->active()
-            ->orderBy('account_id')
             ->get();
         
         return $this->buildAccountHierarchyBySegments($accounts);
@@ -236,7 +236,6 @@ class GlAccountService implements GlAccountServiceInterface
     {
         $accounts = GlAccount::forTeam($teamId)
             ->active()
-            ->orderBy('account_id')
             ->get();
         
         $trialBalance = collect();
@@ -355,7 +354,7 @@ class GlAccountService implements GlAccountServiceInterface
      */
     protected function validateAccountAttributes(array $attributes): void
     {
-        $required = ['account_type', 'team_id'];
+        $required = ['account_type'];
         
         foreach ($required as $field) {
             if (empty($attributes[$field])) {
@@ -364,7 +363,7 @@ class GlAccountService implements GlAccountServiceInterface
         }
         
         // Validate account type
-        $validTypes = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];
+        $validTypes = AccountTypeEnum::cases();
         
         if (!in_array($attributes['account_type'], $validTypes)) {
             throw new ValidationException("Invalid account type: {$attributes['account_type']}");
@@ -384,10 +383,9 @@ class GlAccountService implements GlAccountServiceInterface
     /**
      * Validate account doesn't exist
      */
-    protected function validateAccountDoesNotExist(string $accountId, int $teamId): void
+    protected function validateAccountDoesNotExist(string $accountId): void
     {
-        $exists = GlAccount::where('account_id', $accountId)
-            ->where('team_id', $teamId)
+        $exists = GlAccount::where('id', $accountId)
             ->exists();
             
         if ($exists) {
@@ -403,7 +401,6 @@ class GlAccountService implements GlAccountServiceInterface
         $defaults = [
             'is_active' => true,
             'allow_manual_entry' => true,
-            'team_id' => $attributes['team_id'] ?? currentTeamId(),
         ];
         
         return array_merge($defaults, $attributes);

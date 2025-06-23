@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models\Dto\Customers;
 
-use Condoedge\Finance\Facades\CustomerModel;
+use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Models\CustomableContract;
 use WendellAdriel\ValidatedDTO\Casting\DTOCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -27,7 +27,7 @@ class CreateCustomerFromCustomable extends ValidatedDTO
     {
         return [
             'customable_id' => ['required', 'integer'],
-            'customable_type' => ['required', 'string', 'in:' . CustomerModel::getCustomables()->keys()->implode(',')],
+            'customable_type' => ['required', 'string', 'in:' . CustomerService::getValidCustomableModels()->keys()->implode(',')],
             'team_id' => ['sometimes', 'integer', 'exists:teams,id'],
             'address' => ['sometimes', 'array'],
             'address.address1' => ['required_with:address', 'string'],
@@ -52,6 +52,14 @@ class CreateCustomerFromCustomable extends ValidatedDTO
         $customableType = $this->dtoData['customable_type'] ?? null;
         $customableId = $this->dtoData['customable_id'] ?? null;
         $address = $this->dtoData['address'] ?? null;
+
+        // All the addresses errors must be added to the address key
+        foreach ($validator->errors()->keys() as $error) {
+            if (str_starts_with($error, 'address.')) {
+                $validator->errors()->add('address', $validator->errors()->first($error));
+                $validator->errors()->forget($error);
+            }
+        }
 
         if ($customableType && $customableId) {
             $this->customable = getModelFromMorphable($customableType, $customableId);

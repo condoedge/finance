@@ -19,7 +19,7 @@ class AccountController extends ApiController
         
         // Apply filters
         if ($request->has('active')) {
-            $request->boolean('active') ? $query->active() : $query->inactive();
+            $request->boolean('active') ? $query->active() : $query;
         }
         
         if ($request->has('type')) {
@@ -49,7 +49,7 @@ class AccountController extends ApiController
             }
         }
         
-        $accounts = $query->orderBy('account_id')->paginate($request->input('per_page', 50));
+        $accounts = $query->paginate($request->input('per_page', 50));
         
         return $this->paginated($accounts);
     }

@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Billing;
 
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\PaymentTypeEnum;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Support\Facades\Log;
 
 class PaymentGatewayResolver
@@ -43,7 +43,7 @@ class PaymentGatewayResolver
      */
     public static function resolveForInvoice(Invoice $invoice): PaymentGatewayInterface
     {
-        return self::resolveForPaymentType($invoice->payment_type_id);
+        return self::resolveForPaymentType($invoice->payment_method_id);
     }
 
     /**
@@ -51,7 +51,7 @@ class PaymentGatewayResolver
      * 
      * Resolves payment gateway for specific payment type
      */
-    public static function resolveForPaymentType(PaymentTypeEnum $paymentType): PaymentGatewayInterface
+    public static function resolveForPaymentType(PaymentMethodEnum $paymentType): PaymentGatewayInterface
     {
         $gatewayClass = $paymentType->getPaymentGateway();
         
@@ -67,7 +67,7 @@ class PaymentGatewayResolver
      * 
      * Allows resolving with custom parameters for advanced use cases
      */
-    public static function resolveWithContext(PaymentTypeEnum $paymentType, array $context = []): PaymentGatewayInterface
+    public static function resolveWithContext(PaymentMethodEnum $paymentType, array $context = []): PaymentGatewayInterface
     {
         $gateway = self::resolveForPaymentType($paymentType);
         
@@ -88,9 +88,9 @@ class PaymentGatewayResolver
     {
         $gateways = [];
         
-        foreach (PaymentTypeEnum::cases() as $paymentType) {
+        foreach (PaymentMethodEnum::cases() as $paymentType) {
             $gateways[$paymentType->value] = [
-                'payment_type' => $paymentType,
+                'payment_method' => $paymentType,
                 'gateway_class' => $paymentType->getPaymentGateway(),
                 'label' => $paymentType->label(),
             ];

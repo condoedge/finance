@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Services;
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\PaymentTypeEnum;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\GlAccount;
 
 /**
@@ -28,7 +28,7 @@ class PaymentGatewayService
     /**
      * Get cash account for a specific payment type
      */
-    public function getCashAccountForPaymentType(PaymentTypeEnum $paymentType): GlAccount
+    public function getCashAccountForPaymentType(PaymentMethodEnum $paymentType): GlAccount
     {
         $gateway = PaymentGatewayResolver::resolveForPaymentType($paymentType);
         return $gateway->getCashAccount();
@@ -45,7 +45,7 @@ class PaymentGatewayService
     /**
      * Get payment gateway for payment type
      */
-    public function getGatewayForPaymentType(PaymentTypeEnum $paymentType): PaymentGatewayInterface
+    public function getGatewayForPaymentType(PaymentMethodEnum $paymentType): PaymentGatewayInterface
     {
         return PaymentGatewayResolver::resolveForPaymentType($paymentType);
     }
@@ -53,7 +53,7 @@ class PaymentGatewayService
     /**
      * Get payment gateway with custom context
      */
-    public function getGatewayWithContext(PaymentTypeEnum $paymentType, array $context = []): PaymentGatewayInterface
+    public function getGatewayWithContext(PaymentMethodEnum $paymentType, array $context = []): PaymentGatewayInterface
     {
         return PaymentGatewayResolver::resolveWithContext($paymentType, $context);
     }
@@ -83,7 +83,7 @@ class PaymentGatewayService
         $gateways = $this->getAvailableGateways();
         
         foreach ($gateways as $gatewayInfo) {
-            $gateway = $this->getGatewayForPaymentType($gatewayInfo['payment_type']);
+            $gateway = $this->getGatewayForPaymentType($gatewayInfo['payment_method']);
             $gateway->setRoutes();
         }
     }
@@ -91,7 +91,7 @@ class PaymentGatewayService
     /**
      * Validate payment type has working gateway
      */
-    public function validatePaymentType(PaymentTypeEnum $paymentType): bool
+    public function validatePaymentType(PaymentMethodEnum $paymentType): bool
     {
         try {
             $gateway = $this->getGatewayForPaymentType($paymentType);

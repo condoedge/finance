@@ -5,11 +5,12 @@ namespace Condoedge\Finance\Database\Seeders;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Models\InvoiceStatus;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
-use Condoedge\Finance\Models\PaymentType;
-use Condoedge\Finance\Models\PaymentTypeEnum;
+use Condoedge\Finance\Models\PaymentMethod;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Database\Seeder;
 use Condoedge\Finance\Models\InvoiceType;
 use Condoedge\Finance\Models\InvoiceTypeEnum as ModelsInvoiceTypeEnum;
+use Condoedge\Finance\Models\PaymentInstallment;
 
 class SettingsSeeder extends Seeder
 {
@@ -42,16 +43,28 @@ class SettingsSeeder extends Seeder
             $type->save();
         });
 
-        collect(PaymentTypeEnum::cases())->each(function ($enum) {
-            $type = new PaymentType();
+        collect(PaymentMethodEnum::cases())->each(function ($enum) {
+            $type = new PaymentMethod();
 
-            if (PaymentType::find($enum->value)) {
+            if (PaymentMethod::find($enum->value)) {
                 return null;
             }
 
             $type->id = $enum->value;
             $type->name = $enum->label();
-            $type->payment_gateway = $enum->getPaymentGateway();
+            $type->code = $enum->code();
+            $type->save();
+        });
+
+        collect(PaymentInstallment::cases())->each(function ($enum) {
+            $type = new PaymentInstallment();
+
+            if (PaymentInstallment::find($enum->value)) {
+                return null;
+            }
+
+            $type->id = $enum->value;
+            $type->name = $enum->label();
             $type->save();
         });
     }

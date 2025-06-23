@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Tax;
@@ -14,10 +15,12 @@ class InvoiceDetailForm extends Form
 	public $model = InvoiceDetailModel::class;
 	public $class = 'align-top';
 	protected $teamId;
+	protected $invoiceId;
+	protected $invoice;
 
 	public function created()
 	{
-		$this->teamId = $this->store('team_id');
+		$this->teamId = $this->prop('team_id');
 	}
 
 	public function render()
@@ -68,7 +71,7 @@ class InvoiceDetailForm extends Form
 					_MultiSelect()->placeholder('taxes')
 						->class('w-60 mb-0 mt-2')
 						->name('taxesIds', false)
-						->default($this->model->id ? $this->model->invoiceTaxes()->pluck('tax_id') : InvoiceModel::getDefaultTaxesIds())
+						->default($this->model->id ? $this->model->invoiceTaxes()->pluck('tax_id') : InvoiceService::getDefaultTaxesIds($this->model->invoice))
 						->options($taxesOptions)
 						->run('calculateTotals'),
 

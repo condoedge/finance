@@ -24,24 +24,9 @@ class GlAccountSegment extends Model
     
     protected $table = 'fin_gl_account_segments';
     
-    protected $fillable = [
-        'segment_type',
-        'segment_number',
-        'segment_value',
-        'segment_description',
-        'team_id',
-    ];
-    
     protected $casts = [
-        'segment_type' => 'integer',
         'segment_number' => 'integer',
     ];
-    
-    /**
-     * Segment type constants
-     */
-    const TYPE_STRUCTURE = 1; // Structure definition
-    const TYPE_VALUE = 2;     // Account segment value
     
     /**
      * Scopes

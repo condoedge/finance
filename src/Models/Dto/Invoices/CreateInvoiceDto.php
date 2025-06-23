@@ -3,7 +3,7 @@
 namespace Condoedge\Finance\Models\Dto\Invoices;
 
 use Carbon\Carbon;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
@@ -18,7 +18,7 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
  * 
  * @property int $customer_id The customer this invoice belongs to
  * @property int $invoice_type_id Type of invoice (from InvoiceTypeEnum)
- * @property int $payment_type_id Payment method type (from PaymentTypeEnum) 
+ * @property int $payment_method_id Payment method type (from PaymentTypeEnum) 
  * @property Carbon $invoice_date Date the invoice was issued
  * @property Carbon|null $invoice_due_date Payment due date (optional)
  * @property bool $is_draft Whether this invoice is a draft
@@ -28,7 +28,11 @@ class CreateInvoiceDto extends ValidatedDTO
 {
     public int $customer_id;
     public int $invoice_type_id;
-    public int $payment_type_id;
+    public int $payment_method_id;
+
+    public array $possible_payment_methods;
+    public array $possible_payment_installments;
+
     public Carbon $invoice_date;
     public ?Carbon $invoice_due_date;
 
@@ -36,12 +40,15 @@ class CreateInvoiceDto extends ValidatedDTO
 
     public array $invoiceDetails;
 
+    public ?string $invoiceable_type = null;
+    public ?int $invoiceable_id = null;
+
     public function rules(): array
     {
         return [
             'customer_id' => 'required|integer|exists:fin_customers,id',
-            'invoice_type_id' => 'required|integer|exists:fin_invoice_types,id',
-            'payment_type_id' => 'required|integer|in:' . collect(PaymentTypeEnum::getEnumClass()::cases())->pluck('value')->implode(','),
+            'invoice_type_id' => 'nullable|integer|exists:fin_invoice_types,id',
+            'payment_method_id' => 'nullable|integer|in:' . collect(PaymentMethodEnum::getEnumClass()::cases())->pluck('value')->implode(','),
             'invoice_date' => 'required|date',
             'invoice_due_date' => 'nullable|date|after_or_equal:invoice_date',
             'is_draft' => 'boolean',
@@ -60,6 +67,12 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoiceDetails.*.revenue_account_id' => 'required|integer|exists:fin_gl_accounts,id',
             'invoiceDetails.*.taxesIds' => 'nullable|array',
             'invoiceDetails.*.taxesIds.*' => 'integer|exists:fin_taxes,id',
+
+            'possible_payment_methods' => 'nullable|array',
+            'possible_payment_installments' => 'nullable|array',
+
+            'invoiceable_type' => 'nullable|string',
+            'invoiceable_id' => 'nullable|integer',
         ];
     }
 
@@ -68,7 +81,7 @@ class CreateInvoiceDto extends ValidatedDTO
         return [
             'customer_id' => new IntegerCast,
             'invoice_type_id' => new IntegerCast,
-            'payment_type_id' => new IntegerCast,
+            'payment_method_id' => new IntegerCast,
             'invoice_date' => new CarbonCast,
             'invoice_due_date' => new CarbonCast,
             'invoiceDetails' => new ArrayCast,

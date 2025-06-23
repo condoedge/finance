@@ -2,16 +2,16 @@
 
 namespace Condoedge\Finance\Database\Factories;
 
-use Condoedge\Finance\Models\PaymentType;
-use Condoedge\Finance\Models\PaymentTypeEnum;
+use Condoedge\Finance\Models\PaymentMethod;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Condoedge\Finance\Models\PaymentType>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Condoedge\Finance\Models\PaymentMethod>
  */
 class PaymentTypeFactory extends Factory
 {
-    protected $model = PaymentType::class;
+    protected $model = PaymentMethod::class;
 
     /**
      * Define the model's default state.
@@ -20,12 +20,12 @@ class PaymentTypeFactory extends Factory
      */
     public function definition()
     {
-        $enum = $this->faker->randomElement(PaymentTypeEnum::cases());
+        $enum = $this->faker->randomElement(PaymentMethodEnum::cases());
 
         return [
             'id' => $enum->value,
             'name' => $enum->label(),
-            'payment_gateway' => $enum->getPaymentGateway(),
+            'code' => $enum->code(),
         ];
     }
 }

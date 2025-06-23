@@ -5,16 +5,16 @@ namespace Tests\Unit;
 use Condoedge\Finance\Database\Factories\AccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
+use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceApply;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Exception;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -39,7 +39,7 @@ class InvoicePaymentValidationsTest extends TestCase
     public function test_it_validates_payment_amount_left_calculation()
     {
         $customer = CustomerFactory::new()->create();
-        $payment = CustomerPayment::createForCustomer(new CreateCustomerPaymentDto([
+        $payment = PaymentService::createPayment(new CreateCustomerPaymentDto([
             'customer_id' => $customer->id,
             'amount' => 1000,
             'payment_date' => now()->format('Y-m-d'),
@@ -53,7 +53,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $invoice2 = $this->createApprovedInvoice($customer->id, 400);
 
         // Apply to first invoice
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -69,7 +69,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $this->assertEqualsDecimals(1000, $payment->amount);
 
         // Apply to second invoice
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -99,7 +99,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $payment2 = $this->createCustomerPayment($customer->id, 150);
 
         // First payment application
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment1->id,
@@ -115,7 +115,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $this->assertEqualsDecimals(300, $invoice->abs_invoice_due_amount);
 
         // Second payment application
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment2->id,
@@ -138,7 +138,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $invoice = $this->createApprovedInvoice($customer->id, 200);
 
         // First application - valid
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -152,7 +152,7 @@ class InvoicePaymentValidationsTest extends TestCase
         // Second application - should fail
         $this->expectException(ValidationException::class);
 
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -172,7 +172,7 @@ class InvoicePaymentValidationsTest extends TestCase
 
         $this->expectException(ValidationException::class);
 
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -190,7 +190,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $payment = $this->createCustomerPayment($customer->id, 100);
         $invoice = $this->createApprovedInvoice($customer->id, 200);
 
-        $apply = InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        $apply = PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -219,7 +219,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $invoice3 = $this->createApprovedInvoice($customer->id, 200);
 
         // Valid multiple applications
-        InvoiceApply::createForMultipleInvoices(new CreateAppliesForMultipleInvoiceDto([
+        PaymentService::applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -241,7 +241,7 @@ class InvoicePaymentValidationsTest extends TestCase
         // Should fail - total exceeds payment amount
         $this->expectException(ValidationException::class);
 
-        InvoiceApply::createForMultipleInvoices(new CreateAppliesForMultipleInvoiceDto([
+        PaymentService::applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -263,10 +263,10 @@ class InvoicePaymentValidationsTest extends TestCase
         $payment = $this->createCustomerPayment($customer->id, 500);
         
         // Create draft invoice (not approved)
-        $draftInvoice = InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        $draftInvoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::INVOICE->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => now()->format('Y-m-d'),
             'invoice_due_date' => now()->addDays(30),
             'is_draft' => true,
@@ -285,7 +285,7 @@ class InvoicePaymentValidationsTest extends TestCase
         // Should prevent application to draft invoice
         $this->expectException(ValidationException::class);
 
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -306,7 +306,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $creditNote = $this->createCreditNote($customer->id, 200);
 
         // Apply credit note to invoice
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $creditNote->id,
@@ -337,7 +337,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $this->expectException(ValidationException::class);
         $this->expectExceptionMessage('invoice-amount-exceeded');
 
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -356,7 +356,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $invoice = $this->createApprovedInvoice($customer->id, 200.55);
 
         // Apply payment with precise decimal
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -383,7 +383,7 @@ class InvoicePaymentValidationsTest extends TestCase
         $invoice2 = $this->createApprovedInvoice($customer->id, 60);
 
         // First application
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -395,7 +395,7 @@ class InvoicePaymentValidationsTest extends TestCase
         ]));
 
         // Second application should succeed (30 remaining)
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -417,10 +417,10 @@ class InvoicePaymentValidationsTest extends TestCase
         $customer = CustomerModel::find($customerId);
         $unitPrice = $amount ?? $this->faker->randomFloat(2, 100, 1000);
 
-        $invoice = InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::INVOICE->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => now()->format('Y-m-d'),
             'invoice_due_date' => now()->addDays(30),
             'is_draft' => false,
@@ -444,10 +444,10 @@ class InvoicePaymentValidationsTest extends TestCase
     {
         $customer = CustomerModel::find($customerId);
         
-        $creditNote = InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        $creditNote = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::CREDIT->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => now()->format('Y-m-d'),
             'invoice_due_date' => now()->addDays(30),
             'is_draft' => false,
@@ -469,7 +469,7 @@ class InvoicePaymentValidationsTest extends TestCase
 
     private function createCustomerPayment($customerId, $amount): CustomerPayment
     {
-        return CustomerPayment::createForCustomer(new CreateCustomerPaymentDto([
+        return PaymentService::createPayment(new CreateCustomerPaymentDto([
             'customer_id' => $customerId,
             'amount' => $amount,
             'payment_date' => now()->format('Y-m-d'),

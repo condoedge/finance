@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
 use Condoedge\Utils\Kompo\Common\WhiteTable;
@@ -117,13 +118,13 @@ class InvoicesTable extends WhiteTable
                 _HtmlDate($invoice->invoice_date)->class('taxt-gray-400 font-bold'),
                 _Flex2(
                     _Html('finance-due-at'),
-                    _HtmlDate($invoice->due_at)
+                    _HtmlDate($invoice->invoice_due_date)
                 )->class('text-xs text-gray-600')
             )->gotoInvoice($invoice->id),
             _Rows(
                 _Html($invoice->invoice_reference)->class('group-hover:underline'),
             )->gotoInvoice($invoice->id),
-            _Html($invoice->payment_type_label),
+            _Html($invoice->payment_method_label),
             _Html($invoice->customer_label),
             $invoice->invoice_status_id->pill(),
             _Rows(
@@ -167,7 +168,7 @@ class InvoicesTable extends WhiteTable
 
     public function approveMany($ids)
     {
-        InvoiceModel::approveManyInvoices(new ApproveManyInvoicesDto([
+        InvoiceService::approveMany(new ApproveManyInvoicesDto([
             'invoices_ids' => $ids,
         ]));
     }

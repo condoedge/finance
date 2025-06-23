@@ -23,6 +23,9 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
     public SafeDecimal $unit_price;
     public int $revenue_account_id;
 
+    public ?int $invoiceable_id;
+    public ?string $invoiceable_type;
+
     /**
      * The IDs of the taxes to be applied to this invoice detail.
      * @var int[]
@@ -47,6 +50,9 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
 
             'taxesIds' => 'nullable|array',
             'taxesIds.*' => 'integer|exists:fin_taxes,id',
+
+            'invoiceable_type' => 'nullable|string',
+            'invoiceable_id' => 'nullable|integer|exists:fin_invoiceables,id',
         ];
     }
 

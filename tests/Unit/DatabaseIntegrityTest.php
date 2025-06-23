@@ -6,8 +6,10 @@ use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\AccountFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
+use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
@@ -47,7 +49,7 @@ class DatabaseIntegrityTest extends TestCase
         $this->assertEquals(1000, $amountLeft->amount_left);
 
         // Apply first payment
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -63,7 +65,7 @@ class DatabaseIntegrityTest extends TestCase
         $this->assertEquals(800, $amountLeft->amount_left);
 
         // Apply second payment
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -91,7 +93,7 @@ class DatabaseIntegrityTest extends TestCase
         $this->assertEquals(500, $invoiceDue->invoice_due);
 
         // Apply first payment
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment1->id,
@@ -107,7 +109,7 @@ class DatabaseIntegrityTest extends TestCase
         $this->assertEquals(350, $invoiceDue->invoice_due);
 
         // Apply second payment
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment2->id,
@@ -130,7 +132,7 @@ class DatabaseIntegrityTest extends TestCase
         $payment = $this->createCustomerPayment($customer->id, 50);
 
         // Valid insert should work
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -157,7 +159,7 @@ class DatabaseIntegrityTest extends TestCase
         $payment = $this->createCustomerPayment($customer->id, 80);
 
         // Apply partial payment first
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -195,7 +197,7 @@ class DatabaseIntegrityTest extends TestCase
         $payment = $this->createCustomerPayment($customer->id, 200);
 
         // Apply partial payment first
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -233,7 +235,7 @@ class DatabaseIntegrityTest extends TestCase
         $payment = $this->createCustomerPayment($customer->id, 200);
 
         // Create application
-        $application = InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        $application = PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -267,7 +269,7 @@ class DatabaseIntegrityTest extends TestCase
         $payment = $this->createCustomerPayment($customer->id, 200);
 
         // Create application
-        $application = InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        $application = PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -308,7 +310,7 @@ class DatabaseIntegrityTest extends TestCase
         $this->assertEqualsDecimals(100, $customer->customer_due_amount);
 
         // Apply payment to first invoice
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -324,7 +326,7 @@ class DatabaseIntegrityTest extends TestCase
         $this->assertEqualsDecimals(100, $customer->customer_due_amount);
 
         // Apply payment to second invoice
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $payment->id,
@@ -354,7 +356,7 @@ class DatabaseIntegrityTest extends TestCase
         $this->assertEquals(-200, $creditDue->invoice_due); // Credit notes have negative due amounts
 
         // Apply credit note to invoice
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)[
                 'id' => $creditNote->id,
@@ -392,7 +394,7 @@ class DatabaseIntegrityTest extends TestCase
 
         // Complex application scenario
         // Payment 1 -> Invoice 1 (partial)
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)['id' => $payment1->id, 'customer_id' => $payment1->customer_id],
             'applicable_type' => MorphablesEnum::PAYMENT->value,
@@ -401,7 +403,7 @@ class DatabaseIntegrityTest extends TestCase
         ]));
 
         // Payment 1 -> Invoice 2 (remaining)
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)['id' => $payment1->id, 'customer_id' => $payment1->customer_id],
             'applicable_type' => MorphablesEnum::PAYMENT->value,
@@ -410,7 +412,7 @@ class DatabaseIntegrityTest extends TestCase
         ]));
 
         // Payment 2 -> Invoice 2 (partial)
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)['id' => $payment2->id, 'customer_id' => $payment2->customer_id],
             'applicable_type' => MorphablesEnum::PAYMENT->value,
@@ -419,7 +421,7 @@ class DatabaseIntegrityTest extends TestCase
         ]));
 
         // Credit Note -> Invoice 1 (remaining)
-        InvoiceApply::createForInvoice(new CreateApplyForInvoiceDto([
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
             'applicable' => (object)['id' => $creditNote->id, 'customer_id' => $creditNote->customer_id],
             'applicable_type' => MorphablesEnum::CREDIT->value,
@@ -708,10 +710,10 @@ class DatabaseIntegrityTest extends TestCase
         $customer = CustomerModel::find($customerId);
         $unitPrice = $amount ?? $this->faker->randomFloat(2, 100, 1000);
 
-        $invoice = InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::INVOICE->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => now()->format('Y-m-d'),
             'invoice_due_date' => now()->addDays(30),
             'is_draft' => !$approved,
@@ -736,10 +738,10 @@ class DatabaseIntegrityTest extends TestCase
     {
         $customer = CustomerModel::find($customerId);
         
-        $creditNote = InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        $creditNote = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::CREDIT->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => now()->format('Y-m-d'),
             'invoice_due_date' => now()->addDays(30),
             'is_draft' => false,
@@ -761,7 +763,7 @@ class DatabaseIntegrityTest extends TestCase
 
     private function createCustomerPayment($customerId, $amount): CustomerPayment
     {
-        return CustomerPayment::createForCustomer(new CreateCustomerPaymentDto([
+        return PaymentService::createPayment(new CreateCustomerPaymentDto([
             'customer_id' => $customerId,
             'amount' => $amount,
             'payment_date' => now()->format('Y-m-d'),

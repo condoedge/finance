@@ -16,7 +16,7 @@ class CreateCustomersTable extends Migration
             addMetaData($table);
 
             $table->string('name');
-            $table->foreignId('default_payment_type_id')->nullable()->constrained('fin_payment_types');
+            $table->foreignId('default_payment_method_id')->nullable()->constrained('fin_payment_methods');
             $table->unsignedBigInteger('default_billing_address_id')->nullable();
 
             $table->foreignId('team_id')->constrained('teams');

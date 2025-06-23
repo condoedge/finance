@@ -97,7 +97,7 @@ class GlTransactionLineForm extends Form
         }
         
         // Get accounts with formatted display
-        $accounts = $query->orderBy('account_id')
+        $accounts = $query
             ->get()
             ->mapWithKeys(function ($account) {
                 $label = $account->account_id . ' - ' . ($account->account_description ?: __('finance-no-description'));

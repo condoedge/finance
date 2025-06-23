@@ -76,6 +76,10 @@ class InvoiceDetail extends AbstractMainFinanceModel
     /* CALCULATED FIELDS */
 
     /* SCOPES */
+    public function scopeForInvoice($query, $invoiceId)
+    {
+        return $query->where('invoice_id', $invoiceId);
+    }
 
     /* ACTIONS */
     /**

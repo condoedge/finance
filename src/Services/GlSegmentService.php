@@ -40,13 +40,13 @@ class GlSegmentService
         // Validate that the segment structure exists
         $this->validateSegmentStructureExists($dto->segment_number, $dto->team_id);
         
-        return GlAccountSegment::create([
-            'segment_type' => GlAccountSegment::TYPE_VALUE,
-            'segment_number' => $dto->segment_number,
-            'segment_value' => $dto->segment_value,
-            'segment_description' => $dto->segment_description,
-            'team_id' => $dto->team_id,
-        ]);
+        $segment = new GlAccountSegment();
+        $segment->segment_position = $dto->segment_number;
+        $segment->segment_value = $dto->segment_value;
+        $segment->segment_description = $dto->segment_description;
+        $segment->team_id = $dto->team_id;
+
+        return $segment->save();
     }
     
     /**

@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Kompo\Form;
 
@@ -121,7 +122,7 @@ class InvoicePage extends Form
 
 	public function approveInvoice($id)
 	{
-		InvoiceModel::approveInvoice(new ApproveInvoiceDto([
+		InvoiceService::approveInvoice(new ApproveInvoiceDto([
 			'invoice_id' => $id,
 		]));
 

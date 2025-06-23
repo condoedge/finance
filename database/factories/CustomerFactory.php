@@ -14,7 +14,7 @@ class CustomerFactory extends Factory
     {
         return [
             'name' => $this->faker->name,
-            'default_payment_type_id' => null, // Will be populated later if needed
+            'default_payment_method_id' => null, // Will be populated later if needed
             'default_billing_address_id' => null, // Will be populated later if needed
             // 'customer_due_amount' => $this->faker->randomFloat(2, 0, 1000),
             'team_id' => TeamModel::create(['team_name' => $this->faker->company])->id,

@@ -42,6 +42,7 @@ class SegmentStructureFormModal extends Form
                 
                 _Input('finance-segment-position')
                     ->name('segment_position')
+                    ->selfPost('renderStructurePreview')->withAllFormValues()->inPanel('segments-structure-preview')
                     ->type('number')
                     ->min(1)
                     ->max(10)
@@ -55,6 +56,7 @@ class SegmentStructureFormModal extends Form
                 
                 _Input('finance-segment-length')
                     ->name('segment_length')
+                    ->selfPost('renderStructurePreview')->withAllFormValues()->inPanel('segments-structure-preview')
                     ->type('number')
                     ->min(1)
                     ->max(10)
@@ -66,15 +68,13 @@ class SegmentStructureFormModal extends Form
                         __('finance-length-cannot-be-changed-has-values') : 
                         __('finance-number-of-characters-for-segment')
                     ),
-                
-                // Warning about impact
-                _Alert(__('finance-segment-structure-warning'))
-                    ->warning()
-                    ->class('mt-4')
-                    ->icon('alert-triangle'),
                     
                 // Show current structure preview
-                $this->renderStructurePreview(),
+                _Panel(
+                    $this->renderStructurePreview(),
+                )->id('segments-structure-preview'),
+
+                _SubmitButton('save')->closeModal()->refresh('segments-table'),
             )
         )->class('max-w-lg');
     }
@@ -82,7 +82,7 @@ class SegmentStructureFormModal extends Form
     /**
      * Render structure preview
      */
-    protected function renderStructurePreview()
+    public function renderStructurePreview()
     {
         $segments = AccountSegment::getAllOrdered();
         
@@ -151,7 +151,8 @@ class SegmentStructureFormModal extends Form
     {
         return [
             'segment_description' => 'required|string|max:255',
-            'segment_position' => 'required|integer|min:1|max:10',
+            'segment_position' => 'required|integer|min:1|max:10|unique:fin_account_segments,segment_position' . 
+                ($this->isEditMode ? ',' . $this->model->id : ''),
             'segment_length' => 'required|integer|min:1|max:10',
         ];
     }

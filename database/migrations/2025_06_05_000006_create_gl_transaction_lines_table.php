@@ -45,10 +45,6 @@ class CreateGlTransactionLinesTable extends Migration
                   ->on('fin_gl_transaction_headers')
                   ->onDelete('cascade');
                   
-            $table->foreign('account_id')
-                  ->references('account_id')
-                  ->on('fin_gl_accounts')
-                  ->onDelete('restrict');
             
             // Indexes for performance
             $table->index(['team_id', 'gl_transaction_id', 'line_sequence']);

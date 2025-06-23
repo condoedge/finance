@@ -8,8 +8,9 @@ use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\InvoiceFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
-use Condoedge\Finance\Facades\PaymentTypeEnum;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
@@ -45,10 +46,10 @@ class InvoicesTest extends TestCase
 
         $invoiceDate = now();
 
-        $invoice = InvoiceModel::createInvoiceFromDto(new CreateInvoiceDto([
+        $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::INVOICE->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => $invoiceDate,
             'invoice_due_date' => $invoiceDate->copy()->addDays(30),
             'is_draft' => true,
@@ -69,8 +70,8 @@ class InvoicesTest extends TestCase
 
         $this->assertDatabaseHas('fin_invoices', [
             'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumClass()::INVOICE->value,
-            'payment_type_id' => PaymentTypeEnum::getEnumClass()::CASH->value,
+            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
+            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
             'invoice_date' => db_datetime_format($invoiceDate),
             'invoice_due_date' => db_datetime_format($invoiceDate->copy()->addDays(30)),
             'is_draft' => 1,
@@ -147,9 +148,9 @@ class InvoicesTest extends TestCase
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
         ]);
 
-        InvoiceModel::updateInvoiceFromDto(new UpdateInvoiceDto([
+        InvoiceService::updateInvoice(new UpdateInvoiceDto([
             'id' => $invoice->id,
-            'payment_type_id' => $invoice->payment_type_id,
+            'payment_method_id' => $invoice->payment_method_id,
             'invoice_date' => $invoice->invoice_date,
             'invoice_due_date' => $invoice->invoice_due_date,
             'is_draft' => true,
@@ -172,7 +173,7 @@ class InvoicesTest extends TestCase
             'id' => $invoice->id,
             'customer_id' => $invoice->customer_id,
             'invoice_type_id' => $invoice->invoice_type_id,
-            'payment_type_id' => $invoice->payment_type_id,
+            'payment_method_id' => $invoice->payment_method_id,
             'invoice_date' => db_datetime_format($invoice->invoice_date),
             'invoice_due_date' => db_datetime_format($invoice->invoice_due_date),
             'is_draft' => 1,

@@ -18,7 +18,8 @@ return [
     | This configuration defines the relationships between models for integrity verification.
     | The keys are parent model classes and the values are arrays of child model classes.
     |
-    */    'model_integrity_relations' => [
+    */    
+    'model_integrity_relations' => [
         \Condoedge\Finance\Models\Customer::class => [
             \Condoedge\Finance\Models\Invoice::class,
             \Condoedge\Finance\Models\CustomerPayment::class,
@@ -134,7 +135,7 @@ return [
 
     TAX_GROUP_MODEL_KEY . '-namespace' => getAppClass(App\Models\TaxGroup::class, Condoedge\Finance\Models\TaxGroup::class),
 
-    PAYMENT_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\PaymentTypeEnum::class,
+    PAYMENT_METHOD_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\PaymentMethodEnum::class,
 
     INVOICE_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\InvoiceTypeEnum::class,
     

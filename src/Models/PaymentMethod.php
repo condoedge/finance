@@ -11,25 +11,24 @@ use Condoedge\Utils\Models\Model;
  * Represents the different types of payment methods available in the system.
  * This model is linked to the PaymentTypeEnum for consistent type definitions.
  */
-class PaymentType extends Model
+class PaymentMethod extends Model
 {
     use HasFactory;
 
-    protected $table = 'fin_payment_types';
+    protected $table = 'fin_payment_methods';
 
     protected $fillable = [
         'id',
         'name',
-        'payment_gateway',
     ];
 
     /**
      * Get the enum instance for this payment type
      * 
-     * @return PaymentTypeEnum
+     * @return PaymentMethodEnum
      */
-    public function getEnum(): PaymentTypeEnum
+    public function getEnum(): PaymentMethodEnum
     {
-        return PaymentTypeEnum::from($this->id);
+        return PaymentMethodEnum::from($this->id);
     }
 }

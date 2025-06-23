@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
-use Condoedge\Finance\Models\PaymentTypeEnum;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 
 /**
  * Financial Enums Seeder
@@ -31,10 +31,10 @@ class FinancialEnumsSeeder extends Seeder
     {
         $paymentTypes = [
             [
-                'id' => PaymentTypeEnum::CASH->value,
+                'id' => PaymentMethodEnum::CASH->value,
                 'name' => 'cash',
-                'label' => PaymentTypeEnum::CASH->label(),
-                'code' => PaymentTypeEnum::CASH->code(),
+                'label' => PaymentMethodEnum::CASH->label(),
+                'code' => PaymentMethodEnum::CASH->code(),
                 'description' => 'Cash payment',
                 'sort_order' => 1,
                 'is_active' => true,
@@ -42,10 +42,10 @@ class FinancialEnumsSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'id' => PaymentTypeEnum::CHECK->value,
+                'id' => PaymentMethodEnum::CHECK->value,
                 'name' => 'check',
-                'label' => PaymentTypeEnum::CHECK->label(),
-                'code' => PaymentTypeEnum::CHECK->code(),
+                'label' => PaymentMethodEnum::CHECK->label(),
+                'code' => PaymentMethodEnum::CHECK->code(),
                 'description' => 'Check payment requiring bank account information',
                 'sort_order' => 2,
                 'is_active' => true,
@@ -53,10 +53,10 @@ class FinancialEnumsSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'id' => PaymentTypeEnum::CREDIT_CARD->value,
+                'id' => PaymentMethodEnum::CREDIT_CARD->value,
                 'name' => 'credit_card',
-                'label' => PaymentTypeEnum::CREDIT_CARD->label(),
-                'code' => PaymentTypeEnum::CREDIT_CARD->code(),
+                'label' => PaymentMethodEnum::CREDIT_CARD->label(),
+                'code' => PaymentMethodEnum::CREDIT_CARD->code(),
                 'description' => 'Credit card payment',
                 'sort_order' => 3,
                 'is_active' => true,
@@ -64,10 +64,10 @@ class FinancialEnumsSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'id' => PaymentTypeEnum::BANK_TRANSFER->value,
+                'id' => PaymentMethodEnum::BANK_TRANSFER->value,
                 'name' => 'bank_transfer',
-                'label' => PaymentTypeEnum::BANK_TRANSFER->label(),
-                'code' => PaymentTypeEnum::BANK_TRANSFER->code(),
+                'label' => PaymentMethodEnum::BANK_TRANSFER->label(),
+                'code' => PaymentMethodEnum::BANK_TRANSFER->code(),
                 'description' => 'Bank wire transfer requiring account information',
                 'sort_order' => 4,
                 'is_active' => true,
@@ -75,10 +75,10 @@ class FinancialEnumsSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'id' => PaymentTypeEnum::CREDIT_NOTE->value,
+                'id' => PaymentMethodEnum::CREDIT_NOTE->value,
                 'name' => 'credit_note',
-                'label' => PaymentTypeEnum::CREDIT_NOTE->label(),
-                'code' => PaymentTypeEnum::CREDIT_NOTE->code(),
+                'label' => PaymentMethodEnum::CREDIT_NOTE->label(),
+                'code' => PaymentMethodEnum::CREDIT_NOTE->code(),
                 'description' => 'Credit note application (allows negative amounts)',
                 'sort_order' => 5,
                 'is_active' => true,
@@ -87,7 +87,7 @@ class FinancialEnumsSeeder extends Seeder
             ],
         ];
 
-        DB::table('fin_payment_types')->insertOrIgnore($paymentTypes);
+        DB::table('fin_payment_methods')->insertOrIgnore($paymentTypes);
     }
 
     /**

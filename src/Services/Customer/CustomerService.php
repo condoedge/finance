@@ -79,8 +79,8 @@ class CustomerService implements CustomerServiceInterface
     {
         // Apply customer data to invoice
         $invoice->customer_id = $customer->id;
-        $invoice->payment_type_id = $customer->default_payment_type_id 
-            ?? GlobalConfig::getOrFail('default_payment_type_id');
+        $invoice->payment_method_id = $customer->default_payment_method_id 
+            ?? GlobalConfig::getOrFail('default_payment_method_id');
         
         return $invoice;
     }

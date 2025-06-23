@@ -5,19 +5,17 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Create Payment Types table
+ * Create Payment installments table
  * 
- * CRITICAL: This migration MUST run before any table that references payment_method_id
- * This creates the table-linked enum for payment types following established patterns.
  */
-class CreatePaymentTypesTable extends Migration
+class CreatePaymentInstallmentsTable extends Migration
 {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('fin_payment_methods', function (Blueprint $table) {
+        Schema::create('fin_payment_installments', function (Blueprint $table) {
             addMetadata($table);
             $table->string('name', 100)->unique(); // Internal enum name
             $table->string('code', 10)->unique(); // Short code for references
@@ -32,6 +30,6 @@ class CreatePaymentTypesTable extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('fin_payment_methods');
+        Schema::dropIfExists('fin_payment_installments');
     }
 }
