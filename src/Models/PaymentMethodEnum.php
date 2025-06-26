@@ -76,22 +76,6 @@ enum PaymentMethodEnum: int
         return array_column(self::cases(), 'value');
     }
 
-    /**
-     * Check if this payment type can have negative amounts
-     */
-    public function allowsNegativeAmounts(): bool
-    {
-        return $this === self::CREDIT_NOTE;
-    }
-
-    /**
-     * Get all payment types as array for validation
-     */
-    public static function getValidValues(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
-
     public function getPaymentGateway()
     {
         return match ($this) {
