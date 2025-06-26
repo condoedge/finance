@@ -20,7 +20,7 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=8.0",
-        "laravel/framework": "^11.0.0",
+        "laravel/framework": ">=9.0.0",
         "condoedge/utils": "^0.2.12",
         "wendelladriel/laravel-validated-dto": "^4.1",
         "kompo/kompo": "^3.0",
