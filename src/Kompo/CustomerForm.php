@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 
 class CustomerForm extends Modal
 {
-    protected $_Title = 'translate.customer';
+    protected $_Title = 'finance-customer';
     public $model = CustomerModel::class;
 
     protected $teamId;
@@ -49,7 +49,7 @@ class CustomerForm extends Modal
     {
         return _Rows(
             // Create from other customable model or...
-            _Select('translate.from-entity')->name('from_model', false)->class('!mb-2')
+            _Select('finance-from-entity')->name('from_model', false)->class('!mb-2')
                 ->options(CustomerService::getValidCustomableModels()->mapWithKeys(function ($customable, $morphableType) {
                     return [$morphableType => $customable::getVisualName()];
                 }))
@@ -60,7 +60,7 @@ class CustomerForm extends Modal
             )->id('customableOptionsPanel'),
 
             _FlexEnd(
-                _SubmitButton('translate.save')->closeModal()->refresh($this->refreshId),
+                _SubmitButton('finance-save')->closeModal()->refresh($this->refreshId),
             ),
         );
     }
@@ -68,9 +68,9 @@ class CustomerForm extends Modal
     public function manualForm()
     {
         return [
-            _Html('translate.or')->class('mb-4 mt-2'),
+            _Html('finance-or')->class('mb-4 mt-2'),
 
-            _Input('translate.name')->name('name'),
+            _Input('finance-name')->name('name'),
 
             _Place()->name('address'),
         ];

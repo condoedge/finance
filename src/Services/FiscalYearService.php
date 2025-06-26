@@ -326,14 +326,14 @@ class FiscalYearService
             // Period doesn't exist and can't be auto-created
             throw new HttpException(
                 403,
-                __('translate.fiscal-year-no-period') . ' ' . $e->getMessage(),
+                __('finance-fiscal-year-no-period'),
             );
         }
         
         if (!$period->isOpenForModule($module)) {
             throw new HttpException(
                 403,
-                __('translate.fiscal-year-period-closed', ['module' => $module->label()]),
+                __('finance-fiscal-year-period-closed', ['module' => $module->label()]),
             );
         }
         

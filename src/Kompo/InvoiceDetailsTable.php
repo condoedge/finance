@@ -24,7 +24,7 @@ class InvoiceDetailsTable extends Table
     {
         return [
             _Th('finance-product-service'),
-            _Th('translate.accounts.revenue-account')->class('text-right'),
+            _Th('finance-revenue-account')->class('text-right'),
             _Th('finance-qty')->class('text-right'),
             _Th('finance-price')->class('text-right'),
             _Th('finance-taxes')->class('text-right'),

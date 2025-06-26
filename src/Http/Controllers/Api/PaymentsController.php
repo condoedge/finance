@@ -17,7 +17,7 @@ class PaymentsController extends Controller
         PaymentService::createPayment($data);
 
         return response()->json([
-            'message' => __('translate.payment-created'),
+            'message' => __('finance-payment-created'),
         ]);
     }
 
@@ -29,7 +29,7 @@ class PaymentsController extends Controller
         PaymentService::createPaymentAndApplyToInvoice($data);
 
         return response()->json([
-            'message' => __('translate.payment-created-for-invoice'),
+            'message' => __('finance-payment-created-for-invoice'),
         ]);
     }
 }

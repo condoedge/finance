@@ -11,7 +11,7 @@ use Condoedge\Finance\Services\Payment\PaymentServiceInterface;
 
 class PaymentForm extends Modal
 {
-    protected $_Title = 'translate.finance.record-payment';
+    protected $_Title = 'finance-record-payment';
 
     public $model = CustomerPayment::class;
 
@@ -69,24 +69,24 @@ class PaymentForm extends Modal
         return [
             !$this->invoice ? null : _CardLevel5(
                 _FinanceCurrency($this->invoice->abs_invoice_due_amount)->class('font-bold text-3xl'),
-                _Html(__('translate.with-values.paying-invoice', [
+                _Html(__('finance-with-values-paying-invoice', [
                     'invoice_reference' => $this->invoice->invoice_reference,
                 ]))->class('text-lg font-semibold'),
             )->p4()->alignEnd(),
 
             ($this->invoiceId || !$this->goToApplyModelAfter) ? null :
-                _CardGray100P4(_Html('translate.going-to-apply-page-after-this-payment')),
+                _CardGray100P4(_Html('finance-going-to-apply-page-after-this-payment')),
 
             $this->invoice ? null : teamCustomersSelect(customerId: $this->customerId),
 
             _Date('finance-payment-date')->name('payment_date')->default(now())
                 ->placeholder('finance-payment-date'),
 
-            $this->invoice ? _Hidden()->name('type')->default($paymentType) : _ButtonGroup('translate.select-type')->name('type')
+            $this->invoice ? _Hidden()->name('type')->default($paymentType) : _ButtonGroup('finance-select-type')->name('type')
                 ->when($this->invoice, fn($e) => $e->default($paymentType))
                 ->options([
-                    1 => __('translate.finance.from-customer'),
-                    -1 => __('translate.finance.to-customer'),
+                    1 => __('finance-from-customer'),
+                    -1 => __('finance-to-customer'),
                 ]),
 
             _InputDollar('finance-amount')->name('amount')->default($this->invoice?->abs_invoice_due_amount->toFloat())
@@ -95,7 +95,7 @@ class PaymentForm extends Modal
             _ErrorField()->name('amount_applied', false)->noInputWrapper()->class('!my-0'),
 
             _FlexEnd(
-                _SubmitButton('translate.finance.save')->refresh($this->refreshId)->closeModal()
+                _SubmitButton('finance-save')->refresh($this->refreshId)->closeModal()
                     ->when($this->goToApplyModelAfter, fn($e) => $e->inModal()),
             )
         ];

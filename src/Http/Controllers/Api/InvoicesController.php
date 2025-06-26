@@ -19,7 +19,7 @@ class InvoicesController extends Controller
         InvoiceService::createInvoice($data);
 
         return response()->json([
-            'message' => __('translate.invoice-created'),
+            'message' => __('finance.invoice-created'),
         ]);
     }
 
@@ -31,7 +31,7 @@ class InvoicesController extends Controller
         InvoiceService::updateInvoice($data);
 
         return response()->json([
-            'message' => __('translate.invoice-updated'),
+            'message' => __('finance-invoice-updated'),
         ]);
     }
 
@@ -47,7 +47,7 @@ class InvoicesController extends Controller
         }
 
         return response()->json([
-            'message' => __('translate.invoice-detail-created'),
+            'message' => __('finance-invoice-detail-created'),
         ]);
     }
 }

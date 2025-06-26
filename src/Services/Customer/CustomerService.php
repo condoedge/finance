@@ -197,7 +197,7 @@ class CustomerService implements CustomerServiceInterface
     protected function validateCustomableImplementsContract(string $customableClass): void
     {
         if (!in_array(CustomableContract::class, class_implements($customableClass))) {
-            throw new \Exception(__('translate.customable-model-must-implement', ['model' => $customableClass]));
+            throw new \Exception(__('finance-customable-model-must-implement', ['model' => $customableClass]));
         }
     }
 }

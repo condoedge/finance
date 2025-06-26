@@ -18,7 +18,7 @@ class CustomersController extends Controller
         CustomerService::createOrUpdate($data);
 
         return response()->json([
-            'message' => __('translate.customer-created'),
+            'message' => __('finance-customer-created'),
         ]);
     }
 
@@ -30,7 +30,7 @@ class CustomersController extends Controller
         CustomerService::createFromCustomable($data);
 
         return response()->json([
-            'message' => __('translate.customer-created'),
+            'message' => __('finance-customer-created'),
         ]);
     }
 }

@@ -14,10 +14,10 @@ enum InvoiceStatusEnum: int
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT => __('translate.draft'),
-            self::PENDING => __('translate.pending'),
-            self::PAID => __('translate.paid'),
-            self::CANCELLED => __('translate.cancelled'),
+            self::DRAFT => __('finance-draft'),
+            self::PENDING => __('finance-pending'),
+            self::PAID => __('finance-paid'),
+            self::CANCELLED => __('finance-cancelled'),
         };
     }
 

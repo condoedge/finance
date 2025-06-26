@@ -56,7 +56,7 @@ trait ValidatesFiscalPeriod
         try {
             $fiscalService->validateTransactionDate($fiscalDate, $module, $teamId);
         } catch (ValidationException $e) {
-            throw new HttpException(403, __('translate.the-fiscal-period-is-closed-for-this-transaction'), $e);
+            throw new HttpException(403, __('finance-fiscal-period-is-closed-for-this-transaction'), $e);
         }
     }
     
