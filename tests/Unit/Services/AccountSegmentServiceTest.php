@@ -32,8 +32,7 @@ class AccountSegmentServiceTest extends TestCase
         $this->actingAs($this->createUser());
     }
     
-    #[Test]
-    public function it_creates_segment_structure_with_dto()
+    public function test_it_creates_segment_structure_with_dto()
     {
         // Create segment structure
         $segments = [
@@ -58,8 +57,7 @@ class AccountSegmentServiceTest extends TestCase
         $this->assertEquals('XX-XX-XXXX', $this->service->getAccountFormatMask());
     }
     
-    #[Test]
-    public function it_creates_segment_values_with_validation()
+    public function test_it_creates_segment_values_with_validation()
     {
         // Setup structure first
         $this->createTestSegmentStructure();
@@ -82,8 +80,7 @@ class AccountSegmentServiceTest extends TestCase
         $this->assertTrue($value->is_active);
     }
     
-    #[Test]
-    public function it_validates_segment_value_length()
+    public function test_it_validates_segment_value_length()
     {
         $this->createTestSegmentStructure();
         $segment = AccountSegment::where('segment_position', 1)->first();
@@ -102,8 +99,7 @@ class AccountSegmentServiceTest extends TestCase
         $this->service->createSegmentValue($dto);
     }
     
-    #[Test]
-    public function it_prevents_duplicate_segment_values()
+    public function test_it_prevents_duplicate_segment_values()
     {
         $this->createTestSegmentStructure();
         $segment = AccountSegment::where('segment_position', 1)->first();
@@ -124,8 +120,7 @@ class AccountSegmentServiceTest extends TestCase
         $this->service->createSegmentValue($dto);
     }
     
-    #[Test]
-    public function it_creates_account_from_segment_values()
+    public function test_it_creates_account_from_segment_values()
     {
         $this->createTestSegmentStructure();
         $segmentValueIds = $this->createTestSegmentValues();
@@ -152,8 +147,7 @@ class AccountSegmentServiceTest extends TestCase
         $this->assertStringContainsString('-', $account->account_id);
     }
     
-    #[Test]
-    public function it_validates_account_completeness()
+    public function test_it_validates_account_completeness()
     {
         $this->createTestSegmentStructure();
         
@@ -179,8 +173,7 @@ class AccountSegmentServiceTest extends TestCase
         $this->service->createAccount($dto);
     }
     
-    #[Test]
-    public function it_prevents_duplicate_accounts()
+    public function test_it_prevents_duplicate_accounts()
     {
         $this->createTestSegmentStructure();
         $segmentValueIds = $this->createTestSegmentValues();
@@ -212,8 +205,7 @@ class AccountSegmentServiceTest extends TestCase
         $this->service->createAccount($dto2);
     }
     
-    #[Test]
-    public function it_logs_operations()
+    public function test_it_logs_operations()
     {
         $this->createTestSegmentStructure();
         

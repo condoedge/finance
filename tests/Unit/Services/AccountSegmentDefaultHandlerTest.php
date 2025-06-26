@@ -31,8 +31,7 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         $this->actingAs($this->createUserWithTeam($this->team));
     }
 
-    #[Test]
-    public function it_validates_last_segment_must_contain_account_in_description()
+    public function test_it_validates_last_segment_must_contain_account_in_description()
     {
         // Create first segments
         AccountSegmentService::createOrUpdateSegment(new CreateOrUpdateSegmentDto([
@@ -52,8 +51,7 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         ]));
     }
 
-    #[Test]
-    public function it_creates_segment_with_default_handler()
+    public function test_it_creates_segment_with_default_handler()
     {
         $segment = AccountSegmentService::createOrUpdateSegment(new CreateOrUpdateSegmentDto([
             'segment_description' => 'Team',
@@ -67,8 +65,7 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         $this->assertFalse($segment->requiresHandlerConfig());
     }
 
-    #[Test]
-    public function it_creates_segment_with_sequence_handler_and_config()
+    public function test_it_creates_segment_with_sequence_handler_and_config()
     {
         $config = [
             'prefix' => 'D',
@@ -89,8 +86,7 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         $this->assertTrue($segment->requiresHandlerConfig());
     }
 
-    #[Test]
-    public function it_creates_account_from_last_segment_only()
+    public function test_it_creates_account_from_last_segment_only()
     {
         // Set up segments with handlers
         AccountSegmentService::createOrUpdateSegment(new CreateOrUpdateSegmentDto([
@@ -143,8 +139,7 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         $this->assertStringContainsString('1000', $account->account_id); // Account value
     }
 
-    #[Test]
-    public function it_fails_to_create_from_last_segment_when_handlers_missing()
+    public function test_it_fails_to_create_from_last_segment_when_handlers_missing()
     {
         // Create segments without handlers
         AccountSegmentService::createOrUpdateSegment(new CreateOrUpdateSegmentDto([
@@ -180,8 +175,7 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         );
     }
 
-    #[Test]
-    public function it_creates_account_with_fixed_value_handler()
+    public function test_it_creates_account_with_fixed_value_handler()
     {
         // Create segment with fixed value
         AccountSegmentService::createOrUpdateSegment(new CreateOrUpdateSegmentDto([
@@ -219,8 +213,7 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         $this->assertEquals('99-2000', $account->account_id);
     }
 
-    #[Test]
-    public function it_validates_last_segment_on_update()
+    public function test_it_validates_last_segment_on_update()
     {
         // Create segments
         $segment1 = AccountSegmentService::createOrUpdateSegment(new CreateOrUpdateSegmentDto([
@@ -246,8 +239,7 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         ]));
     }
 
-    #[Test]
-    public function it_gets_last_segment()
+    public function test_it_gets_last_segment()
     {
         AccountSegmentService::createOrUpdateSegment(new CreateOrUpdateSegmentDto([
             'segment_description' => 'Team',

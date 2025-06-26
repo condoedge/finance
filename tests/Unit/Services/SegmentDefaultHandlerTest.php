@@ -20,8 +20,7 @@ class SegmentDefaultHandlerTest extends TestCase
     protected AccountSegmentService $segmentService;
     protected SegmentDefaultHandlerService $handlerService;
     
-    #[Test]
-    public function setUp(): void
+    public function test_setUp(): void
     {
         parent::setUp();
         
@@ -35,8 +34,7 @@ class SegmentDefaultHandlerTest extends TestCase
     /**
      * Test creating segment with default handler
      */
-    #[Test]
-    public function test_can_create_segment_with_default_handler()
+    public function test_test_can_create_segment_with_default_handler()
     {
         $dto = new CreateOrUpdateSegmentDto([
             'segment_description' => 'Company Code',
@@ -55,8 +53,7 @@ class SegmentDefaultHandlerTest extends TestCase
     /**
      * Test team handler resolves correctly
      */
-    #[Test]
-    public function test_team_handler_resolves_correct_value()
+    public function test_test_team_handler_resolves_correct_value()
     {
         $segment = $this->createSegmentWithHandler(
             SegmentDefaultHandlerEnum::TEAM->value,
@@ -75,8 +72,7 @@ class SegmentDefaultHandlerTest extends TestCase
     /**
      * Test fiscal year handler
      */
-    #[Test]
-    public function test_fiscal_year_handler_uses_last_digits()
+    public function test_test_fiscal_year_handler_uses_last_digits()
     {
         // Create fiscal year
         $this->createFiscalYear(2025);
@@ -98,8 +94,7 @@ class SegmentDefaultHandlerTest extends TestCase
     /**
      * Test sequence handler with configuration
      */
-    #[Test]
-    public function test_sequence_handler_increments_correctly()
+    public function test_test_sequence_handler_increments_correctly()
     {
         $segment = $this->createSegmentWithHandler(
             SegmentDefaultHandlerEnum::SEQUENCE->value,
@@ -127,8 +122,7 @@ class SegmentDefaultHandlerTest extends TestCase
     /**
      * Test fixed value handler
      */
-    #[Test]
-    public function test_fixed_value_handler()
+    public function test_test_fixed_value_handler()
     {
         $segment = $this->createSegmentWithHandler(
             SegmentDefaultHandlerEnum::FIXED_VALUE->value,
@@ -146,8 +140,7 @@ class SegmentDefaultHandlerTest extends TestCase
     /**
      * Test creating account with defaults
      */
-    #[Test]
-    public function test_create_account_with_default_handlers()
+    public function test_test_create_account_with_default_handlers()
     {
         // Create segment structure with handlers
         $this->createSegmentWithHandler(SegmentDefaultHandlerEnum::PARENT_TEAM->value, 2, 'Company', null, 1);
@@ -180,8 +173,7 @@ class SegmentDefaultHandlerTest extends TestCase
     /**
      * Test validation of handler configuration
      */
-    #[Test]
-    public function test_validates_handler_configuration()
+    public function test_test_validates_handler_configuration()
     {
         $handler = SegmentDefaultHandlerEnum::SEQUENCE;
         
@@ -196,8 +188,7 @@ class SegmentDefaultHandlerTest extends TestCase
     /**
      * Test handler options for UI
      */
-    #[Test]
-    public function test_get_handler_options_for_ui()
+    public function test_test_get_handler_options_for_ui()
     {
         $options = $this->segmentService->getSegmentHandlerOptions(1);
         

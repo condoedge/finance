@@ -30,8 +30,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->accountService = app(GlAccountService::class);
     }
     
-    #[Test]
-    public function it_can_setup_default_segment_structure()
+    public function test_it_can_setup_default_segment_structure()
     {
         // Setup default structure
         $this->segmentService->setupDefaultSegmentStructure();
@@ -53,8 +52,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals(4, $segments[2]->segment_length);
     }
     
-    #[Test]
-    public function it_can_create_segment_values()
+    public function test_it_can_create_segment_values()
     {
         // Setup structure first
         $this->segmentService->setupDefaultSegmentStructure();
@@ -75,8 +73,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals('Cash Account', $account->segment_description);
     }
     
-    #[Test]
-    public function it_validates_segment_value_length()
+    public function test_it_validates_segment_value_length()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         
@@ -87,8 +84,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->segmentService->createSegmentValue(1, '100', 'invalid_length'); // Position 1 expects 2 chars
     }
     
-    #[Test]
-    public function it_can_validate_segment_combinations()
+    public function test_it_can_validate_segment_combinations()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         $this->segmentService->setupSampleSegmentValues();
@@ -106,8 +102,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertFalse($this->segmentService->validateSegmentCombination($nonExistentCombination));
     }
     
-    #[Test]
-    public function it_can_create_accounts_from_segments()
+    public function test_it_can_create_accounts_from_segments()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         $this->segmentService->setupSampleSegmentValues();
@@ -137,8 +132,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals(['10', '03', '4000'], array_values($segments));
     }
     
-    #[Test]
-    public function it_can_create_accounts_using_gl_account_service()
+    public function test_it_can_create_accounts_using_gl_account_service()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         $this->segmentService->setupSampleSegmentValues();
@@ -162,8 +156,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertStringContains('Material Expense', $account->account_description);
     }
     
-    #[Test]
-    public function it_can_create_accounts_using_dto()
+    public function test_it_can_create_accounts_using_dto()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         $this->segmentService->setupSampleSegmentValues();
@@ -183,8 +176,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals('EXPENSE', $account->account_type);
     }
     
-    #[Test]
-    public function it_can_create_dto_from_account_id()
+    public function test_it_can_create_dto_from_account_id()
     {
         $dto = CreateAccountFromSegmentsDto::fromAccountId(
             '10-03-4000',
@@ -198,8 +190,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals('ASSET', $dto->accountType);
     }
     
-    #[Test]
-    public function it_prevents_duplicate_accounts()
+    public function test_it_prevents_duplicate_accounts()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         $this->segmentService->setupSampleSegmentValues();
@@ -220,8 +211,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->segmentService->createAccount($segmentCodes, $attributes);
     }
     
-    #[Test]
-    public function it_can_find_or_create_accounts()
+    public function test_it_can_find_or_create_accounts()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         $this->segmentService->setupSampleSegmentValues();
@@ -241,8 +231,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals($account1->id, $account2->id);
     }
     
-    #[Test]
-    public function it_can_parse_and_build_account_ids()
+    public function test_it_can_parse_and_build_account_ids()
     {
         $accountId = '10-03-4000';
         
@@ -255,8 +244,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals($accountId, $rebuiltId);
     }
     
-    #[Test]
-    public function it_can_get_account_format_mask()
+    public function test_it_can_get_account_format_mask()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         
@@ -264,8 +252,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals('XX-XX-XXXX', $formatMask);
     }
     
-    #[Test]
-    public function it_can_get_segment_usage_statistics()
+    public function test_it_can_get_segment_usage_statistics()
     {
         $this->segmentService->setupDefaultSegmentStructure();
         $this->segmentService->setupSampleSegmentValues();
@@ -289,8 +276,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertCount(2, $usage['accounts_using']);
     }
     
-    #[Test]
-    public function it_validates_segment_structure_consistency()
+    public function test_it_validates_segment_structure_consistency()
     {
         // Empty structure should have issues
         $issues = $this->segmentService->validateSegmentStructure();

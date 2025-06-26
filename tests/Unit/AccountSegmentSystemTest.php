@@ -15,8 +15,7 @@ class AccountSegmentSystemTest extends TestCase
 {
     use RefreshDatabase;
     
-    #[Test]
-    public function it_can_create_segment_structure()
+    public function test_it_can_create_segment_structure()
     {
         // Create segment structure
         AccountSegmentService::setupDefaultSegmentStructure();
@@ -37,8 +36,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals(4, $segment3->segment_length);
     }
     
-    #[Test]
-    public function it_can_create_segment_values()
+    public function test_it_can_create_segment_values()
     {
         // Setup structure first
         AccountSegmentService::setupDefaultSegmentStructure();
@@ -55,8 +53,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertTrue($value1->is_active);
     }
     
-    #[Test]
-    public function it_validates_segment_value_length()
+    public function test_it_validates_segment_value_length()
     {
         AccountSegmentService::setupDefaultSegmentStructure();
         
@@ -65,8 +62,7 @@ class AccountSegmentSystemTest extends TestCase
         AccountSegmentService::createSegmentValue(1, '123', 'Too Long'); // Position 1 expects 2 chars
     }
     
-    #[Test]
-    public function it_can_create_account_from_segments()
+    public function test_it_can_create_account_from_segments()
     {
         // Setup
         $this->setupTeam();
@@ -99,8 +95,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertEquals(3, $assignments);
     }
     
-    #[Test]
-    public function it_prevents_duplicate_accounts()
+    public function test_it_prevents_duplicate_accounts()
     {
         // Setup
         $this->setupTeam();
@@ -131,8 +126,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertDatabaseCount('fin_gl_accounts', 1);
     }
     
-    #[Test]
-    public function it_can_parse_account_id()
+    public function test_it_can_parse_account_id()
     {
         $segments = AccountSegmentService::parseAccountId('10-03-4000');
         
@@ -143,8 +137,7 @@ class AccountSegmentSystemTest extends TestCase
         ], $segments);
     }
     
-    #[Test]
-    public function it_can_search_accounts_by_pattern()
+    public function test_it_can_search_accounts_by_pattern()
     {
         // Setup
         $this->setupTeam();
@@ -181,8 +174,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertTrue($results->pluck('account_id')->contains('20-03-4000'));
     }
     
-    #[Test]
-    public function it_validates_segment_combination()
+    public function test_it_validates_segment_combination()
     {
         AccountSegmentService::setupDefaultSegmentStructure();
         AccountSegmentService::setupSampleSegmentValues();
@@ -211,8 +203,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertFalse($invalid);
     }
     
-    #[Test]
-    public function it_tracks_segment_value_usage()
+    public function test_it_tracks_segment_value_usage()
     {
         // Setup
         $this->setupTeam();
@@ -241,8 +232,7 @@ class AccountSegmentSystemTest extends TestCase
         $this->assertFalse($segmentValue->canBeDeleted());
     }
     
-    #[Test]
-    public function it_generates_account_format_mask()
+    public function test_it_generates_account_format_mask()
     {
         AccountSegmentService::setupDefaultSegmentStructure();
         

@@ -70,8 +70,7 @@ class GlTransactionServiceTest extends TestCase
         ]);
     }
     
-    #[Test]
-    public function it_can_create_balanced_gl_transaction()
+    public function test_it_can_create_balanced_gl_transaction()
     {
         $dto = new CreateGlTransactionDto([
             'fiscal_date' => '2024-01-15',
@@ -111,8 +110,7 @@ class GlTransactionServiceTest extends TestCase
         $this->assertEquals(0, $debitLine->credit_amount);
     }
     
-    #[Test]
-    public function it_prevents_creating_unbalanced_transaction()
+    public function test_it_prevents_creating_unbalanced_transaction()
     {
         $dto = new CreateGlTransactionDto([
             'fiscal_date' => '2024-01-15',
@@ -138,8 +136,7 @@ class GlTransactionServiceTest extends TestCase
         $this->service->createTransaction($dto);
     }
     
-    #[Test]
-    public function it_can_post_balanced_transaction()
+    public function test_it_can_post_balanced_transaction()
     {
         $dto = new CreateGlTransactionDto([
             'fiscal_date' => '2024-01-15',
@@ -169,8 +166,7 @@ class GlTransactionServiceTest extends TestCase
         $this->assertTrue($transaction->is_posted);
     }
     
-    #[Test]
-    public function it_prevents_posting_unbalanced_transaction()
+    public function test_it_prevents_posting_unbalanced_transaction()
     {
         // Create transaction directly to bypass validation
         $transaction = GlTransactionHeader::create([
@@ -191,8 +187,7 @@ class GlTransactionServiceTest extends TestCase
         $this->service->postTransaction($transaction);
     }
     
-    #[Test]
-    public function it_prevents_modifying_posted_transaction()
+    public function test_it_prevents_modifying_posted_transaction()
     {
         $dto = new CreateGlTransactionDto([
             'fiscal_date' => '2024-01-15',
@@ -225,8 +220,7 @@ class GlTransactionServiceTest extends TestCase
         $this->service->updateTransaction($transaction, $updateDto);
     }
     
-    #[Test]
-    public function it_generates_sequential_transaction_numbers()
+    public function test_it_generates_sequential_transaction_numbers()
     {
         $transactions = [];
         
@@ -264,8 +258,7 @@ class GlTransactionServiceTest extends TestCase
         $this->assertEquals('2024-01-000003', $transactions[2]->gl_transaction_id);
     }
     
-    #[Test]
-    public function it_restricts_manual_entry_accounts()
+    public function test_it_restricts_manual_entry_accounts()
     {
         // Create restricted account
         $this->segmentService->createAccount([1 => '10', 2 => '03', 3 => '9999'], [
@@ -299,8 +292,7 @@ class GlTransactionServiceTest extends TestCase
         $this->service->createTransaction($dto);
     }
     
-    #[Test]
-    public function it_allows_system_transactions_to_use_restricted_accounts()
+    public function test_it_allows_system_transactions_to_use_restricted_accounts()
     {
         // Create restricted account
         $this->segmentService->createAccount([1 => '10', 2 => '03', 3 => '9999'], [

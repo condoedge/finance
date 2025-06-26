@@ -28,8 +28,7 @@ class GlTransactionSystemTest extends TestCase
         $this->setupTestEnvironment();
     }
     
-    #[Test]
-    public function it_can_create_manual_gl_transaction()
+    public function test_it_can_create_manual_gl_transaction()
     {
         // Prepare transaction data
         $dto = new CreateGlTransactionDto([
@@ -77,8 +76,7 @@ class GlTransactionSystemTest extends TestCase
         $this->assertEquals(1000.00, $creditLine->credit_amount);
     }
     
-    #[Test]
-    public function it_validates_transaction_balance()
+    public function test_it_validates_transaction_balance()
     {
         // Unbalanced transaction
         $dto = new CreateGlTransactionDto([
@@ -104,8 +102,7 @@ class GlTransactionSystemTest extends TestCase
         $this->service->createManualGlTransaction($dto);
     }
     
-    #[Test]
-    public function it_validates_fiscal_period_is_open()
+    public function test_it_validates_fiscal_period_is_open()
     {
         // Close the period for GL
         $period = FiscalPeriod::getPeriodFromDate(Carbon::parse('2025-06-15'));
@@ -126,8 +123,7 @@ class GlTransactionSystemTest extends TestCase
         $this->service->createManualGlTransaction($dto);
     }
     
-    #[Test]
-    public function it_validates_accounts_allow_manual_entry()
+    public function test_it_validates_accounts_allow_manual_entry()
     {
         // Create account that doesn't allow manual entry
         $account = GlAccount::where('account_id', '10-03-4000')->first();
@@ -148,8 +144,7 @@ class GlTransactionSystemTest extends TestCase
         $this->service->createManualGlTransaction($dto);
     }
     
-    #[Test]
-    public function it_generates_sequential_transaction_numbers()
+    public function test_it_generates_sequential_transaction_numbers()
     {
         // Create multiple transactions
         $transactions = [];
@@ -177,8 +172,7 @@ class GlTransactionSystemTest extends TestCase
         $this->assertEquals('2025-01-000003', $transactions[2]->gl_transaction_id);
     }
     
-    #[Test]
-    public function it_can_post_transaction()
+    public function test_it_can_post_transaction()
     {
         // Create transaction
         $dto = new CreateGlTransactionDto([
@@ -202,8 +196,7 @@ class GlTransactionSystemTest extends TestCase
         $this->assertFalse($transaction->canBeModified());
     }
     
-    #[Test]
-    public function it_cannot_post_unbalanced_transaction()
+    public function test_it_cannot_post_unbalanced_transaction()
     {
         // Create transaction and manually make it unbalanced (simulating data corruption)
         $transaction = GlTransactionHeader::create([
@@ -224,8 +217,7 @@ class GlTransactionSystemTest extends TestCase
         $this->service->postTransaction($transaction);
     }
     
-    #[Test]
-    public function it_prevents_modification_of_posted_transaction()
+    public function test_it_prevents_modification_of_posted_transaction()
     {
         // Create and post transaction
         $dto = new CreateGlTransactionDto([
@@ -247,8 +239,7 @@ class GlTransactionSystemTest extends TestCase
         $transaction->save();
     }
     
-    #[Test]
-    public function it_calculates_totals_correctly()
+    public function test_it_calculates_totals_correctly()
     {
         $dto = new CreateGlTransactionDto([
             'fiscal_date' => '2025-06-15',
@@ -268,8 +259,7 @@ class GlTransactionSystemTest extends TestCase
         $this->assertTrue($transaction->is_balanced);
     }
     
-    #[Test]
-    public function it_handles_different_transaction_types()
+    public function test_it_handles_different_transaction_types()
     {
         // Create transactions of different types
         $types = [
