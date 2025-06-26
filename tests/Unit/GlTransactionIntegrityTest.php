@@ -27,13 +27,12 @@ class GlTransactionIntegrityTest extends TestCase
         
         // Setup fiscal year
         $this->fiscalSetup = FiscalYearSetup::create([
-            'company_fiscal_start_date' => '2024-05-01',
+            'fiscal_start_date' => '2024-05-01',
             'is_active' => true,
         ]);
         
         // Setup fiscal period
         $this->fiscalPeriod = FiscalPeriod::create([
-            'period_id' => 'per01',
             'fiscal_year' => 2025,
             'period_number' => 1,
             'start_date' => '2024-05-01',

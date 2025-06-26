@@ -2,35 +2,31 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
+use Condoedge\Utils\Models\Model;
 
-class FiscalYearSetup extends AbstractMainFinanceModel
+class FiscalYearSetup extends Model
 {
-    use HasIntegrityCheck;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     
     protected $table = 'fin_fiscal_year_setup';
     
     protected $fillable = [
         'team_id',
-        'company_fiscal_start_date',
-        'is_active',
+        'fiscal_start_date',
     ];
     
     protected $casts = [
-        'company_fiscal_start_date' => 'date',
-        'is_active' => 'boolean',
+        'fiscal_start_date' => 'date',
     ];
-      /**
+
+    /**
      * Get the current active fiscal year setup for a team
      */
     public static function getActiveForTeam(int $teamId = null): ?self
     {
         $teamId = $teamId ?? currentTeamId();
         
-        return static::where('team_id', $teamId)
-            ->where('is_active', true)
-            ->first();
+        return static::forTeam($teamId)->first();
     }
     
     /**
@@ -47,7 +43,7 @@ class FiscalYearSetup extends AbstractMainFinanceModel
      */
     public function getFiscalYear(\Carbon\Carbon $date): int
     {
-        $fiscalStart = $this->company_fiscal_start_date->copy();
+        $fiscalStart = $this->fiscal_start_date->copy();
         
         // If date is before fiscal start in the same year, use previous fiscal year
         if ($date->lt($fiscalStart->copy()->year($date->year))) {
@@ -62,7 +58,7 @@ class FiscalYearSetup extends AbstractMainFinanceModel
      */
     public function getFiscalYearStart(int $fiscalYear): \Carbon\Carbon
     {
-        return $this->company_fiscal_start_date->copy()->year($fiscalYear);
+        return $this->fiscal_start_date->copy()->year($fiscalYear);
     }
     
     /**
@@ -72,7 +68,8 @@ class FiscalYearSetup extends AbstractMainFinanceModel
     {
         return $this->getFiscalYearStart($fiscalYear + 1)->subDay();
     }
-      /**
+
+    /**
      * Check if a date falls within a fiscal year
      */
     public function isDateInFiscalYear(\Carbon\Carbon $date, int $fiscalYear): bool
@@ -88,7 +85,7 @@ class FiscalYearSetup extends AbstractMainFinanceModel
      */
     public static function getActive(): ?self
     {
-        return static::where('is_active', true)->first();
+        return static::first();
     }
     
     /**
@@ -96,13 +93,13 @@ class FiscalYearSetup extends AbstractMainFinanceModel
      */
     public static function getFiscalYearFromDate(\Carbon\Carbon $date): ?int
     {
-        $setup = static::getActive();
+        $setup = static::first();
         if (!$setup) {
             return null;
         }
         
-        $fiscalStartMonth = $setup->company_fiscal_start_date->month;
-        $fiscalStartDay = $setup->company_fiscal_start_date->day;
+        $fiscalStartMonth = $setup->fiscal_start_date->month;
+        $fiscalStartDay = $setup->fiscal_start_date->day;
         
         // If date is after fiscal start in same year, it's next fiscal year
         if ($date->month > $fiscalStartMonth || 
@@ -111,13 +108,5 @@ class FiscalYearSetup extends AbstractMainFinanceModel
         }
         
         return $date->year;
-    }
-    
-    /**
-     * No calculated columns for this model
-     */
-    public static function columnsIntegrityCalculations()
-    {
-        return [];
     }
 }

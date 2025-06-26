@@ -89,7 +89,7 @@ class GlTransactionLineForm extends Form
         }
         
         // Build query for available accounts
-        $query = GlAccount::forTeam()->active();
+        $query = GlAccount::active();
         
         // For manual GL transactions, only show accounts that allow manual entry
         if ($this->transactionType === \Condoedge\Finance\Models\GlTransactionHeader::TYPE_MANUAL_GL) {

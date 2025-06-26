@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Utils\Models\Model;
 
 /**
@@ -20,12 +21,7 @@ class SegmentValue extends Model
 {
     protected $table = 'fin_segment_values';
     
-    protected $fillable = [
-        'segment_definition_id',
-        'segment_value',
-        'segment_description',
-        'is_active',
-    ];
+    // Removed fillable - using property assignment instead
     
     protected $casts = [
         'segment_definition_id' => 'integer',
@@ -62,6 +58,13 @@ class SegmentValue extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function scopeForLastSegment($query)
+    {
+        return $query->whereHas('segmentDefinition', function($q) {
+            $q->where('segment_position', AccountSegmentService::getLastSegmentPosition());
+        });
     }
     
     /**
@@ -116,36 +119,6 @@ class SegmentValue extends Model
     }
     
     /**
-     * Create segment value with validation
-     */
-    public static function createWithValidation(array $attributes): self
-    {
-        // Validate segment definition exists
-        $segmentDefinition = AccountSegment::find($attributes['segment_definition_id']);
-        if (!$segmentDefinition) {
-            throw new \InvalidArgumentException('Invalid segment_definition_id');
-        }
-        
-        // Validate segment value length
-        if (strlen($attributes['segment_value']) !== $segmentDefinition->segment_length) {
-            throw new \InvalidArgumentException(
-                "Segment value length must be {$segmentDefinition->segment_length} characters"
-            );
-        }
-        
-        // Check for duplicates
-        $exists = static::where('segment_definition_id', $attributes['segment_definition_id'])
-            ->where('segment_value', $attributes['segment_value'])
-            ->exists();
-            
-        if ($exists) {
-            throw new \InvalidArgumentException('Segment value already exists for this position');
-        }
-        
-        return static::create($attributes);
-    }
-    
-    /**
      * Get usage count (how many accounts use this segment value)
      */
     public function getUsageCount(): int
@@ -159,5 +132,10 @@ class SegmentValue extends Model
     public function canBeDeleted(): bool
     {
         return $this->getUsageCount() === 0;
+    }
+
+    public function deletable()
+    {
+        return true;
     }
 }

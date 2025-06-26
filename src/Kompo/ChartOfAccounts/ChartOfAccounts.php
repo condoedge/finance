@@ -17,6 +17,8 @@ class ChartOfAccounts extends Form
     protected $segmentStructure;
     protected $lastSegmentDefinition;
 
+    public $id = 'finance-chart-of-accounts';
+
     public function created()
     {
         $this->accountType = $this->prop('account_type') ?: 'all';

@@ -58,6 +58,20 @@ enum GlTransactionTypeEnum: int
             self::PAYABLE => 'AP',
         };
     }
+    
+    /**
+     * Get module code for fiscal period management
+     * This matches the codes used in fiscal period open/close operations
+     */
+    public function moduleCode(): string
+    {
+        return match($this) {
+            self::MANUAL_GL => 'GL',
+            self::BANK => 'BNK',
+            self::RECEIVABLE => 'RM',
+            self::PAYABLE => 'PM',
+        };
+    }
 
     /**
      * Check if this transaction type allows manual account entries
@@ -73,6 +87,41 @@ enum GlTransactionTypeEnum: int
     public static function getValidValues(): array
     {
         return array_column(self::cases(), 'value');
+    }
+    
+    /**
+     * Get enum from module code (GL, BNK, RM, PM)
+     */
+    public static function fromModuleCode(string $moduleCode): ?self
+    {
+        return match(strtoupper($moduleCode)) {
+            'GL' => self::MANUAL_GL,
+            'BNK' => self::BANK,
+            'RM' => self::RECEIVABLE,
+            'PM' => self::PAYABLE,
+            default => null,
+        };
+    }
+    
+    /**
+     * Get all valid module codes
+     */
+    public static function getValidModuleCodes(): array
+    {
+        return array_map(fn($case) => $case->moduleCode(), self::cases());
+    }
+    
+    /**
+     * Get module code to enum mapping
+     */
+    public static function moduleCodeMapping(): array
+    {
+        return [
+            'GL' => self::MANUAL_GL,
+            'BNK' => self::BANK,
+            'RM' => self::RECEIVABLE,
+            'PM' => self::PAYABLE,
+        ];
     }
 
 }

@@ -16,7 +16,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('structure', [\Condoedge\Finance\Http\Controllers\Api\AccountSegmentController::class, 'createSegment']);
         Route::put('structure/{segment}', [\Condoedge\Finance\Http\Controllers\Api\AccountSegmentController::class, 'updateSegment']);
         Route::delete('structure/{segment}', [\Condoedge\Finance\Http\Controllers\Api\AccountSegmentController::class, 'deleteSegment']);
-        
+
         Route::get('values/{position}', [\Condoedge\Finance\Http\Controllers\Api\AccountSegmentController::class, 'getValues']);
         Route::post('values', [\Condoedge\Finance\Http\Controllers\Api\AccountSegmentController::class, 'createValue']);
         Route::put('values/{value}', [\Condoedge\Finance\Http\Controllers\Api\AccountSegmentController::class, 'updateValue']);

@@ -19,10 +19,7 @@ class AccountSegmentAssignment extends Model
 {
     protected $table = 'fin_account_segment_assignments';
     
-    protected $fillable = [
-        'account_id',
-        'segment_value_id',
-    ];
+    // Removed fillable - using property assignment instead
     
     protected $casts = [
         'account_id' => 'integer',
@@ -68,14 +65,14 @@ class AccountSegmentAssignment extends Model
     {
         DB::transaction(function () use ($accountId, $segmentValueIds) {
             // Clear existing assignments
-            static::where('id', $accountId)->delete();
+            static::where('account_id', $accountId)->delete();
             
             // Create new assignments
             foreach ($segmentValueIds as $segmentValueId) {
-                $assigment = new static();
-                $assigment->account_id = $accountId;
-                $assigment->segment_value_id = $segmentValueId;
-                $assigment->save();
+                $assignment = new static();
+                $assignment->account_id = $accountId;
+                $assignment->segment_value_id = $segmentValueId;
+                $assignment->save();
             }
         });
     }

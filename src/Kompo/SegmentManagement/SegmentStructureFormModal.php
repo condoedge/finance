@@ -2,7 +2,9 @@
 
 namespace Condoedge\Finance\Kompo\SegmentManagement;
 
+use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Models\AccountSegment;
+use Condoedge\Finance\Enums\SegmentDefaultHandlerEnum;
 use Kompo\Form;
 
 class SegmentStructureFormModal extends Form
@@ -11,15 +13,30 @@ class SegmentStructureFormModal extends Form
     
     protected $isEditMode = false;
     protected $maxPosition;
+    protected $isLastSegment = false;
     
     public function created()
     {
         if ($this->model->id) {
             $this->isEditMode = true;
+            // Check if this is the last segment
+            $this->isLastSegment = $this->model->segment_position === AccountSegment::max('segment_position');
         }
         
         // Get the next available position
         $this->maxPosition = AccountSegment::max('segment_position') ?? 0;
+    }
+
+    public function handle()
+    {
+        AccountSegmentService::createOrUpdateSegment(new \Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto([
+            'id' => $this->model->id,
+            'segment_description' => request('segment_description'),
+            'segment_position' => request('segment_position'),
+            'segment_length' => request('segment_length'),
+            'default_handler' => request('default_handler'),
+            'default_handler_config' => request('default_handler_config'),
+        ]));
     }
     
     public function render()
@@ -46,13 +63,8 @@ class SegmentStructureFormModal extends Form
                     ->type('number')
                     ->min(1)
                     ->max(10)
-                    ->required()
-                    ->default($this->isEditMode ? $this->model->segment_position : $this->maxPosition + 1)
-                    ->disabled($this->isEditMode) // Cannot change position once created
-                    ->comment($this->isEditMode ? 
-                        __('finance-position-cannot-be-changed') : 
-                        __('finance-position-determines-order')
-                    ),
+                    ->default($this->maxPosition + 1)
+                    ->required(),
                 
                 _Input('finance-segment-length')
                     ->name('segment_length')
@@ -60,14 +72,23 @@ class SegmentStructureFormModal extends Form
                     ->type('number')
                     ->min(1)
                     ->max(10)
-                    ->required()
-                    ->default($this->isEditMode ? $this->model->segment_length : 2)
-                    ->disabled($this->isEditMode && $this->model->hasValues())
-                    ->comment(
-                        $this->isEditMode && $this->model->hasValues() ? 
-                        __('finance-length-cannot-be-changed-has-values') : 
-                        __('finance-number-of-characters-for-segment')
-                    ),
+                    ->required(),
+                    
+                // Default handler selection
+                _Select('finance-default-handler')
+                    ->name('default_handler')
+                    ->options(
+                        collect(SegmentDefaultHandlerEnum::cases())
+                            ->mapWithKeys(fn($handler) => [$handler->value => $handler->label()])
+                            ->toArray()
+                    )
+                    ->placeholder(__('finance.manual-entry-default'))
+                    ->selfPost('renderHandlerConfig')->withAllFormValues()->inPanel('handler-config-panel'),
+                    
+                // Handler configuration panel
+                _Panel(
+                    $this->renderHandlerConfig()
+                )->id('handler-config-panel'),
                     
                 // Show current structure preview
                 _Panel(
@@ -119,41 +140,85 @@ class SegmentStructureFormModal extends Form
         )->class('mt-4 p-3 bg-gray-50');
     }
     
-    public function beforeSave()
+    /**
+     * Render handler-specific configuration fields
+     */
+    public function renderHandlerConfig()
     {
-        // Validate position uniqueness
-        if (!$this->isEditMode) {
-            $position = request('segment_position');
-            
-            if (AccountSegment::where('segment_position', $position)->exists()) {
-                // Need to reorder positions
-                AccountSegment::where('segment_position', '>=', $position)
-                    ->increment('segment_position');
-            }
+        $handler = request('default_handler') ?: $this->model->default_handler;
+        
+        if (!$handler) {
+            return null;
         }
         
-        // Validate that changing length won't break existing values
-        if ($this->isEditMode && $this->model->hasValues()) {
-            $newLength = request('segment_length');
-            if ($newLength != $this->model->segment_length) {
-                throw new \Exception(__('finance-cannot-change-length-with-values'));
-            }
+        $handlerEnum = SegmentDefaultHandlerEnum::tryFrom($handler);
+        if (!$handlerEnum || !$handlerEnum->requiresConfig()) {
+            return null;
         }
+        
+        return _Rows(
+            match($handler) {
+                SegmentDefaultHandlerEnum::SEQUENCE->value => $this->renderSequenceConfig(),
+                SegmentDefaultHandlerEnum::FIXED_VALUE->value => $this->renderFixedValueConfig(),
+                default => null
+            }
+        )->class('mt-4 p-4 bg-gray-50 rounded-lg');
     }
     
-    public function completed()
+    /**
+     * Render sequence handler configuration
+     */
+    protected function renderSequenceConfig()
     {
-        // Ensure positions are sequential
-        AccountSegment::reorderPositions();
+        return _Rows(
+            _Input('finance-prefix')
+                ->name('default_handler_config[prefix]')
+                ->placeholder(__('finance.optional-prefix-eg-gl'))
+                ->default($this->model->default_handler_config['prefix'] ?? '')
+                ->maxlength(5),
+                
+            _Select('finance-sequence-scope')
+                ->name('default_handler_config[sequence_scope]')
+                ->options([
+                    'global' => __('finance.global-sequence'),
+                    'team' => __('finance.per-team-sequence'),
+                    'parent_team' => __('finance.per-parent-team-sequence'),
+                ])
+                ->default($this->model->default_handler_config['sequence_scope'] ?? 'team')
+                ->required(),
+                
+            _Input('finance-start-value')
+                ->name('default_handler_config[start_value]')
+                ->type('number')
+                ->min(0)
+                ->default($this->model->default_handler_config['start_value'] ?? 1)
+                ->placeholder(__('finance.starting-number'))
+        )->class('gap-4');
+    }
+    
+    /**
+     * Render fixed value configuration
+     */
+    protected function renderFixedValueConfig()
+    {
+        return _Input('finance-fixed-value')
+            ->name('default_handler_config[value]')
+            ->placeholder(__('finance.enter-fixed-value'))
+            ->default($this->model->default_handler_config['value'] ?? '')
+            ->maxlength($this->model->segment_length ?: 10)
+            ->required();
     }
     
     public function rules()
     {
-        return [
-            'segment_description' => 'required|string|max:255',
+        $rules = [
+            'segment_description' => ['required', 'string', 'max:255'],
             'segment_position' => 'required|integer|min:1|max:10|unique:fin_account_segments,segment_position' . 
                 ($this->isEditMode ? ',' . $this->model->id : ''),
             'segment_length' => 'required|integer|min:1|max:10',
+            'default_handler' => 'nullable|string|in:' . collect(SegmentDefaultHandlerEnum::cases())->pluck('value')->implode(','),
         ];
+        
+        return $rules;
     }
 }

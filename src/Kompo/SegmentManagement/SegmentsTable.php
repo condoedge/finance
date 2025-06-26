@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Kompo\SegmentManagement;
 
+use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Utils\Kompo\Common\Table;
 
@@ -43,10 +44,7 @@ class SegmentsTable extends Table
                     ->selfGet('getSegmentStructureFormModal', [
                         'segment_id' => $segment->id
                     ])->inModal(),
-                _Link()->icon('trash')
-                    ->selfPost('deleteSegmentStructure', [
-                        'segment_id' => $segment->id
-                    ]),
+                _Delete($segment),
             )->class('space-x-2')
         );
     }

@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 use Condoedge\Finance\Models\Traits\ValidatesFiscalPeriod;
 use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -58,9 +59,13 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         return $this->fiscal_date ? Carbon::parse($this->fiscal_date) : null;
     }
     
-    protected function getModuleForValidation(): ?string
+    protected function getModuleForValidation(): ?GlTransactionTypeEnum
     {
-        return $this->mapTransactionTypeToModule($this->gl_transaction_type ?? self::TYPE_MANUAL_GL);
+        try {
+            return GlTransactionTypeEnum::from($this->gl_transaction_type ?? self::TYPE_MANUAL_GL);
+        } catch (\ValueError $e) {
+            return GlTransactionTypeEnum::MANUAL_GL;
+        }
     }
     
     protected function shouldValidateFiscalPeriod(): bool
@@ -74,7 +79,8 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     }
     
     /**
-     * Map GL transaction type to fiscal module
+     * Map GL transaction type to fiscal module string
+     * @deprecated Use getModuleForValidation() which returns proper enum
      */
     protected function mapTransactionTypeToModule(int $transactionType): string
     {
@@ -97,7 +103,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     
     public function fiscalPeriod()
     {
-        return $this->belongsTo(FiscalPeriod::class, 'fiscal_period', 'period_id');
+        return $this->belongsTo(FiscalPeriod::class, 'fiscal_period');
     }
     
     public function customer()
@@ -161,7 +167,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         
         return [
             'fiscal_year' => $fiscalYear,
-            'fiscal_period' => $period->period_id,
+            'fiscal_period' => $period->id,
         ];
     }
     
@@ -185,8 +191,11 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         
         // Cannot modify if period is closed
         $period = $this->fiscalPeriod;
-        if ($period && !$period->isOpenForTransactionType($this->gl_transaction_type)) {
-            return false;
+        if ($period) {
+            $module = $this->getModuleForValidation();
+            if ($module && !$period->isOpenForModule($module)) {
+                return false;
+            }
         }
         
         return true;

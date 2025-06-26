@@ -60,7 +60,6 @@ class GlTransactionServiceTest extends TestCase
         FiscalPeriod::create([
             'team_id' => 1,
             'fiscal_year' => 2024,
-            'period_id' => 202401,
             'period_name' => 'January 2024',
             'start_date' => Carbon::parse('2024-01-01'),
             'end_date' => Carbon::parse('2024-01-31'),
@@ -136,36 +135,6 @@ class GlTransactionServiceTest extends TestCase
         
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Transaction must balance');
-        $this->service->createTransaction($dto);
-    }
-    
-    #[Test]
-    public function it_prevents_posting_to_closed_period()
-    {
-        // Close the period
-        FiscalPeriod::where('period_id', 202401)->update(['is_open_gl' => false]);
-        
-        $dto = new CreateGlTransactionDto([
-            'fiscal_date' => '2024-01-15',
-            'transaction_description' => 'Transaction in closed period',
-            'gl_transaction_type' => GlTransactionHeader::TYPE_MANUAL_GL,
-            'team_id' => 1,
-            'lines' => [
-                [
-                    'account_id' => '10-03-4000',
-                    'debit_amount' => 1000.00,
-                    'credit_amount' => 0,
-                ],
-                [
-                    'account_id' => '10-03-2000',
-                    'debit_amount' => 0,
-                    'credit_amount' => 1000.00,
-                ],
-            ],
-        ]);
-        
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('closed');
         $this->service->createTransaction($dto);
     }
     

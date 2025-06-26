@@ -314,10 +314,6 @@ class GlTransactionSystemTest extends TestCase
             'fiscal_start_date' => '2024-05-01',
         ]);
         
-        // Generate fiscal periods
-        app(\Condoedge\Finance\Services\FiscalYearService::class)
-            ->generateFiscalPeriods($this->team->id, 2025, 12);
-        
         // Setup account segments and accounts
         AccountSegmentService::setupDefaultSegmentStructure();
         AccountSegmentService::setupSampleSegmentValues();

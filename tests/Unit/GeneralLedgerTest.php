@@ -27,7 +27,7 @@ class GeneralLedgerTest extends TestCase
         // Set up fiscal year starting May 1st
         $this->fiscalYearSetup = FiscalYearSetup::create([
             'team_id' => $this->team->id,
-            'company_fiscal_start_date' => '2024-05-01',
+            'fiscal_start_date' => '2024-05-01',
             'is_active' => true,
         ]);
     }
@@ -197,13 +197,13 @@ class GeneralLedgerTest extends TestCase
         // Create fiscal setup for both teams
         FiscalYearSetup::create([
             'team_id' => $this->team->id,
-            'company_fiscal_start_date' => '2024-05-01',
+            'fiscal_start_date' => '2024-05-01',
             'is_active' => true,
         ]);
         
         FiscalYearSetup::create([
             'team_id' => $otherTeam->id,
-            'company_fiscal_start_date' => '2024-01-01',
+            'fiscal_start_date' => '2024-01-01',
             'is_active' => true,
         ]);
         
@@ -211,8 +211,8 @@ class GeneralLedgerTest extends TestCase
         $thisTeamSetup = FiscalYearSetup::getActiveForTeam($this->team->id);
         $otherTeamSetup = FiscalYearSetup::getActiveForTeam($otherTeam->id);
         
-        $this->assertEquals('2024-05-01', $thisTeamSetup->company_fiscal_start_date->format('Y-m-d'));
-        $this->assertEquals('2024-01-01', $otherTeamSetup->company_fiscal_start_date->format('Y-m-d'));
+        $this->assertEquals('2024-05-01', $thisTeamSetup->fiscal_start_date->format('Y-m-d'));
+        $this->assertEquals('2024-01-01', $otherTeamSetup->fiscal_start_date->format('Y-m-d'));
     }
     
     public function test_it_prevents_posting_unbalanced_transactions()

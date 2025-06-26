@@ -19,7 +19,7 @@ BEGIN
     -- Cursor to iterate through segments
     DECLARE segment_cursor CURSOR FOR
         SELECT 
-            COALESCE(sv.segment_description, sv.segment_value) as display_value
+            COALESCE(sv.segment_value) as display_value
         FROM fin_account_segment_assignments asa
         JOIN fin_segment_values sv ON asa.segment_value_id = sv.id
         JOIN fin_account_segments seg ON sv.segment_definition_id = seg.id

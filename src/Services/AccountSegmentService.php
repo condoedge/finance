@@ -5,9 +5,14 @@ namespace Condoedge\Finance\Services;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Finance\Models\AccountSegmentAssignment;
+use Condoedge\Finance\Models\AccountSegmentValue;
 use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Dynamic Account Segment Management Service
@@ -17,9 +22,46 @@ use Illuminate\Support\Facades\DB;
  * - Segment values are reusable building blocks 
  * - Accounts are created by combining segment values via assignments
  * - Account IDs and descriptors are computed via SQL functions
+ * - Segments can have default handlers for automatic value generation
  */
-class AccountSegmentService
+class AccountSegmentService implements AccountSegmentServiceInterface
 {
+    protected AccountSegmentValidator $validator;
+    protected SegmentDefaultHandlerService $handlerService;
+    
+    public function __construct(
+        AccountSegmentValidator $validator,
+        SegmentDefaultHandlerService $handlerService
+    ) {
+        $this->validator = $validator;
+        $this->handlerService = $handlerService;
+    }
+    
+    /**
+     * Execute a callback within a database transaction with proper error handling
+     * 
+     * @param callable $callback
+     * @return mixed
+     * @throws \Exception
+     */
+    protected function executeInTransaction(callable $callback)
+    {
+        return DB::transaction(function () use ($callback) {
+            try {
+                return $callback();
+            } catch (\Exception $e) {
+                // Log the error with context
+                Log::error('Transaction failed in AccountSegmentService', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'user_id' => auth()->id(),
+                    'team_id' => currentTeamId(),
+                ]);
+                throw $e;
+            }
+        });
+    }
+    
     public function getLastSegmentPosition(): int
     {
         // Get the highest segment position currently defined
@@ -37,126 +79,103 @@ class AccountSegmentService
     /**
      * Create or update segment definition
      */
-    public function createOrUpdateSegment(array $data): AccountSegment
+    public function createOrUpdateSegment(CreateOrUpdateSegmentDto $dto): AccountSegment
     {
-        return DB::transaction(function () use ($data) {
-            // Validate position doesn't conflict
-            $existing = AccountSegment::where('segment_position', $data['segment_position'])
-                ->where('id', '!=', $data['id'] ?? 0)
-                ->first();
-
-            if ($existing) {
-                throw new \InvalidArgumentException("Position {$data['segment_position']} is already taken");
+        return $this->executeInTransaction(function () use ($dto) {
+            // Validate last segment must be 'account' related
+            if ($dto->id) {
+                $segment = AccountSegment::findOrFail($dto->id);    
+                $segment->segment_description = $dto->segment_description;
+                $segment->segment_position = $dto->segment_position;
+                $segment->segment_length = $dto->segment_length;
+                $segment->default_handler = $dto->default_handler;
+                $segment->default_handler_config = $dto->default_handler_config;
+                $segment->save();
+            } else {
+                $segment = new AccountSegment();
+                $segment->segment_description = $dto->segment_description;
+                $segment->segment_position = $dto->segment_position;
+                $segment->segment_length = $dto->segment_length;
+                $segment->default_handler = $dto->default_handler;
+                $segment->default_handler_config = $dto->default_handler_config;
+                $segment->save();
             }
 
-            return AccountSegment::updateOrCreate(
-                ['id' => $data['id'] ?? null],
-                [
-                    'segment_description' => $data['segment_description'],
-                    'segment_position' => $data['segment_position'],
-                    'segment_length' => $data['segment_length'],
-                    'is_active' => $data['is_active'] ?? true,
-                ]
-            );
+            AccountSegment::reorderPositions();
+
+            return $segment;
         });
     }
 
     /**
      * Create segment value with validation
      */
-    public function createSegmentValue(int $segmentDefinitionId, string $value, string $description): SegmentValue
+    public function createSegmentValue(CreateSegmentValueDto $dto): SegmentValue
     {
-        $segmentDefinition = AccountSegment::findOrFail($segmentDefinitionId);
+        return $this->executeInTransaction(function () use ($dto) {
+            $segmentDefinition = AccountSegment::findOrFail($dto->segment_definition_id);
 
-        // Validate value length
-        if (strlen($value) > $segmentDefinition->segment_length) {
-            throw new \InvalidArgumentException(
-                "Value '{$value}' exceeds maximum length of {$segmentDefinition->segment_length}"
-            );
-        }
+            $segmentValue = new SegmentValue();
+            $segmentValue->segment_definition_id = $segmentDefinition->id;
+            $segmentValue->segment_value = str_pad($dto->segment_value, $segmentDefinition->segment_length, '0', STR_PAD_LEFT);
+            $segmentValue->segment_description = $dto->segment_description;
+            $segmentValue->is_active = $dto->is_active;
+            $segmentValue->account_type = $dto->account_type ?? null;
+            $segmentValue->save();
+            
+            Log::info('Created new segment value', [
+                'segment_value_id' => $segmentValue->id,
+                'segment_definition_id' => $dto->segment_definition_id,
+                'value' => $dto->segment_value,
+            ]);
 
-        return SegmentValue::create([
-            'segment_definition_id' => $segmentDefinition->id,
-            'segment_value' => str_pad($value, $segmentDefinition->segment_length, 0, STR_PAD_LEFT),
-            'segment_description' => $description,
-            'is_active' => true,
-        ]);
+            return $segmentValue;
+        });
     }
 
     /**
      * Create account from segment value IDs (not codes)
      * This is the dynamic approach that doesn't assume positions
      */
-    public function createAccountFromSegmentValues(array $segmentValueIds, array $accountAttributes): GlAccount
+    public function createAccount(CreateAccountDto $dto, $context = []): GlAccount
     {
-        return DB::transaction(function () use ($segmentValueIds, $accountAttributes) {
-            // Validate we have values for all required segments
-            $requiredSegments = $this->getSegmentStructure()->where('is_active', true);
-            $providedSegments = SegmentValue::whereIn('id', $segmentValueIds)
-                ->with('segmentDefinition')
-                ->get()
-                ->keyBy('segmentDefinition.segment_position');
-
-            foreach ($requiredSegments as $segment) {
-                if (!isset($providedSegments[$segment->segment_position])) {
-                    throw new \InvalidArgumentException(
-                        "Missing value for segment position {$segment->segment_position} ({$segment->segment_description})"
-                    );
-                }
+        return $this->executeInTransaction(function () use ($dto, $context) {
+            // Apply default handlers if enabled
+            if ($dto->apply_defaults) {
+                $dto->segment_value_ids = array_merge($this->applyDefaultHandlers(
+                    $dto->segment_value_ids,
+                    [
+                        'team_id' => currentTeamId(),
+                        ...$context,
+                    ]
+                ));
             }
 
-            // Create the account record
-            $account = GlAccount::create(array_merge($accountAttributes, [
-                'account_id' => 'TEMP-' . uniqid(), // Temporary ID, will be updated by trigger
-                'account_segments_descriptor' => 'TEMP', // Will be updated by trigger
-            ]));
+            // Create the account record using property assignment
+            $account = new GlAccount();
+            $account->account_segments_descriptor = 'TEMP'; // Will be updated by trigger
+            $account->is_active = $dto->is_active;
+            $account->allow_manual_entry = $dto->allow_manual_entry;
+            $account->save();
 
             // Create segment assignments
-            foreach ($segmentValueIds as $segmentValueId) {
-                AccountSegmentAssignment::create([
-                    'account_id' => $account->id,
-                    'segment_value_id' => $segmentValueId,
-                ]);
-            }
+            AccountSegmentAssignment::createForAccount($account->id, $dto->segment_value_ids);
 
             // Refresh to get computed fields from database
-            return $account->refresh();
+            $account = $account->refresh();
+
+            return $account;
         });
     }
 
-    /**
-     * Find account by segment value combination
-     */
-    public function findAccountBySegmentValues(array $segmentValueIds, int $teamId): ?GlAccount
+    public function createAccountFromLastValue($lastSegmentValueId)
     {
-        // Build a query to find accounts with exact segment combination
-        $accountIds = DB::table('fin_account_segment_assignments')
-            ->select('account_id')
-            ->whereIn('segment_value_id', $segmentValueIds)
-            ->groupBy('account_id')
-            ->havingRaw('COUNT(DISTINCT segment_value_id) = ?', [count($segmentValueIds)])
-            ->pluck('account_id');
-
-        if ($accountIds->isEmpty()) {
-            return null;
-        }
-
-        // Verify the account has ONLY these segments (no extra ones)
-        $validAccountIds = [];
-        foreach ($accountIds as $accountId) {
-            $assignmentCount = AccountSegmentAssignment::where('account_id', $accountId)->count();
-            if ($assignmentCount === count($segmentValueIds)) {
-                $validAccountIds[] = $accountId;
-            }
-        }
-
-        if (empty($validAccountIds)) {
-            return null;
-        }
-
-        return GlAccount::whereIn('id', $validAccountIds)
-            ->where('team_id', $teamId)
-            ->first();
+        $this->createAccount(new CreateAccountDto([
+            'segment_value_ids' => [$lastSegmentValueId],
+            'is_active' => true,
+            'allow_manual_entry' => true,
+            'apply_defaults' => true,
+        ]));
     }
 
     /**
@@ -191,43 +210,6 @@ class AccountSegmentService
     }
 
     /**
-     * Update account segments (for editing last segment only)
-     */
-    public function updateAccountLastSegment(GlAccount $account, int $newSegmentValueId): GlAccount
-    {
-        return DB::transaction(function () use ($account, $newSegmentValueId) {
-            // Get the new segment value and validate it
-            $newSegmentValue = SegmentValue::findOrFail($newSegmentValueId);
-
-            // Get current assignments ordered by position
-            $currentAssignments = $account->segmentAssignments()
-                ->join('fin_segment_values', 'fin_account_segment_assignments.segment_value_id', '=', 'fin_segment_values.id')
-                ->join('fin_account_segments', 'fin_segment_values.segment_definition_id', '=', 'fin_account_segments.id')
-                ->orderBy('fin_account_segments.segment_position')
-                ->select('fin_account_segment_assignments.*', 'fin_account_segments.segment_position')
-                ->get();
-
-            if ($currentAssignments->isEmpty()) {
-                throw new \InvalidArgumentException('Account has no segment assignments');
-            }
-
-            // Get the last segment assignment
-            $lastAssignment = $currentAssignments->last();
-
-            // Validate new value is for the same segment position
-            if ($newSegmentValue->segmentDefinition->segment_position !== $lastAssignment->segment_position) {
-                throw new \InvalidArgumentException('New segment value must be for the last segment position');
-            }
-
-            // Update the assignment
-            $lastAssignment->update(['segment_value_id' => $newSegmentValueId]);
-
-            // Account ID and descriptor will be updated by database trigger
-            return $account->refresh();
-        });
-    }
-
-    /**
      * Search accounts by partial segment pattern
      * @param array $segmentValueIds Array of segment value IDs (use null for wildcards)
      */
@@ -249,6 +231,26 @@ class AccountSegmentService
         }
 
         return $query->distinct()->get();
+    }
+
+    public function deleteSegment(int $segmentId): bool
+    {
+        return $this->executeInTransaction(function () use ($segmentId) {
+            $segment = AccountSegment::findOrFail($segmentId);
+
+            // Check if segment can be deleted (no active values)
+            if ($segment->segmentValues()->where('is_active', true)->exists()) {
+                throw new \Exception(__('translate.with-values.cannot-delete-active-segment'));
+            }
+
+            // Delete the segment
+            $segment->forceDelete();
+
+            // Reorder positions after deletion
+            AccountSegment::reorderPositions();
+
+            return true;
+        });
     }
 
     /**
@@ -279,7 +281,7 @@ class AccountSegmentService
         return $issues;
     }
 
-    public function getAccountFormatMask()
+    public function getAccountFormatMask(): string
     {
         $segments = $this->getSegmentStructure();
         $parts = [];
@@ -310,17 +312,17 @@ class AccountSegmentService
     /**
      * Get segment statistics
      */
-    public function getSegmentStatistics()
+    public function getSegmentStatistics(): array
     {
         return [
             'total_segments' => AccountSegment::count(),
             'total_values' => SegmentValue::count(),
             'active_values' => SegmentValue::where('is_active', true)->count(),
-            'total_accounts' => GlAccount::forTeam()->count(),
+            'total_accounts' => GlAccount::count(),
         ];
     }
 
-    public function getSegmentsCoverageData()
+    public function getSegmentsCoverageData(): Collection
     {
         return AccountSegment::orderedByPosition()->withCount([
             'segmentValues',
@@ -344,5 +346,176 @@ class AccountSegmentService
                 'usage_percentage' => $usagePercentage,
             ];
         });
+    }
+    
+    /**
+     * Apply default handlers to fill missing segment values
+     * 
+     * @param array $providedSegmentValueIds Array of segment value IDs (can have gaps)
+     * @param array $context Context for handlers (team_id, fiscal_year_id, etc.)
+     * @return array Complete array of segment value IDs
+     */
+    public function applyDefaultHandlers(array $providedSegmentValueIds, array $context): array
+    {
+        $segments = $this->getSegmentStructure();
+        $finalSegmentValueIds = [];
+
+        // Get provided segments indexed by their definition position
+        $providedByPosition = [];
+        foreach ($providedSegmentValueIds as $segmentValueId) {
+            if (!$segmentValueId) {
+                continue;
+            }
+            $segmentValue = SegmentValue::find($segmentValueId);
+            if ($segmentValue) {
+                $position = $segmentValue->segmentDefinition->segment_position;
+                $providedByPosition[$position] = $segmentValueId;
+            }
+        }
+        
+        // Process each segment position
+        foreach ($segments as $segment) {
+            $position = $segment->segment_position;
+            if (isset($providedByPosition[$position])) {
+                // Use provided value
+                $finalSegmentValueIds[] = $providedByPosition[$position];
+            } elseif ($segment->hasDefaultHandler()) {
+                // Try to resolve via handler
+                $defaultValue = $this->handlerService->resolveDefaultValue($segment, $context);
+                if ($defaultValue) {
+                    $finalSegmentValueIds[] = $defaultValue->id;
+                    Log::info('Applied default handler for segment', [
+                        'segment_id' => $segment->id,
+                        'handler' => $segment->default_handler,
+                        'resolved_value' => $defaultValue->segment_value,
+                    ]);
+                }
+            } else {
+                // No value provided and no handler
+                throw new \InvalidArgumentException(
+                    __("finance.no-value-provided-for-segment", [
+                        'position' => $position,
+                        'description' => $segment->segment_description
+                    ])
+                );
+            }
+        }
+        
+        return $finalSegmentValueIds;
+    }
+    
+    /**
+     * Create account with smart defaults
+     * Convenience method that automatically applies defaults
+     * 
+     * @param array $manualSegments Array of segment value IDs for manually specified segments
+     * @param array $accountData Account attributes
+     * @return GlAccount
+     */
+    public function createAccountWithDefaults(array $manualSegments, array $accountData): GlAccount
+    {
+        $dto = new CreateAccountDto(array_merge($accountData, [
+            'segment_value_ids' => $manualSegments,
+            'apply_defaults' => true,
+        ]));
+        
+        return $this->createAccount($dto);
+    }
+    
+    /**
+     * Get segment handler options for UI
+     */
+    public function getSegmentHandlerOptions(int $segmentPosition): array
+    {
+        return $this->handlerService->getAvailableHandlers($segmentPosition);
+    }
+    
+    /**
+     * Create a complete account by only providing the last segment value ID
+     * All other segments will be filled using default handlers
+     * 
+     * @param int $lastSegmentValueId The segment value ID for the last (account) segment
+     * @param array $accountData Account attributes (team_id, account_type, etc)
+     * @return GlAccount
+     * @throws \InvalidArgumentException If defaults cannot be resolved
+     */
+    public function createAccountFromLastSegment(int $lastSegmentValueId, array $accountData): GlAccount
+    {
+        return $this->executeInTransaction(function () use ($lastSegmentValueId, $accountData) {
+            // Validate the provided segment value is for the last segment
+            $segmentValue = SegmentValue::findOrFail($lastSegmentValueId);
+            $lastSegment = AccountSegment::orderBy('segment_position', 'desc')->first();
+            
+            if (!$lastSegment) {
+                throw new \InvalidArgumentException(__('finance.no-segment-structure-defined'));
+            }
+            
+            if ($segmentValue->segment_definition_id !== $lastSegment->id) {
+                throw new \InvalidArgumentException(__('finance.provided-value-is-not-for-last-segment'));
+            }
+            
+            // Validate last segment is account-related
+            if (!str_contains(strtolower($lastSegment->segment_description), 'account')) {
+                throw new \InvalidArgumentException(__('finance.last-segment-is-not-account-type'));
+            }
+            
+            // Build segment value array with only the last segment
+            $segments = $this->getSegmentStructure();
+            $segmentValueIds = [];
+            
+            foreach ($segments as $segment) {
+                if ($segment->id === $lastSegment->id) {
+                    // Use the provided last segment value
+                    $segmentValueIds[] = $lastSegmentValueId;
+                } else {
+                    // Let the handler resolve the value
+                    $segmentValueIds[] = null;
+                }
+            }
+            
+            // Create account with defaults applied
+            $dto = new CreateAccountDto(array_merge($accountData, [
+                'segment_value_ids' => $segmentValueIds,
+                'apply_defaults' => true,
+            ]));
+            
+            $account = $this->createAccount($dto);
+            
+            return $account;
+        });
+    }
+    
+    /**
+     * Get the last segment definition
+     * 
+     * @return AccountSegment|null
+     */
+    public function getLastSegment(): ?AccountSegment
+    {
+        return AccountSegment::orderBy('segment_position', 'desc')->first();
+    }
+    
+    /**
+     * Check if all segments except the last have default handlers
+     * 
+     * @return bool
+     */
+    public function canCreateAccountFromLastSegmentOnly(): bool
+    {
+        $segments = $this->getSegmentStructure();
+        $lastSegment = $this->getLastSegment();
+        
+        if (!$lastSegment) {
+            return false;
+        }
+        
+        // Check all segments except the last have handlers
+        foreach ($segments as $segment) {
+            if ($segment->id !== $lastSegment->id && !$segment->hasDefaultHandler()) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }

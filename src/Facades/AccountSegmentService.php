@@ -7,24 +7,22 @@ use Illuminate\Support\Facades\Facade;
 /**
  * Account Segment Service Facade
  * 
- * @method static void setupDefaultSegmentStructure()
- * @method static \Condoedge\Finance\Models\SegmentValue createSegmentValue(int $position, string $value, string $description)
- * @method static void setupSampleSegmentValues()
- * @method static \Condoedge\Finance\Models\GlAccount createAccount(array $segmentCodes, array $accountAttributes)
- * @method static \Condoedge\Finance\Models\GlAccount findOrCreateAccount(array $segmentCodes, array $accountAttributes)
- * @method static bool validateSegmentCombination(array $segmentCodes)
- * @method static array parseAccountId(string $accountId)
- * @method static string buildAccountId(array $segmentCodes)
- * @method static \Illuminate\Support\Collection getAvailableSegmentValues(int $position, bool $activeOnly = true)
- * @method static \Illuminate\Support\Collection getSegmentValueOptions(int $position)
- * @method static string getAccountDescription(array $segmentCodes)
- * @method static string getAccountFormatMask()
- * @method static \Illuminate\Support\Collection getSegmentDefinitions()
- * @method static array getSegmentValueUsage(int $segmentValueId)
- * @method static \Illuminate\Support\Collection searchAccountsBySegmentPattern(array $segmentPattern, int $teamId)
- * @method static \Illuminate\Support\Collection getAccountsWithSegmentValue(int $position, string $value, int $teamId)
- * @method static \Illuminate\Support\Collection bulkCreateAccounts(array $segmentCombinations, array $baseAttributes)
+ * @method static \Illuminate\Support\Collection getSegmentStructure()
+ * @method static int getLastSegmentPosition()
+ * @method static \Condoedge\Finance\Models\AccountSegment createOrUpdateSegment(\Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto $dto)
+ * @method static \Condoedge\Finance\Models\SegmentValue createSegmentValue(\Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto $dto)
+ * @method static \Condoedge\Finance\Models\GlAccount createAccount(\Condoedge\Finance\Models\Dto\Gl\CreateAccountDto $dto)
+ * @method static \Condoedge\Finance\Models\GlAccount|null findAccountBySegmentValues(array $segmentValueIds, int $teamId)
+ * @method static \Illuminate\Support\Collection searchAccountsByPattern(array $segmentValueIds, int $teamId)
+ * @method static \Illuminate\Support\Collection getSegmentValues(int $segmentDefinitionId, bool $activeOnly = true)
+ * @method static \Illuminate\Support\Collection getSegmentValuesGrouped(bool $activeOnly = true)
  * @method static array validateSegmentStructure()
+ * @method static string getAccountFormatMask()
+ * @method static string getAccountFormatExample()
+ * @method static array getSegmentStatistics()
+ * @method static \Illuminate\Support\Collection getSegmentsCoverageData()
+ * 
+ * @see \Condoedge\Finance\Services\AccountSegmentServiceInterface
  */
 class AccountSegmentService extends Facade
 {
@@ -33,6 +31,6 @@ class AccountSegmentService extends Facade
      */
     protected static function getFacadeAccessor(): string
     {
-        return \Condoedge\Finance\Services\AccountSegmentService::class;
+        return \Condoedge\Finance\Services\AccountSegmentServiceInterface::class;
     }
 }

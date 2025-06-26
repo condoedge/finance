@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Http\Controllers\Api;
 use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Facades\GlAccountService;
 use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,7 @@ class AccountController extends ApiController
      */
     public function index(Request $request)
     {
-        $query = GlAccount::forTeam()->with(['segmentAssignments.segmentValue.segmentDefinition']);
+        $query = GlAccount::with(['segmentAssignments.segmentValue.segmentDefinition']);
         
         // Apply filters
         if ($request->has('active')) {
@@ -77,9 +78,9 @@ class AccountController extends ApiController
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'segments' => 'required|array',
-            'segments.*' => 'required|string',
-            'account_description' => 'nullable|string|max:255',
+            'segment_value_ids' => 'required|array',
+            'segment_value_ids.*' => 'required|integer|exists:fin_segment_values,id',
+            'account_description' => 'required|string|max:255',
             'account_type' => 'required|in:asset,liability,equity,revenue,expense',
             'is_active' => 'boolean',
             'allow_manual_entry' => 'boolean',
@@ -88,16 +89,16 @@ class AccountController extends ApiController
         try {
             DB::beginTransaction();
             
-            $account = AccountSegmentService::createAccount(
-                $validated['segments'],
-                [
-                    'account_description' => $validated['account_description'] ?? null,
-                    'account_type' => $validated['account_type'],
-                    'is_active' => $validated['is_active'] ?? true,
-                    'allow_manual_entry' => $validated['allow_manual_entry'] ?? true,
-                    'team_id' => currentTeamId(),
-                ]
-            );
+            $dto = new CreateAccountDto([
+                'segment_value_ids' => $validated['segment_value_ids'],
+                'account_description' => $validated['account_description'],
+                'account_type' => $validated['account_type'],
+                'is_active' => $validated['is_active'] ?? true,
+                'allow_manual_entry' => $validated['allow_manual_entry'] ?? true,
+                'team_id' => currentTeamId(),
+            ]);
+            
+            $account = AccountSegmentService::createAccount($dto);
             
             DB::commit();
             
@@ -123,7 +124,21 @@ class AccountController extends ApiController
         ]);
         
         try {
-            $account->update($validated);
+            // Update account properties using property assignment
+            if (isset($validated['account_description'])) {
+                $account->account_description = $validated['account_description'];
+            }
+            if (isset($validated['account_type'])) {
+                $account->account_type = $validated['account_type'];
+            }
+            if (isset($validated['is_active'])) {
+                $account->is_active = $validated['is_active'];
+            }
+            if (isset($validated['allow_manual_entry'])) {
+                $account->allow_manual_entry = $validated['allow_manual_entry'];
+            }
+            
+            $account->save();
             
             return $this->success($account->load('segmentAssignments.segmentValue'), 'Account updated successfully');
         } catch (\Exception $e) {
@@ -204,9 +219,9 @@ class AccountController extends ApiController
     {
         $validated = $request->validate([
             'accounts' => 'required|array',
-            'accounts.*.segments' => 'required|array',
-            'accounts.*.segments.*' => 'required|string',
-            'accounts.*.account_description' => 'nullable|string|max:255',
+            'accounts.*.segment_value_ids' => 'required|array',
+            'accounts.*.segment_value_ids.*' => 'required|integer|exists:fin_segment_values,id',
+            'accounts.*.account_description' => 'required|string|max:255',
             'accounts.*.account_type' => 'required|in:asset,liability,equity,revenue,expense',
             'accounts.*.is_active' => 'boolean',
             'accounts.*.allow_manual_entry' => 'boolean',
@@ -220,15 +235,34 @@ class AccountController extends ApiController
         try {
             foreach ($validated['accounts'] as $index => $accountData) {
                 try {
-                    $account = AccountSegmentService::findOrCreateAccount(
-                        $accountData['segments'],
-                        array_merge($accountData, ['team_id' => currentTeamId()])
+                    // Check if account already exists
+                    $existingAccount = AccountSegmentService::findAccountBySegmentValues(
+                        $accountData['segment_value_ids'],
+                        currentTeamId()
                     );
+                    
+                    if ($existingAccount) {
+                        $errors[] = [
+                            'index' => $index,
+                            'error' => 'Account already exists with ID: ' . $existingAccount->account_id,
+                        ];
+                        continue;
+                    }
+                    
+                    $dto = new CreateAccountDto([
+                        'segment_value_ids' => $accountData['segment_value_ids'],
+                        'account_description' => $accountData['account_description'],
+                        'account_type' => $accountData['account_type'],
+                        'is_active' => $accountData['is_active'] ?? true,
+                        'allow_manual_entry' => $accountData['allow_manual_entry'] ?? true,
+                        'team_id' => currentTeamId(),
+                    ]);
+                    
+                    $account = AccountSegmentService::createAccount($dto);
                     $created[] = $account;
                 } catch (\Exception $e) {
                     $errors[] = [
                         'index' => $index,
-                        'segments' => $accountData['segments'],
                         'error' => $e->getMessage(),
                     ];
                 }
@@ -266,7 +300,7 @@ class AccountController extends ApiController
             'pattern.*' => 'nullable|string',
         ]);
         
-        $accounts = AccountSegmentService::searchAccountsBySegmentPattern(
+        $accounts = AccountSegmentService::searchAccountsByPattern(
             $validated['pattern'],
             currentTeamId()
         );

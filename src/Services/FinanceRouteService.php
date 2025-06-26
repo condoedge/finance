@@ -24,14 +24,13 @@ class FinanceRouteService
         });
     }
 
-    /**
-     * Financial customer routes - alias for backwards compatibility
-     */
-    public static function finantialCustomerRoutes(): void
+    public static function fiscalSetupRoutes(): void
     {
-        static::financialCustomerRoutes();
+        Route::prefix('finance/fiscal-setup')->name('finance.fiscal-setup.')->group(function () {
+            Route::get('/', \Condoedge\Finance\Kompo\FiscalSetup\FiscalSetupPage::class)->name('index');
+        });
     }
-    
+
     /**
      * Financial customer management routes
      */
@@ -94,19 +93,6 @@ class FinanceRouteService
     }
 
     /**
-     * API routes
-     */
-    public static function apiRoutes(): void
-    {
-        Route::prefix('api/finance')->name('api.finance.')->group(function () {
-            // Add API controllers when they exist
-            if (class_exists(\Condoedge\Finance\Http\Controllers\Api\AccountSegmentController::class)) {
-                Route::get('/segments/{id}/values', [\Condoedge\Finance\Http\Controllers\Api\AccountSegmentController::class, 'getSegmentValues']);
-            }
-        });
-    }
-
-    /**
      * Register all routes at once
      */
     public static function registerAllWebRoutes(): void
@@ -116,5 +102,6 @@ class FinanceRouteService
         static::accountingRoutes();
         static::paymentsRoutes();
         static::glTransactionRoutes();
+        static::fiscalSetupRoutes();
     }
 }

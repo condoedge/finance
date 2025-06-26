@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Condoedge\Finance\Models\FiscalYearSetup setupFiscalYear(int $teamId, \Carbon\Carbon $startDate)
  * @method static int calculateFiscalYear(\Carbon\Carbon $startDate)
  * @method static int|null getFiscalYearForDate(\Carbon\Carbon $date, int $teamId)
- * @method static array generateFiscalPeriods(int $teamId, int $fiscalYear, bool $regenerate = false)
  * @method static \Condoedge\Finance\Models\FiscalPeriod createCustomPeriod(int $teamId, int $fiscalYear, string $periodCode, \Carbon\Carbon $startDate, \Carbon\Carbon $endDate, string $description = null)
  * @method static \Condoedge\Finance\Models\FiscalPeriod closePeriod(string $periodId, array $modules)
  * @method static \Condoedge\Finance\Models\FiscalPeriod openPeriod(string $periodId, array $modules)

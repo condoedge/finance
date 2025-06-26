@@ -13,7 +13,7 @@ class GlSetupSeeder extends Seeder
     {
         // Setup fiscal year (starts May 1st)
         FiscalYearSetup::create([
-            'company_fiscal_start_date' => '2024-05-01',
+            'fiscal_start_date' => '2024-05-01',
             'is_active' => true,
         ]);
         

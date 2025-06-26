@@ -25,7 +25,7 @@ class SegmentValidationPage extends Form
 
             // Statistics
             _Columns(
-                _BoxLabelNum('card', 'finance-total-segments', _Html($stats['total_segments']))->href('campaign.transactions')
+                _BoxLabelNum('card', 'finance-total-segments', _Html($stats['total_segments']))
                     ->class('bg-warning')
                     ->col('col-md-6 col-xl-3 order-3 md:order-1'),
                 _BoxLabelNum('tag', 'finance-total-values', _Html($stats['total_values']))

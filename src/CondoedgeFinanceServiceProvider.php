@@ -129,10 +129,16 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->bind(PAYMENT_METHOD_ENUM_KEY, function () {
             return config('kompo-finance.' . PAYMENT_METHOD_ENUM_KEY . '-namespace');
         });
+        
+        $this->app->bind(SEGMENT_DEFAULT_HANDLER_ENUM_KEY, function () {
+            return config('kompo-finance.' . SEGMENT_DEFAULT_HANDLER_ENUM_KEY . '-namespace');
+        });
 
         $this->app->bind(INVOICE_TYPE_ENUM_KEY, function () {
             return config('kompo-finance.' . INVOICE_TYPE_ENUM_KEY . '-namespace');
-        });        $this->app->bind(CUSTOMER_PAYMENT_MODEL_KEY, function () {
+        });        
+        
+        $this->app->bind(CUSTOMER_PAYMENT_MODEL_KEY, function () {
             return new (config('kompo-finance.' . CUSTOMER_PAYMENT_MODEL_KEY . '-namespace'));
         });
 
@@ -199,11 +205,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Condoedge\Finance\Command\EnsureIntegrityCommand::class,
-                \Condoedge\Finance\Command\SetupAccountSegmentSystemCommand::class,
-                \Condoedge\Finance\Command\GenerateFiscalPeriodsCommand::class,
-                \Condoedge\Finance\Command\CloseFiscalPeriodCommand::class,
-                \Condoedge\Finance\Command\OpenFiscalPeriodCommand::class,
-                \Condoedge\Finance\Command\ViewFiscalPeriodStatusCommand::class,
+                \Condoedge\Finance\Command\PreCreateFiscalPeriodsCommand::class,
             ]);
         }
     }
@@ -212,7 +214,14 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     {
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
+            
+            // Daily integrity check
             $schedule->command('finance:ensure-integrity')->dailyAt('01:00');
+
+            $schedule->command('finance:pre-create-periods')
+                ->monthlyOn(\Carbon\Carbon::now()->endOfMonth()->day, '23:30')
+                ->withoutOverlapping()
+                ->appendOutputTo(storage_path('logs/fiscal-periods.log'));
         });
     }
     
@@ -251,7 +260,17 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             \Condoedge\Finance\Services\Account\GlAccountService::class
         );
         
+        // Account Segment Validator
+        $this->app->singleton(\Condoedge\Finance\Services\AccountSegmentValidator::class);
+        
+        // Segment Default Handler Service
+        $this->app->singleton(\Condoedge\Finance\Services\SegmentDefaultHandlerService::class);
+        
         // Account Segment Service (new segment-based system)
+        $this->app->bind(
+            \Condoedge\Finance\Services\AccountSegmentServiceInterface::class,
+            \Condoedge\Finance\Services\AccountSegmentService::class
+        );
         $this->app->singleton(\Condoedge\Finance\Services\AccountSegmentService::class);
         
         // Legacy GL Segment Service (for backward compatibility)

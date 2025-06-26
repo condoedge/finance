@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Enums\SegmentDefaultHandlerEnum;
 use Condoedge\Utils\Models\Model;
 
 /**
@@ -14,20 +15,19 @@ use Condoedge\Utils\Models\Model;
  * @property string $segment_description Description like 'Parent Team', 'Team', 'Account'
  * @property int $segment_position Position of the segment (1, 2, 3)
  * @property int $segment_length Character length for this segment
+ * @property string|null $default_handler Handler type for automatic value generation
+ * @property array|null $default_handler_config Configuration for the default handler
  */
 class AccountSegment extends Model
 {
     protected $table = 'fin_account_segments';
     
-    protected $fillable = [
-        'segment_description',
-        'segment_position', 
-        'segment_length',
-    ];
+    // Removed fillable - using property assignment instead
     
     protected $casts = [
         'segment_position' => 'integer',
         'segment_length' => 'integer',
+        'default_handler_config' => 'array',
     ];
     
     /**
@@ -73,47 +73,6 @@ class AccountSegment extends Model
     }
     
     /**
-     * Validate segment structure setup
-     */
-    public static function validateStructure(): bool
-    {
-        $segments = static::getAllOrdered();
-        
-        // Check for gaps in positions
-        for ($i = 1; $i <= $segments->count(); $i++) {
-            if (!$segments->contains('segment_position', $i)) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Get the account format mask
-     * Example: "XX-XX-XXXX" for 3 segments with lengths 2, 2, 4
-     */
-    public static function getAccountFormatMask(): string
-    {
-        $segments = static::getAllOrdered();
-        $format = [];
-        
-        foreach ($segments as $segment) {
-            $format[] = str_repeat('X', $segment->segment_length);
-        }
-        
-        return implode('-', $format);
-    }
-    
-    /**
-     * Get the last segment position (natural account)
-     */
-    public static function getLastPosition(): ?self
-    {
-        return static::orderedByPosition()->orderBy('segment_position', 'desc')->first();
-    }
-    
-    /**
      * Check if segment has values
      */
     public function hasValues(): bool
@@ -131,9 +90,55 @@ class AccountSegment extends Model
         
         foreach ($segments as $segment) {
             if ($segment->segment_position !== $position) {
-                $segment->update(['segment_position' => $position]);
+                $segment->segment_position = $position;
+                $segment->save();
             }
             $position++;
         }
+    }
+
+    public function deletable()
+    {
+        return true;
+    }
+    
+    /**
+     * Get the default handler enum instance
+     */
+    public function getDefaultHandlerEnumAttribute(): ?SegmentDefaultHandlerEnum
+    {
+        return $this->default_handler 
+            ? SegmentDefaultHandlerEnum::tryFrom($this->default_handler)
+            : null;
+    }
+    
+    /**
+     * Check if this segment has automated defaults
+     */
+    public function hasDefaultHandler(): bool
+    {
+        return $this->default_handler && 
+               $this->default_handler !== SegmentDefaultHandlerEnum::MANUAL->value;
+    }
+    
+    /**
+     * Check if this segment requires configuration for its handler
+     */
+    public function requiresHandlerConfig(): bool
+    {
+        $handler = $this->default_handler_enum;
+        return $handler ? $handler->requiresConfig() : false;
+    }
+    
+    /**
+     * Validate handler configuration
+     */
+    public function validateHandlerConfig(): array
+    {
+        if (!$this->default_handler_enum) {
+            return [];
+        }
+        
+        return $this->default_handler_enum->validateConfig($this->default_handler_config);
     }
 }

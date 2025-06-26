@@ -10,7 +10,6 @@ use Condoedge\Finance\Models\Traits\HasSqlColumnCalculation;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Random\Engine\Secure;
 
 abstract class AbstractMainFinanceModel extends Model
 {

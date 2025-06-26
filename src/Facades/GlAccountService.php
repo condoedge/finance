@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Support\Collection getAccountsByType(string $accountType, int|null $teamId = null, bool $activeOnly = true)
  * @method static \Illuminate\Support\Collection searchAccountsByPattern(string $pattern, int|null $teamId = null)
  * @method static \Illuminate\Support\Collection getAccountHierarchy(int|null $teamId = null)
- * @method static string generateAccountId(array $segments, int $teamId)
  * @method static \Illuminate\Support\Collection getAvailableSegmentValues(int $segmentPosition, int $teamId)
  * @method static bool canAcceptManualEntries(\Condoedge\Finance\Models\GlAccount $account)
  * @method static \Illuminate\Support\Collection getTrialBalance(\Carbon\Carbon|null $startDate = null, \Carbon\Carbon|null $endDate = null, int|null $teamId = null)

@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Kompo\ChartOfAccounts;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Facades\AccountSegmentService;
+use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
 use Kompo\Form;
 
 class AccountFormModal extends Form
@@ -137,26 +138,33 @@ class AccountFormModal extends Form
             throw new \Exception(__('finance-please-select-all-segments'));
         }
         
-        // For new accounts, create using segments
+        // For new accounts, create using segments with DTO
         if (!$this->isEditMode) {
-            $this->model = AccountSegmentService::createAccount($segments, [
+            // Get segment value IDs from segment positions
+            $segmentValueIds = collect($segments)
+                ->filter()
+                ->values()
+                ->toArray();
+            
+            $dto = new CreateAccountDto([
+                'segment_value_ids' => $segmentValueIds,
                 'account_description' => request('account_description'),
                 'account_type' => request('account_type'),
-                'is_active' => request('is_active', false),
-                'allow_manual_entry' => request('allow_manual_entry', false),
+                'is_active' => (bool) request('is_active', false),
+                'allow_manual_entry' => (bool) request('allow_manual_entry', false),
                 'team_id' => currentTeamId(),
             ]);
+            
+            $this->model = AccountSegmentService::createAccount($dto);
             
             // Prevent the default save
             $this->preventSave = true;
         } else {
-            // For existing accounts, only update the allowed fields
-            $this->model->fill([
-                'account_description' => request('account_description'),
-                'account_type' => request('account_type'),
-                'is_active' => request('is_active', false),
-                'allow_manual_entry' => request('allow_manual_entry', false),
-            ]);
+            // For existing accounts, only update the allowed fields using property assignment
+            $this->model->account_description = request('account_description');
+            $this->model->account_type = request('account_type');
+            $this->model->is_active = (bool) request('is_active', false);
+            $this->model->allow_manual_entry = (bool) request('allow_manual_entry', false);
         }
     }
     

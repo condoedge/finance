@@ -36,6 +36,11 @@ return [
         \Condoedge\Finance\Models\CustomerPayment::class => [
             \Condoedge\Finance\Models\InvoiceApply::class,
         ],
+        \Condoedge\Finance\Models\GlAccount::class => [
+            // \Condoedge\Finance\Models\GlTransactionHeader::class,
+            // \Condoedge\Finance\Models\GlTransactionLine::class,
+            // \Condoedge\Finance\Models\AccountSegmentAssignment::class,
+        ],
         // GL Module relationships
         // \Condoedge\Finance\Models\GlTransactionHeader::class => [
         //     \Condoedge\Finance\Models\GlTransactionLine::class,
@@ -139,4 +144,5 @@ return [
 
     INVOICE_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\InvoiceTypeEnum::class,
     
+    SEGMENT_DEFAULT_HANDLER_ENUM_KEY . '-namespace' => \Condoedge\Finance\Enums\SegmentDefaultHandlerEnum::class,
 ];

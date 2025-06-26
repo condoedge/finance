@@ -5,6 +5,8 @@ namespace Condoedge\Finance\Http\Controllers\Api;
 use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\SegmentValue;
+use Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -28,62 +30,16 @@ class AccountSegmentController extends ApiController
      */
     public function createSegment(Request $request)
     {
-        $validated = $request->validate([
-            'segment_description' => 'required|string|max:255',
-            'segment_position' => 'required|integer|min:1|max:10',
-            'segment_length' => 'required|integer|min:1|max:10',
+        $dto = new CreateOrUpdateSegmentDto([
+            'segment_description' => $request->input('segment_description'),
+            'segment_position' =>  $request->input('segment_position'),
+            'segment_length' =>  $request->input('segment_length'),
+            'is_active' => true,
         ]);
         
-        try {
-            DB::beginTransaction();
-            
-            // Check position uniqueness
-            if (AccountSegment::where('segment_position', $validated['segment_position'])->exists()) {
-                // Reorder positions to make room
-                AccountSegment::where('segment_position', '>=', $validated['segment_position'])
-                    ->increment('segment_position');
-            }
-            
-            $segment = AccountSegment::create($validated);
-            
-            // Ensure positions are sequential
-            AccountSegment::reorderPositions();
-            
-            DB::commit();
-            
-            return $this->success($segment, 'Segment created successfully', 201);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->error($e->getMessage());
-        }
-    }
-    
-    /**
-     * Update segment definition
-     */
-    public function updateSegment(Request $request, $segmentId)
-    {
-        $segment = AccountSegment::findOrFail($segmentId);
+        $segment = AccountSegmentService::createOrUpdateSegment($dto);
         
-        $validated = $request->validate([
-            'segment_description' => 'sometimes|required|string|max:255',
-            'segment_length' => 'sometimes|required|integer|min:1|max:10',
-        ]);
-        
-        try {
-            // Prevent length change if segment has values
-            if (isset($validated['segment_length']) && 
-                $validated['segment_length'] != $segment->segment_length && 
-                $segment->hasValues()) {
-                throw new \Exception('Cannot change segment length when values exist');
-            }
-            
-            $segment->update($validated);
-            
-            return $this->success($segment, 'Segment updated successfully');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
+        return $this->success($segment, 'Segment created successfully', 201);
     }
     
     /**
@@ -91,25 +47,7 @@ class AccountSegmentController extends ApiController
      */
     public function deleteSegment($segmentId)
     {
-        $segment = AccountSegment::findOrFail($segmentId);
-        
-        try {
-            if ($segment->hasValues()) {
-                throw new \Exception('Cannot delete segment with existing values');
-            }
-            
-            DB::beginTransaction();
-            
-            $segment->delete();
-            AccountSegment::reorderPositions();
-            
-            DB::commit();
-            
-            return $this->success(null, 'Segment deleted successfully');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->error($e->getMessage());
-        }
+        AccountSegmentService::deleteSegment($segmentId);
     }
     
     /**
@@ -135,29 +73,17 @@ class AccountSegmentController extends ApiController
      * Create segment value
      */
     public function createValue(Request $request)
-    {
-        $validated = $request->validate([
-            'position' => 'required|integer',
-            'segment_value' => 'required|string',
-            'segment_description' => 'required|string|max:255',
-            'is_active' => 'boolean',
+    {        
+        $dto = new CreateSegmentValueDto([
+            'segment_definition_id' => $request->input('segment_definition_id'),
+            'segment_value' => $request->input('segment_value'),
+            'segment_description' => $request->input('segment_description'),
+            'is_active' => $request->input('is_active') ?? true,
         ]);
         
-        try {
-            $value = AccountSegmentService::createSegmentValue(
-                $validated['position'],
-                $validated['segment_value'],
-                $validated['segment_description']
-            );
-            
-            if (isset($validated['is_active'])) {
-                $value->update(['is_active' => $validated['is_active']]);
-            }
-            
-            return $this->success($value, 'Segment value created successfully', 201);
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
+        $value = AccountSegmentService::createSegmentValue($dto);
+        
+        return $this->success($value, 'Segment value created successfully', 201);
     }
     
     /**
@@ -173,7 +99,13 @@ class AccountSegmentController extends ApiController
         ]);
         
         try {
-            $value->update($validated);
+            if (isset($validated['segment_description'])) {
+                $value->segment_description = $validated['segment_description'];
+            }
+            if (isset($validated['is_active'])) {
+                $value->is_active = $validated['is_active'];
+            }
+            $value->save();
             
             return $this->success($value, 'Segment value updated successfully');
         } catch (\Exception $e) {
@@ -207,7 +139,7 @@ class AccountSegmentController extends ApiController
     public function bulkImportValues(Request $request)
     {
         $validated = $request->validate([
-            'position' => 'required|integer',
+            'segment_definition_id' => 'required|integer|exists:fin_account_segments,id',
             'values' => 'required|array',
             'values.*.value' => 'required|string',
             'values.*.description' => 'required|string|max:255',
@@ -221,11 +153,14 @@ class AccountSegmentController extends ApiController
         try {
             foreach ($validated['values'] as $index => $item) {
                 try {
-                    $value = AccountSegmentService::createSegmentValue(
-                        $validated['position'],
-                        $item['value'],
-                        $item['description']
-                    );
+                    $dto = new CreateSegmentValueDto([
+                        'segment_definition_id' => $validated['segment_definition_id'],
+                        'segment_value' => $item['value'],
+                        'segment_description' => $item['description'],
+                        'is_active' => true,
+                    ]);
+                    
+                    $value = AccountSegmentService::createSegmentValue($dto);
                     $imported[] = $value;
                 } catch (\Exception $e) {
                     $errors[] = [

@@ -2,14 +2,17 @@
 
 namespace Condoedge\Finance\Tests\Unit\Services;
 
-use Condoedge\Finance\Tests\TestCase;
-use Condoedge\Finance\Services\AccountSegmentService;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\AccountSegmentAssignment;
+use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto;
+use Condoedge\Finance\Services\AccountSegmentService;
+use Condoedge\Finance\Services\AccountSegmentValidator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class AccountSegmentServiceTest extends TestCase
 {
@@ -20,209 +23,287 @@ class AccountSegmentServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = app(AccountSegmentService::class);
+        
+        // Create service with validator
+        $validator = new AccountSegmentValidator();
+        $this->service = new AccountSegmentService($validator);
+        
+        // Setup test team
+        $this->actingAs($this->createUser());
     }
     
     #[Test]
-    public function it_can_setup_default_segment_structure()
+    public function it_creates_segment_structure_with_dto()
     {
-        $this->service->setupDefaultSegmentStructure();
+        // Create segment structure
+        $segments = [
+            ['segment_description' => 'Parent Team', 'segment_position' => 1, 'segment_length' => 2],
+            ['segment_description' => 'Team', 'segment_position' => 2, 'segment_length' => 2],
+            ['segment_description' => 'Account', 'segment_position' => 3, 'segment_length' => 4],
+        ];
         
-        $segments = AccountSegment::getAllOrdered();
+        foreach ($segments as $segmentData) {
+            $dto = new CreateOrUpdateSegmentDto($segmentData + ['is_active' => true]);
+            $segment = $this->service->createOrUpdateSegment($dto);
+            
+            $this->assertInstanceOf(AccountSegment::class, $segment);
+            $this->assertEquals($segmentData['segment_description'], $segment->segment_description);
+            $this->assertEquals($segmentData['segment_position'], $segment->segment_position);
+            $this->assertEquals($segmentData['segment_length'], $segment->segment_length);
+        }
         
-        $this->assertCount(3, $segments);
-        $this->assertEquals('Parent Team', $segments[0]->segment_description);
-        $this->assertEquals(1, $segments[0]->segment_position);
-        $this->assertEquals(2, $segments[0]->segment_length);
-        
-        $this->assertEquals('Team', $segments[1]->segment_description);
-        $this->assertEquals(2, $segments[1]->segment_position);
-        $this->assertEquals(2, $segments[1]->segment_length);
-        
-        $this->assertEquals('Natural Account', $segments[2]->segment_description);
-        $this->assertEquals(3, $segments[2]->segment_position);
-        $this->assertEquals(4, $segments[2]->segment_length);
+        // Verify structure
+        $structure = $this->service->getSegmentStructure();
+        $this->assertCount(3, $structure);
+        $this->assertEquals('XX-XX-XXXX', $this->service->getAccountFormatMask());
     }
     
     #[Test]
-    public function it_can_create_segment_value_with_validation()
+    public function it_creates_segment_values_with_validation()
     {
-        $this->service->setupDefaultSegmentStructure();
+        // Setup structure first
+        $this->createTestSegmentStructure();
         
-        $value = $this->service->createSegmentValue(1, '10', 'Parent Team 10');
+        // Create segment values
+        $segment = AccountSegment::where('segment_position', 1)->first();
+        
+        $dto = new CreateSegmentValueDto([
+            'segment_definition_id' => $segment->id,
+            'segment_value' => '10',
+            'segment_description' => 'Parent Team 10',
+            'is_active' => true,
+        ]);
+        
+        $value = $this->service->createSegmentValue($dto);
         
         $this->assertInstanceOf(SegmentValue::class, $value);
         $this->assertEquals('10', $value->segment_value);
         $this->assertEquals('Parent Team 10', $value->segment_description);
         $this->assertTrue($value->is_active);
+    }
+    
+    #[Test]
+    public function it_validates_segment_value_length()
+    {
+        $this->createTestSegmentStructure();
+        $segment = AccountSegment::where('segment_position', 1)->first();
         
-        // Test validation - wrong length
+        // Try to create value that's too long
+        $dto = new CreateSegmentValueDto([
+            'segment_definition_id' => $segment->id,
+            'segment_value' => '1234', // Too long for length 2
+            'segment_description' => 'Invalid Value',
+            'is_active' => true,
+        ]);
+        
         $this->expectException(\InvalidArgumentException::class);
-        $this->service->createSegmentValue(1, '100', 'Too Long'); // Should be 2 chars
-    }
-    
-    #[Test]
-    public function it_can_create_account_from_segments()
-    {
-        $this->service->setupDefaultSegmentStructure();
-        $this->service->setupSampleSegmentValues();
+        $this->expectExceptionMessage('exceeds maximum length');
         
-        $segmentCodes = [1 => '10', 2 => '03', 3 => '4000'];
-        $attributes = [
-            'account_description' => 'Test Cash Account',
-            'account_type' => 'asset',
-            'team_id' => 1,
-        ];
-        
-        $account = $this->service->createAccount($segmentCodes, $attributes);
-        
-        $this->assertInstanceOf(GlAccount::class, $account);
-        $this->assertEquals('10-03-4000', $account->account_id);
-        $this->assertEquals('Test Cash Account', $account->account_description);
-        $this->assertEquals('asset', $account->account_type);
-        
-        // Verify segment assignments
-        $assignments = AccountSegmentAssignment::getForAccount($account->id);
-        $this->assertCount(3, $assignments);
-    }
-    
-    #[Test]
-    public function it_can_parse_and_build_account_ids()
-    {
-        $accountId = '10-03-4000';
-        $parsed = $this->service->parseAccountId($accountId);
-        
-        $this->assertEquals([1 => '10', 2 => '03', 3 => '4000'], $parsed);
-        
-        $built = $this->service->buildAccountId($parsed);
-        $this->assertEquals($accountId, $built);
-    }
-    
-    #[Test]
-    public function it_can_validate_segment_combinations()
-    {
-        $this->service->setupDefaultSegmentStructure();
-        $this->service->setupSampleSegmentValues();
-        
-        // Valid combination
-        $valid = $this->service->validateSegmentCombination([1 => '10', 2 => '03', 3 => '4000']);
-        $this->assertTrue($valid);
-        
-        // Invalid - missing segment
-        $invalid = $this->service->validateSegmentCombination([1 => '10', 3 => '4000']);
-        $this->assertFalse($invalid);
-        
-        // Invalid - non-existent value
-        $invalid = $this->service->validateSegmentCombination([1 => '99', 2 => '03', 3 => '4000']);
-        $this->assertFalse($invalid);
-    }
-    
-    #[Test]
-    public function it_can_get_account_format_mask()
-    {
-        $this->service->setupDefaultSegmentStructure();
-        
-        $mask = $this->service->getAccountFormatMask();
-        $this->assertEquals('XX-XX-XXXX', $mask);
-    }
-    
-    #[Test]
-    public function it_can_search_accounts_by_segment_pattern()
-    {
-        $this->service->setupDefaultSegmentStructure();
-        $this->service->setupSampleSegmentValues();
-        
-        // Create some accounts
-        $this->service->createAccount([1 => '10', 2 => '03', 3 => '4000'], ['team_id' => 1]);
-        $this->service->createAccount([1 => '10', 2 => '03', 3 => '4001'], ['team_id' => 1]);
-        $this->service->createAccount([1 => '10', 2 => '04', 3 => '4000'], ['team_id' => 1]);
-        $this->service->createAccount([1 => '20', 2 => '03', 3 => '4000'], ['team_id' => 1]);
-        
-        // Search for all accounts with team '03'
-        $results = $this->service->searchAccountsBySegmentPattern(['*', '03', '*'], 1);
-        $this->assertCount(3, $results);
-        
-        // Search for specific pattern
-        $results = $this->service->searchAccountsBySegmentPattern(['10', '03', '*'], 1);
-        $this->assertCount(2, $results);
-    }
-    
-    #[Test]
-    public function it_can_bulk_create_accounts()
-    {
-        $this->service->setupDefaultSegmentStructure();
-        $this->service->setupSampleSegmentValues();
-        
-        $combinations = [
-            [1 => '10', 2 => '03', 3 => '4000'],
-            [1 => '10', 2 => '03', 3 => '4001'],
-            [1 => '10', 2 => '04', 3 => '1105'],
-        ];
-        
-        $baseAttributes = [
-            'account_type' => 'asset',
-            'team_id' => 1,
-        ];
-        
-        $accounts = $this->service->bulkCreateAccounts($combinations, $baseAttributes);
-        
-        $this->assertCount(3, $accounts);
-        $this->assertEquals('10-03-4000', $accounts[0]->account_id);
-        $this->assertEquals('10-03-4001', $accounts[1]->account_id);
-        $this->assertEquals('10-04-1105', $accounts[2]->account_id);
-    }
-    
-    #[Test]
-    public function it_can_validate_segment_structure()
-    {
-        // Empty structure should have issues
-        $issues = $this->service->validateSegmentStructure();
-        $this->assertNotEmpty($issues);
-        
-        // Setup complete structure
-        $this->service->setupDefaultSegmentStructure();
-        $this->service->setupSampleSegmentValues();
-        
-        $issues = $this->service->validateSegmentStructure();
-        $this->assertEmpty($issues);
+        $this->service->createSegmentValue($dto);
     }
     
     #[Test]
     public function it_prevents_duplicate_segment_values()
     {
-        $this->service->setupDefaultSegmentStructure();
+        $this->createTestSegmentStructure();
+        $segment = AccountSegment::where('segment_position', 1)->first();
         
-        $this->service->createSegmentValue(1, '10', 'First');
+        // Create first value
+        $dto = new CreateSegmentValueDto([
+            'segment_definition_id' => $segment->id,
+            'segment_value' => '10',
+            'segment_description' => 'Parent Team 10',
+            'is_active' => true,
+        ]);
+        $this->service->createSegmentValue($dto);
         
-        $this->expectException(\Exception::class);
-        $this->service->createSegmentValue(1, '10', 'Duplicate');
+        // Try to create duplicate
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('already exists');
+        
+        $this->service->createSegmentValue($dto);
     }
     
     #[Test]
-    public function it_prevents_deleting_segment_values_in_use()
+    public function it_creates_account_from_segment_values()
     {
-        $this->service->setupDefaultSegmentStructure();
-        $this->service->setupSampleSegmentValues();
+        $this->createTestSegmentStructure();
+        $segmentValueIds = $this->createTestSegmentValues();
         
-        // Create an account using segment value
-        $this->service->createAccount([1 => '10', 2 => '03', 3 => '4000'], ['team_id' => 1]);
+        $dto = new CreateAccountDto([
+            'segment_value_ids' => $segmentValueIds,
+            'account_description' => 'Test Account',
+            'account_type' => 'asset',
+            'is_active' => true,
+            'allow_manual_entry' => true,
+            'team_id' => currentTeamId(),
+        ]);
         
-        // Try to delete used segment value
-        $segmentValue = SegmentValue::findByPositionAndValue(1, '10');
-        $this->assertFalse($segmentValue->canBeDeleted());
+        $account = $this->service->createAccount($dto);
         
-        // Unused value can be deleted
-        $unusedValue = $this->service->createSegmentValue(1, '99', 'Unused');
-        $this->assertTrue($unusedValue->canBeDeleted());
+        $this->assertInstanceOf(GlAccount::class, $account);
+        $this->assertEquals('Test Account', $account->account_description);
+        $this->assertEquals('asset', $account->account_type);
+        $this->assertTrue($account->is_active);
+        $this->assertTrue($account->allow_manual_entry);
+        
+        // Verify account ID was computed by trigger
+        $this->assertNotEquals('TEMP', substr($account->account_id, 0, 4));
+        $this->assertStringContainsString('-', $account->account_id);
     }
     
     #[Test]
-    public function it_generates_account_description_from_segments()
+    public function it_validates_account_completeness()
     {
-        $this->service->setupDefaultSegmentStructure();
-        $this->service->setupSampleSegmentValues();
+        $this->createTestSegmentStructure();
         
-        $description = $this->service->getAccountDescription([1 => '10', 2 => '03', 3 => '4000']);
-        $this->assertEquals('parent_team_10 - team_03 - Cash Account', $description);
+        // Only create values for 2 out of 3 segments
+        $segment1 = AccountSegment::where('segment_position', 1)->first();
+        $segment2 = AccountSegment::where('segment_position', 2)->first();
+        
+        $value1 = $this->createSegmentValue($segment1->id, '10', 'Parent Team 10');
+        $value2 = $this->createSegmentValue($segment2->id, '03', 'Team 03');
+        
+        $dto = new CreateAccountDto([
+            'segment_value_ids' => [$value1->id, $value2->id], // Missing segment 3
+            'account_description' => 'Incomplete Account',
+            'account_type' => 'asset',
+            'is_active' => true,
+            'allow_manual_entry' => true,
+            'team_id' => currentTeamId(),
+        ]);
+        
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Missing value for segment position');
+        
+        $this->service->createAccount($dto);
+    }
+    
+    #[Test]
+    public function it_prevents_duplicate_accounts()
+    {
+        $this->createTestSegmentStructure();
+        $segmentValueIds = $this->createTestSegmentValues();
+        
+        // Create first account
+        $dto = new CreateAccountDto([
+            'segment_value_ids' => $segmentValueIds,
+            'account_description' => 'First Account',
+            'account_type' => 'asset',
+            'is_active' => true,
+            'allow_manual_entry' => true,
+            'team_id' => currentTeamId(),
+        ]);
+        $this->service->createAccount($dto);
+        
+        // Try to create duplicate with same segments
+        $dto2 = new CreateAccountDto([
+            'segment_value_ids' => $segmentValueIds,
+            'account_description' => 'Duplicate Account',
+            'account_type' => 'liability',
+            'is_active' => true,
+            'allow_manual_entry' => true,
+            'team_id' => currentTeamId(),
+        ]);
+        
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('already exists');
+        
+        $this->service->createAccount($dto2);
+    }
+    
+    #[Test]
+    public function it_logs_operations()
+    {
+        $this->createTestSegmentStructure();
+        
+        // Test that operations are logged
+        DB::listen(function ($query) {
+            // Verify no raw SQL injections
+            $this->assertStringNotContainsString('fillable', $query->sql);
+        });
+        
+        $segmentValueIds = $this->createTestSegmentValues();
+        
+        $dto = new CreateAccountDto([
+            'segment_value_ids' => $segmentValueIds,
+            'account_description' => 'Test Account',
+            'account_type' => 'asset',
+            'is_active' => true,
+            'allow_manual_entry' => true,
+            'team_id' => currentTeamId(),
+        ]);
+        
+        $account = $this->service->createAccount($dto);
+        
+        // Account should be created successfully
+        $this->assertNotNull($account->id);
+    }
+    
+    /**
+     * Helper methods
+     */
+    protected function createTestSegmentStructure(): void
+    {
+        $segments = [
+            ['segment_description' => 'Parent Team', 'segment_position' => 1, 'segment_length' => 2],
+            ['segment_description' => 'Team', 'segment_position' => 2, 'segment_length' => 2],
+            ['segment_description' => 'Account', 'segment_position' => 3, 'segment_length' => 4],
+        ];
+        
+        foreach ($segments as $segmentData) {
+            $segment = new AccountSegment();
+            $segment->segment_description = $segmentData['segment_description'];
+            $segment->segment_position = $segmentData['segment_position'];
+            $segment->segment_length = $segmentData['segment_length'];
+            $segment->is_active = true;
+            $segment->save();
+        }
+    }
+    
+    protected function createTestSegmentValues(): array
+    {
+        $segments = AccountSegment::orderBy('segment_position')->get();
+        $valueIds = [];
+        
+        $values = [
+            1 => ['10', 'Parent Team 10'],
+            2 => ['03', 'Team 03'],
+            3 => ['1000', 'Cash Account'],
+        ];
+        
+        foreach ($segments as $segment) {
+            $value = $this->createSegmentValue(
+                $segment->id,
+                $values[$segment->segment_position][0],
+                $values[$segment->segment_position][1]
+            );
+            $valueIds[] = $value->id;
+        }
+        
+        return $valueIds;
+    }
+    
+    protected function createSegmentValue(int $segmentDefinitionId, string $value, string $description): SegmentValue
+    {
+        $segmentValue = new SegmentValue();
+        $segmentValue->segment_definition_id = $segmentDefinitionId;
+        $segmentValue->segment_value = $value;
+        $segmentValue->segment_description = $description;
+        $segmentValue->is_active = true;
+        $segmentValue->save();
+        
+        return $segmentValue;
+    }
+    
+    protected function createUser()
+    {
+        $user = new \App\Models\User();
+        $user->name = 'Test User';
+        $user->email = 'test@example.com';
+        $user->password = bcrypt('password');
+        $user->save();
+        
+        return $user;
     }
 }

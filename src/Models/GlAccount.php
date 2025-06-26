@@ -10,9 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class GlAccount extends AbstractMainFinanceModel
 {
-    use HasIntegrityCheck;
-    use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
-    
     protected $table = 'fin_gl_accounts';
     
     protected $casts = [
@@ -21,15 +18,7 @@ class GlAccount extends AbstractMainFinanceModel
         'account_type' => AccountTypeEnum::class,
     ];
     
-    protected $fillable = [
-        'account_id',
-        'account_description',
-        'account_segments_descriptor',
-        'account_type',
-        'is_active',
-        'allow_manual_entry',
-        'team_id',
-    ];
+    // Removed fillable - using property assignment instead
     
     /**
      * Relationships
@@ -126,43 +115,6 @@ class GlAccount extends AbstractMainFinanceModel
     }
 
     /**
-     * Update the last segment value of an account
-     * Used in Chart of Accounts for editing
-     */
-    public function updateLastSegmentValue(int $newSegmentValueId): self
-    {
-        return DB::transaction(function () use ($newSegmentValueId) {
-            $newSegmentValue = SegmentValue::findOrFail($newSegmentValueId);
-            
-            // Get current segment values
-            $currentValues = $this->orderedSegmentValues;
-            if ($currentValues->isEmpty()) {
-                throw new \InvalidArgumentException('Account has no segments');
-            }
-            
-            // Validate new value is for the same position as last segment
-            $lastSegment = $currentValues->last();
-            if ($newSegmentValue->segment_definition_id !== $lastSegment->segment_definition_id) {
-                throw new \InvalidArgumentException('New segment value must be for the same segment definition');
-            }
-            
-            // Build new segment value IDs array
-            $newSegmentValueIds = $currentValues
-                ->slice(0, -1) // All except last
-                ->pluck('id')
-                ->push($newSegmentValueId)
-                ->values()
-                ->toArray();
-            
-            // Update assignments
-            AccountSegmentAssignment::createForAccount($this->id, $newSegmentValueIds);
-            
-            // Refresh to get updated computed fields from trigger
-            return $this->refresh();
-        });
-    }
-    
-    /**
      * Check if account allows manual entries
      */
     public function allowsManualEntry(): bool
@@ -202,7 +154,7 @@ class GlAccount extends AbstractMainFinanceModel
     public static function columnsIntegrityCalculations()
     {
         return [
-            'account_segments_descriptor' => 'build_account_descriptor(fin_gl_accounts.id)',
+            'account_segments_descriptor' => \DB::raw('build_account_descriptor(fin_gl_accounts.id)'),
         ];
     }
 }
