@@ -30,8 +30,8 @@ class CreateInvoiceDto extends ValidatedDTO
     public int $invoice_type_id;
     public int $payment_method_id;
 
-    public array $possible_payment_methods;
-    public array $possible_payment_installments;
+    public ?array $possible_payment_methods;
+    public ?array $possible_payment_installments;
 
     public Carbon $invoice_date;
     public ?Carbon $invoice_due_date;

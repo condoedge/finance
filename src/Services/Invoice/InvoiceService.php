@@ -126,6 +126,11 @@ class InvoiceService implements InvoiceServiceInterface
     public function getDefaultTaxesIds(?Invoice $invoice): Collection
     {
         $taxGroupId = $this->resolveTaxGroupId($invoice);
+
+        if (!$taxGroupId) {
+            return collect(); // Return empty collection if no tax group found
+        }
+
         $taxGroup = TaxGroup::findOrFail($taxGroupId);
         
         return $taxGroup->taxes()->pluck('fin_taxes.id');

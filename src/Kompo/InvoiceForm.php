@@ -7,6 +7,7 @@ use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
 use Condoedge\Utils\Kompo\Common\Form;
@@ -38,7 +39,9 @@ class InvoiceForm extends Form
 		$requestData = request()->all();
 		if (isset($requestData['invoiceDetails'])) {
 			$requestData['invoiceDetails'] = collect($requestData['invoiceDetails'])->map(function ($detail) {
-				return array_merge($detail, ['id' => $detail['multiFormKey'] ?? null]);
+				return array_merge($detail, ['id' => $detail['multiFormKey'] ?? null], [
+					'revenue_account_id' => GlAccount::getFromLatestSegmentValue($detail['revenue_segment_account_id'])->id,
+				]);
 			})->toArray();
 		}
 
