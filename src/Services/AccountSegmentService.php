@@ -241,7 +241,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
 
             // Check if segment can be deleted (no active values)
             if ($segment->segmentValues()->where('is_active', true)->exists()) {
-                throw new \Exception(__('translate.with-values.cannot-delete-active-segment'));
+                throw new \Exception(__('validation-cannot-delete-active-segment'));
             }
 
             // Delete the segment
@@ -273,7 +273,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
         // Check each active segment has values
         foreach ($segments as $segment) {
             if ($segment->segmentValues()->whereRaw('LENGTH(fin_segment_values.segment_value) != ' . $segment->segment_length)->count() > 1) {
-                $issues[] = __('translate.with-values.you-have-values-with-the-wrong-length-in', [
+                $issues[] = __('with-values-you-have-values-with-the-wrong-length-in', [
                     'segment' => $segment->segment_description,
                 ]);
             }

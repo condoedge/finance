@@ -10,7 +10,7 @@ use Condoedge\Finance\Enums\SegmentDefaultHandlerEnum;
 class AccountFormModalWithDefaults extends \App\Kompo\Common\Modal
 {
     public $model = GlAccount::class;
-    public $_Title = 'finance.create-account';
+    public $_Title = 'finance-create-account';
     
     protected $segments;
     protected $segmentValues;

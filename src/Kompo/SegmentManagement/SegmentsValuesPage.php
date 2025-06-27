@@ -35,8 +35,8 @@ class SegmentsValuesPage extends Table
         if ($segments->isEmpty()) {
             return _CardWarning(
                 _FlexBetween(
-                    _Html('translate.finance-define-segment-structure-first'),
-                    _Link('translate.finance-go-to-structure')
+                    _Html('finance-define-segment-structure-first'),
+                    _Link('finance-go-to-structure')
                         ->href('finance.segment-manager', ['tab' => 'structure'])
                 )->class('w-full gap-4'),
             );
@@ -57,11 +57,11 @@ class SegmentsValuesPage extends Table
     public function headers()
     {
         return [
-            _Th('translate.finance-segment-value')->class('w-1/4'),
-            _Th('translate.finance-segment-description')->class('w-1/4'),
-            _Th('translate.finance-status'),
-            _Th('translate.finance-accounts'),
-            _Th('translate.finance-actions')->class('w-8'),
+            _Th('finance-segment-value')->class('w-1/4'),
+            _Th('finance-segment-description')->class('w-1/4'),
+            _Th('finance-status'),
+            _Th('finance-accounts'),
+            _Th('finance-actions')->class('w-8'),
         ];
     }
 

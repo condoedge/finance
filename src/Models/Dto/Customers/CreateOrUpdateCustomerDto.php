@@ -54,7 +54,7 @@ class CreateOrUpdateCustomerDto extends ValidatedDTO
     public function after($validator): void
     {
         if (!$validator->errors()->has('address') && $validator->errors()->has('address*')) {
-            $validator->errors()->add('address', __('translate.validation.customer.the-address-must-be-complete'));
+            $validator->errors()->add('address', __('validation-customer-address-must-be-complete'));
         }
     }
 }

@@ -11,7 +11,7 @@ use Condoedge\Utils\Kompo\Common\Modal;
 
 class SegmentValueFormModal extends Modal
 {
-    public $_Title = 'translate.create-account-segment-value';
+    public $_Title = 'finance-create-account-segment-value';
     public $model = SegmentValue::class;
 
     protected $position;
@@ -46,23 +46,20 @@ class SegmentValueFormModal extends Modal
 
         return _Rows(
             _CardGray200(
-                _Html(__('translate.example-account-value', ['example' => 
+                _Html(__('finance-example-account-value', ['example' => 
                     str_pad('', $segmentLenght, 'X'),
                 ])),
             )->p4(),
 
-            _ValidatedInput('translate.account-value')->name('segment_value')->allow("^[0-9]{0,$segmentLenght}$")
-                ->placeholder('Enter segment value')
+            _ValidatedInput('finance-account-value')->name('segment_value')->allow("^[0-9]{0,$segmentLenght}$")
                 ->required(),
 
-            _Input('translate.account-segment-description')
+            _Input('finance-account-segment-description')
                 ->name('segment_description')
-                ->placeholder('Select segment description')
                 ->required(),
 
-            !$this->isRealAccount ? null : _Select('account-type')->name('account_type')
+            !$this->isRealAccount ? null : _Select('finance-account-type')->name('account_type')
                 ->options(AccountTypeEnum::optionsWithLabels())
-                ->placeholder('Select account type')
                 ->required()
         );
     }

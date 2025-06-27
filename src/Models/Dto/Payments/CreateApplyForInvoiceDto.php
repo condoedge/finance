@@ -75,7 +75,7 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
         $invoice = InvoiceModel::find($invoiceId);
 
         if ($invoice?->is_draft) {
-            $validator->errors()->add('invoice_id', __('translate.validation.custom.finance.invoice-draft'));
+            $validator->errors()->add('invoice_id', __('validation-custom-finance-invoice-draft'));
         }
     }
 
@@ -87,7 +87,7 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
         $amountApplied = new SafeDecimal($this->dtoData['amount_applied'] ?? null);
 
         if ($amountApplied->equals(0)) {
-            $validator->errors()->add('amount_applied', __('translate.validation.custom.finance.amount-applied-zero'));
+            $validator->errors()->add('amount_applied', __('validation-custom-finance-amount-applied-zero'));
         }
     }
 
@@ -116,12 +116,12 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
             // Validate amount doesn't exceed available
             $paymentLeftResult = $applicableModel->applicable_amount_left->subtract($amountApplied);
             if ($paymentLeftResult->multiply($applicableModel->applicable_amount_left)->lessThan(0)) {
-                $validator->errors()->add('applicable', __('translate.validation.custom.finance.applicable-amount-exceeded'));
+                $validator->errors()->add('applicable', __('validation-custom-finance-applicable-amount-exceeded'));
             }
 
             // Validate sign consistency (cannot apply negative payment to positive invoice)
             if ($applicableModel->applicable_amount_left->multiply($invoice->invoice_type_id->signMultiplier())->lessThan(0)) {
-                $validator->errors()->add('applicable', __('translate.validation.custom.finance.applicable-amount-negative'));
+                $validator->errors()->add('applicable', __('validation-custom-finance-applicable-amount-negative'));
             }
         }
     }
@@ -139,12 +139,12 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
         if (!is_null($invoiceId) && !is_null($amountApplied) && $invoice && !is_null($applicable)) {
             // Validate customer matches
             if ($invoice->customer_id != $applicable['customer_id']) {
-                $validator->errors()->add('applicable', __('translate.validation.custom.finance.invoice-customer-mismatch'));
+                $validator->errors()->add('applicable', __('validation-custom-finance-invoice-customer-mismatch'));
             }
 
             // Validate amount doesn't exceed invoice due
             if ($invoice->abs_invoice_due_amount->lessThan($amountApplied)) {
-                $validator->errors()->add('amount_applied', __('translate.validation.custom.finance.invoice-amount-exceeded'));
+                $validator->errors()->add('amount_applied', __('validation-custom-finance-invoice-amount-exceeded'));
             }
         }
     }

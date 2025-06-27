@@ -65,7 +65,7 @@ class CreateCustomerFromCustomable extends ValidatedDTO
             $this->customable = getModelFromMorphable($customableType, $customableId);
 
             if (!$this->customable->getFirstValidAddress() && empty($address)) {
-                $validator->errors()->add('address', __('translate.validation.customable.address-required'));
+                $validator->errors()->add('address', __('validation-customable-address-required'));
             }
         }
     }

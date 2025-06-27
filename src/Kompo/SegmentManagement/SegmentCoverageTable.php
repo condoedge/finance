@@ -15,10 +15,10 @@ class SegmentCoverageTable extends Table
     public function headers()
     {
         return [
-            _Th('translate.segment-description'),
-            _Th('translate.total-values'),
-            _Th('translate.active-values'),
-            _Th('translate.usage-percentage'),
+            _Th('finance-segment-description'),
+            _Th('finance-total-values'),
+            _Th('finance-active-values'),
+            _Th('finance-usage-percentage'),
         ];
     }
 

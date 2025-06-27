@@ -88,8 +88,8 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
 
                 $invoice = $invoices->get($amountToApply['id']);
                 if ($invoice && $invoice->is_draft) {
-                    $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('translate.validation.custom.finance.invoice-draft'));
-                    $validator->errors()->add('amounts_to_apply', __('translate.validation.custom.finance.invoice-draft'));
+                    $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('validation-custom-finance-invoice-draft'));
+                    $validator->errors()->add('amounts_to_apply', __('validation-custom-finance-invoice-draft'));
                 }
             }
         }
@@ -115,8 +115,8 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
                 $amount = new SafeDecimal($amountToApply['amount_applied']);
 
                 if ($invoice && $invoice->abs_invoice_due_amount->lessThan($amount)) {
-                    $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('translate.validation.custom.finance.invoice-amount-exceeded'));
-                    $validator->errors()->add('amounts_to_apply', __('translate.validation.custom.finance.invoice-amount-exceeded'));
+                    $validator->errors()->add('amount_applied_to_' . $amountToApply['id'], __('validation-custom-finance-invoice-amount-exceeded'));
+                    $validator->errors()->add('amounts_to_apply', __('validation-custom-finance-invoice-amount-exceeded'));
                 }
             }
         }
@@ -142,7 +142,7 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
             }, new SafeDecimal('0.00'));
 
             if ($applicableModel->abs_applicable_amount_left->lessThan($totalAmount)) {
-                $validator->errors()->add('applicable', __('translate.validation.custom.finance.applicable-amount-exceeded'));
+                $validator->errors()->add('applicable', __('validation-custom-finance-applicable-amount-exceeded'));
             }
         }
     }

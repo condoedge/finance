@@ -20,14 +20,14 @@ class FiscalSetupPeriods extends WhiteTable
     public function headers()
     {
         return [
-            _Th('translate.fiscal-year'),
-            _Th('translate.period-number'),
-            _Th('translate.start-end'),
-            _Th('translate.is-open-gl'),
-            _Th('translate.is-open-bnk'),
-            _Th('translate.is-open-rm'),
-            _Th('translate.is-open-pm'),
-            _Th('translate.actions')->class('w-8'),
+            _Th('finance-fiscal-year'),
+            _Th('finance-period-number'),
+            _Th('finance-start-end'),
+            _Th('finance-is-open-gl'),
+            _Th('finance-is-open-bnk'),
+            _Th('finance-is-open-rm'),
+            _Th('finance-is-open-pm'),
+            _Th('finance-actions')->class('w-8'),
         ];
     }
 

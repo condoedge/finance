@@ -11,11 +11,11 @@ class FiscalSetupPage extends Form
     public function render()
     {
         return _Rows(
-            _Html('translate.finance-fiscal-setup')->class('text-2xl font-bold mb-4'),
+            _Html('finance-fiscal-setup')->class('text-2xl font-bold mb-4'),
 
             new FiscalSetupForm(),
 
-            _Html('translate.finance-periods')->class('text-2xl font-bold mb-4'),
+            _Html('finance-periods')->class('text-2xl font-bold mb-4'),
 
             new FiscalSetupPeriods(),
         );

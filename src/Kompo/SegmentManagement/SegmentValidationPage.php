@@ -20,7 +20,7 @@ class SegmentValidationPage extends Form
                     collect($issues)->map(fn($issue) => _Html($issue)->class('text-red-600'))
                 )->class('gap-2 mb-4') :
                 _Card(
-                    _Html('translate.finance-segment-structure-valid')
+                    _Html('finance-segment-structure-valid')
                 )->class('text-green-800 text-center font-semibold w-full bg-green-100 p-4 mb-4'),
 
             // Statistics

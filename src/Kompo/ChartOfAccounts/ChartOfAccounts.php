@@ -32,13 +32,13 @@ class ChartOfAccounts extends Form
     public function render()
     {
         return _Rows(
-            _Html('translate.finance-chart-of-accounts')
+            _Html('finance-chart-of-accounts')
                 ->class('text-2xl font-bold mb-4'),
 
             $this->renderSegmentStructureInfo(),
 
             _FlexEnd(
-                _Button('translate.create-account')->class('mb-2')
+                _Button('finance.create-account')->class('mb-2')
                     ->selfGet('getLastSegmentValueForm')->inModal(),
             ),
 
@@ -73,7 +73,7 @@ class ChartOfAccounts extends Form
                 ))->class('gap-3'),
             ),
 
-            _Link('translate.go-to-definition')->button()
+            _Link('finance-go-to-definition')->button()
                 ->href('finance.segment-manager'),
 
         )->class('mb-4 p-3 bg-blue-50 border-blue-200 justify-between items-center flex-row');
@@ -86,7 +86,7 @@ class ChartOfAccounts extends Form
     {
         $accountTypes = AccountTypeEnum::optionsWithLabels();
 
-        $accountTypes->prepend(__('translate.finance-all-accounts'), 'all');
+        $accountTypes->prepend(__('finance-all-accounts'), 'all');
 
         return _Flex(
             collect($accountTypes)->map(
