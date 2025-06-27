@@ -25,6 +25,8 @@ class ChartOfAccounts extends Form
 
         $this->segmentStructure = AccountSegmentService::getSegmentStructure();
         $this->lastSegmentDefinition = $this->segmentStructure->last();
+
+        AccountSegmentService::createDefaultSegments();
     }
 
     public function render()
@@ -58,17 +60,11 @@ class ChartOfAccounts extends Form
      */
     protected function renderSegmentStructureInfo()
     {
-        if ($this->segmentStructure->isEmpty()) {
-            return _Alert('finance-no-segment-structure-defined')
-                ->icon('alert-triangle')
-                ->class('mb-4');
-        }
-
         $formatExample = AccountSegmentService::getAccountFormatMask();
 
         return _Card(
-            _Rows(             
-                _Html(__('finance-account-format'))->class('text-sm text-gray-600'),
+            _Rows(
+                _Html('finance-account-format')->class('text-sm text-gray-600'),
                 _Html($formatExample)->class('font-bold pr-2 border-r border-gray-300'),
                 _Flex(collect($this->segmentStructure)->map(
                     fn($seg) =>

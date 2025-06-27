@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Services;
 
+use Condoedge\Finance\Enums\SegmentDefaultHandlerEnum;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Finance\Models\AccountSegmentAssignment;
@@ -517,5 +518,18 @@ class AccountSegmentService implements AccountSegmentServiceInterface
         }
         
         return true;
+    }
+
+    public function createDefaultSegments(): void
+    {
+        if ($this->getSegmentStructure()->isEmpty()) {
+            // Create default segments if none exist
+            $this->createOrUpdateSegment(new CreateOrUpdateSegmentDto([
+                'segment_description' => 'Account',
+                'segment_position' => 1,
+                'segment_length' => 4,
+                'default_handler' => SegmentDefaultHandlerEnum::MANUAL,
+            ]));
+        }
     }
 }

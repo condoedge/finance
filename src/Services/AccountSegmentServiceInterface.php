@@ -114,4 +114,6 @@ interface AccountSegmentServiceInterface
      * Get segment handler options for UI
      */
     public function getSegmentHandlerOptions(int $segmentPosition): array;
+
+    public function createDefaultSegments(): void;
 }

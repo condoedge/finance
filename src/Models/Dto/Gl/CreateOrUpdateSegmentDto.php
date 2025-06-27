@@ -111,7 +111,7 @@ class CreateOrUpdateSegmentDto extends ValidatedDTO
         }
 
         // If editing an existing segment that is currently the last one
-        if ($this->dtoData['id']) {
+        if ($this->dtoData['id'] ?? null) {
             $segment = AccountSegment::find($this->dtoData['id']);
             if ($segment && $segment->segment_position === $maxPosition) {
                 if (!str_contains(strtolower($segmentDescription), 'account')) {
