@@ -7,6 +7,7 @@ use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Finance\Models\Tax;
 use Kompo\Form;
 
@@ -52,13 +53,14 @@ class InvoiceDetailForm extends Form
 							->class('w-28 mb-0')
 							->run('calculateTotals'),
 
-						_Hidden()->name('revenue_account_id')->value(GlAccount::first()->id),
-						// _Rows(
-						// 	_Select()->placeholder('account')
-						// 		->class('w-36 mb-0')
-						// 		->name('revenue_account_id')
-						// 		->options(Account::pluck('name', 'id')->toArray()),
-						// ),
+						_Rows(
+							_Select()->placeholder('account')
+								->class('w-36 !mb-0')
+								->name('revenue_segment_account_id')
+								->options(SegmentValue::forLastSegment()->get()->mapWithKeys(
+									fn($it) => [$it->id => $it->segment_value . ' - ' . $it->segment_description]
+								)),
+						),
 
 					)->class('space-x-4'),
 
@@ -108,7 +110,7 @@ class InvoiceDetailForm extends Form
 			'quantity' => 'required',
 			'unit_price' => 'required',
 			'name' => 'sometimes|required',
-			'revenue_account_id' => 'required|exists:fin_gl_accounts,id',
+			'revenue_segment_account_id' => 'required|exists:fin_segment_values,id',
 		];
 	}
 }

@@ -51,6 +51,11 @@ class SegmentValue extends Model
     {
         return $this->belongsToMany(GlAccount::class, 'fin_account_segment_assignments', 'segment_value_id', 'account_id');
     }
+
+    public function getDisplayAttribute()
+    {
+        return $this->segment_value . ' - ' . $this->segment_description;
+    }
     
     /**
      * Scope for active values

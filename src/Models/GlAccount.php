@@ -3,8 +3,10 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Facades\GlAccountService;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
+use Condoedge\Finance\Services\GlSegmentService;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -146,6 +148,24 @@ class GlAccount extends AbstractMainFinanceModel
         $balance = GlAccountService::getAccountBalance($this, $startDate, $endDate);
 
         return $balance;
+    }
+
+    public static function getFromLatestSegmentValue($valueId)
+    {
+        return AccountSegmentService::createAccountFromLastSegment($valueId, [
+            'allow_manual_entry' => true,
+            'is_active' => true,
+        ]);
+    }
+
+    public function getLastSegmentValue()
+    {
+        return $this->orderedSegmentValues->last();
+    }
+
+    public function getDisplayAttribute()
+    {
+        return $this->getLastSegmentValue()?->display;
     }
     
     /**

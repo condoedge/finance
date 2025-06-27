@@ -36,7 +36,7 @@ class InvoiceDetailsTable extends Table
     {
     	return _TableRow(
             _Html($invoiceDetail->name),
-            _Html($invoiceDetail->revenueAccount->name)->class('text-right'),
+            _Html($invoiceDetail->revenueAccount?->display)->class('text-right'),
             _Html($invoiceDetail->quantity)->class('text-right'),
             _FinanceCurrency($invoiceDetail->abs_unit_price)->class('text-right'),
             _FinanceCurrency($invoiceDetail->abs_tax_amount)->class('text-right'),
