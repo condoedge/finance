@@ -18,7 +18,8 @@ class GlTransactionsTable extends Table
     {
         return _FlexBetween(
             _TitleMain('finance-gl-transactions'),
-            _Button('finance-create-gl-transaction')
+            _Link('finance-create-gl-transaction')
+                ->button()
                 ->outlined()
                 ->icon('plus')
                 ->href('finance.gl.gl-transaction-form')

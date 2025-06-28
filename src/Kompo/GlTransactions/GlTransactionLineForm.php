@@ -23,59 +23,47 @@ class GlTransactionLineForm extends Form
     {
         return _TableRow(
             // Line number (auto-generated)
-            _Td(
-                _Html()->class('line-number text-center')
-            )->class('w-12'),
+            _Html()->class('line-number text-center'),
             
             // Account selection
-            _Td(
-                $this->renderAccountSelect()
-            )->class('w-64'),
+            $this->renderAccountSelect(),
             
             // Line description
-            _Td(
-                _Input()
-                    ->name('line_description')
-                    ->placeholder('finance-optional-description')
-                    ->maxlength(255)
-                    ->disabled($this->isReadOnly)
-            ),
+            _Input()
+                ->name('line_description')
+                ->placeholder('finance-optional-description')
+                ->maxlength(255)
+                ->disabled($this->isReadOnly),
             
             // Debit amount
-            _Td(
-                _Input()
-                    ->name('debit_amount')
-                    ->type('number')
-                    ->step('0.01')
-                    ->min(0)
-                    ->placeholder('0.00')
-                    ->disabled($this->isReadOnly)
-                    ->class('text-right')
-                    ->onChange('updateTotals()')
-                    ->onInput('handleDebitCreditExclusion(this, "credit")')
-            )->class('w-32'),
+            _Input()
+                ->name('debit_amount')
+                ->type('number')
+                ->step('0.01')
+                ->min(0)
+                ->placeholder('0.00')
+                ->disabled($this->isReadOnly)
+                ->class('text-right')
+                ->onChange('updateTotals()')
+                ->onInput('handleDebitCreditExclusion(this, "credit")'),
             
             // Credit amount
-            _Td(
-                _Input()
-                    ->name('credit_amount')
-                    ->type('number')
-                    ->step('0.01')
-                    ->min(0)
-                    ->placeholder('0.00')
-                    ->disabled($this->isReadOnly)
-                    ->class('text-right')
-                    ->onChange('updateTotals()')
-                    ->onInput('handleDebitCreditExclusion(this, "debit")')
-            )->class('w-32'),
+            _Input()
+                ->name('credit_amount')
+                ->type('number')
+                ->step('0.01')
+                ->min(0)
+                ->placeholder('0.00')
+                ->disabled($this->isReadOnly)
+                ->class('text-right')
+                ->onChange('updateTotals()')
+                ->onInput('handleDebitCreditExclusion(this, "debit")'),
             
             // Remove button
-            _Td(
-                $this->isReadOnly ? null :
-                    _Button()->icon('trash')
-                        ->class('text-danger')
-                        ->emitDirect('removeRow')
-            )->class('w-12 text-center'),
+            $this->isReadOnly ? null :
+                _Button()->icon('trash')
+                    ->class('text-danger')
+                    ->emitDirect('removeRow')
         );
     }
     
