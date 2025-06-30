@@ -63,7 +63,7 @@ class InvoiceService implements InvoiceServiceInterface
             
             // Save the invoice to get ID for details
             $invoice->save();
-            
+
             // Create invoice details
             $this->createInvoiceDetails($invoice, $dto->invoiceDetails);
             

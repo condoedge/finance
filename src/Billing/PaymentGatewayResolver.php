@@ -43,7 +43,7 @@ class PaymentGatewayResolver
      */
     public static function resolveForInvoice(Invoice $invoice): PaymentGatewayInterface
     {
-        return self::resolveForPaymentType($invoice->payment_method_id);
+        return self::resolveForPaymentType($invoice->payment_method_id ?? PaymentMethodEnum::CASH);
     }
 
     /**

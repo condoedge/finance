@@ -14,7 +14,7 @@ if (!function_exists('finance_currency')) {
             return '-';
         }
 
-        $value = method_exists($value, 'toFloat') ? $value->toFloat() : (float) $value;
+        $value = (is_object($value) && method_exists($value, 'toFloat')) ? $value->toFloat() : (float) $value;
 
         $customFormatter  = config('kompo-finance.custom_currency_formatter', null);
         if ($customFormatter && is_callable($customFormatter)) {

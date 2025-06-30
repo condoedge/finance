@@ -28,17 +28,17 @@ class CreateInvoiceDto extends ValidatedDTO
 {
     public int $customer_id;
     public int $invoice_type_id;
-    public int $payment_method_id;
+    public ?int $payment_method_id;
 
-    public ?array $possible_payment_methods;
-    public ?array $possible_payment_installments;
+    public array $possible_payment_methods = [];
+    public array $possible_payment_installments = [];
 
     public Carbon $invoice_date;
     public ?Carbon $invoice_due_date;
 
     public bool $is_draft;
 
-    public array $invoiceDetails;
+    public array $invoiceDetails = [];
 
     public ?string $invoiceable_type = null;
     public ?int $invoiceable_id = null;
@@ -94,6 +94,9 @@ class CreateInvoiceDto extends ValidatedDTO
     {
         return [
             'is_draft' => true,
+            'invoiceDetails' => [],
+            'possible_payment_methods' => [],
+            'possible_payment_installments' => [],
         ];
     }
 }

@@ -58,7 +58,7 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
             'taxesIds.*' => 'integer|exists:fin_taxes,id',
 
             'invoiceable_type' => 'nullable|string',
-            'invoiceable_id' => 'nullable|integer|exists:fin_invoiceables,id',
+            'invoiceable_id' => 'nullable|integer',
         ];
     }
 
