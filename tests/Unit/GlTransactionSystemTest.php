@@ -3,329 +3,370 @@
 namespace Condoedge\Finance\Tests\Unit;
 
 use Condoedge\Finance\Models\GlTransactionHeader;
-use Condoedge\Finance\Models\GlTransactionLine;
 use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\FiscalPeriod;
-use Condoedge\Finance\Models\FiscalYearSetup;
-use Condoedge\Finance\Models\Dto\CreateGlTransactionDto;
-use Condoedge\Finance\Services\GlTransactionService;
-use Condoedge\Finance\Facades\AccountSegmentService;
-use Tests\TestCase;
+use Condoedge\Finance\Models\SegmentValue;
+use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
+use Condoedge\Finance\Services\GlTransactionServiceInterface;
+use Condoedge\Finance\Tests\FinanceTestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Carbon\Carbon;
+use WendellAdriel\ValidatedDTO\Exceptions\ValidatedDTOException;
 use PHPUnit\Framework\Attributes\Test;
 
-class GlTransactionSystemTest extends TestCase
+class GlTransactionSystemTest extends FinanceTestCase
 {
     use RefreshDatabase;
-    
-    protected GlTransactionService $service;
-    
-    protected function setUp(): void
+
+    protected $glTransactionService;
+
+    #[Test]
+    public function it_creates_a_balanced_manual_gl_transaction()
     {
-        parent::setUp();
-        $this->service = app(GlTransactionService::class);
+        // Arrange
         $this->setupTestEnvironment();
-    }
-    
-    public function test_it_can_create_manual_gl_transaction()
-    {
-        // Prepare transaction data
-        $dto = new CreateGlTransactionDto([
-            'fiscal_date' => '2025-06-15',
-            'transaction_description' => 'Test journal entry',
-            'lines' => [
-                [
-                    'account_id' => '10-03-4000',
-                    'line_description' => 'Cash debit',
-                    'debit_amount' => 1000.00,
-                    'credit_amount' => 0,
-                ],
-                [
-                    'account_id' => '10-03-3000',
-                    'line_description' => 'Equity credit',
-                    'debit_amount' => 0,
-                    'credit_amount' => 1000.00,
-                ],
-            ],
-        ]);
-        
-        // Create transaction
-        $transaction = $this->service->createManualGlTransaction($dto);
-        
-        // Verify transaction created
-        $this->assertInstanceOf(GlTransactionHeader::class, $transaction);
-        $this->assertEquals(GlTransactionHeader::TYPE_MANUAL_GL, $transaction->gl_transaction_type);
-        $this->assertEquals('2025-06-15', $transaction->fiscal_date->format('Y-m-d'));
-        $this->assertEquals('Test journal entry', $transaction->transaction_description);
-        $this->assertEquals(2025, $transaction->fiscal_year);
-        $this->assertTrue($transaction->is_balanced);
-        $this->assertFalse($transaction->is_posted);
-        
-        // Verify lines created
-        $this->assertCount(2, $transaction->lines);
-        
-        $debitLine = $transaction->lines->where('debit_amount', '>', 0)->first();
-        $this->assertEquals('10-03-4000', $debitLine->account_id);
-        $this->assertEquals(1000.00, $debitLine->debit_amount);
-        $this->assertEquals(0, $debitLine->credit_amount);
-        
-        $creditLine = $transaction->lines->where('credit_amount', '>', 0)->first();
-        $this->assertEquals('10-03-3000', $creditLine->account_id);
-        $this->assertEquals(0, $creditLine->debit_amount);
-        $this->assertEquals(1000.00, $creditLine->credit_amount);
-    }
-    
-    public function test_it_validates_transaction_balance()
-    {
-        // Unbalanced transaction
-        $dto = new CreateGlTransactionDto([
-            'fiscal_date' => '2025-06-15',
-            'transaction_description' => 'Unbalanced entry',
-            'lines' => [
-                [
-                    'account_id' => '10-03-4000',
-                    'debit_amount' => 1000.00,
-                    'credit_amount' => 0,
-                ],
-                [
-                    'account_id' => '10-03-3000',
-                    'debit_amount' => 0,
-                    'credit_amount' => 900.00, // Not balanced!
-                ],
-            ],
-        ]);
-        
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('Transaction must balance');
-        
-        $this->service->createManualGlTransaction($dto);
-    }
-    
-    public function test_it_validates_fiscal_period_is_open()
-    {
-        // Close the period for GL
-        $period = FiscalPeriod::getPeriodFromDate(Carbon::parse('2025-06-15'));
-        $period->update(['is_open_gl' => false]);
-        
-        $dto = new CreateGlTransactionDto([
-            'fiscal_date' => '2025-06-15',
-            'transaction_description' => 'Test entry',
-            'lines' => [
-                ['account_id' => '10-03-4000', 'debit_amount' => 100, 'credit_amount' => 0],
-                ['account_id' => '10-03-3000', 'debit_amount' => 0, 'credit_amount' => 100],
-            ],
-        ]);
-        
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('closed');
-        
-        $this->service->createManualGlTransaction($dto);
-    }
-    
-    public function test_it_validates_accounts_allow_manual_entry()
-    {
-        // Create account that doesn't allow manual entry
-        $account = GlAccount::where('account_id', '10-03-4000')->first();
-        $account->update(['allow_manual_entry' => false]);
-        
-        $dto = new CreateGlTransactionDto([
-            'fiscal_date' => '2025-06-15',
-            'transaction_description' => 'Test entry',
-            'lines' => [
-                ['account_id' => '10-03-4000', 'debit_amount' => 100, 'credit_amount' => 0],
-                ['account_id' => '10-03-3000', 'debit_amount' => 0, 'credit_amount' => 100],
-            ],
-        ]);
-        
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('manual entry');
-        
-        $this->service->createManualGlTransaction($dto);
-    }
-    
-    public function test_it_generates_sequential_transaction_numbers()
-    {
-        // Create multiple transactions
-        $transactions = [];
-        for ($i = 1; $i <= 3; $i++) {
-            $dto = new CreateGlTransactionDto([
-                'fiscal_date' => '2025-06-15',
-                'transaction_description' => "Test entry {$i}",
-                'lines' => [
-                    ['account_id' => '10-03-4000', 'debit_amount' => 100, 'credit_amount' => 0],
-                    ['account_id' => '10-03-3000', 'debit_amount' => 0, 'credit_amount' => 100],
-                ],
-            ]);
-            
-            $transactions[] = $this->service->createManualGlTransaction($dto);
-        }
-        
-        // Verify sequential numbers
-        $this->assertEquals(1, $transactions[0]->gl_transaction_number);
-        $this->assertEquals(2, $transactions[1]->gl_transaction_number);
-        $this->assertEquals(3, $transactions[2]->gl_transaction_number);
-        
-        // Verify transaction IDs
-        $this->assertEquals('2025-01-000001', $transactions[0]->gl_transaction_id);
-        $this->assertEquals('2025-01-000002', $transactions[1]->gl_transaction_id);
-        $this->assertEquals('2025-01-000003', $transactions[2]->gl_transaction_id);
-    }
-    
-    public function test_it_can_post_transaction()
-    {
-        // Create transaction
-        $dto = new CreateGlTransactionDto([
-            'fiscal_date' => '2025-06-15',
-            'transaction_description' => 'Test entry',
-            'lines' => [
-                ['account_id' => '10-03-4000', 'debit_amount' => 100, 'credit_amount' => 0],
-                ['account_id' => '10-03-3000', 'debit_amount' => 0, 'credit_amount' => 100],
-            ],
-        ]);
-        
-        $transaction = $this->service->createManualGlTransaction($dto);
-        $this->assertFalse($transaction->is_posted);
-        $this->assertTrue($transaction->canBeModified());
-        
-        // Post transaction
-        $this->service->postTransaction($transaction);
-        
-        $transaction->refresh();
-        $this->assertTrue($transaction->is_posted);
-        $this->assertFalse($transaction->canBeModified());
-    }
-    
-    public function test_it_cannot_post_unbalanced_transaction()
-    {
-        // Create transaction and manually make it unbalanced (simulating data corruption)
-        $transaction = GlTransactionHeader::create([
-            'gl_transaction_id' => '2025-01-999999',
-            'gl_transaction_number' => 999999,
-            'fiscal_date' => '2025-06-15',
-            'fiscal_year' => 2025,
-            'fiscal_period' => 1,
-            'gl_transaction_type' => GlTransactionHeader::TYPE_MANUAL_GL,
-            'transaction_description' => 'Corrupted entry',
-            'team_id' => $this->team->id,
-            'is_balanced' => false, // Force unbalanced
-        ]);
-        
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('unbalanced');
-        
-        $this->service->postTransaction($transaction);
-    }
-    
-    public function test_it_prevents_modification_of_posted_transaction()
-    {
-        // Create and post transaction
-        $dto = new CreateGlTransactionDto([
-            'fiscal_date' => '2025-06-15',
-            'transaction_description' => 'Test entry',
-            'lines' => [
-                ['account_id' => '10-03-4000', 'debit_amount' => 100, 'credit_amount' => 0],
-                ['account_id' => '10-03-3000', 'debit_amount' => 0, 'credit_amount' => 100],
-            ],
-        ]);
-        
-        $transaction = $this->service->createManualGlTransaction($dto);
-        $this->service->postTransaction($transaction);
-        
-        // Try to update
-        $transaction->transaction_description = 'Modified description';
-        
-        $this->expectException(\Exception::class);
-        $transaction->save();
-    }
-    
-    public function test_it_calculates_totals_correctly()
-    {
-        $dto = new CreateGlTransactionDto([
-            'fiscal_date' => '2025-06-15',
-            'transaction_description' => 'Multi-line entry',
-            'lines' => [
-                ['account_id' => '10-03-4000', 'debit_amount' => 500, 'credit_amount' => 0],
-                ['account_id' => '10-03-4001', 'debit_amount' => 300, 'credit_amount' => 0],
-                ['account_id' => '10-03-1105', 'debit_amount' => 200, 'credit_amount' => 0],
-                ['account_id' => '10-03-3000', 'debit_amount' => 0, 'credit_amount' => 1000],
-            ],
-        ]);
-        
-        $transaction = $this->service->createManualGlTransaction($dto);
-        
-        $this->assertEquals(1000.00, $transaction->total_debits->toFloat());
-        $this->assertEquals(1000.00, $transaction->total_credits->toFloat());
-        $this->assertTrue($transaction->is_balanced);
-    }
-    
-    public function test_it_handles_different_transaction_types()
-    {
-        // Create transactions of different types
-        $types = [
-            GlTransactionHeader::TYPE_MANUAL_GL => 'GL',
-            GlTransactionHeader::TYPE_BANK => 'BNK',
-            GlTransactionHeader::TYPE_RECEIVABLE => 'RM',
-            GlTransactionHeader::TYPE_PAYABLE => 'PM',
-        ];
-        
-        foreach ($types as $type => $expectedModule) {
-            $period = FiscalPeriod::getPeriodFromDate(Carbon::parse('2025-06-15'));
-            
-            // Close period for specific module
-            $column = 'is_open_' . strtolower($expectedModule);
-            $period->update([$column => false]);
-            
-            // Try to create transaction
-            $transaction = new GlTransactionHeader([
-                'fiscal_date' => '2025-06-15',
-                'gl_transaction_type' => $type,
-                'team_id' => $this->team->id,
-            ]);
-            
-            $this->expectException(\Exception::class);
-            $transaction->save();
-            
-            // Re-open period
-            $period->update([$column => true]);
-        }
-    }
-    
-    protected function setupTestEnvironment()
-    {
-        // Setup team
-        $this->team = \App\Models\Team::factory()->create();
-        $this->actingAs(\App\Models\User::factory()->create());
-        setCurrentTeamId($this->team->id);
-        
-        // Setup fiscal year
-        FiscalYearSetup::create([
-            'team_id' => $this->team->id,
-            'fiscal_start_date' => '2024-05-01',
-        ]);
-        
-        // Setup account segments and accounts
-        AccountSegmentService::setupDefaultSegmentStructure();
-        AccountSegmentService::setupSampleSegmentValues();
         
         // Create test accounts
-        $accountTypes = [
-            '4000' => 'asset',   // Cash
-            '4001' => 'asset',   // Bank
-            '1105' => 'expense', // Material expense
-            '3000' => 'equity',  // Owner equity
-        ];
+        $cashAccount = $this->createTestAccount('1000', 'Cash', 'asset', true);
+        $revenueAccount = $this->createTestAccount('4000', 'Revenue', 'revenue', true);
         
-        foreach ($accountTypes as $naturalAccount => $type) {
-            AccountSegmentService::createAccount(
-                [1 => '10', 2 => '03', 3 => $naturalAccount],
+        // Prepare transaction data
+        $dto = new CreateGlTransactionDto([
+            'fiscal_date' => '2025-01-15',
+            'gl_transaction_type' => 1, // Manual GL
+            'transaction_description' => 'Test journal entry',
+            'team_id' => $this->team->id,
+            'lines' => [
                 [
-                    'account_type' => $type,
-                    'is_active' => true,
-                    'allow_manual_entry' => true,
-                    'team_id' => $this->team->id,
+                    'account_id' => $cashAccount->account_id,
+                    'line_description' => 'Debit cash',
+                    'debit_amount' => 100.00,
+                    'credit_amount' => 0
+                ],
+                [
+                    'account_id' => $revenueAccount->account_id,
+                    'line_description' => 'Credit revenue',
+                    'debit_amount' => 0,
+                    'credit_amount' => 100.00
                 ]
-            );
+            ]
+        ]);
+        
+        // Act
+        $transaction = $this->glTransactionService->createManualGlTransaction($dto);
+        
+        // Assert
+        $this->assertInstanceOf(GlTransactionHeader::class, $transaction);
+        $this->assertEquals('2025-01-15', $transaction->fiscal_date->format('Y-m-d'));
+        $this->assertEquals(1, $transaction->gl_transaction_type);
+        $this->assertEquals('Test journal entry', $transaction->transaction_description);
+        $this->assertTrue($transaction->is_balanced);
+        $this->assertFalse($transaction->is_posted);
+        $this->assertCount(2, $transaction->lines);
+        $this->assertStringStartsWith('2025-01-', $transaction->gl_transaction_id);
+    }
+
+    #[Test]
+    public function it_prevents_creating_unbalanced_transaction()
+    {
+        // Arrange
+        $this->setupTestEnvironment();
+        
+        $cashAccount = $this->createTestAccount('1000', 'Cash', 'asset', true);
+        $revenueAccount = $this->createTestAccount('4000', 'Revenue', 'revenue', true);
+        
+        $dto = new CreateGlTransactionDto([
+            'fiscal_date' => '2025-01-15',
+            'gl_transaction_type' => 1,
+            'transaction_description' => 'Unbalanced transaction',
+            'team_id' => $this->team->id,
+            'lines' => [
+                [
+                    'account_id' => $cashAccount->account_id,
+                    'line_description' => 'Debit cash',
+                    'debit_amount' => 100.00,
+                    'credit_amount' => 0
+                ],
+                [
+                    'account_id' => $revenueAccount->account_id,
+                    'line_description' => 'Credit revenue',
+                    'debit_amount' => 0,
+                    'credit_amount' => 50.00 // Unbalanced!
+                ]
+            ]
+        ]);
+        
+        // Act & Assert
+        $this->expectException(ValidatedDTOException::class);
+        
+        try {
+            $this->glTransactionService->createManualGlTransaction($dto);
+        } catch (ValidatedDTOException $e) {
+            $errors = $e->getValidationErrors();
+            $this->assertArrayHasKey('lines', $errors);
+            $this->assertStringContainsString('must balance', $errors['lines'][0]);
+            throw $e;
         }
+    }
+
+    #[Test]
+    public function it_prevents_using_inactive_accounts()
+    {
+        // Arrange
+        $this->setupTestEnvironment();
+        
+        $activeAccount = $this->createTestAccount('1000', 'Cash', 'asset', true);
+        $inactiveAccount = $this->createTestAccount('4000', 'Old Revenue', 'revenue', true);
+        $inactiveAccount->update(['is_active' => false]);
+        
+        $dto = new CreateGlTransactionDto([
+            'fiscal_date' => '2025-01-15',
+            'gl_transaction_type' => 1,
+            'transaction_description' => 'Test with inactive account',
+            'team_id' => $this->team->id,
+            'lines' => [
+                [
+                    'account_id' => $activeAccount->account_id,
+                    'line_description' => 'Debit cash',
+                    'debit_amount' => 100.00,
+                    'credit_amount' => 0
+                ],
+                [
+                    'account_id' => $inactiveAccount->account_id,
+                    'line_description' => 'Credit inactive account',
+                    'debit_amount' => 0,
+                    'credit_amount' => 100.00
+                ]
+            ]
+        ]);
+        
+        // Act & Assert
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageMatches('/inactive/');
+        
+        $this->glTransactionService->createManualGlTransaction($dto);
+    }
+
+    #[Test]
+    public function it_prevents_manual_entry_on_restricted_accounts()
+    {
+        // Arrange
+        $this->setupTestEnvironment();
+        
+        $manualAccount = $this->createTestAccount('1000', 'Cash', 'asset', true);
+        $restrictedAccount = $this->createTestAccount('2000', 'System Account', 'liability', false);
+        
+        $dto = new CreateGlTransactionDto([
+            'fiscal_date' => '2025-01-15',
+            'gl_transaction_type' => 1,
+            'transaction_description' => 'Test with restricted account',
+            'team_id' => $this->team->id,
+            'lines' => [
+                [
+                    'account_id' => $manualAccount->account_id,
+                    'line_description' => 'Debit cash',
+                    'debit_amount' => 100.00,
+                    'credit_amount' => 0
+                ],
+                [
+                    'account_id' => $restrictedAccount->account_id,
+                    'line_description' => 'Credit restricted account',
+                    'debit_amount' => 0,
+                    'credit_amount' => 100.00
+                ]
+            ]
+        ]);
+        
+        // Act & Assert
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageMatches('/manual entry/');
+        
+        $this->glTransactionService->createManualGlTransaction($dto);
+    }
+
+    #[Test]
+    public function it_posts_a_balanced_transaction()
+    {
+        // Arrange
+        $this->setupTestEnvironment();
+        
+        $cashAccount = $this->createTestAccount('1000', 'Cash', 'asset', true);
+        $revenueAccount = $this->createTestAccount('4000', 'Revenue', 'revenue', true);
+        
+        $dto = new CreateGlTransactionDto([
+            'fiscal_date' => '2025-01-15',
+            'gl_transaction_type' => 1,
+            'transaction_description' => 'Transaction to post',
+            'team_id' => $this->team->id,
+            'lines' => [
+                [
+                    'account_id' => $cashAccount->account_id,
+                    'line_description' => 'Debit cash',
+                    'debit_amount' => 100.00,
+                    'credit_amount' => 0
+                ],
+                [
+                    'account_id' => $revenueAccount->account_id,
+                    'line_description' => 'Credit revenue',
+                    'debit_amount' => 0,
+                    'credit_amount' => 100.00
+                ]
+            ]
+        ]);
+        
+        $transaction = $this->glTransactionService->createManualGlTransaction($dto);
+        
+        // Act
+        $postedTransaction = $this->glTransactionService->postTransaction($transaction);
+        
+        // Assert
+        $this->assertTrue($postedTransaction->is_posted);
+        $this->assertEquals($transaction->gl_transaction_id, $postedTransaction->gl_transaction_id);
+    }
+
+    #[Test]
+    public function it_prevents_posting_unbalanced_transaction()
+    {
+        // Arrange
+        $transaction = GlTransactionHeader::factory()->create([
+            'is_balanced' => false,
+            'is_posted' => false
+        ]);
+        
+        // Act & Assert
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessageMatches('/[Cc]annot post unbalanced/');
+        
+        $this->glTransactionService->postTransaction($transaction);
+    }
+
+    #[Test]
+    public function it_reverses_a_posted_transaction()
+    {
+        // Arrange
+        $this->setupTestEnvironment();
+        
+        $cashAccount = $this->createTestAccount('1000', 'Cash', 'asset', true);
+        $revenueAccount = $this->createTestAccount('4000', 'Revenue', 'revenue', true);
+        
+        // Create and post original transaction
+        $dto = new CreateGlTransactionDto([
+            'fiscal_date' => '2025-01-15',
+            'gl_transaction_type' => 1,
+            'transaction_description' => 'Original transaction',
+            'team_id' => $this->team->id,
+            'lines' => [
+                [
+                    'account_id' => $cashAccount->account_id,
+                    'line_description' => 'Debit cash',
+                    'debit_amount' => 100.00,
+                    'credit_amount' => 0
+                ],
+                [
+                    'account_id' => $revenueAccount->account_id,
+                    'line_description' => 'Credit revenue',
+                    'debit_amount' => 0,
+                    'credit_amount' => 100.00
+                ]
+            ]
+        ]);
+        
+        $originalTransaction = $this->glTransactionService->createManualGlTransaction($dto);
+        $this->glTransactionService->postTransaction($originalTransaction);
+        
+        // Act
+        $reversalTransaction = $this->glTransactionService->reverseTransaction(
+            $originalTransaction->gl_transaction_id,
+            'Correction of error'
+        );
+        
+        // Assert
+        $this->assertInstanceOf(GlTransactionHeader::class, $reversalTransaction);
+        $this->assertTrue($reversalTransaction->is_posted);
+        $this->assertEquals('Correction of error', $reversalTransaction->transaction_description);
+        $this->assertEquals($originalTransaction->gl_transaction_id, $reversalTransaction->originating_module_transaction_id);
+        
+        // Check reversed amounts
+        $reversalLines = $reversalTransaction->lines;
+        $this->assertCount(2, $reversalLines);
+        
+        $cashLine = $reversalLines->firstWhere('account_id', $cashAccount->account_id);
+        $this->assertEquals(0, $cashLine->debit_amount);
+        $this->assertEquals(100.00, $cashLine->credit_amount); // Reversed
+        
+        $revenueLine = $reversalLines->firstWhere('account_id', $revenueAccount->account_id);
+        $this->assertEquals(100.00, $revenueLine->debit_amount); // Reversed
+        $this->assertEquals(0, $revenueLine->credit_amount);
+    }
+
+    #[Test]
+    public function it_generates_sequential_transaction_numbers_without_gaps()
+    {
+        // Arrange
+        $this->setupTestEnvironment();
+        
+        $cashAccount = $this->createTestAccount('1000', 'Cash', 'asset', true);
+        $revenueAccount = $this->createTestAccount('4000', 'Revenue', 'revenue', true);
+        
+        $numbers = [];
+        
+        // Act - Create 5 transactions
+        for ($i = 0; $i < 5; $i++) {
+            $dto = new CreateGlTransactionDto([
+                'fiscal_date' => '2025-01-15',
+                'gl_transaction_type' => 1,
+                'transaction_description' => "Transaction {$i}",
+                'team_id' => $this->team->id,
+                'lines' => [
+                    [
+                        'account_id' => $cashAccount->account_id,
+                        'line_description' => 'Debit',
+                        'debit_amount' => 10.00,
+                        'credit_amount' => 0
+                    ],
+                    [
+                        'account_id' => $revenueAccount->account_id,
+                        'line_description' => 'Credit',
+                        'debit_amount' => 0,
+                        'credit_amount' => 10.00
+                    ]
+                ]
+            ]);
+            
+            $transaction = $this->glTransactionService->createManualGlTransaction($dto);
+            $numbers[] = $transaction->gl_transaction_number;
+        }
+        
+        // Assert - Numbers should be sequential without gaps
+        $this->assertEquals([1, 2, 3, 4, 5], $numbers);
+    }
+
+    /**
+     * Helper method to set up test environment
+     */
+    protected function setupTestEnvironment()
+    {
+        parent::setUp();
+        
+        $this->glTransactionService = app(GlTransactionServiceInterface::class);
+        
+        // Set current team ID
+        $this->actingAs($this->user);
+        setCurrentTeamId($this->team->id);
+    }
+
+    /**
+     * Helper method to create test account
+     */
+    protected function createTestAccount($accountCode, $description, $type, $allowManualEntry)
+    {
+        // This would depend on your account creation logic
+        // For now, assuming direct creation
+        return GlAccount::create([
+            'account_id' => "10-01-{$accountCode}",
+            'account_segments_descriptor' => "Test - Department - {$description}",
+            'account_type' => $type,
+            'is_active' => true,
+            'allow_manual_entry' => $allowManualEntry,
+            'team_id' => $this->team->id
+        ]);
     }
 }

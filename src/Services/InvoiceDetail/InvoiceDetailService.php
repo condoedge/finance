@@ -13,6 +13,7 @@ use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;
 use Condoedge\Finance\Services\Tax\TaxServiceInterface;
 use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Models\GlAccount;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -258,7 +259,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         $detail->invoice_id = $dto->invoice_id;
         $detail->name = $dto->name;
         $detail->description = $dto->description;
-        $detail->revenue_account_id = $dto->revenue_account_id;
+        $detail->revenue_account_id = $dto->revenue_account_id ?? GlAccount::getFromLatestSegmentValue($dto->revenue_natural_account_id)->id;
         $detail->product_id = $dto->product_id;
         $detail->quantity = $dto->quantity;
         $detail->unit_price = $dto->unit_price;

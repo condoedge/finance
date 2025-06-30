@@ -12,16 +12,7 @@ class GlTransactionLine extends AbstractMainFinanceModel
     
     protected $table = 'fin_gl_transaction_lines';
     protected $primaryKey = 'gl_transaction_line_id';
-    
-    protected $fillable = [
-        'gl_transaction_id',
-        'account_id',
-        'line_description',
-        'debit_amount',
-        'credit_amount',
-        'line_sequence',
-    ];
-    
+
     protected $casts = [
         'debit_amount' => SafeDecimal::class,
         'credit_amount' => SafeDecimal::class,

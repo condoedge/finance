@@ -14,7 +14,7 @@ enum PaymentInstallmentEnum: int
     public function label(): string
     {
         return match($this) {
-            default => ''
+            default => __('translate.one-time'),
         };
     }
 
@@ -24,7 +24,7 @@ enum PaymentInstallmentEnum: int
     public function code(): string
     {
         return match($this) {
-            default => '',
+            default => 'OT',
         };
     }
 

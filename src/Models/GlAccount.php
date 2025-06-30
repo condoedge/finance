@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class GlAccount extends AbstractMainFinanceModel
 {
+    use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     protected $table = 'fin_gl_accounts';
     
     protected $casts = [

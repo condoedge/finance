@@ -274,14 +274,6 @@ class FiscalYearService
     }
     
     /**
-     * @deprecated Use getOrCreatePeriodForDate() instead
-     */
-    public function getOrCreateCurrentMonthPeriod(int $teamId, Carbon $date = null): FiscalPeriod
-    {
-        return $this->getOrCreatePeriodForDate($teamId, $date ?? now(), true);
-    }
-    
-    /**
      * Get current fiscal year for a team
      */
     public function getCurrentFiscalYear(int $teamId, Carbon $date = null): ?int

@@ -284,6 +284,12 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             \Condoedge\Finance\Services\InvoiceDetail\InvoiceDetailServiceInterface::class,
             \Condoedge\Finance\Services\InvoiceDetail\InvoiceDetailService::class
         );
+        
+        // GL Transaction Service
+        $this->app->bind(
+            \Condoedge\Finance\Services\GlTransactionServiceInterface::class,
+            \Condoedge\Finance\Services\GlTransactionService::class
+        );
     }
     
     /**

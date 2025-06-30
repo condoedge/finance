@@ -69,13 +69,12 @@ class Invoice extends AbstractMainFinanceModel
         'invoice_status_id' => InvoiceStatusEnum::class,
         'invoice_type_id' => InvoiceTypeEnum::class,
         'payment_method_id' => PaymentMethodEnum::class,
+        'payment_installment_id' => PaymentInstallmentEnum::class,
         'approved_at' => 'datetime',
         'invoice_total_amount' => SafeDecimalCast::class,
         'invoice_due_amount' => SafeDecimalCast::class,
         'invoice_tax_amount' => SafeDecimalCast::class,
 
-        'payment_method' => PaymentMethodEnum::class,
-        'payment_installment' => PaymentInstallmentEnum::class,
         'possible_payment_methods' => 'array',
         'possible_payment_installments' => 'array',
     ];

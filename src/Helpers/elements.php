@@ -1,5 +1,7 @@
 <?php
 
+use Condoedge\Finance\Models\SegmentValue;
+
 \Kompo\Elements\Element::macro('asCurrency', function(){
     return $this->label(finance_currency($this->label));
 });
@@ -43,3 +45,14 @@ if (!function_exists('_MiniLabelFinanceCcy')) {
     }
 }
 
+if (!function_exists('_AccountsSelect')) {
+    function _AccountsSelect()
+    {
+        return _Select()->placeholder('translate.account')
+            ->class('w-36 !mb-0')
+            ->name('revenue_natural_account_id')
+            ->options(SegmentValue::forLastSegment()->get()->mapWithKeys(
+                fn($it) => [$it->id => $it->segment_value . ' - ' . $it->segment_description]
+            ));
+    }
+}

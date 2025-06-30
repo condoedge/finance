@@ -79,21 +79,6 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     }
     
     /**
-     * Map GL transaction type to fiscal module string
-     * @deprecated Use getModuleForValidation() which returns proper enum
-     */
-    protected function mapTransactionTypeToModule(int $transactionType): string
-    {
-        return match($transactionType) {
-            self::TYPE_MANUAL_GL => 'GL',
-            self::TYPE_BANK => 'BNK',
-            self::TYPE_RECEIVABLE => 'RM',
-            self::TYPE_PAYABLE => 'PM',
-            default => 'GL',
-        };
-    }
-    
-    /**
      * Relationships
      */
     public function lines()
@@ -137,7 +122,16 @@ class GlTransactionHeader extends AbstractMainFinanceModel
             );
         }
         
-        return static::create($data);
+        $header = new static;
+        $header->gl_transaction_id = $data['gl_transaction_id'];
+        $header->gl_transaction_number = $data['gl_transaction_number'];
+        $header->fiscal_date = $data['fiscal_date'];
+        $header->fiscal_year = $data['fiscal_year'];
+        $header->fiscal_period = $data['fiscal_period'];
+        $header->gl_transaction_type = $data['gl_transaction_type'];
+        $header->transaction_description = $data['transaction_description'] ?? '';
+        $header->team_id = $data['team_id'];
+        $header->save();
     }
     
     /**
@@ -162,7 +156,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         $period = FiscalPeriod::getPeriodFromDate($carbonDate);
         
         if (!$fiscalYear || !$period) {
-            throw new \Exception('Could not determine fiscal year or period for date: ' . $date);
+            throw new \Exception(__("translate.could-not-determine-fiscal-data", ['date' => $date]));
         }
         
         return [
@@ -207,11 +201,11 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     public function post(): void
     {
         if (!$this->is_balanced) {
-            throw new \Exception('Cannot post unbalanced transaction');
+            throw new \Exception(__('translate.cannot-post-unbalanced-transaction'));
         }
         
         if (!$this->canBeModified()) {
-            throw new \Exception('Transaction cannot be modified');
+            throw new \Exception(__('translate.transaction-cannot-be-modified'));
         }
         
         $this->update(['is_posted' => true]);
@@ -242,6 +236,20 @@ class GlTransactionHeader extends AbstractMainFinanceModel
             // The is_balanced field is calculated by triggers, but we can also verify here
             'is_balanced' => DB::raw('validate_gl_transaction_balance(fin_gl_transaction_headers.gl_transaction_id)'),
         ];
+    }
+    
+    /**
+     * Get human-readable transaction type label
+     */
+    public function getTypeLabelAttribute(): string
+    {
+        return match($this->gl_transaction_type) {
+            self::TYPE_MANUAL_GL => 'Manual GL',
+            self::TYPE_BANK => 'Bank',
+            self::TYPE_RECEIVABLE => 'Receivable',
+            self::TYPE_PAYABLE => 'Payable',
+            default => 'Unknown',
+        };
     }
     
     /**

@@ -4,34 +4,34 @@ namespace Condoedge\Finance\Kompo\GlTransactions;
 
 use Condoedge\Finance\Models\GlTransactionLine;
 use Condoedge\Finance\Models\GlAccount;
-use Kompo\Form;
+use Condoedge\Finance\Facades\AccountSegmentService;
+use Condoedge\Utils\Kompo\Common\Form;
 
 class GlTransactionLineForm extends Form
 {
     public $model = GlTransactionLine::class;
+    public $class = 'align-top';
     
     protected $isReadOnly = false;
     protected $transactionType;
+    protected $teamId;
     
     public function created()
     {
         $this->isReadOnly = $this->prop('readonly', false);
-        $this->transactionType = $this->prop('transaction_type');
+        $this->transactionType = $this->prop('transaction_type', 1);
+        $this->teamId = $this->prop('team_id', currentTeamId());
     }
     
     public function render()
     {
         return _TableRow(
-            // Line number (auto-generated)
-            _Html()->class('line-number text-center'),
-            
-            // Account selection
-            $this->renderAccountSelect(),
+            _AccountsSelect(),
             
             // Line description
             _Input()
                 ->name('line_description')
-                ->placeholder('finance-optional-description')
+                ->placeholder('translate.finance-optional-description')
                 ->maxlength(255)
                 ->disabled($this->isReadOnly),
             
@@ -43,9 +43,9 @@ class GlTransactionLineForm extends Form
                 ->min(0)
                 ->placeholder('0.00')
                 ->disabled($this->isReadOnly)
-                ->class('text-right')
-                ->onChange('updateTotals()')
-                ->onInput('handleDebitCreditExclusion(this, "credit")'),
+                ->class('text-right w-32')
+                ->run('handleDebitCreditInput', ['field' => 'debit'])
+                ->run('updateTotals'),
             
             // Credit amount
             _Input()
@@ -55,78 +55,43 @@ class GlTransactionLineForm extends Form
                 ->min(0)
                 ->placeholder('0.00')
                 ->disabled($this->isReadOnly)
-                ->class('text-right')
-                ->onChange('updateTotals()')
-                ->onInput('handleDebitCreditExclusion(this, "debit")'),
+                ->class('text-right w-32')
+                ->run('handleDebitCreditInput', ['field' => 'credit'])
+                ->run('updateTotals'),
             
             // Remove button
             $this->isReadOnly ? null :
-                _Button()->icon('trash')
-                    ->class('text-danger')
-                    ->emitDirect('removeRow')
+                _DeleteLink()->byKey($this->model)->run('updateTotals')
         );
-    }
-    
-    /**
-     * Render account selection field
-     */
-    protected function renderAccountSelect()
-    {
-        if ($this->isReadOnly) {
-            return _Html($this->model->account_id ?? '---');
-        }
-        
-        // Build query for available accounts
-        $query = GlAccount::active();
-        
-        // For manual GL transactions, only show accounts that allow manual entry
-        if ($this->transactionType === \Condoedge\Finance\Models\GlTransactionHeader::TYPE_MANUAL_GL) {
-            $query->allowManualEntry();
-        }
-        
-        // Get accounts with formatted display
-        $accounts = $query
-            ->get()
-            ->mapWithKeys(function ($account) {
-                $label = $account->account_id . ' - ' . ($account->account_description ?: __('finance-no-description'));
-                return [$account->account_id => $label];
-            });
-        
-        return _Select()
-            ->name('account_id')
-            ->options($accounts->prepend(__('finance-select-account'), ''))
-            ->searchable()
-            ->required()
-            ->onChange('updateAccountInfo(this)');
     }
     
     public function js()
     {
         return <<<javascript
-// Handle mutual exclusion of debit/credit
-function handleDebitCreditExclusion(input, oppositeField) {
-    const value = parseFloat(input.value) || 0;
-    const row = $(input).closest('tr');
-    const oppositeInput = row.find('[name$="[' + oppositeField + '_amount]"]')[0];
-    
-    if (value > 0 && oppositeInput) {
-        oppositeInput.value = '';
+            // Handle mutual exclusion of debit/credit
+            function handleDebitCreditInput(params, el) {
+                const field = params.field;
+                const value = parseFloat(el.value) || 0;
+                const row = el.closest('tr');
+                
+                if (field === 'debit' && value > 0) {
+                    const creditInput = row.querySelector('input[name$="[credit_amount]"]');
+                    if (creditInput) creditInput.value = '';
+                } else if (field === 'credit' && value > 0) {
+                    const debitInput = row.querySelector('input[name$="[debit_amount]"]');
+                    if (debitInput) debitInput.value = '';
+                }
+            }
+            javascript;
     }
-}
-
-// Update line numbers
-function updateLineNumbers() {
-    $('#gl-transaction-lines tbody tr').each(function(index) {
-        $(this).find('.line-number').text(index + 1);
-    });
-}
-
-// Initialize when rows are added/removed
-$(document).on('rowAdded', '#gl-transaction-lines', updateLineNumbers);
-$(document).on('rowRemoved', '#gl-transaction-lines', updateLineNumbers);
-
-// Initial update
-$(document).ready(updateLineNumbers);
-javascript;
+    
+    public function rules()
+    {
+        return [
+            'account_id' => 'required|exists:fin_gl_accounts,account_id',
+            'line_description' => 'nullable|string|max:255',
+            'debit_amount' => 'nullable|numeric|min:0',
+            'credit_amount' => 'nullable|numeric|min:0',
+        ];
     }
 }

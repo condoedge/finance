@@ -33,24 +33,9 @@ class InvoiceForm extends Form
 		$this->team = currentTeam();
 	}
 
-	protected function parseRequestData()
-	{
-		// Ensure the request data is parsed correctly
-		$requestData = request()->all();
-		if (isset($requestData['invoiceDetails'])) {
-			$requestData['invoiceDetails'] = collect($requestData['invoiceDetails'])->map(function ($detail) {
-				return array_merge($detail, ['id' => $detail['multiFormKey'] ?? null], [
-					'revenue_account_id' => GlAccount::getFromLatestSegmentValue($detail['revenue_segment_account_id'])->id,
-				]);
-			})->toArray();
-		}
-
-		return $requestData;
-	}
-
 	public function handle(InvoiceServiceInterface $invoiceService)
 	{
-		$invoiceData = $this->parseRequestData();
+		$invoiceData = parseDataWithMultiForm('invoiceDetails');
 
 		$dtoInvoiceData = $this->model->id ? 
 			new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]) : 

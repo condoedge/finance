@@ -110,6 +110,11 @@ class SafeDecimal implements \Stringable, Arrayable
         return (float) $this->value;
     }
 
+    public function get(): float
+    {
+        return $this->toFloat();
+    }
+
     public function toArray()
     {
         return [

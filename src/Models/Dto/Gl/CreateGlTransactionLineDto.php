@@ -26,7 +26,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     /**
      * Defines the casts for the DTO properties.
      */
-    protected function casts(): array
+    public function casts(): array
     {
         return [
             'debit_amount' => new FloatCast(),
@@ -37,21 +37,40 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     /**
      * Validation rules
      */
-    protected function rules(): array
+    public function rules(): array
     {
         return [
             'account_id' => 'required|string|exists:fin_gl_accounts,account_id',
             'line_description' => 'nullable|string|max:255',
             'debit_amount' => 'required|numeric|min:0',
             'credit_amount' => 'required|numeric|min:0',
-        ];    }
+        ];
+    }
     
     /**
      * Default values for DTO properties
      */
-    protected function defaults(): array
+    public function defaults(): array
     {
-        return [];
+        return [
+            'line_description' => null,
+            'debit_amount' => 0.0,
+            'credit_amount' => 0.0,
+        ];
+    }
+    
+    /**
+     * Additional validation after basic rules
+     */
+    public function after($validator): void
+    {
+        // Validate that either debit or credit is specified, but not both
+        if (!$this->validateDebitCredit()) {
+            $validator->errors()->add(
+                'amount', 
+                __('translate.line-must-have-either-debit-or-credit')
+            );
+        }
     }
     
     /**

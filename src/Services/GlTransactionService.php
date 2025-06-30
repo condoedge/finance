@@ -6,30 +6,21 @@ use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Models\GlTransactionLine;
 use Condoedge\Finance\Models\FiscalPeriod;
 use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\Dto\CreateGlTransactionDto;
-use Condoedge\Finance\Models\Dto\CreateGlTransactionLineDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionLineDto;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class GlTransactionService
+class GlTransactionService implements GlTransactionServiceInterface
 {
     /**
      * Create a manual GL transaction (Journal Entry)
      */
     public function createManualGlTransaction(CreateGlTransactionDto $dto): GlTransactionHeader
     {
-        // Validate DTO
-        if (!$dto->isBalanced()) {
-            throw new \Exception('Transaction must balance. Debits: ' . $dto->getTotalDebits() . ', Credits: ' . $dto->getTotalCredits());
-        }
-        
-        // Validate all lines
-        foreach ($dto->lines as $index => $line) {
-            if (!$line->isValid()) {
-                throw new \Exception("Line {$index} must have either debit or credit amount, not both or neither");
-            }
-        }
+        // DTO validation happens automatically in constructor via ValidatedDTO
+        // The after() method in the DTO handles balance validation
         
         return DB::transaction(function() use ($dto) {
             // Create header
@@ -41,38 +32,36 @@ class GlTransactionService
             ]);
             
             // Create lines
-            foreach ($dto->lines as $lineDto) {
+            $lines = $dto->getLinesDtos(); // Convert to DTOs if they're arrays
+            foreach ($lines as $lineDto) {
                 // Validate account allows manual entry
-                $account = GlAccount::where('account_id', $lineDto->account_id)
+                $account = $lineDto->account_id ? GlAccount::where('account_id', $lineDto->account_id)
                     ->forTeam()
-                    ->first();
+                    ->first()
+                    : GlAccount::getFromLatestSegmentValue($lineDto->natural_account_id);
                     
-                if (!$account) {
-                    throw new \Exception("Account not found: {$lineDto->account_id}");
-                }
-                
                 if (!$account->is_active) {
-                    throw new \Exception("Account is inactive: {$lineDto->account_id}");
+                    throw new \Exception(__("translate.account-is-inactive", ['account_id' => $account->id]));
                 }
                 
                 if (!$account->allow_manual_entry) {
-                    throw new \Exception("Account does not allow manual entry: {$lineDto->account_id}");
+                    throw new \Exception(__("translate.account-no-manual-entry", ['account_id' => $account->id]));
                 }
-                
-                GlTransactionLine::create([
-                    'gl_transaction_id' => $header->gl_transaction_id,
-                    'account_id' => $lineDto->account_id,
-                    'line_description' => $lineDto->line_description,
-                    'debit_amount' => $lineDto->debit_amount,
-                    'credit_amount' => $lineDto->credit_amount,
-                ]);
+
+                $glTransactionLine = new GlTransactionLine;
+                $glTransactionLine->gl_transaction_id = $header->gl_transaction_id;
+                $glTransactionLine->account_id = $lineDto->id;
+                $glTransactionLine->line_description = $lineDto->line_description;
+                $glTransactionLine->debit_amount = $lineDto->debit_amount;
+                $glTransactionLine->credit_amount = $lineDto->credit_amount;
+                $glTransactionLine->save();
             }
             
             // Refresh to get updated balance status from triggers
             $header->refresh();
             
             if (!$header->is_balanced) {
-                throw new \Exception('Transaction is not balanced after creation');
+                throw new \Exception(__('translate.transaction-not-balanced-after-creation'));
             }
             
             return $header;
@@ -100,7 +89,7 @@ class GlTransactionService
             // Verify final balance (triggers should have updated this)
             $header->refresh();
             if (!$header->is_balanced) {
-                throw new \Exception('Transaction is not balanced after line creation');
+                throw new \Exception(__('translate.transaction-not-balanced-after-line-creation'));
             }
             
             return $header;
@@ -115,11 +104,11 @@ class GlTransactionService
         // Validate account exists and is usable
         $account = GlAccount::find($lineData['account_id']);
         if (!$account) {
-            throw new \Exception('Account not found: ' . $lineData['account_id']);
+            throw new \Exception(__("translate.account-not-found", ['account_id' => $lineData['account_id']]));
         }
         
         if (!$account->is_active) {
-            throw new \Exception('Account is inactive: ' . $lineData['account_id']);
+            throw new \Exception(__("translate.account-is-inactive", ['account_id' => $lineData['account_id']]));
         }
         
         // Validate amounts
@@ -127,10 +116,10 @@ class GlTransactionService
         $creditAmount = new SafeDecimal($lineData['credit_amount'] ?? 0);
         
         if ($debitAmount->greaterThan(0) && $creditAmount->greaterThan(0)) {
-            throw new \Exception('Line cannot have both debit and credit amounts');
+            throw new \Exception(__('translate.line-cannot-have-both-debit-and-credit'));
         }
           if ($debitAmount->equals(0) && $creditAmount->equals(0)) {
-            throw new \Exception('Line must have either debit or credit amount');
+            throw new \Exception(__('translate.line-must-have-either-debit-or-credit'));
         }
         
         return GlTransactionLine::create($lineData);
@@ -153,8 +142,10 @@ class GlTransactionService
         }
           if (!$totalDebits->equals($totalCredits)) {
             throw new \Exception(
-                'Transaction is not balanced. Debits: ' . $totalDebits->__toString() . 
-                ', Credits: ' . $totalCredits->__toString()
+                __("translate.transaction-not-balanced-with-amounts", [
+                    'debits' => finance_currency($totalDebits),
+                    'credits' => finance_currency($totalCredits),
+                ])
             );
         }
     }
@@ -171,15 +162,15 @@ class GlTransactionService
         }
         
         if ($transaction->is_posted) {
-            throw new \Exception('Transaction is already posted');
+            throw new \Exception(__('translate.transaction-already-posted'));
         }
         
         if (!$transaction->is_balanced) {
-            throw new \Exception('Cannot post unbalanced transaction');
+            throw new \Exception(__('translate.cannot-post-unbalanced-transaction'));
         }
         
         if (!$transaction->canBeModified()) {
-            throw new \Exception('Transaction cannot be modified (period closed or other restrictions)');
+            throw new \Exception(__('translate.transaction-cannot-be-modified'));
         }
         
         $transaction->post();
@@ -195,7 +186,7 @@ class GlTransactionService
         $originalTransaction = GlTransactionHeader::findOrFail($transactionId);
         
         if (!$originalTransaction->is_posted) {
-            throw new \Exception('Cannot reverse unposted transaction');
+            throw new \Exception(__('translate.cannot-reverse-unposted-transaction'));
         }
         
         return DB::transaction(function() use ($originalTransaction, $reversalDescription) {
@@ -204,7 +195,7 @@ class GlTransactionService
                 'fiscal_date' => now()->format('Y-m-d'),
                 'gl_transaction_type' => $originalTransaction->gl_transaction_type,
                 'transaction_description' => $reversalDescription ?? 
-                    'Reversal of transaction ' . $originalTransaction->gl_transaction_id,
+                    __("translate.reversal-of-transaction", ['transaction_id' => $originalTransaction->gl_transaction_id]),
                 'originating_module_transaction_id' => $originalTransaction->gl_transaction_id,
                 'customer_id' => $originalTransaction->customer_id,
                 'vendor_id' => $originalTransaction->vendor_id,
@@ -218,7 +209,7 @@ class GlTransactionService
                 GlTransactionLine::create([
                     'gl_transaction_id' => $reversalHeader->gl_transaction_id,
                     'account_id' => $originalLine->account_id,
-                    'line_description' => 'Reversal: ' . ($originalLine->line_description ?? ''),
+                    'line_description' => __("translate.reversal-line", ['description' => $originalLine->line_description ?? '']),
                     'debit_amount' => $originalLine->credit_amount, // Swap
                     'credit_amount' => $originalLine->debit_amount, // Swap
                 ]);
@@ -331,7 +322,7 @@ class GlTransactionService
             ->count();
             
         if ($unpostedCount > 0) {
-            throw new \Exception("Cannot close period. {$unpostedCount} unposted transactions remain.");
+            throw new \Exception(__("translate.cannot-close-period-unposted-transactions", ['count' => $unpostedCount]));
         }
         
         // Close the period for GL
