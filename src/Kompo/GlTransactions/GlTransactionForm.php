@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Kompo\GlTransactions;
 
+use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
 use Condoedge\Finance\Models\SegmentValue;
@@ -24,55 +25,24 @@ class GlTransactionForm extends Form
     }
 
     /**
-     * Parse request data and prepare for DTO
-     */
-    protected function parseRequestData()
-    {
-        $requestData = request()->all();
-        
-        // Prepare lines data
-        if (isset($requestData['glTransactionLines'])) {
-            $requestData['lines'] = collect($requestData['glTransactionLines'])
-                ->filter(function ($line) {
-                    // Filter out empty lines
-                    return !empty($line['account_id']) && 
-                           (!empty($line['debit_amount']) || !empty($line['credit_amount']));
-                })
-                ->map(function ($line) {
-                    return [
-                        'account_id' => $line['account_id'],
-                        'line_description' => $line['line_description'] ?? null,
-                        'debit_amount' => (float) ($line['debit_amount'] ?? 0),
-                        'credit_amount' => (float) ($line['credit_amount'] ?? 0),
-                    ];
-                })
-                ->values()
-                ->toArray();
-        }
-        
-        // Add team_id
-        $requestData['team_id'] = $this->teamId;
-        
-        return $requestData;
-    }
-
-    /**
      * Handle form submission using service and DTOs
      */
     public function handle(GlTransactionServiceInterface $glTransactionService)
     {
-        $requestData = $this->parseRequestData();
-        
+        $requestData = parseDataWithMultiForm('lines');
+
         // Create new transaction
         // DTO constructor will validate automatically, including balance check in after() method
-        $dto = new CreateGlTransactionDto($requestData);
-        
-        $this->model = $glTransactionService->createManualGlTransaction($dto);
-        
-        // Post if requested
-        if (request('post_transaction')) {
-            $glTransactionService->postTransaction($this->model);
-        }
+        $dto = new CreateGlTransactionDto([
+            'lines' => $requestData['lines'] ?? [],
+            'fiscal_date' => $requestData['fiscal_date'] ?? now()->format('Y-m-d'),
+            'gl_transaction_type' => (int) $requestData['gl_transaction_type'] ?? GlTransactionTypeEnum::MANUAL_GL->value,
+            'transaction_description' => $requestData['transaction_description'] ?? '',
+            'team_id' => $this->teamId,
+        ]);
+
+        $this->model = $glTransactionService->createTransaction($dto);
+        $glTransactionService->postTransaction($this->model);
         
         return redirect()->route('finance.gl.gl-transactions');
     }
@@ -107,14 +77,9 @@ class GlTransactionForm extends Form
 
                     _Select('translate.finance-transaction-type')
                         ->name('gl_transaction_type')
-                        ->options([
-                            1 => 'translate.finance-manual-entry',
-                            2 => 'translate.finance-bank-transaction',
-                            3 => 'translate.finance-receivables',
-                            4 => 'translate.finance-payables',
-                        ])
+                        ->options(GlTransactionTypeEnum::optionsWithLabels())
                         ->disabled($this->isViewOnly)
-                        ->default(1) // Manual GL
+                        ->default(GlTransactionTypeEnum::MANUAL_GL)
                         ->required(),
                 )->class('gap-4 mb-4'),
 
@@ -132,7 +97,7 @@ class GlTransactionForm extends Form
                 // Totals
                 _MultiForm()
                     ->noLabel()
-                    ->name('glTransactionLines')
+                    ->name('lines')
                     ->formClass(GlTransactionLineForm::class, [
                         'team_id' => $this->teamId,
                         'transaction_type' => $this->model->gl_transaction_type ?? 1,
@@ -156,6 +121,8 @@ class GlTransactionForm extends Form
             //             ->outlined(),
             //         _SubmitButton('translate.finance-save-and-post'),
             //     )->class('mt-4 gap-3') : null,
+
+            _SubmitButton('translate.finance-save'),
         );
     }
 
@@ -217,10 +184,6 @@ javascript;
             'fiscal_date' => 'required|date',
             'gl_transaction_type' => 'required|integer|between:1,4',
             'transaction_description' => 'required|string|max:500',
-            'glTransactionLines' => 'required|array|min:2',
-            'glTransactionLines.*.account_id' => 'required|exists:fin_gl_accounts,account_id',
-            'glTransactionLines.*.debit_amount' => 'nullable|numeric|min:0',
-            'glTransactionLines.*.credit_amount' => 'nullable|numeric|min:0',
         ];
     }
 }

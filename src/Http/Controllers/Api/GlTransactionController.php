@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Http\Controllers\Api;
 use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Models\GlTransactionLine;
 use Condoedge\Finance\Models\Dto\CreateGlTransactionDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto as GlCreateGlTransactionDto;
 use Condoedge\Finance\Services\GlTransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -134,8 +135,8 @@ class GlTransactionController extends ApiController
         try {
             DB::beginTransaction();
             
-            $dto = new CreateGlTransactionDto($validated);
-            $transaction = $this->transactionService->createManualGlTransaction($dto);
+            $dto = new GlCreateGlTransactionDto($validated);
+            $transaction = $this->transactionService->createTransaction($dto);
             
             DB::commit();
             

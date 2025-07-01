@@ -2,7 +2,9 @@
 
 namespace Condoedge\Finance\Database\Seeders;
 
+use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
+use Condoedge\Finance\Models\GlTransactionType;
 use Condoedge\Finance\Models\InvoiceStatus;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
 use Condoedge\Finance\Models\PaymentMethod;
@@ -65,6 +67,23 @@ class SettingsSeeder extends Seeder
 
             $type->id = $enum->value;
             $type->name = $enum->label();
+            $type->save();
+        });
+
+        collect(GlTransactionTypeEnum::cases())->each(function ($enum) {
+            $type = new GlTransactionType();
+
+            if (GlTransactionType::find($enum->value)) {
+                return null;
+            }
+
+            $type->id = $enum->value;
+            $type->name = $enum->label();
+            $type->label = $enum->label();
+            $type->code = $enum->code();
+            $type->fiscal_period_field = $enum->getFiscalPeriodOpenField();
+            $type->allows_manual_entry = $enum->allowsManualAccountEntry();
+            $type->description = '';
             $type->save();
         });
     }

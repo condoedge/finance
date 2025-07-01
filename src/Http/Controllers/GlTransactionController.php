@@ -105,60 +105,6 @@ class GlTransactionController extends Controller
     }
     
     /**
-     * Update GL transaction (only if unposted)
-     */
-    public function update(Request $request, string $transactionId): JsonResponse
-    {
-        $transaction = GlTransactionHeader::findOrFail($transactionId);
-        
-        if (!$transaction->canBeModified()) {
-            return response()->json([
-                'error' => 'Transaction cannot be modified'
-            ], 403);
-        }
-        
-        $validated = $request->validate([
-            'transaction_description' => 'sometimes|string|max:500',
-            'lines' => 'sometimes|array|min:2',
-            'lines.*.account_id' => 'required_with:lines|exists:fin_gl_accounts,account_id',
-            'lines.*.line_description' => 'nullable|string|max:500',
-            'lines.*.debit_amount' => 'required_with:lines|numeric|min:0',
-            'lines.*.credit_amount' => 'required_with:lines|numeric|min:0',
-        ]);
-        
-        try {
-            // Update header if provided
-            if (isset($validated['transaction_description'])) {
-                $transaction->update(['transaction_description' => $validated['transaction_description']]);
-            }
-            
-            // Update lines if provided
-            if (isset($validated['lines'])) {
-                // Delete existing lines
-                $transaction->lines()->delete();
-                
-                // Create new lines
-                foreach ($validated['lines'] as $lineData) {
-                    $this->glService->createTransactionLine(
-                        array_merge($lineData, ['gl_transaction_id' => $transaction->gl_transaction_id])
-                    );
-                }
-            }
-            
-            return response()->json([
-                'message' => 'Transaction updated successfully',
-                'transaction' => $transaction->fresh()->load(['lines.account'])
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Failed to update transaction',
-                'message' => $e->getMessage()
-            ], 400);
-        }
-    }
-    
-    /**
      * Post a transaction
      */
     public function post(string $transactionId): JsonResponse

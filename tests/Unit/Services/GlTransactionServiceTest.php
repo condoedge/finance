@@ -307,7 +307,6 @@ class GlTransactionServiceTest extends TestCase
             'transaction_description' => 'Bank transaction',
             'gl_transaction_type' => GlTransactionHeader::TYPE_BANK, // System transaction
             'team_id' => 1,
-            'originating_module_transaction_id' => 'BNK-001',
             'lines' => [
                 [
                     'account_id' => '10-03-9999', // Restricted account - OK for system
@@ -324,6 +323,5 @@ class GlTransactionServiceTest extends TestCase
         
         $transaction = $this->service->createTransaction($dto);
         $this->assertEquals(GlTransactionHeader::TYPE_BANK, $transaction->gl_transaction_type);
-        $this->assertEquals('BNK-001', $transaction->originating_module_transaction_id);
     }
 }

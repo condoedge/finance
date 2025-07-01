@@ -222,14 +222,14 @@ class FiscalYearService
     public function getOrCreatePeriodForDate(int $teamId, Carbon $date, bool $onlyCurrentMonth = true): FiscalPeriod
     {
         $fiscalYear = $this->getFiscalYearForDate($date, $teamId);
-        
+
         if (!$fiscalYear) {
             throw new \Exception('No fiscal year setup found for team');
         }
 
         // Try to get existing period
         $period = FiscalPeriod::getPeriodFromDate($date, $teamId);
-        
+
         if (!$period) {
             // Check if we should create the period
             if ($onlyCurrentMonth && !$date->isSameMonth(now())) {

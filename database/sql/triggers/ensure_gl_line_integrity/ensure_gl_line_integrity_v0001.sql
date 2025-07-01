@@ -6,33 +6,27 @@ CREATE TRIGGER ensure_gl_line_integrity
     FOR EACH ROW
 BEGIN
     DECLARE account_active BOOLEAN DEFAULT TRUE;
-    DECLARE account_manual_allowed BOOLEAN DEFAULT TRUE;
     DECLARE transaction_type TINYINT;
     DECLARE transaction_posted BOOLEAN DEFAULT FALSE;
     
     -- Check if transaction is already posted
     SELECT is_posted, gl_transaction_type INTO transaction_posted, transaction_type
     FROM fin_gl_transaction_headers 
-    WHERE gl_transaction_id = NEW.gl_transaction_id;
+    WHERE id = NEW.gl_transaction_id;
     
     IF transaction_posted THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot modify posted transaction';
     END IF;
     
     -- Check account status
-    SELECT is_active, allow_manual_entry 
-    INTO account_active, account_manual_allowed
+    SELECT is_active 
+    INTO account_active
     FROM fin_gl_accounts 
-    WHERE account_id = NEW.account_id;
+    WHERE id = NEW.account_id;
     
     -- Validate account is active
     IF NOT account_active THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot use inactive account in transaction';
-    END IF;
-    
-    -- Validate manual entry for manual GL transactions
-    IF transaction_type = 1 AND NOT account_manual_allowed THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Account does not allow manual entries';
     END IF;
     
     -- Ensure only debit OR credit (not both, not neither)
@@ -61,7 +55,7 @@ BEGIN
     UPDATE fin_gl_transaction_headers 
     SET is_balanced = is_balanced,
         updated_at = NOW()
-    WHERE gl_transaction_id = NEW.gl_transaction_id;
+    WHERE id = NEW.gl_transaction_id;
 END;
 
 -- Update header balance status after line update
@@ -78,7 +72,7 @@ BEGIN
     UPDATE fin_gl_transaction_headers 
     SET is_balanced = is_balanced,
         updated_at = NOW()
-    WHERE gl_transaction_id = NEW.gl_transaction_id;
+    WHERE id = NEW.gl_transaction_id;
 END;
 
 -- Update header balance status after line delete
@@ -95,5 +89,5 @@ BEGIN
     UPDATE fin_gl_transaction_headers 
     SET is_balanced = is_balanced,
         updated_at = NOW()
-    WHERE gl_transaction_id = OLD.gl_transaction_id;
+    WHERE id = OLD.gl_transaction_id;
 END;

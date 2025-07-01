@@ -29,10 +29,10 @@ class FiscalPeriod extends AbstractMainFinanceModel
     public static function getPeriodFromDate(\Carbon\Carbon $date, int $teamId = null): ?self
     {
         $teamId = $teamId ?? currentTeamId();
-        
+
         return static::where('team_id', $teamId)
-                    ->where('start_date', '<=', $date)
-                    ->where('end_date', '>=', $date)
+                    ->whereDate('start_date', '<=', $date)
+                    ->whereDate('end_date', '>=', $date)
                     ->first();
     }
     

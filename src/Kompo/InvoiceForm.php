@@ -9,6 +9,7 @@ use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Models\PaymentInstallmentEnum;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
 use Condoedge\Utils\Kompo\Common\Form;
 
@@ -65,27 +66,40 @@ class InvoiceForm extends Form
 				)
 			)->class('mb-6'),
 
-            _CardWhiteP4(
+			_Columns(
 				$this->model->id ? null : _Select('finance-invoice-type')
 					->name('invoice_type_id')
 					->options(InvoiceTypeEnum::optionsWithLabels()),
+
+				$this->model->id ? null : _Flex(
+					_Rows(
+						new SelectCustomer(null, [
+							'team_id' => $this->team?->id,
+							'default_id' => $this->model->customer_id,
+						]),
+					)->class('[&>form]:flex-1'),
+
+					_Rows(
+						_Html('&nbsp;'),
+						_Button()->icon('plus')->selfGet('getCustomerModal')->inModal(),
+					),
+
+				)->class('gap-3'),
+
+				_Date('finance-invoice-date')->name('invoice_date')->default(date('Y-m-d')),
+			),
+
+			_Columns(
 				_Select('finance-payment-type')
 					->name('payment_method_id')
 					->options(PaymentMethodEnum::optionsWithLabels()),
-				$this->model->id ? null : _Columns(
-					new SelectCustomer(null, [
-						'team_id' => $this->team?->id,
-						'default_id' => $this->model->customer_id,
-					]),
 
-					_Button()->class('mb-2')->icon('plus')->selfGet('getCustomerModal')->inModal(),
-				)->class('items-end mb-2'),
-				_Columns(
-					_DateTime('finance-invoice-date')->name('invoice_date')->default(date('Y-m-d H:i')),
-					_DateTime('finance-due-date')->name('invoice_due_date')->default(date('Y-m-d')),
-					_Html(),
-				)
-			)->class('bg-white rounded-2xl shadow-lg'),
+				_Select('translate.finance-payment-installment')
+					->name('payment_installment_id')
+					->options(PaymentInstallmentEnum::optionsWithLabels()),
+
+				_Date('finance-due-date')->name('invoice_due_date')->default(date('Y-m-d')),
+			),
 
 			_MultiForm()->noLabel()->name('invoiceDetails')
 				->formClass(InvoiceDetailForm::class, [
@@ -94,7 +108,7 @@ class InvoiceForm extends Form
 				])
 				->asTable([
 					__('finance-product-service'),
-					'',
+					__('finance-account'),
 					_FlexBetween(
 						_Flex(
 							_Th('finance-quantity')->class('w-28'),

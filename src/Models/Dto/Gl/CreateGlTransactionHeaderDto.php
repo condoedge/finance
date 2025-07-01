@@ -18,7 +18,6 @@ class CreateGlTransactionHeaderDto extends ValidatedDTO
     public ?string $fiscal_date = null;
     public ?int $gl_transaction_type = null; // 1=Manual GL, 2=AR, 3=AP, 4=BNK
     public ?string $transaction_description = null;
-    public ?string $originating_module_transaction_id = null;
     public ?int $customer_id = null;
     public ?int $vendor_id = null;
     public array $transaction_lines = []; // Array of CreateGlTransactionLineDto
@@ -33,7 +32,6 @@ class CreateGlTransactionHeaderDto extends ValidatedDTO
             'fiscal_date' => 'required|date',
             'gl_transaction_type' => 'required|integer|in:' . collect(GlTransactionTypeEnum::cases())->pluck('value')->implode(','),
             'transaction_description' => 'required|string|max:500',
-            'originating_module_transaction_id' => 'nullable|string|max:50',
             'customer_id' => 'nullable|integer|exists:fin_customers,id',
             'vendor_id' => 'nullable|integer',
             'transaction_lines' => 'required|array|min:2',

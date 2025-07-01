@@ -2,8 +2,12 @@
 
 namespace Condoedge\Finance\Models\Dto\Gl;
 
+use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 use WendellAdriel\ValidatedDTO\Casting\FloatCast;
+use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
+use WendellAdriel\ValidatedDTO\Casting\StringCast;
 
 /**
  * Create GL Transaction Line DTO
@@ -18,10 +22,11 @@ use WendellAdriel\ValidatedDTO\Casting\FloatCast;
  */
 class CreateGlTransactionLineDto extends ValidatedDTO
 {
-    public string $account_id;
-    public ?string $line_description = null;
-    public float $debit_amount = 0.0;
-    public float $credit_amount = 0.0;
+    public ?int $natural_account_id;
+    public ?int $account_id;
+    public ?string $line_description;
+    public SafeDecimal $debit_amount;
+    public SafeDecimal $credit_amount;
     
     /**
      * Defines the casts for the DTO properties.
@@ -29,8 +34,11 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'debit_amount' => new FloatCast(),
-            'credit_amount' => new FloatCast(),
+            'line_description' => new StringCast(),
+            'account_id' => new IntegerCast(),
+            'natural_account_id' => new IntegerCast(),
+            'debit_amount' => new SafeDecimalCast(),
+            'credit_amount' => new SafeDecimalCast(),
         ];
     }
     
@@ -40,7 +48,8 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     public function rules(): array
     {
         return [
-            'account_id' => 'required|string|exists:fin_gl_accounts,account_id',
+            'account_id' => 'required_without:natural_account_id|integer|exists:fin_gl_accounts,account_id',
+            'natural_account_id' => 'required_without:account_id|integer|exists:fin_segment_values,id',
             'line_description' => 'nullable|string|max:255',
             'debit_amount' => 'required|numeric|min:0',
             'credit_amount' => 'required|numeric|min:0',
@@ -54,8 +63,10 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     {
         return [
             'line_description' => null,
-            'debit_amount' => 0.0,
-            'credit_amount' => 0.0,
+            'debit_amount' => new SafeDecimal(0.0),
+            'credit_amount' => new SafeDecimal(0.0),
+            'account_id' => 0,
+            'natural_account_id' => 0,
         ];
     }
     
@@ -78,9 +89,9 @@ class CreateGlTransactionLineDto extends ValidatedDTO
      */
     public function validateDebitCredit(): bool
     {
-        $hasDebit = $this->debit_amount > 0;
-        $hasCredit = $this->credit_amount > 0;
-        
+        $hasDebit = $this->dtoData['debit_amount'] > 0;
+        $hasCredit = $this->dtoData['credit_amount'] > 0;
+
         // Either debit OR credit must be specified, but not both
         return ($hasDebit && !$hasCredit) || (!$hasDebit && $hasCredit);
     }
@@ -90,7 +101,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
      */
     public function getAmount(): float
     {
-        return $this->debit_amount > 0 ? $this->debit_amount : $this->credit_amount;
+        return $this->dtoData['debit_amount'] > 0 ? $this->dtoData['debit_amount'] : $this->dtoData['credit_amount'];
     }
     
     /**
@@ -98,7 +109,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
      */
     public function isDebit(): bool
     {
-        return $this->debit_amount > 0;
+        return $this->dtoData['debit_amount'] > 0;
     }
     
     /**
@@ -106,6 +117,6 @@ class CreateGlTransactionLineDto extends ValidatedDTO
      */
     public function isCredit(): bool
     {
-        return $this->credit_amount > 0;
+        return $this->dtoData['credit_amount'] > 0;
     }
 }

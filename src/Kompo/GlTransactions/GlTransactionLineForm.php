@@ -25,7 +25,7 @@ class GlTransactionLineForm extends Form
     
     public function render()
     {
-        return _TableRow(
+        return [
             _AccountsSelect(),
             
             // Line description
@@ -62,7 +62,7 @@ class GlTransactionLineForm extends Form
             // Remove button
             $this->isReadOnly ? null :
                 _DeleteLink()->byKey($this->model)->run('updateTotals')
-        );
+        ];
     }
     
     public function js()
@@ -88,7 +88,6 @@ class GlTransactionLineForm extends Form
     public function rules()
     {
         return [
-            'account_id' => 'required|exists:fin_gl_accounts,account_id',
             'line_description' => 'nullable|string|max:255',
             'debit_amount' => 'nullable|numeric|min:0',
             'credit_amount' => 'nullable|numeric|min:0',

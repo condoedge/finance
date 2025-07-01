@@ -16,21 +16,8 @@ class GlTransactionType extends Model
     protected $table = 'fin_gl_transaction_types';
     protected $primaryKey = 'id';
     
-    protected $fillable = [
-        'name',
-        'label', 
-        'code',
-        'fiscal_period_field',
-        'allows_manual_entry',
-        'description',
-        'sort_order',
-        'is_active'
-    ];
-
     protected $casts = [
         'allows_manual_entry' => 'boolean',
-        'sort_order' => 'integer',
-        'is_active' => 'boolean',
     ];
 
     /**

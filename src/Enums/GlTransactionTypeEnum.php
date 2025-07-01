@@ -33,6 +33,16 @@ enum GlTransactionTypeEnum: int
         };
     }
 
+    public function colorClass(): string
+    {
+        return match($this) {
+            self::MANUAL_GL => 'bg-blue-500',
+            self::BANK => 'bg-green-500',
+            self::RECEIVABLE => 'bg-yellow-500',
+            self::PAYABLE => 'bg-red-500',
+        };
+    }
+
     /**
      * Get the fiscal period field name for checking if open
      */

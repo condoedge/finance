@@ -16,31 +16,12 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     
     protected $table = 'fin_gl_transaction_headers';
-    protected $primaryKey = 'gl_transaction_id';
-    protected $keyType = 'string';
-    public $incrementing = false;
-    
-    protected $fillable = [
-        'gl_transaction_id',
-        'gl_transaction_number',
-        'fiscal_date',
-        'fiscal_year',
-        'fiscal_period',
-        'gl_transaction_type',
-        'transaction_description',
-        'originating_module_transaction_id',
-        'vendor_id',
-        'customer_id',
-        'team_id',
-        'is_balanced',
-        'is_posted',
-    ];
     
     protected $casts = [
         'fiscal_date' => 'date',
         'fiscal_year' => 'integer',
         'gl_transaction_number' => 'integer',
-        'gl_transaction_type' => 'integer',
+        'gl_transaction_type' => GlTransactionTypeEnum::class,
         'is_balanced' => 'boolean',
         'is_posted' => 'boolean',
     ];
@@ -61,21 +42,17 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     
     protected function getModuleForValidation(): ?GlTransactionTypeEnum
     {
-        try {
-            return GlTransactionTypeEnum::from($this->gl_transaction_type ?? self::TYPE_MANUAL_GL);
-        } catch (\ValueError $e) {
-            return GlTransactionTypeEnum::MANUAL_GL;
-        }
+        return $this->gl_transaction_type ?? GlTransactionTypeEnum::MANUAL_GL;
     }
     
-    protected function shouldValidateFiscalPeriod(): bool
+    public function shouldValidateFiscalPeriod(): bool
     {
         // Skip validation for posted transactions (they're immutable)
         if ($this->is_posted) {
             return false;
         }
         
-        return parent::shouldValidateFiscalPeriod();
+        return $this->getModuleForValidation() !== null;
     }
     
     /**
@@ -83,68 +60,19 @@ class GlTransactionHeader extends AbstractMainFinanceModel
      */
     public function lines()
     {
-        return $this->hasMany(GlTransactionLine::class, 'gl_transaction_id', 'gl_transaction_id');
+        return $this->hasMany(GlTransactionLine::class, 'gl_transaction_id');
     }
     
     public function fiscalPeriod()
     {
-        return $this->belongsTo(FiscalPeriod::class, 'fiscal_period');
+        return $this->belongsTo(FiscalPeriod::class, 'fiscal_period_id');
     }
     
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id');
     }
-    
-    /**
-     * Create a new GL transaction with proper sequencing
-     */
-    public static function createTransaction(array $data): self
-    {
-        // Generate transaction number if not provided
-        if (!isset($data['gl_transaction_number'])) {
-            $data['gl_transaction_number'] = static::getNextTransactionNumber();
-        }
-        
-        // Auto-determine fiscal year and period if not provided
-        if (!isset($data['fiscal_year']) || !isset($data['fiscal_period'])) {
-            $fiscalData = static::determineFiscalData($data['fiscal_date']);
-            $data['fiscal_year'] = $data['fiscal_year'] ?? $fiscalData['fiscal_year'];
-            $data['fiscal_period'] = $data['fiscal_period'] ?? $fiscalData['fiscal_period'];
-        }
-        
-        // Generate transaction ID if not provided
-        if (!isset($data['gl_transaction_id'])) {
-            $data['gl_transaction_id'] = static::generateTransactionId(
-                $data['fiscal_year'],
-                $data['gl_transaction_type'],
-                $data['gl_transaction_number']
-            );
-        }
-        
-        $header = new static;
-        $header->gl_transaction_id = $data['gl_transaction_id'];
-        $header->gl_transaction_number = $data['gl_transaction_number'];
-        $header->fiscal_date = $data['fiscal_date'];
-        $header->fiscal_year = $data['fiscal_year'];
-        $header->fiscal_period = $data['fiscal_period'];
-        $header->gl_transaction_type = $data['gl_transaction_type'];
-        $header->transaction_description = $data['transaction_description'] ?? '';
-        $header->team_id = $data['team_id'];
-        $header->save();
-    }
-    
-    /**
-     * Get next transaction number
-     */
-    protected static function getNextTransactionNumber(): int
-    {
-        return DB::selectOne('SELECT get_next_gl_transaction_number(?, ?) as next_number', [
-            'GL_TRANSACTION',
-            null // Global sequence, not per fiscal year
-        ])->next_number;
-    }
-    
+
     /**
      * Determine fiscal year and period from date
      */
@@ -208,7 +136,8 @@ class GlTransactionHeader extends AbstractMainFinanceModel
             throw new \Exception(__('translate.transaction-cannot-be-modified'));
         }
         
-        $this->update(['is_posted' => true]);
+        $this->is_posted = true;
+        $this->save();
     }
     
     /**
@@ -234,7 +163,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     {
         return [
             // The is_balanced field is calculated by triggers, but we can also verify here
-            'is_balanced' => DB::raw('validate_gl_transaction_balance(fin_gl_transaction_headers.gl_transaction_id)'),
+            'is_balanced' => DB::raw('validate_gl_transaction_balance(fin_gl_transaction_headers.id)'),
         ];
     }
     
@@ -243,13 +172,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
      */
     public function getTypeLabelAttribute(): string
     {
-        return match($this->gl_transaction_type) {
-            self::TYPE_MANUAL_GL => 'Manual GL',
-            self::TYPE_BANK => 'Bank',
-            self::TYPE_RECEIVABLE => 'Receivable',
-            self::TYPE_PAYABLE => 'Payable',
-            default => 'Unknown',
-        };
+        return $this->gl_transaction_type->label();
     }
     
     /**
@@ -299,5 +222,12 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     {
         $teamId = $teamId ?? currentTeamId();
         return $query->where('team_id', $teamId);
+    }
+
+    // Elements
+    public function transactionTypePill()
+    {
+        return _Pill($this->gl_transaction_type->label())->class('text-white')
+            ->class($this->gl_transaction_type->colorClass());
     }
 }

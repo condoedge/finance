@@ -24,3 +24,31 @@ BEGIN
     
     RETURN is_balanced;
 END;
+
+DROP FUNCTION IF EXISTS get_gl_transaction_out_of_balance_amount;
+
+CREATE FUNCTION get_gl_transaction_out_of_balance_amount(
+    p_gl_transaction_id VARCHAR(20)
+)
+RETURNS DECIMAL(15, 2)
+READS SQL DATA
+DETERMINISTIC
+SQL SECURITY DEFINER
+BEGIN
+    DECLARE v_total_debits DECIMAL(15, 2) DEFAULT 0.00;
+    DECLARE v_total_credits DECIMAL(15, 2) DEFAULT 0.00;
+    DECLARE v_out_of_balance DECIMAL(15, 2) DEFAULT 0.00;
+    
+    -- Calculate total debits and credits
+    SELECT 
+        COALESCE(SUM(debit_amount), 0.00),
+        COALESCE(SUM(credit_amount), 0.00)
+    INTO v_total_debits, v_total_credits
+    FROM fin_gl_transaction_lines
+    WHERE gl_transaction_id = p_gl_transaction_id;
+    
+    -- Calculate out of balance amount (debit - credit)
+    SET v_out_of_balance = v_total_debits - v_total_credits;
+    
+    RETURN v_out_of_balance;
+END;

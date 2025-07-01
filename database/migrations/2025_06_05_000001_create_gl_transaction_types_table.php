@@ -18,21 +18,18 @@ class CreateGlTransactionTypesTable extends Migration
     public function up(): void
     {
         Schema::create('fin_gl_transaction_types', function (Blueprint $table) {
-            $table->id();
+            addMetaData($table);
             $table->string('name', 100)->unique();
             $table->string('label', 200);
             $table->string('code', 10)->unique(); // For ID generation (GL, BNK, AR, AP)
             $table->string('fiscal_period_field', 50); // Field name to check if period is open
             $table->boolean('allows_manual_entry')->default(false);
             $table->text('description')->nullable();
-            $table->integer('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-            $table->softDeletes();
+            $table->integer('next_number')->default(1); // Next number for this type
             
             // Add indexes for performance
-            $table->index(['is_active', 'sort_order']);
             $table->index('code');
+            $table->index('fiscal_period_field');
         });
     }
 

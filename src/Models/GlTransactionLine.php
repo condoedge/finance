@@ -4,19 +4,17 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 use Condoedge\Finance\Casts\SafeDecimal;
-use Illuminate\Support\Facades\DB;
+use Condoedge\Finance\Casts\SafeDecimalCast;
 
 class GlTransactionLine extends AbstractMainFinanceModel
 {
     use HasIntegrityCheck;
     
     protected $table = 'fin_gl_transaction_lines';
-    protected $primaryKey = 'gl_transaction_line_id';
 
     protected $casts = [
-        'debit_amount' => SafeDecimal::class,
-        'credit_amount' => SafeDecimal::class,
-        'line_sequence' => 'integer',
+        'debit_amount' => SafeDecimalCast::class,
+        'credit_amount' => SafeDecimalCast::class,
     ];
     
     /**
@@ -33,47 +31,11 @@ class GlTransactionLine extends AbstractMainFinanceModel
     }
     
     /**
-     * Boot the model
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        
-        // Auto-set line sequence
-        static::creating(function ($line) {
-            if (!$line->line_sequence) {
-                $maxSequence = static::where('gl_transaction_id', $line->gl_transaction_id)
-                                   ->max('line_sequence') ?? 0;
-                $line->line_sequence = $maxSequence + 1;
-            }
-        });
-    }
-    
-    /**
-     * Validate amounts (ensure only debit OR credit)
-     */
-    public function setDebitAmountAttribute($value)
-    {
-        if ($value > 0 && $this->credit_amount > 0) {
-            throw new \Exception('Cannot have both debit and credit amounts');
-        }
-        $this->attributes['debit_amount'] = $value;
-    }
-    
-    public function setCreditAmountAttribute($value)
-    {
-        if ($value > 0 && $this->debit_amount > 0) {
-            throw new \Exception('Cannot have both debit and credit amounts');
-        }
-        $this->attributes['credit_amount'] = $value;
-    }
-    
-    /**
      * Get net amount (debit positive, credit negative)
      */
     public function getNetAmountAttribute(): SafeDecimal
     {
-        return new SafeDecimal($this->debit_amount - $this->credit_amount);
+        return $this->debit_amount->subtract($this->credit_amount);
     }
     
     /**

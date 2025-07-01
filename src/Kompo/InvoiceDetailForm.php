@@ -24,65 +24,69 @@ class InvoiceDetailForm extends Form
 	{
 		// If the taxes were set before and they are now disabled, we should allow them anyways
 		$taxesOptions = $this->model?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
-			fn($it) => [$it->tax->id => $it->complete_label_html])
-		->union(Tax::active()->get()->pluck('complete_label_html', 'id'));
+			fn($it) => [$it->tax->id => $it->complete_label_html]
+		)
+			->union(Tax::active()->get()->pluck('complete_label_html', 'id'));
 
 		return [
 			_Rows(
-				_Input()->placeholder('finance.new-item-name')->name('name'),
-			)->class('pl-4 w-72'),
+				_Input()->placeholder('finance.new-item-name')->name('name')->class('w-72'),
 
-			_Input()->placeholder('finance.item-description')->name('description')->style('width: 20em'),
+				_Input()->placeholder('finance.item-description')->name('description')->style('width: 190%'),
+
+			),
+
+
+			_AccountsSelect('revenue_natural_account_id')->class('w-full'),
 
 			_Rows(
-				// $this->model->getChargeableHiddenEls($this->chargeable),
-				_FlexBetween(
-					_Flex(
-						_Input()->type('number')
-							->name('quantity')
-							->default(1)
-							->class('w-28 mb-0')
-							->run('calculateTotals'),
+				_Flex(
 
-						_Input()->type('number')
-							->name('unit_price')
-							->class('w-28 mb-0')
-							->run('calculateTotals'),
-
-						_Rows(
-							_AccountsSelect(),
-						),
-
-					)->class('space-x-4'),
-
-					_FinanceCurrency($this->model->extended_price)
-						->class('item-total w-32 text-lg font-semibold text-level1 text-right')
-				)->class('mb-4'),
-
-				
-				_FlexBetween(
-					_MultiSelect()->placeholder('taxes')
-						->class('w-60 mb-0 mt-2')
-						->name('taxesIds', false)
-						->default($this->model->id ? $this->model->invoiceTaxes()->pluck('tax_id') : InvoiceService::getDefaultTaxesIds($this->model->invoice))
-						->options($taxesOptions)
+					_Input()->type('number')
+						->name('quantity')
+						->default(1)
+						->class('w-28 mb-0')
 						->run('calculateTotals'),
 
-					_FlexEnd(
-						_TaxesInfoLink()->class('left-0 top-1 ml-1'),
-						_Rows(
-							$this->model->invoiceTaxes()->get()->map(
-								fn($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate))
-							)
-						)->class('w-32 item-taxes font-semibold text-level1 text-right')
-					)->class('relative'),
-				)->class('mb-4'),
-			)->class('pr-0'),
-            _Rows(
-                $this->deleteInvoiceDetail()
-				    ->class('text-xl text-gray-300')
-				    ->run('calculateTotals'),
-            )->class('pt-2'),
+					_Input()->type('number')
+						->name('unit_price')
+						->class('w-28 mb-0')
+						->run('calculateTotals'),
+
+					_FinanceCurrency($this->model->extended_price)
+						->class('item-total w-32 text-lg font-semibold text-level1 text-right'),
+				)->class('gap-3'),
+				_FlexBetween(
+
+
+					_Flex(
+						_MultiSelect()->placeholder('taxes')
+							->class('w-60 mb-0 mt-2')
+							->name('taxesIds', false)
+							->default($this->model->id ? $this->model->invoiceTaxes()->pluck('tax_id') : InvoiceService::getDefaultTaxesIds($this->model->invoice))
+							->options($taxesOptions)
+							->run('calculateTotals'),
+
+						_FlexEnd(
+							_TaxesInfoLink()->class('left-0 top-1 ml-1'),
+							_Rows(
+								$this->model->invoiceTaxes()->get()->map(
+									fn($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate))
+								)
+							)->class('w-32 item-taxes font-semibold text-level1 text-right')
+						)->class('relative'),
+					)->class('mb-4'),
+				),
+			),
+
+
+
+
+
+			$this->deleteInvoiceDetail()
+				->class('text-xl text-gray-300')
+				->run('calculateTotals'),
+
 		];
 	}
 

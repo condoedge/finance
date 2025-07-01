@@ -10,15 +10,6 @@ use Carbon\Carbon;
 interface GlTransactionServiceInterface
 {
     /**
-     * Create a manual GL transaction (Journal Entry)
-     *
-     * @param CreateGlTransactionDto $dto
-     * @return GlTransactionHeader
-     * @throws \Exception
-     */
-    public function createManualGlTransaction(CreateGlTransactionDto $dto): GlTransactionHeader;
-
-    /**
      * Create a complete GL transaction with lines
      *
      * @param array $headerData
@@ -26,8 +17,7 @@ interface GlTransactionServiceInterface
      * @return GlTransactionHeader
      * @throws \Exception
      */
-    public function createTransaction(array $headerData, array $lines): GlTransactionHeader;
-
+    public function createTransaction(CreateGlTransactionDto $dto): GlTransactionHeader;
     /**
      * Post a transaction (make it final)
      *

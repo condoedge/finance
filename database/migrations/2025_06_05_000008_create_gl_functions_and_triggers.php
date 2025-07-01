@@ -17,9 +17,9 @@ class CreateGlFunctionsAndTriggers extends Migration
         // Load from files
         DB::unprepared(processDelimiters(file_get_contents($functionsPath . '/validate_fiscal_period_open/validate_fiscal_period_open_v0001.sql')));
         DB::unprepared(processDelimiters(file_get_contents($functionsPath . '/validate_gl_transaction_balance/validate_gl_transaction_balance_v0001.sql')));
-        DB::unprepared(processDelimiters(file_get_contents($functionsPath . '/get_next_gl_transaction_number/get_next_gl_transaction_number_v0001.sql')));
         DB::unprepared(processDelimiters(file_get_contents($triggersPath . '/ensure_gl_transaction_integrity/ensure_gl_transaction_integrity_v0001.sql')));
         DB::unprepared(processDelimiters(file_get_contents($triggersPath . '/ensure_gl_line_integrity/ensure_gl_line_integrity_v0001.sql')));
+        DB::unprepared(processDelimiters(file_get_contents($triggersPath . '/set_transaction_number/set_transaction_number_v0001.sql')));
     }
 
     /**
@@ -33,10 +33,11 @@ class CreateGlFunctionsAndTriggers extends Migration
         DB::unprepared('DROP TRIGGER IF EXISTS update_gl_header_balance');
         DB::unprepared('DROP TRIGGER IF EXISTS ensure_gl_line_integrity');
         DB::unprepared('DROP TRIGGER IF EXISTS ensure_gl_transaction_integrity');
+        DB::unprepared('DROP TRIGGER IF EXISTS tr_transaction_number_before_insert');
         
         // Drop functions
-        DB::unprepared('DROP FUNCTION IF EXISTS get_next_gl_transaction_number');
         DB::unprepared('DROP FUNCTION IF EXISTS validate_gl_transaction_balance');
-        DB::unprepared('DROP FUNCTION IF EXISTS validate_fiscal_period_open');
+        DB::unprepared('DROP FUNCTION IF EXISTS get_gl_transaction_out_of_balance_amount');
+
     }
 }

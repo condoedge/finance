@@ -275,7 +275,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
     {
         $detail->name = $dto->name;
         $detail->description = $dto->description;
-        $detail->revenue_account_id = $dto->revenue_account_id;
+        $detail->revenue_account_id = $dto->revenue_account_id ?? GlAccount::getFromLatestSegmentValue($dto->revenue_natural_account_id)->id;
         $detail->product_id = $dto->product_id;
         $detail->quantity = $dto->quantity;
         $detail->unit_price = $dto->unit_price;

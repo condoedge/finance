@@ -7,53 +7,59 @@ use Condoedge\Finance\Models\GlTransactionLine;
 use Condoedge\Finance\Models\FiscalPeriod;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
-use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionLineDto;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Condoedge\Finance\Facades\FiscalYearService;
+use Condoedge\Finance\Models\SegmentValue;
 
 class GlTransactionService implements GlTransactionServiceInterface
 {
-    /**
-     * Create a manual GL transaction (Journal Entry)
-     */
-    public function createManualGlTransaction(CreateGlTransactionDto $dto): GlTransactionHeader
+    protected function createTransactionHeader(CreateGlTransactionDto $dto): GlTransactionHeader
     {
-        // DTO validation happens automatically in constructor via ValidatedDTO
-        // The after() method in the DTO handles balance validation
-        
+        $fiscalPeriod = FiscalYearService::getOrCreatePeriodForDate($dto->team_id, carbon($dto->fiscal_date));
+
+        $header = new GlTransactionHeader;
+        // $header->gl_transaction_number = $dto->gl_transaction_number; // Defined in trigger
+        $header->fiscal_date = $dto->fiscal_date;
+        $header->fiscal_period_id = $fiscalPeriod->id;
+        $header->gl_transaction_type = $dto->gl_transaction_type;
+        $header->transaction_description = $dto->transaction_description ?? '';
+        $header->team_id = $dto->team_id;
+        $header->save();
+
+        return $header;
+    }
+    /**
+     * Create a complete GL transaction with lines
+     */
+    public function createTransaction(CreateGlTransactionDto $dto): GlTransactionHeader
+    {
         return DB::transaction(function() use ($dto) {
             // Create header
-            $header = GlTransactionHeader::createTransaction([
-                'fiscal_date' => $dto->fiscal_date,
-                'transaction_description' => $dto->transaction_description,
-                'gl_transaction_type' => GlTransactionHeader::TYPE_MANUAL_GL,
-                'team_id' => currentTeamId(),
-            ]);
-            
+            $header = $this->createTransactionHeader($dto);
+
             // Create lines
             $lines = $dto->getLinesDtos(); // Convert to DTOs if they're arrays
             foreach ($lines as $lineDto) {
                 // Validate account allows manual entry
-                $account = $lineDto->account_id ? GlAccount::where('account_id', $lineDto->account_id)
+                $naturalAccount = $lineDto->account_id ? GlAccount::where('account_id', $lineDto->account_id)
                     ->forTeam()
                     ->first()
-                    : GlAccount::getFromLatestSegmentValue($lineDto->natural_account_id);
-                    
-                if (!$account->is_active) {
-                    throw new \Exception(__("translate.account-is-inactive", ['account_id' => $account->id]));
-                }
-                
-                if (!$account->allow_manual_entry) {
-                    throw new \Exception(__("translate.account-no-manual-entry", ['account_id' => $account->id]));
+                    ->getLastSegmentValue()
+                    : SegmentValue::find($lineDto->natural_account_id);
+
+                if (!$naturalAccount->is_active) {
+                    throw new \Exception(__("translate.account-is-inactive", ['account_id' => $naturalAccount->id]));
                 }
 
                 $glTransactionLine = new GlTransactionLine;
-                $glTransactionLine->gl_transaction_id = $header->gl_transaction_id;
-                $glTransactionLine->account_id = $lineDto->id;
+                $glTransactionLine->gl_transaction_id = $header->id;
+                $glTransactionLine->account_id = $lineDto->account_id ?? GlAccount::getFromLatestSegmentValue($lineDto->natural_account_id)->id;
                 $glTransactionLine->line_description = $lineDto->line_description;
-                $glTransactionLine->debit_amount = $lineDto->debit_amount;
-                $glTransactionLine->credit_amount = $lineDto->credit_amount;
+                $glTransactionLine->debit_amount = $lineDto->debit_amount->toFloat();
+                $glTransactionLine->credit_amount = $lineDto->credit_amount->toFloat();
+                $glTransactionLine->team_id = $dto->team_id;
                 $glTransactionLine->save();
             }
             
@@ -62,34 +68,6 @@ class GlTransactionService implements GlTransactionServiceInterface
             
             if (!$header->is_balanced) {
                 throw new \Exception(__('translate.transaction-not-balanced-after-creation'));
-            }
-            
-            return $header;
-        });
-    }
-    
-    /**
-     * Create a complete GL transaction with lines
-     */
-    public function createTransaction(array $headerData, array $lines): GlTransactionHeader
-    {
-        return DB::transaction(function() use ($headerData, $lines) {
-            // Validate lines balance before creating anything
-            $this->validateLinesBalance($lines);
-            
-            // Create header
-            $header = GlTransactionHeader::createTransaction($headerData);
-            
-            // Create lines
-            foreach ($lines as $lineData) {
-                $lineData['gl_transaction_id'] = $header->gl_transaction_id;
-                $this->createTransactionLine($lineData);
-            }
-            
-            // Verify final balance (triggers should have updated this)
-            $header->refresh();
-            if (!$header->is_balanced) {
-                throw new \Exception(__('translate.transaction-not-balanced-after-line-creation'));
             }
             
             return $header;
@@ -156,7 +134,7 @@ class GlTransactionService implements GlTransactionServiceInterface
     public function postTransaction($transaction): GlTransactionHeader
     {
         if (is_string($transaction)) {
-            $transaction = GlTransactionHeader::where('gl_transaction_id', $transaction)
+            $transaction = GlTransactionHeader::where('id', $transaction)
                 ->forTeam()
                 ->firstOrFail();
         }
@@ -196,7 +174,6 @@ class GlTransactionService implements GlTransactionServiceInterface
                 'gl_transaction_type' => $originalTransaction->gl_transaction_type,
                 'transaction_description' => $reversalDescription ?? 
                     __("translate.reversal-of-transaction", ['transaction_id' => $originalTransaction->gl_transaction_id]),
-                'originating_module_transaction_id' => $originalTransaction->gl_transaction_id,
                 'customer_id' => $originalTransaction->customer_id,
                 'vendor_id' => $originalTransaction->vendor_id,
                 'team_id' => $originalTransaction->team_id,
@@ -206,13 +183,13 @@ class GlTransactionService implements GlTransactionServiceInterface
             
             // Create reversed lines (swap debits and credits)
             foreach ($originalTransaction->lines as $originalLine) {
-                GlTransactionLine::create([
-                    'gl_transaction_id' => $reversalHeader->gl_transaction_id,
-                    'account_id' => $originalLine->account_id,
-                    'line_description' => __("translate.reversal-line", ['description' => $originalLine->line_description ?? '']),
-                    'debit_amount' => $originalLine->credit_amount, // Swap
-                    'credit_amount' => $originalLine->debit_amount, // Swap
-                ]);
+                $transactionLine = new GlTransactionLine;
+                $transactionLine->gl_transaction_id = $reversalHeader->id;
+                $transactionLine->account_id = $originalLine->account_id;
+                $transactionLine->line_description = __("translate.reversal-line", ['description' => $originalLine->line_description ?? '']);
+                $transactionLine->debit_amount = $originalLine->credit_amount;
+                $transactionLine->credit_amount = $originalLine->debit_amount;
+                $transactionLine->save();
             }
             
             // Post the reversal automatically

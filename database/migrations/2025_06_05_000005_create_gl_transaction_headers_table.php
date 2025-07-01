@@ -16,9 +16,9 @@ class CreateGlTransactionHeadersTable extends Migration
         Schema::create('fin_gl_transaction_headers', function (Blueprint $table) {
             addMetaData($table);
             
-            $table->string('gl_transaction_id', 50)->unique(); // YYYY-TT-NNNNNN format
             $table->date('fiscal_date');
-            $table->integer('gl_transaction_type'); // 1=Manual GL, 2=AR, 3=AP, 4=BNK
+            $table->integer('gl_transaction_type');
+            $table->integer('gl_transaction_number')->nullable();
             $table->string('transaction_description', 500);
             $table->boolean('is_posted')->default(false);
             $table->boolean('is_balanced')->default(false);
@@ -30,7 +30,6 @@ class CreateGlTransactionHeadersTable extends Migration
             $table->foreignId('fiscal_period_id')->nullable()->constrained('fin_fiscal_periods');
             
             // Optional references to other modules
-            $table->string('originating_module_transaction_id', 50)->nullable();
             $table->foreignId('customer_id')->nullable()->constrained('fin_customers');
             $table->integer('vendor_id')->nullable();
             

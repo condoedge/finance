@@ -18,9 +18,9 @@ class CreateTaxesTable extends Migration
             
             $table->string('name');
             $table->decimal('rate', 10, 6);
-            $table->foreignId('account_id')->constrained('fin_gl_accounts');
+            $table->foreignId('account_id')->nullable()->constrained('fin_gl_accounts');
             $table->date('valide_from');
-            $table->date('valide_to');
+            $table->date('valide_to')->nullable();
         });
     }
 
