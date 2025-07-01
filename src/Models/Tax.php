@@ -51,7 +51,8 @@ class Tax extends AbstractMainFinanceModel
     /* SCOPES */
     public function scopeActive($query)
     {
-        return $query->where('valide_from', '<=', now())->where('valide_to', '>=', now());
+        return $query->where('valide_from', '<=', now())
+            ->where(fn($q) => $q->where('valide_to', '>=', now())->orWhereNull('valide_to'));
     }
 
     /* ACTIONS */

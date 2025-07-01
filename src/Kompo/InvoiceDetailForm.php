@@ -22,12 +22,6 @@ class InvoiceDetailForm extends Form
 
 	public function render()
 	{
-		// If the taxes were set before and they are now disabled, we should allow them anyways
-		$taxesOptions = $this->model?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
-			fn($it) => [$it->tax->id => $it->complete_label_html]
-		)
-			->union(Tax::active()->get()->pluck('complete_label_html', 'id'));
-
 		return [
 			_Rows(
 				_Input()->placeholder('finance.new-item-name')->name('name')->class('w-72'),
@@ -36,12 +30,10 @@ class InvoiceDetailForm extends Form
 
 			),
 
-
 			_AccountsSelect('revenue_natural_account_id')->class('w-full'),
 
 			_Rows(
 				_Flex(
-
 					_Input()->type('number')
 						->name('quantity')
 						->default(1)
@@ -57,15 +49,9 @@ class InvoiceDetailForm extends Form
 						->class('item-total w-32 text-lg font-semibold text-level1 text-right'),
 				)->class('gap-3'),
 				_FlexBetween(
-
-
 					_Flex(
-						_MultiSelect()->placeholder('taxes')
-							->class('w-60 mb-0 mt-2')
-							->name('taxesIds', false)
-							->default($this->model->id ? $this->model->invoiceTaxes()->pluck('tax_id') : InvoiceService::getDefaultTaxesIds($this->model->invoice))
-							->options($taxesOptions)
-							->run('calculateTotals'),
+						_TaxesSelect($this->invoice, 'taxesIds')
+							->class('w-60 mb-0 mt-2'),
 
 						_FlexEnd(
 							_TaxesInfoLink()->class('left-0 top-1 ml-1'),
@@ -78,10 +64,6 @@ class InvoiceDetailForm extends Form
 					)->class('mb-4'),
 				),
 			),
-
-
-
-
 
 			$this->deleteInvoiceDetail()
 				->class('text-xl text-gray-300')

@@ -29,7 +29,7 @@ class CreateCustomerFromCustomable extends ValidatedDTO
             'customable_id' => ['required', 'integer'],
             'customable_type' => ['required', 'string', 'in:' . CustomerService::getValidCustomableModels()->keys()->implode(',')],
             'team_id' => ['sometimes', 'integer', 'exists:teams,id'],
-            'address' => ['sometimes', 'array'],
+            'address' => ['nullable', 'array'],
             'address.address1' => ['required_with:address', 'string'],
             'address.city' => ['required_with:address', 'string'],
             'address.state' => ['required_with:address', 'string'],

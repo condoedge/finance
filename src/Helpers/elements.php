@@ -1,5 +1,7 @@
 <?php
 
+use Condoedge\Finance\Facades\InvoiceService;
+use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Models\SegmentValue;
 
 \Kompo\Elements\Element::macro('asCurrency', function(){
@@ -54,5 +56,19 @@ if (!function_exists('_AccountsSelect')) {
             ->options(SegmentValue::forLastSegment()->get()->mapWithKeys(
                 fn($it) => [$it->id => $it->segment_value . ' - ' . $it->segment_description]
             ));
+    }
+}
+
+if (!function_exists('_TaxesSelect')) {
+    function _TaxesSelect($invoice = null, $name = 'taxes_ids')
+    {
+        $taxesOptions = TaxModel::active()->get()->pluck('complete_label_html', 'id')->union($invoice?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
+			fn($it) => [$it->tax->id => $it->complete_label_html]
+		));
+
+        return	_MultiSelect()->placeholder('taxes')
+            ->name($name)
+            ->default($invoice?->id ? $invoice->invoiceTaxes()->pluck('tax_id') : InvoiceService::getDefaultTaxesIds($invoice))
+            ->options($taxesOptions);
     }
 }

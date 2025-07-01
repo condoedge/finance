@@ -75,6 +75,8 @@ class Invoice extends AbstractMainFinanceModel
         'invoice_due_amount' => SafeDecimalCast::class,
         'invoice_tax_amount' => SafeDecimalCast::class,
 
+        'invoice_amount_before_taxes' => SafeDecimalCast::class,
+
         'possible_payment_methods' => 'array',
         'possible_payment_installments' => 'array',
     ];

@@ -132,8 +132,8 @@ class InvoiceService implements InvoiceServiceInterface
         }
 
         $taxGroup = TaxGroup::findOrFail($taxGroupId);
-        
-        return $taxGroup->taxes()->pluck('fin_taxes.id');
+
+        return $taxGroup->taxes()->active()->pluck('fin_taxes.id');
     }
     
     /* PROTECTED METHODS - Can be overridden for customization */

@@ -7,13 +7,10 @@ use Condoedge\Finance\Facades\PaymentMethodEnum;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
-use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 class UpdateInvoiceDto extends ValidatedDTO
 {
-    use EmptyDefaults;
-
     public int $id;
     public int $payment_method_id;
     public Carbon $invoice_date;
@@ -59,6 +56,13 @@ class UpdateInvoiceDto extends ValidatedDTO
             'invoice_date' => new CarbonCast,
             'invoice_due_date' => new CarbonCast,
             'invoiceDetails' => new ArrayCast,
+        ];
+    }
+
+    public function defaults(): array
+    {
+        return [
+            'invoiceDetails' => [],
         ];
     }
 }
