@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  * @property int $account_id References fin_gl_accounts
  * @property int $segment_value_id References fin_segment_values
  */
-class AccountSegmentAssignment extends Model
+class AccountSegmentAssignment extends AbstractMainFinanceModel
 {
     protected $table = 'fin_account_segment_assignments';
     
@@ -129,9 +129,7 @@ class AccountSegmentAssignment extends Model
             }
         }
         
-        return GlAccount::whereIn('id', $validAccountIds)
-            ->where('team_id', $teamId)
-            ->get();
+        return GlAccount::whereIn('id', $validAccountIds)->get();
     }
     
     /**

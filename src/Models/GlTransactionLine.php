@@ -22,20 +22,12 @@ class GlTransactionLine extends AbstractMainFinanceModel
      */
     public function header()
     {
-        return $this->belongsTo(GlTransactionHeader::class, 'gl_transaction_id', 'gl_transaction_id');
+        return $this->belongsTo(GlTransactionHeader::class, 'gl_transaction_id');
     }
     
     public function account()
     {
-        return $this->belongsTo(GlAccount::class, 'account_id', 'account_id');
-    }
-    
-    /**
-     * Get net amount (debit positive, credit negative)
-     */
-    public function getNetAmountAttribute(): SafeDecimal
-    {
-        return $this->debit_amount->subtract($this->credit_amount);
+        return $this->belongsTo(GlAccount::class, 'account_id');
     }
     
     /**

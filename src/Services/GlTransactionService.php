@@ -55,7 +55,7 @@ class GlTransactionService implements GlTransactionServiceInterface
 
                 $glTransactionLine = new GlTransactionLine;
                 $glTransactionLine->gl_transaction_id = $header->id;
-                $glTransactionLine->account_id = $lineDto->account_id ?? GlAccount::getFromLatestSegmentValue($lineDto->natural_account_id)->id;
+                $glTransactionLine->account_id = $lineDto->account_id ?: GlAccount::getFromLatestSegmentValue($lineDto->natural_account_id)->id;
                 $glTransactionLine->line_description = $lineDto->line_description;
                 $glTransactionLine->debit_amount = $lineDto->debit_amount->toFloat();
                 $glTransactionLine->credit_amount = $lineDto->credit_amount->toFloat();

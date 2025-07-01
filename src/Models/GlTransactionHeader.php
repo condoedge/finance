@@ -11,7 +11,6 @@ use Carbon\Carbon;
 
 class GlTransactionHeader extends AbstractMainFinanceModel
 {
-    use HasIntegrityCheck;
     use ValidatesFiscalPeriod;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     
@@ -141,22 +140,6 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     }
     
     /**
-     * Get total debits
-     */
-    public function getTotalDebitsAttribute(): SafeDecimal
-    {
-        return new SafeDecimal($this->lines()->sum('debit_amount'));
-    }
-    
-    /**
-     * Get total credits  
-     */
-    public function getTotalCreditsAttribute(): SafeDecimal
-    {
-        return new SafeDecimal($this->lines()->sum('credit_amount'));
-    }
-    
-    /**
      * Integrity calculations - balance status is handled by triggers
      */
     public static function columnsIntegrityCalculations()
@@ -164,6 +147,9 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         return [
             // The is_balanced field is calculated by triggers, but we can also verify here
             'is_balanced' => DB::raw('validate_gl_transaction_balance(fin_gl_transaction_headers.id)'),
+
+            'total_debits' => DB::raw('calculate_total_debits(fin_gl_transaction_headers.id)'),
+            'total_credits' => DB::raw('calculate_total_credits(fin_gl_transaction_headers.id)'),
         ];
     }
     

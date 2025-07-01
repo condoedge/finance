@@ -37,14 +37,14 @@ return [
             \Condoedge\Finance\Models\InvoiceApply::class,
         ],
         \Condoedge\Finance\Models\GlAccount::class => [
-            // \Condoedge\Finance\Models\GlTransactionHeader::class,
-            // \Condoedge\Finance\Models\GlTransactionLine::class,
-            // \Condoedge\Finance\Models\AccountSegmentAssignment::class,
+            \Condoedge\Finance\Models\AccountSegmentAssignment::class,
+            \Condoedge\Finance\Models\AccountSegment::class,
+            \Condoedge\Finance\Models\SegmentValue::class,
         ],
         // GL Module relationships
-        // \Condoedge\Finance\Models\GlTransactionHeader::class => [
-        //     \Condoedge\Finance\Models\GlTransactionLine::class,
-        // ],
+        \Condoedge\Finance\Models\GlTransactionHeader::class => [
+            \Condoedge\Finance\Models\GlTransactionLine::class,
+        ],
         // Account hierarchy (accounts can have sub-accounts in future)
         // \Condoedge\Finance\Models\Account::class => [
             // \Condoedge\Finance\Models\GlTransactionLine::class,

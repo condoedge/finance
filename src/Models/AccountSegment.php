@@ -18,7 +18,7 @@ use Condoedge\Utils\Models\Model;
  * @property string|null $default_handler Handler type for automatic value generation
  * @property array|null $default_handler_config Configuration for the default handler
  */
-class AccountSegment extends Model
+class AccountSegment extends AbstractMainFinanceModel
 {
     protected $table = 'fin_account_segments';
     

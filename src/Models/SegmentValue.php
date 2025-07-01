@@ -17,7 +17,7 @@ use Condoedge\Utils\Models\Model;
  * @property string $segment_description Human-readable description
  * @property bool $is_active
  */
-class SegmentValue extends Model
+class SegmentValue extends AbstractMainFinanceModel
 {
     protected $table = 'fin_segment_values';
     

@@ -76,16 +76,6 @@ class FinanceRouteService
     public static function glTransactionRoutes(): void
     {
         Route::prefix('finance/gl')->name('finance.gl.')->group(function () {
-            // Transactions (legacy)
-            Route::get('/transactions', \Condoedge\Finance\Kompo\TransactionsTable::class)->name('transactions');
-            Route::get('/transactions/mini', \Condoedge\Finance\Kompo\TransactionsMiniTable::class)->name('transactions-mini');
-            Route::get('/transaction/form/{id?}', \Condoedge\Finance\Kompo\TransactionForm::class)->name('transaction-form');
-            Route::get('/transaction/preview/{id}', \Condoedge\Finance\Kompo\TransactionPreviewForm::class)->name('transaction-preview');
-            
-            // Transaction entries
-            Route::get('/entries/{transaction_id}', \Condoedge\Finance\Kompo\TransactionEntriesTable::class)->name('entries');
-            Route::get('/entry/form/{id?}', \Condoedge\Finance\Kompo\TransactionEntryForm::class)->name('entry-form');
-            
             // New GL system
             Route::get('/gl-transactions', \Condoedge\Finance\Kompo\GlTransactions\GlTransactionsTable::class)->name('gl-transactions');
             Route::get('/gl-transaction/form/{id?}', \Condoedge\Finance\Kompo\GlTransactions\GlTransactionForm::class)->name('gl-transaction-form');

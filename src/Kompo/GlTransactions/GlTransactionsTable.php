@@ -5,9 +5,9 @@ namespace Condoedge\Finance\Kompo\GlTransactions;
 use Condoedge\Finance\Models\GlTransactionHeader;
 
 use Condoedge\Finance\Services\GlTransactionServiceInterface;
-use Condoedge\Utils\Kompo\Common\Table;
+use Condoedge\Utils\Kompo\Common\WhiteTable;
 
-class GlTransactionsTable extends Table
+class GlTransactionsTable extends WhiteTable
 {
     protected $teamId;
     
@@ -108,30 +108,26 @@ class GlTransactionsTable extends Table
             // View/Edit
             _Link()
                 ->icon($transaction->is_posted ? 'eye' : 'pencil')
-                ->href(route('finance.gl.gl-transaction-form', $transaction->gl_transaction_id))
+                ->href('finance.gl.gl-transaction-form', $transaction->id)
                 ->class('text-primary'),
             
             // Post button (if not posted and balanced)
             !$transaction->is_posted && $transaction->is_balanced ?
                 _Link()
                     ->icon('check')
-                    ->selfPost('postTransaction', ['transaction_id' => $transaction->gl_transaction_id])
-                    ->inAlert('translate.finance-confirm-post-transaction')
-                    ->class('text-success') : null,
+                    ->selfPost('postTransaction', ['transaction_id' => $transaction->id])->browse()
+                        : null,
             
             // Reverse button (if posted)
             $transaction->is_posted ?
                 _Link()
                     ->icon('rotate-ccw')
-                    ->selfGet('getReverseModal', ['transaction_id' => $transaction->gl_transaction_id])
-                    ->inModal()
-                    ->class('text-warning') : null,
+                    ->selfGet('getReverseModal', ['transaction_id' => $transaction->id])
+                    ->inModal() : null,
             
             // Delete button (if not posted)
             !$transaction->is_posted ?
-                _DeleteLink()
-                    ->byKey($transaction)
-                    ->class('text-danger') : null
+                _Delete($transaction) : null
         )->class('gap-2 justify-center');
     }
     
@@ -140,22 +136,12 @@ class GlTransactionsTable extends Table
      */
     public function postTransaction(GlTransactionServiceInterface $glTransactionService)
     {
-        try {
-            $transactionId = request('transaction_id');
-            $transaction = GlTransactionHeader::where('gl_transaction_id', $transactionId)
-                ->forTeam($this->teamId)
-                ->firstOrFail();
-            
-            $glTransactionService->postTransaction($transaction);
-            
-            return _Alert('translate.finance-transaction-posted-successfully')
-                ->icon('check')
-                ->success()
-                ->refresh();
-                
-        } catch (\Exception $e) {
-            return _Alert($e->getMessage())->error();
-        }
+        $transactionId = request('transaction_id');
+        $transaction = GlTransactionHeader::where('id', $transactionId)
+            ->forTeam($this->teamId)
+            ->firstOrFail();
+        
+        $glTransactionService->postTransaction($transaction);
     }
     
     /**
