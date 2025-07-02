@@ -32,7 +32,7 @@ class Credit extends Invoice implements ApplicableToInvoiceContract
     {
         $dto->invoice_type_id = ModelsInvoiceTypeEnum::CREDIT->value;
 
-        $credit = InvoiceService::createInvoice($dto)
+        $credit = InvoiceService::createInvoice($dto);
 
         PaymentService::createPaymentAndApplyToInvoice(new CreateCustomerPaymentForInvoiceDto([
             'customer_id' => $dto->customer_id,

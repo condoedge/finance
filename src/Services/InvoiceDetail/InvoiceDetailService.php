@@ -52,7 +52,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             if (!empty($dto->taxesIds)) {
                 $this->applyTaxesToDetail(new UpsertManyTaxDetailDto([
                     'invoice_detail_id' => $detail->id,
-                    'taxesIds' => $dto->taxesIds
+                    'taxes_ids' => $dto->taxesIds
                 ]));
             }
             
@@ -74,7 +74,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             // Update taxes
             $this->applyTaxesToDetail(new UpsertManyTaxDetailDto([
                 'invoice_detail_id' => $detail->id,
-                'taxesIds' => $dto->taxesIds ?? []
+                'taxes_ids' => $dto->taxesIds ?? []
             ]));
             
             return $detail->refresh();
@@ -104,13 +104,16 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
     {
         return DB::transaction(function () use ($data) {
             $invoiceDetail = InvoiceDetail::findOrFail($data->invoice_detail_id);
-            $taxIds = collect($data->taxesIds);
+            $taxIds = collect($data->taxes_ids);
 
             // Create/update tax records
             $appliedTaxes = collect();
             
             foreach ($taxIds as $taxId) {
-                $taxDetail = $this->upsertTaxForDetail($invoiceDetail, $taxId);
+                $taxDetail = $this->upsertTaxForDetail(new UpsertTaxDetailDto([
+                    'invoice_detail_id' => $invoiceDetail->id,
+                    'tax_id' => $taxId
+                ]));
                 $appliedTaxes->push($taxDetail);
             }
             
@@ -233,7 +236,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             if ($taxIds->isNotEmpty()) {
                 $this->applyTaxesToDetail(new UpsertManyTaxDetailDto([
                     'invoice_detail_id' => $newDetail->id,
-                    'taxesIds' => $taxIds->toArray()
+                    'taxes_ids' => $taxIds->toArray()
                 ]));
             }
             
@@ -312,7 +315,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         $invoiceDetail = InvoiceDetailModel::findOrFail($data->invoice_detail_id);
         
         // Create new tax record
-        $tax = Tax::findOrFail($data->tax_Id);
+        $tax = Tax::findOrFail($data->tax_id);
         
         $detailTax = new InvoiceDetailTax();
         $detailTax->invoice_detail_id = $invoiceDetail->id;

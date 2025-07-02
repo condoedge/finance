@@ -229,7 +229,9 @@ class Invoice extends AbstractMainFinanceModel
     /* ACTIONS */
     public function markApproved()
     {
-        InvoiceService::applyApprovalToInvoice($this);
+        InvoiceService::approveInvoice(new ApproveInvoiceDto([
+            'invoice_id' => $this->id,
+        ]));
     }
 
     /* ELEMENTS */

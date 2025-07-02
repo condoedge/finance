@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Database\Factories\AccountFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
@@ -180,7 +180,7 @@ class CustomerPaymentApplicationsTest extends TestCase
         $payment = $this->createCustomerPayment($invoice->customer_id, 100);
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('applicable-amount-exceeded');
+        $this->expectExceptionMessage(__('validation-custom-finance-applicable-amount-exceeded'));
 
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
@@ -200,7 +200,7 @@ class CustomerPaymentApplicationsTest extends TestCase
         $payment = $this->createCustomerPayment($invoice->customer_id, 500);
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('invoice-amount-exceeded');
+        $this->expectExceptionMessage(__('validation-custom-finance-invoice-amount-exceeded'));
 
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
@@ -223,7 +223,7 @@ class CustomerPaymentApplicationsTest extends TestCase
         $payment = $this->createCustomerPayment($customer2->id, 500);
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('invoice-customer-mismatch');
+        $this->expectExceptionMessage(__('validation-custom-finance-invoice-customer-mismatch'));
 
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
@@ -410,7 +410,7 @@ class CustomerPaymentApplicationsTest extends TestCase
                     'description' => 'Test Description',
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],
             ],
@@ -437,7 +437,7 @@ class CustomerPaymentApplicationsTest extends TestCase
                     'description' => 'Credit Description',
                     'quantity' => 1,
                     'unit_price' => $amount,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],
             ],

@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Database\Seeders;
 
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
+use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Models\GlTransactionType;
 use Condoedge\Finance\Models\InvoiceStatus;
@@ -13,6 +14,7 @@ use Illuminate\Database\Seeder;
 use Condoedge\Finance\Models\InvoiceType;
 use Condoedge\Finance\Models\InvoiceTypeEnum as ModelsInvoiceTypeEnum;
 use Condoedge\Finance\Models\PaymentInstallment;
+use Condoedge\Finance\Models\PaymentInstallmentEnum;
 
 class SettingsSeeder extends Seeder
 {
@@ -58,7 +60,7 @@ class SettingsSeeder extends Seeder
             $type->save();
         });
 
-        collect(PaymentInstallment::cases())->each(function ($enum) {
+        collect(PaymentInstallmentEnum::cases())->each(function ($enum) {
             $type = new PaymentInstallment();
 
             if (PaymentInstallment::find($enum->value)) {
@@ -67,6 +69,7 @@ class SettingsSeeder extends Seeder
 
             $type->id = $enum->value;
             $type->name = $enum->label();
+            $type->code = $enum->code();
             $type->save();
         });
 
@@ -86,5 +89,7 @@ class SettingsSeeder extends Seeder
             $type->description = '';
             $type->save();
         });
+
+        AccountSegmentService::createDefaultSegments();
     }
 }

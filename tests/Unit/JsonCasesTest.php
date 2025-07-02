@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Database\Factories\AccountFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
 use Condoedge\Finance\Facades\CustomerModel;
@@ -148,7 +148,7 @@ class JsonCasesTest extends TestCase
                     'description' => $line['description'],
                     'quantity' => $line['quantity'],
                     'unit_price' => $line['unitPrice'],
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => collect($line['taxes'])->map(function ($tax) {
                         return $this->setupValues['taxes'][$tax]->id;
                     })->toArray(),
@@ -252,7 +252,7 @@ class JsonCasesTest extends TestCase
                     'description' => $line['description'],
                     'quantity' => $line['quantity'],
                     'unit_price' => $line['unitPrice'],
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => collect($line['taxes'])->map(function ($tax) {
                         return $this->setupValues['taxes'][$tax]->id;
                     })->toArray(),

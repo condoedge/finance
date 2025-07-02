@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Database\Factories\AccountFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\InvoiceFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
@@ -59,7 +59,7 @@ class InvoicesTest extends TestCase
                     'description' => 'Test Description',
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => collect($taxes)->pluck('id')->all(),
                 ],
             ],
@@ -75,11 +75,11 @@ class InvoicesTest extends TestCase
             'invoice_date' => db_datetime_format($invoiceDate),
             'invoice_due_date' => db_datetime_format($invoiceDate->copy()->addDays(30)),
             'is_draft' => 1,
-            'invoice_amount_before_taxes' => $expectedAmountBeforeTaxes,
+            'invoice_amount_before_taxes' => $expectedAmountBeforeTaxes->toFloat(),
             'invoice_status_id' => InvoiceStatusEnum::DRAFT->value,
-            'invoice_total_amount' => $expectedTotalAmount,
-            'invoice_due_amount' => $expectedTotalAmount,
-            'invoice_tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes),
+            'invoice_total_amount' => $expectedTotalAmount->toFloat(),
+            'invoice_due_amount' => $expectedTotalAmount->toFloat(),
+            'invoice_tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes)->toFloat(),
             'invoice_number' => 1,
             'invoice_reference' => InvoiceTypeEnum::getEnumClass()::INVOICE->prefix() . '-' . str_pad('1', 8, '0', STR_PAD_LEFT),
         ]);
@@ -102,15 +102,15 @@ class InvoicesTest extends TestCase
             'invoice_id' => $invoice->id,
             'quantity' => $quantity,
             'unit_price' => $unitPrice,
-            'extended_price' => safeDecimal($quantity)->multiply($unitPrice),
-            'tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes),
-            'total_amount' => $expectedTotalAmount,
+            'extended_price' => safeDecimal($quantity)->multiply($unitPrice)->toFloat(),
+            'tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes)->toFloat(),
+            'total_amount' => $expectedTotalAmount->toFloat(),
         ]);
 
         $this->assertDatabaseHas('fin_invoice_detail_taxes', [
             'invoice_detail_id' => $invoice->invoiceDetails[0]->id,
             'tax_id' => $taxes[0]->id,
-            'tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes),
+            'tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes)->toFloat(),
         ]);
 
         $this->assertDatabaseHas('fin_customers', [
@@ -122,7 +122,7 @@ class InvoicesTest extends TestCase
 
         $this->assertDatabaseHas('fin_customers', [
             'id' => $customer->id,
-            'customer_due_amount' => $expectedTotalAmount,
+            'customer_due_amount' => $expectedTotalAmount->toFloat(),
         ]);
     }
 
@@ -160,7 +160,7 @@ class InvoicesTest extends TestCase
                     'description' => 'Test Description',
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => collect($taxes)->pluck('id')->all(),
                 ],
             ],
@@ -177,11 +177,11 @@ class InvoicesTest extends TestCase
             'invoice_date' => db_datetime_format($invoice->invoice_date),
             'invoice_due_date' => db_datetime_format($invoice->invoice_due_date),
             'is_draft' => 1,
-            'invoice_amount_before_taxes' => $expectedAmountBeforeTaxes,
+            'invoice_amount_before_taxes' => $expectedAmountBeforeTaxes->toFloat(),
             'invoice_status_id' => InvoiceStatusEnum::DRAFT->value,
-            'invoice_total_amount' => $expectedTotalAmount,
-            'invoice_due_amount' => $expectedTotalAmount,
-            'invoice_tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes),
+            'invoice_total_amount' => $expectedTotalAmount->toFloat(),
+            'invoice_due_amount' => $expectedTotalAmount->toFloat(),
+            'invoice_tax_amount' => safeDecimal($expectedTotalAmount)->subtract($expectedAmountBeforeTaxes)->toFloat(),
             'invoice_number' => $invoice->invoice_number,
             'invoice_reference' => InvoiceTypeEnum::getEnumClass()::INVOICE->prefix() . '-' . str_pad($invoice->invoice_number, 8, '0', STR_PAD_LEFT),
         ]);

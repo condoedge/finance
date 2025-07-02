@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Database\Factories\AccountFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
@@ -276,7 +276,7 @@ class InvoicePaymentValidationsTest extends TestCase
                     'description' => 'Test Description',
                     'quantity' => 1,
                     'unit_price' => 300,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],
             ],
@@ -335,7 +335,7 @@ class InvoicePaymentValidationsTest extends TestCase
 
         // Apply payment that would overpay the invoice
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage('invoice-amount-exceeded');
+        $this->expectExceptionMessage(__('validation-custom-finance-invoice-amount-exceeded'));
 
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now()->format('Y-m-d'),
@@ -430,7 +430,7 @@ class InvoicePaymentValidationsTest extends TestCase
                     'description' => 'Test Description',
                     'quantity' => 1,
                     'unit_price' => $unitPrice,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],
             ],
@@ -457,7 +457,7 @@ class InvoicePaymentValidationsTest extends TestCase
                     'description' => 'Credit Description',
                     'quantity' => 1,
                     'unit_price' => $amount,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],
             ],

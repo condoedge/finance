@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Condoedge\Finance\Database\Factories\CustomerFactory;
-use Condoedge\Finance\Database\Factories\AccountFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
@@ -723,7 +723,7 @@ class DatabaseIntegrityTest extends TestCase
                     'description' => 'Test Description',
                     'quantity' => 1,
                     'unit_price' => $unitPrice,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],
             ],
@@ -751,7 +751,7 @@ class DatabaseIntegrityTest extends TestCase
                     'description' => 'Credit Description',
                     'quantity' => 1,
                     'unit_price' => $amount,
-                    'revenue_account_id' => AccountFactory::new()->create()->id,
+                    'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],
             ],
