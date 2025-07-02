@@ -8,15 +8,12 @@ use Condoedge\Utils\Kompo\Common\Form;
 class GlTransactionLineForm extends Form
 {
     public $model = GlTransactionLine::class;
-    public $class = 'align-top';
-    
-    protected $isReadOnly = false;
+
     protected $transactionType;
     protected $teamId;
     
     public function created()
     {
-        $this->isReadOnly = $this->prop('readonly', false);
         $this->transactionType = $this->prop('transaction_type', 1);
         $this->teamId = $this->prop('team_id', currentTeamId());
     }
@@ -53,8 +50,7 @@ class GlTransactionLineForm extends Form
                 ->class('text-right w-32'),
             
             // Remove button
-            $this->isReadOnly ? null :
-                _DeleteLink()->byKey($this->model)
+            _DeleteLink()->byKey($this->model)
         ];
     }
     

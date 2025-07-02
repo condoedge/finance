@@ -29,9 +29,8 @@ class GlTransactionsTable extends WhiteTable
             _TitleMain('finance-gl-transactions'),
             _Link('finance-create-transaction')->button()
                 ->icon('plus')
-                ->href(route('finance.gl.gl-transaction-form'))
-                ->class('btn-primary')
-        );
+                ->href('finance.gl.gl-transaction-form'),
+        )->class('mb-4');
     }
     
     public function headers()
@@ -108,8 +107,7 @@ class GlTransactionsTable extends WhiteTable
             // View/Edit
             _Link()
                 ->icon($transaction->is_posted ? 'eye' : 'pencil')
-                ->href('finance.gl.gl-transaction-form', $transaction->id)
-                ->class('text-primary'),
+                ->href('finance.gl.gl-transaction-form', $transaction->id),
             
             // Post button (if not posted and balanced)
             !$transaction->is_posted && $transaction->is_balanced ?

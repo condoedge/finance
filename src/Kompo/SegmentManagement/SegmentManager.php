@@ -2,11 +2,6 @@
 
 namespace Condoedge\Finance\Kompo\SegmentManagement;
 
-use Condoedge\Finance\Facades\AccountSegmentService;
-use Condoedge\Finance\Facades\GlAccountService;
-use Condoedge\Finance\Models\AccountSegmentValue;
-use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
-use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class SegmentManager extends Form

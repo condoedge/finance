@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Kompo\SegmentManagement;
 
-use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Utils\Kompo\Common\Table;
 
