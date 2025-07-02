@@ -2,10 +2,9 @@
 
 namespace Condoedge\Finance\Http\Controllers\Api;
 
+use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
 use Condoedge\Finance\Models\GlTransactionHeader;
-use Condoedge\Finance\Models\GlTransactionLine;
-use Condoedge\Finance\Models\Dto\CreateGlTransactionDto;
-use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto as GlCreateGlTransactionDto;
+
 use Condoedge\Finance\Services\GlTransactionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,12 +19,11 @@ class GlTransactionController extends ApiController
     }
     
     /**
-     * List GL transactions with filters
+     * @operationId List GL transactions with filters
      */
     public function index(Request $request)
     {
-        $query = GlTransactionHeader::forTeam()
-            ->with(['lines', 'customer', 'fiscalPeriod']);
+        $query = GlTransactionHeader::with(['lines', 'customer', 'fiscalPeriod']);
         
         // Apply filters
         if ($request->has('type')) {
@@ -40,12 +38,8 @@ class GlTransactionController extends ApiController
             $query->where('fiscal_date', '<=', $request->input('date_to'));
         }
         
-        if ($request->has('fiscal_year')) {
-            $query->where('fiscal_year', $request->input('fiscal_year'));
-        }
-        
-        if ($request->has('fiscal_period')) {
-            $query->where('fiscal_period', $request->input('fiscal_period'));
+        if ($request->has('fiscal_period_id')) {
+            $query->where('fiscal_period_id', $request->input('fiscal_period_id'));
         }
         
         if ($request->has('balanced')) {
@@ -60,8 +54,7 @@ class GlTransactionController extends ApiController
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('gl_transaction_number', 'like', "%{$search}%")
-                  ->orWhere('transaction_description', 'like', "%{$search}%")
-                  ->orWhere('gl_transaction_id', 'like', "%{$search}%");
+                  ->orWhere('transaction_description', 'like', "%{$search}%");
             });
         }
         
@@ -73,12 +66,11 @@ class GlTransactionController extends ApiController
     }
     
     /**
-     * Get transaction details
+     * @operationId Get transaction details
      */
     public function show($transactionId)
     {
-        $transaction = GlTransactionHeader::where('gl_transaction_id', $transactionId)
-            ->forTeam()
+        $transaction = GlTransactionHeader::where('id', $transactionId)
             ->with(['lines.account', 'customer', 'fiscalPeriod'])
             ->firstOrFail();
         
@@ -94,57 +86,12 @@ class GlTransactionController extends ApiController
     }
     
     /**
-     * Create GL transaction
+     * @operationId Create GL transaction
      */
-    public function store(Request $request)
+    public function store(CreateGlTransactionDto $data)
     {
-        $validated = $request->validate([
-            'fiscal_date' => 'required|date',
-            'transaction_description' => 'nullable|string|max:500',
-            'lines' => 'required|array|min:2',
-            'lines.*.account_id' => 'required|string|exists:fin_gl_accounts,account_id',
-            'lines.*.line_description' => 'nullable|string|max:255',
-            'lines.*.debit_amount' => 'required|numeric|min:0',
-            'lines.*.credit_amount' => 'required|numeric|min:0',
-        ]);
-        
-        // Validate that each line has either debit or credit, not both
-        foreach ($validated['lines'] as $index => $line) {
-            if ($line['debit_amount'] > 0 && $line['credit_amount'] > 0) {
-                return $this->validationError([
-                    "lines.{$index}" => ['A line cannot have both debit and credit amounts'],
-                ]);
-            }
-            if ($line['debit_amount'] == 0 && $line['credit_amount'] == 0) {
-                return $this->validationError([
-                    "lines.{$index}" => ['A line must have either a debit or credit amount'],
-                ]);
-            }
-        }
-        
-        // Validate balance
-        $totalDebits = collect($validated['lines'])->sum('debit_amount');
-        $totalCredits = collect($validated['lines'])->sum('credit_amount');
-        
-        if (abs($totalDebits - $totalCredits) > 0.01) {
-            return $this->validationError([
-                'lines' => ['Transaction must balance. Debits: ' . $totalDebits . ', Credits: ' . $totalCredits],
-            ]);
-        }
-        
         try {
-            DB::beginTransaction();
-            
-            $dto = new GlCreateGlTransactionDto($validated);
-            $transaction = $this->transactionService->createTransaction($dto);
-            
-            DB::commit();
-            
-            return $this->success(
-                $transaction->load(['lines.account', 'fiscalPeriod']),
-                'GL transaction created successfully',
-                201
-            );
+            $this->transactionService->createTransaction($data);
         } catch (\Exception $e) {
             DB::rollBack();
             return $this->error($e->getMessage());
@@ -152,90 +99,11 @@ class GlTransactionController extends ApiController
     }
     
     /**
-     * Update GL transaction
-     */
-    public function update(Request $request, $transactionId)
-    {
-        $transaction = GlTransactionHeader::where('gl_transaction_id', $transactionId)
-            ->forTeam()
-            ->firstOrFail();
-        
-        if (!$transaction->canBeModified()) {
-            return $this->error('Transaction cannot be modified', 403);
-        }
-        
-        $validated = $request->validate([
-            'fiscal_date' => 'sometimes|required|date',
-            'transaction_description' => 'nullable|string|max:500',
-            'lines' => 'sometimes|required|array|min:2',
-            'lines.*.id' => 'nullable|exists:fin_gl_transaction_lines,id',
-            'lines.*.account_id' => 'required|string|exists:fin_gl_accounts,account_id',
-            'lines.*.line_description' => 'nullable|string|max:255',
-            'lines.*.debit_amount' => 'required|numeric|min:0',
-            'lines.*.credit_amount' => 'required|numeric|min:0',
-        ]);
-        
-        try {
-            DB::beginTransaction();
-            
-            // Update header
-            if (isset($validated['fiscal_date']) || isset($validated['transaction_description'])) {
-                $headerData = array_intersect_key($validated, array_flip(['fiscal_date', 'transaction_description']));
-                
-                // Re-determine fiscal year and period if date changed
-                if (isset($validated['fiscal_date'])) {
-                    $fiscalData = GlTransactionHeader::determineFiscalData($validated['fiscal_date']);
-                    $headerData['fiscal_year'] = $fiscalData['fiscal_year'];
-                    $headerData['fiscal_period'] = $fiscalData['fiscal_period'];
-                }
-                
-                $transaction->update($headerData);
-            }
-            
-            // Update lines if provided
-            if (isset($validated['lines'])) {
-                // Validate balance
-                $totalDebits = collect($validated['lines'])->sum('debit_amount');
-                $totalCredits = collect($validated['lines'])->sum('credit_amount');
-                
-                if (abs($totalDebits - $totalCredits) > 0.01) {
-                    throw new \Exception('Transaction must balance');
-                }
-                
-                // Delete existing lines
-                $transaction->lines()->delete();
-                
-                // Create new lines
-                foreach ($validated['lines'] as $lineData) {
-                    $transaction->lines()->create([
-                        'account_id' => $lineData['account_id'],
-                        'line_description' => $lineData['line_description'] ?? null,
-                        'debit_amount' => $lineData['debit_amount'],
-                        'credit_amount' => $lineData['credit_amount'],
-                    ]);
-                }
-            }
-            
-            DB::commit();
-            
-            return $this->success(
-                $transaction->fresh(['lines.account', 'fiscalPeriod']),
-                'GL transaction updated successfully'
-            );
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->error($e->getMessage());
-        }
-    }
-    
-    /**
-     * Post GL transaction
+     * @operationId Post GL transaction
      */
     public function post($transactionId)
     {
-        $transaction = GlTransactionHeader::where('gl_transaction_id', $transactionId)
-            ->forTeam()
-            ->firstOrFail();
+        $transaction = GlTransactionHeader::findOrFail('id', $transactionId);
         
         try {
             $this->transactionService->postTransaction($transaction);
@@ -248,63 +116,13 @@ class GlTransactionController extends ApiController
             return $this->error($e->getMessage());
         }
     }
-    
+
     /**
-     * Get transaction by account
+     * @operationId Get transactions by a natural account
      */
-    public function byAccount(Request $request, $accountId)
+    public function byAccount(Request $request)
     {
-        $validated = $request->validate([
-            'date_from' => 'nullable|date',
-            'date_to' => 'nullable|date|after_or_equal:date_from',
-            'posted_only' => 'boolean',
-        ]);
-        
-        $query = GlTransactionLine::where('account_id', $accountId)
-            ->whereHas('header', function ($q) {
-                $q->forTeam();
-            })
-            ->with(['header.fiscalPeriod']);
-        
-        if ($validated['date_from'] ?? false) {
-            $query->whereHas('header', function ($q) use ($validated) {
-                $q->where('fiscal_date', '>=', $validated['date_from']);
-            });
-        }
-        
-        if ($validated['date_to'] ?? false) {
-            $query->whereHas('header', function ($q) use ($validated) {
-                $q->where('fiscal_date', '<=', $validated['date_to']);
-            });
-        }
-        
-        if ($validated['posted_only'] ?? false) {
-            $query->whereHas('header', function ($q) {
-                $q->where('is_posted', true);
-            });
-        }
-        
-        $transactions = $query->orderBy('created_at', 'desc')
-            ->paginate($request->input('per_page', 50));
-        
-        // Calculate running balance
-        $runningBalance = 0;
-        $transactions->getCollection()->transform(function ($line) use (&$runningBalance) {
-            $runningBalance += $line->debit_amount - $line->credit_amount;
-            $line->running_balance = $runningBalance;
-            return $line;
-        });
-        
-        return $this->paginated($transactions);
-    }
-    
-    /**
-     * Get unbalanced transactions
-     */
-    public function unbalanced(Request $request)
-    {
-        $transactions = GlTransactionHeader::forTeam()
-            ->unbalanced()
+        $transactions = GlTransactionHeader::byNaturalAccount($request->input('account_id'))
             ->with(['lines', 'fiscalPeriod'])
             ->orderBy('fiscal_date', 'desc')
             ->paginate($request->input('per_page', 50));
@@ -313,9 +131,22 @@ class GlTransactionController extends ApiController
     }
     
     /**
-     * Validate a transaction before saving
+     * @operationId Get unbalanced transactions
      */
-    public function validate(Request $request)
+    public function unbalanced(Request $request)
+    {
+        $transactions = GlTransactionHeader::unbalanced()
+            ->with(['lines', 'fiscalPeriod'])
+            ->orderBy('fiscal_date', 'desc')
+            ->paginate($request->input('per_page', 50));
+        
+        return $this->paginated($transactions);
+    }
+    
+    /**
+     * @operationId Validate a transaction before saving
+     */
+    public function validateStatus(Request $request)
     {
         $validated = $request->validate([
             'fiscal_date' => 'required|date',

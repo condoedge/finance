@@ -98,7 +98,7 @@ interface AccountSegmentServiceInterface
     /**
      * Create a complete account by only providing the last segment value ID
      */
-    public function createAccountFromLastSegment(int $lastSegmentValueId, array $accountData): GlAccount;
+    public function createAccountFromLastValue($lastSegmentValueId): GlAccount;
     
     /**
      * Get the last segment definition

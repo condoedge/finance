@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Condoedge\Finance\Models\InvoiceDetail createInvoiceDetail(\Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail $dto)
  * @method static \Condoedge\Finance\Models\InvoiceDetail updateInvoiceDetail(\Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail $dto)
  * @method static bool deleteInvoiceDetail(\Condoedge\Finance\Models\InvoiceDetail $invoiceDetail)
- * @method static \Illuminate\Support\Collection applyTaxesToDetail(\Condoedge\Finance\Models\InvoiceDetail $invoiceDetail, \Illuminate\Support\Collection $taxIds)
+ * @method static \Illuminate\Support\Collection applyTaxesToDetail(\Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto $dto)
  * @method static bool removeTaxesFromDetail(\Condoedge\Finance\Models\InvoiceDetail $invoiceDetail, \Illuminate\Support\Collection $taxIds)
  * @method static \Condoedge\Finance\Casts\SafeDecimal calculateExtendedPrice(int $quantity, \Condoedge\Finance\Casts\SafeDecimal $unitPrice)
  * @method static \Condoedge\Finance\Casts\SafeDecimal calculateTotalTaxAmount(\Condoedge\Finance\Models\InvoiceDetail $invoiceDetail)

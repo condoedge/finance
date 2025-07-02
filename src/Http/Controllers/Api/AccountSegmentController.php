@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 class AccountSegmentController extends ApiController
 {
     /**
-     * Get segment structure
+     * @operationId Get segment structure
      */
     public function getStructure()
     {
@@ -26,24 +26,17 @@ class AccountSegmentController extends ApiController
     }
     
     /**
-     * Create segment definition
+     * @operationId Create segment definition
      */
-    public function createSegment(Request $request)
+    public function saveSegment(CreateOrUpdateSegmentDto $data)
     {
-        $dto = new CreateOrUpdateSegmentDto([
-            'segment_description' => $request->input('segment_description'),
-            'segment_position' =>  $request->input('segment_position'),
-            'segment_length' =>  $request->input('segment_length'),
-            'is_active' => true,
-        ]);
-        
-        $segment = AccountSegmentService::createOrUpdateSegment($dto);
+        $segment = AccountSegmentService::createOrUpdateSegment($data);
         
         return $this->success($segment, 'Segment created successfully', 201);
     }
     
     /**
-     * Delete segment definition
+     * @operationId Delete segment definition
      */
     public function deleteSegment($segmentId)
     {
@@ -51,70 +44,29 @@ class AccountSegmentController extends ApiController
     }
     
     /**
-     * Get segment values for a position
+     * @operationId Get natural accounts
      */
-    public function getValues($position)
-    {
-        $segment = AccountSegment::getByPosition($position);
-        
-        if (!$segment) {
-            return $this->error('Invalid segment position', 404);
-        }
-        
-        $values = SegmentValue::getForPosition($position, false); // Include inactive
+    public function getNaturalAccountsValues()
+    {   
+        $values = SegmentValue::ForLastSegment()->get();
         
         return $this->success([
-            'segment' => $segment,
             'values' => $values,
         ]);
     }
     
     /**
-     * Create segment value
+     * @operationId Create natural account
      */
-    public function createValue(Request $request)
+    public function createNaturalAccountValue(CreateSegmentValueDto $data)
     {        
-        $dto = new CreateSegmentValueDto([
-            'segment_definition_id' => $request->input('segment_definition_id'),
-            'segment_value' => $request->input('segment_value'),
-            'segment_description' => $request->input('segment_description'),
-            'is_active' => $request->input('is_active') ?? true,
-        ]);
-        
-        $value = AccountSegmentService::createSegmentValue($dto);
+        $value = AccountSegmentService::createSegmentValue($data);
         
         return $this->success($value, 'Segment value created successfully', 201);
     }
     
     /**
-     * Update segment value
-     */
-    public function updateValue(Request $request, $valueId)
-    {
-        $value = SegmentValue::findOrFail($valueId);
-        
-        $validated = $request->validate([
-            'segment_description' => 'sometimes|required|string|max:255',
-            'is_active' => 'sometimes|boolean',
-        ]);
-        
-        try {
-            if (isset($validated['segment_description'])) {
-                $value->segment_description = $validated['segment_description'];
-            }
-            if (isset($validated['is_active'])) {
-                $value->is_active = $validated['is_active'];
-            }
-            $value->save();
-            
-            return $this->success($value, 'Segment value updated successfully');
-        } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
-    }
-    
-    /**
-     * Delete segment value
+     * @operationId Delete natural account
      */
     public function deleteValue($valueId)
     {
@@ -129,66 +81,6 @@ class AccountSegmentController extends ApiController
             
             return $this->success(null, 'Segment value deleted successfully');
         } catch (\Exception $e) {
-            return $this->error($e->getMessage());
-        }
-    }
-    
-    /**
-     * Bulk import segment values
-     */
-    public function bulkImportValues(Request $request)
-    {
-        $validated = $request->validate([
-            'segment_definition_id' => 'required|integer|exists:fin_account_segments,id',
-            'values' => 'required|array',
-            'values.*.value' => 'required|string',
-            'values.*.description' => 'required|string|max:255',
-        ]);
-        
-        $imported = [];
-        $errors = [];
-        
-        DB::beginTransaction();
-        
-        try {
-            foreach ($validated['values'] as $index => $item) {
-                try {
-                    $dto = new CreateSegmentValueDto([
-                        'segment_definition_id' => $validated['segment_definition_id'],
-                        'segment_value' => $item['value'],
-                        'segment_description' => $item['description'],
-                        'is_active' => true,
-                    ]);
-                    
-                    $value = AccountSegmentService::createSegmentValue($dto);
-                    $imported[] = $value;
-                } catch (\Exception $e) {
-                    $errors[] = [
-                        'index' => $index,
-                        'value' => $item['value'],
-                        'error' => $e->getMessage(),
-                    ];
-                }
-            }
-            
-            if (empty($imported) && !empty($errors)) {
-                DB::rollBack();
-                return $this->error('No values could be imported', 400, $errors);
-            }
-            
-            DB::commit();
-            
-            return $this->success([
-                'imported' => $imported,
-                'errors' => $errors,
-                'summary' => [
-                    'total' => count($validated['values']),
-                    'imported' => count($imported),
-                    'failed' => count($errors),
-                ],
-            ], 'Bulk import completed');
-        } catch (\Exception $e) {
-            DB::rollBack();
             return $this->error($e->getMessage());
         }
     }

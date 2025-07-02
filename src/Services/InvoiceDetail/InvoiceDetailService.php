@@ -13,6 +13,7 @@ use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;
 use Condoedge\Finance\Services\Tax\TaxServiceInterface;
 use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Models\GlAccount;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +50,10 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             
             // Apply taxes if provided
             if (!empty($dto->taxesIds)) {
-                $this->applyTaxesToDetail($detail, collect($dto->taxesIds));
+                $this->applyTaxesToDetail(new UpsertManyTaxDetailDto([
+                    'invoice_detail_id' => $detail->id,
+                    'taxesIds' => $dto->taxesIds
+                ]));
             }
             
             return $detail->refresh();
@@ -68,7 +72,10 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             $this->updateDetailFields($detail, $dto);
             
             // Update taxes
-            $this->applyTaxesToDetail($detail, collect($dto->taxesIds ?? []));
+            $this->applyTaxesToDetail(new UpsertManyTaxDetailDto([
+                'invoice_detail_id' => $detail->id,
+                'taxesIds' => $dto->taxesIds ?? []
+            ]));
             
             return $detail->refresh();
         });
@@ -93,9 +100,12 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
     /**
      * Apply taxes to detail
      */
-    public function applyTaxesToDetail(InvoiceDetail $invoiceDetail, Collection $taxIds): Collection
+    public function applyTaxesToDetail(UpsertManyTaxDetailDto $data): Collection
     {
-        return DB::transaction(function () use ($invoiceDetail, $taxIds) {
+        return DB::transaction(function () use ($data) {
+            $invoiceDetail = InvoiceDetail::findOrFail($data->invoice_detail_id);
+            $taxIds = collect($data->taxesIds);
+
             // Create/update tax records
             $appliedTaxes = collect();
             
@@ -221,7 +231,10 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             // Copy taxes
             $taxIds = $sourceDetail->invoiceTaxes()->pluck('tax_id');
             if ($taxIds->isNotEmpty()) {
-                $this->applyTaxesToDetail($newDetail, $taxIds);
+                $this->applyTaxesToDetail(new UpsertManyTaxDetailDto([
+                    'invoice_detail_id' => $newDetail->id,
+                    'taxesIds' => $taxIds->toArray()
+                ]));
             }
             
             return $newDetail->refresh();
@@ -285,21 +298,21 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
     /**
      * Upsert tax for detail
      */
-    protected function upsertTaxForDetail(InvoiceDetail $invoiceDetail, int $taxId): InvoiceDetailTax
+    public function upsertTaxForDetail(UpsertTaxDetailDto $data): InvoiceDetailTax
     {
         // Check if tax already exists for this detail
-        $existingTax = InvoiceDetailTax::where('invoice_detail_id', $invoiceDetail->id)
-            ->where('tax_id', $taxId)
+        $existingTax = InvoiceDetailTax::where('invoice_detail_id', $data->invoice_detail_id)
+            ->where('tax_id', $data->tax_id)
             ->first();
             
         if ($existingTax) {
             return $existingTax;
         }
 
-        $invoiceDetail->refresh(); // Ensure we have the latest detail state
+        $invoiceDetail = InvoiceDetailModel::findOrFail($data->invoice_detail_id);
         
         // Create new tax record
-        $tax = Tax::findOrFail($taxId);
+        $tax = Tax::findOrFail($data->tax_Id);
         
         $detailTax = new InvoiceDetailTax();
         $detailTax->invoice_detail_id = $invoiceDetail->id;

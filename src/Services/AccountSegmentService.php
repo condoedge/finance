@@ -169,9 +169,9 @@ class AccountSegmentService implements AccountSegmentServiceInterface
         });
     }
 
-    public function createAccountFromLastValue($lastSegmentValueId)
+    public function createAccountFromLastValue($lastSegmentValueId): GlAccount
     {
-        $this->createAccount(new CreateAccountDto([
+        return $this->createAccount(new CreateAccountDto([
             'segment_value_ids' => [$lastSegmentValueId],
             'is_active' => true,
             'allow_manual_entry' => true,
@@ -429,61 +429,6 @@ class AccountSegmentService implements AccountSegmentServiceInterface
     public function getSegmentHandlerOptions(int $segmentPosition): array
     {
         return $this->handlerService->getAvailableHandlers($segmentPosition);
-    }
-    
-    /**
-     * Create a complete account by only providing the last segment value ID
-     * All other segments will be filled using default handlers
-     * 
-     * @param int $lastSegmentValueId The segment value ID for the last (account) segment
-     * @param array $accountData Account attributes (team_id, account_type, etc)
-     * @return GlAccount
-     * @throws \InvalidArgumentException If defaults cannot be resolved
-     */
-    public function createAccountFromLastSegment(int $lastSegmentValueId, array $accountData): GlAccount
-    {
-        return $this->executeInTransaction(function () use ($lastSegmentValueId, $accountData) {
-            // Validate the provided segment value is for the last segment
-            $segmentValue = SegmentValue::findOrFail($lastSegmentValueId);
-            $lastSegment = AccountSegment::orderBy('segment_position', 'desc')->first();
-            
-            if (!$lastSegment) {
-                throw new \InvalidArgumentException(__('finance.no-segment-structure-defined'));
-            }
-            
-            if ($segmentValue->segment_definition_id !== $lastSegment->id) {
-                throw new \InvalidArgumentException(__('finance.provided-value-is-not-for-last-segment'));
-            }
-            
-            // Validate last segment is account-related
-            if (!str_contains(strtolower($lastSegment->segment_description), 'account')) {
-                throw new \InvalidArgumentException(__('finance.last-segment-is-not-account-type'));
-            }
-            
-            // Build segment value array with only the last segment
-            $segments = $this->getSegmentStructure();
-            $segmentValueIds = [];
-            
-            foreach ($segments as $segment) {
-                if ($segment->id === $lastSegment->id) {
-                    // Use the provided last segment value
-                    $segmentValueIds[] = $lastSegmentValueId;
-                } else {
-                    // Let the handler resolve the value
-                    $segmentValueIds[] = null;
-                }
-            }
-            
-            // Create account with defaults applied
-            $dto = new CreateAccountDto(array_merge($accountData, [
-                'segment_value_ids' => $segmentValueIds,
-                'apply_defaults' => true,
-            ]));
-            
-            $account = $this->createAccount($dto);
-            
-            return $account;
-        });
     }
     
     /**

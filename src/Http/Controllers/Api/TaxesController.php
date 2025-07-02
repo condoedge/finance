@@ -1,10 +1,10 @@
 <?php
 
-namespace Condoedge\Finance\Http\Controllers;
+namespace Condoedge\Finance\Http\Controllers\Api;
 
+use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;
-use Condoedge\Finance\Models\InvoiceDetailTax;
 use Illuminate\Routing\Controller;
 
 class TaxesController extends Controller
@@ -14,7 +14,7 @@ class TaxesController extends Controller
      */
     public function syncTaxes(UpsertManyTaxDetailDto $data)
     {
-        InvoiceDetailTax::upsertManyForInvoiceDetail($data);
+        InvoiceDetailService::applyTaxesToDetail($data);
 
         return response()->json(['message' => 'synched taxes']);
     }
@@ -24,7 +24,7 @@ class TaxesController extends Controller
      */
     public function addTax(UpsertTaxDetailDto $data)
     {
-        InvoiceDetailTax::upsertForInvoiceDetailFromTax($data);
+        InvoiceDetailService::applyTaxesToDetail($data);
 
         return response()->json(['message' => 'tax added']);
     }

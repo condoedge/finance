@@ -7,6 +7,8 @@ use Condoedge\Finance\Models\InvoiceDetailTax;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
+use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;
 use Illuminate\Support\Collection;
 
 /**
@@ -51,7 +53,9 @@ interface InvoiceDetailServiceInterface
      * @param Collection<int> $taxIds
      * @return Collection<InvoiceDetailTax>
      */
-    public function applyTaxesToDetail(InvoiceDetail $invoiceDetail, Collection $taxIds): Collection;
+    public function applyTaxesToDetail(UpsertManyTaxDetailDto $data): Collection;
+
+    public function upsertTaxForDetail(UpsertTaxDetailDto $data): InvoiceDetailTax;
     
     /**
      * Remove specific taxes from invoice detail

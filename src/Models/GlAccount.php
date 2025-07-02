@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Facades\GlAccountService;
+use Condoedge\Finance\Facades\GlTransactionService;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 use Condoedge\Finance\Services\GlSegmentService;
 use Condoedge\Utils\Models\Model;
@@ -37,6 +38,18 @@ class GlAccount extends AbstractMainFinanceModel
     public function segmentAssignments()
     {
         return $this->hasMany(AccountSegmentAssignment::class, 'account_id', 'id');
+    }
+
+    public function lastSegmentValue()
+    {
+        return $this->hasOneThrough(
+            SegmentValue::class,
+            AccountSegmentAssignment::class,
+            'account_id',
+            'id',
+            'id',
+            'segment_value_id',
+        )->latest();
     }
     
     /**
@@ -117,6 +130,13 @@ class GlAccount extends AbstractMainFinanceModel
         });
     }
 
+    public function scopeByNaturalAccount($query, string $naturalAccountId)
+    {
+        return $query->whereHas('lastSegmentValue', function ($q) use ($naturalAccountId) {
+            $q->where('id', $naturalAccountId);
+        });
+    }
+
     /**
      * Check if account allows manual entries
      */
@@ -130,7 +150,7 @@ class GlAccount extends AbstractMainFinanceModel
      */
     public function isNormalDebitAccount(): bool
     {
-        return in_array($this->account_type->value, ['ASSET', 'EXPENSE']);
+        return in_array($this->lastSegmentValue?->account_type->value, [AccountTypeEnum::ASSET->value, AccountTypeEnum::EXPENSE->value]);
     }
     
     /**
@@ -138,7 +158,7 @@ class GlAccount extends AbstractMainFinanceModel
      */
     public function isNormalCreditAccount(): bool
     {
-        return in_array($this->account_type->value, ['LIABILITY', 'EQUITY', 'REVENUE']);
+        return in_array($this->lastSegmentValue?->account_type->value, [AccountTypeEnum::LIABILITY->value, AccountTypeEnum::EQUITY->value, AccountTypeEnum::REVENUE->value]);
     }
     
     /**
@@ -146,17 +166,14 @@ class GlAccount extends AbstractMainFinanceModel
      */
     public function getBalance(?\Carbon\Carbon $startDate = null, ?\Carbon\Carbon $endDate = null): SafeDecimal
     {
-        $balance = GlAccountService::getAccountBalance($this, $startDate, $endDate);
+        $balance = GlTransactionService::getAccountBalance($this, $startDate, $endDate);
 
         return $balance;
     }
 
     public static function getFromLatestSegmentValue($valueId)
     {
-        return AccountSegmentService::createAccountFromLastSegment($valueId, [
-            'allow_manual_entry' => true,
-            'is_active' => true,
-        ]);
+        return AccountSegmentService::createAccountFromLastValue($valueId);
     }
 
     public function getLastSegmentValue()

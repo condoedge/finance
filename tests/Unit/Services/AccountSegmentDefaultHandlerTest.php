@@ -122,15 +122,8 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         $this->assertTrue(AccountSegmentService::canCreateAccountFromLastSegmentOnly());
 
         // Create account
-        $account = AccountSegmentService::createAccountFromLastSegment(
-            $accountValue->id,
-            [
-                'account_description' => 'Test Cash Account',
-                'account_type' => 'asset',
-                'team_id' => $this->team->id,
-                'is_active' => true,
-                'allow_manual_entry' => true,
-            ]
+        $account = AccountSegmentService::createAccountFromLastValue(
+            $accountValue->id
         );
 
         $this->assertInstanceOf(GlAccount::class, $account);
@@ -169,9 +162,8 @@ class AccountSegmentDefaultHandlerTest extends TestCase
         // Try to create account - should fail
         $this->expectException(\InvalidArgumentException::class);
         
-        AccountSegmentService::createAccountFromLastSegment(
+        AccountSegmentService::createAccountFromLastValue(
             $accountValue->id,
-            ['team_id' => $this->team->id]
         );
     }
 

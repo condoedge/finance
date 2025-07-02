@@ -73,9 +73,7 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
      */
     public static function upsertForInvoiceDetailFromTax(UpsertTaxDetailDto $data)
     {
-        $invoiceDetail = InvoiceDetailModel::findOrFail($data->invoice_detail_id);
-        $taxes = InvoiceDetailService::applyTaxesToDetail($invoiceDetail, collect([$data->tax_id]));
-        return $taxes->first();
+        return InvoiceDetailService::upsertTaxForDetail($data);
     }
 
     /**
@@ -84,8 +82,7 @@ class InvoiceDetailTax extends AbstractMainFinanceModel
      */
     public static function upsertManyForInvoiceDetail(UpsertManyTaxDetailDto $data)
     {
-        $invoiceDetail = InvoiceDetailModel::findOrFail($data->invoice_detail_id);
-        return InvoiceDetailService::applyTaxesToDetail($invoiceDetail, collect($data->taxes_ids ?? []));
+        return InvoiceDetailService::applyTaxesToDetail($data);
     }
 
     /**
