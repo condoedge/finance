@@ -50,9 +50,9 @@ class GlTransactionForm extends Form
             // Header
             _FlexBetween(
                 _TitleMain(
-                    'translate.finance-manage-gl-transaction'
+                    'finance-manage-gl-transaction'
                 ),
-                _Link('translate.finance-back-to-list')
+                _Link('finance-back-to-list')
                     ->icon('arrow-left')
                     ->href('finance.gl.gl-transactions')
             )->class('mb-6'),
@@ -60,26 +60,26 @@ class GlTransactionForm extends Form
             // Header information
             _Card(
                 _Columns(
-                    _Date('translate.finance-fiscal-date')
+                    _Date('finance-fiscal-date')
                         ->name('fiscal_date')
                         ->required()
                         ->default(now()->format('Y-m-d')),
 
-                    _Select('translate.finance-transaction-type')
+                    _Select('finance-transaction-type')
                         ->name('gl_transaction_type')
                         ->options(GlTransactionTypeEnum::optionsWithLabels())
                         ->default(GlTransactionTypeEnum::MANUAL_GL)
                         ->required(),
                 )->class('gap-4 mb-4'),
 
-                _Textarea('translate.finance-description')
+                _Textarea('finance-description')
                     ->name('transaction_description')
                     ->required(),
             )->class('mb-4'),
 
             // Transaction lines
             _Card(
-                _TitleMini('translate.finance-transaction-lines')->class('mb-4'),
+                _TitleMini('finance-transaction-lines')->class('mb-4'),
                 
                 // Totals
                 _MultiForm()
@@ -90,18 +90,18 @@ class GlTransactionForm extends Form
                         'transaction_type' => $this->model->gl_transaction_type ?? 1,
                     ])
                     ->asTable([
-                        __('translate.finance-account'),
-                        __('translate.finance-description'),
-                        __('translate.finance-debit'),
-                        __('translate.finance-credit'),
+                        __('finance-account'),
+                        __('finance-description'),
+                        __('finance-debit'),
+                        __('finance-credit'),
                         '', // Actions
                     ])
-                    ->addLabel(__('translate.finance-add-line'))
+                    ->addLabel(__('finance-add-line'))
                     ->class('mb-6')
                     ->id('gl-transaction-lines'),
             ),
 
-            $this->model->id ? null : _SubmitButton('translate.finance-save')->redirect(),
+            $this->model->id ? null : _SubmitButton('finance-save')->redirect(),
         );
     }
 

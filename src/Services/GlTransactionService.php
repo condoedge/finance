@@ -50,7 +50,7 @@ class GlTransactionService implements GlTransactionServiceInterface
                     : SegmentValue::find($lineDto->natural_account_id);
 
                 if (!$naturalAccount->is_active) {
-                    throw new \Exception(__("translate.account-is-inactive", ['account_id' => $naturalAccount->id]));
+                    throw new \Exception(__("error-account-is-inactive", ['account_id' => $naturalAccount->id]));
                 }
 
                 $glTransactionLine = new GlTransactionLine;
@@ -67,7 +67,7 @@ class GlTransactionService implements GlTransactionServiceInterface
             $header->refresh();
             
             if (!$header->is_balanced) {
-                throw new \Exception(__('translate.transaction-not-balanced-after-creation'));
+                throw new \Exception(__('error-transaction-not-balanced-after-creation'));
             }
             
             return $header;
@@ -82,11 +82,11 @@ class GlTransactionService implements GlTransactionServiceInterface
         // Validate account exists and is usable
         $account = GlAccount::find($lineData['account_id']);
         if (!$account) {
-            throw new \Exception(__("translate.account-not-found", ['account_id' => $lineData['account_id']]));
+            throw new \Exception(__("error-account-not-found", ['account_id' => $lineData['account_id']]));
         }
         
         if (!$account->is_active) {
-            throw new \Exception(__("translate.account-is-inactive", ['account_id' => $lineData['account_id']]));
+            throw new \Exception(__("error-account-is-inactive", ['account_id' => $lineData['account_id']]));
         }
         
         // Validate amounts
@@ -94,10 +94,10 @@ class GlTransactionService implements GlTransactionServiceInterface
         $creditAmount = new SafeDecimal($lineData['credit_amount'] ?? 0);
         
         if ($debitAmount->greaterThan(0) && $creditAmount->greaterThan(0)) {
-            throw new \Exception(__('translate.line-cannot-have-both-debit-and-credit'));
+            throw new \Exception(__('error-line-cannot-have-both-debit-and-credit'));
         }
           if ($debitAmount->equals(0) && $creditAmount->equals(0)) {
-            throw new \Exception(__('translate.line-must-have-either-debit-or-credit'));
+            throw new \Exception(__('error-line-must-have-either-debit-or-credit'));
         }
         
         return GlTransactionLine::create($lineData);
@@ -120,7 +120,7 @@ class GlTransactionService implements GlTransactionServiceInterface
         }
           if (!$totalDebits->equals($totalCredits)) {
             throw new \Exception(
-                __("translate.transaction-not-balanced-with-amounts", [
+                __("error-transaction-not-balanced-with-amounts", [
                     'debits' => finance_currency($totalDebits),
                     'credits' => finance_currency($totalCredits),
                 ])
@@ -140,15 +140,15 @@ class GlTransactionService implements GlTransactionServiceInterface
         }
         
         if ($transaction->is_posted) {
-            throw new \Exception(__('translate.transaction-already-posted'));
+            throw new \Exception(__('error-transaction-already-posted'));
         }
         
         if (!$transaction->is_balanced) {
-            throw new \Exception(__('translate.cannot-post-unbalanced-transaction'));
+            throw new \Exception(__('error-cannot-post-unbalanced-transaction'));
         }
         
         if (!$transaction->canBeModified()) {
-            throw new \Exception(__('translate.transaction-cannot-be-modified'));
+            throw new \Exception(__('error-transaction-cannot-be-modified'));
         }
         
         $transaction->post();
@@ -164,7 +164,7 @@ class GlTransactionService implements GlTransactionServiceInterface
         $originalTransaction = GlTransactionHeader::findOrFail($transactionId);
         
         if (!$originalTransaction->is_posted) {
-            throw new \Exception(__('translate.cannot-reverse-unposted-transaction'));
+            throw new \Exception(__('error-cannot-reverse-unposted-transaction'));
         }
         
         return DB::transaction(function() use ($originalTransaction, $reversalDescription) {
@@ -173,7 +173,7 @@ class GlTransactionService implements GlTransactionServiceInterface
                 'fiscal_date' => now()->format('Y-m-d'),
                 'gl_transaction_type' => $originalTransaction->gl_transaction_type,
                 'transaction_description' => $reversalDescription ?? 
-                    __("translate.reversal-of-transaction", ['transaction_id' => $originalTransaction->gl_transaction_id]),
+                    __("error-reversal-of-transaction", ['transaction_id' => $originalTransaction->gl_transaction_id]),
                 'customer_id' => $originalTransaction->customer_id,
                 'vendor_id' => $originalTransaction->vendor_id,
                 'team_id' => $originalTransaction->team_id,
@@ -186,7 +186,7 @@ class GlTransactionService implements GlTransactionServiceInterface
                 $transactionLine = new GlTransactionLine;
                 $transactionLine->gl_transaction_id = $reversalHeader->id;
                 $transactionLine->account_id = $originalLine->account_id;
-                $transactionLine->line_description = __("translate.reversal-line", ['description' => $originalLine->line_description ?? '']);
+                $transactionLine->line_description = __("finance-reversal-line", ['description' => $originalLine->line_description ?? '']);
                 $transactionLine->debit_amount = $originalLine->credit_amount;
                 $transactionLine->credit_amount = $originalLine->debit_amount;
                 $transactionLine->save();
@@ -299,7 +299,7 @@ class GlTransactionService implements GlTransactionServiceInterface
             ->count();
             
         if ($unpostedCount > 0) {
-            throw new \Exception(__("translate.cannot-close-period-unposted-transactions", ['count' => $unpostedCount]));
+            throw new \Exception(__("error-cannot-close-period-unposted-transactions", ['count' => $unpostedCount]));
         }
         
         // Close the period for GL

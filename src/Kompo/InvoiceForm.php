@@ -94,7 +94,7 @@ class InvoiceForm extends Form
 					->name('payment_method_id')
 					->options(PaymentMethodEnum::optionsWithLabels()),
 
-				_Select('translate.finance-payment-installment')
+				_Select('finance-payment-installment')
 					->name('payment_installment_id')
 					->options(PaymentInstallmentEnum::optionsWithLabels()),
 

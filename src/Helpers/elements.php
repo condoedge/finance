@@ -50,7 +50,7 @@ if (!function_exists('_MiniLabelFinanceCcy')) {
 if (!function_exists('_AccountsSelect')) {
     function _AccountsSelect($name = 'natural_account_id')
     {
-        return _Select()->placeholder('translate.account')
+        return _Select()->placeholder('finance-account')
             ->class('w-36 !mb-0')
             ->name($name)
             ->options(SegmentValue::forLastSegment()->get()->mapWithKeys(

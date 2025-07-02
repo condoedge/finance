@@ -83,7 +83,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         $period = FiscalPeriod::getPeriodFromDate($carbonDate);
         
         if (!$fiscalYear || !$period) {
-            throw new \Exception(__("translate.could-not-determine-fiscal-data", ['date' => $date]));
+            throw new \Exception(__("error-could-not-determine-fiscal-data", ['date' => $date]));
         }
         
         return [
@@ -128,11 +128,11 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     public function post(): void
     {
         if (!$this->is_balanced) {
-            throw new \Exception(__('translate.cannot-post-unbalanced-transaction'));
+            throw new \Exception(__('error-cannot-post-unbalanced-transaction'));
         }
         
         if (!$this->canBeModified()) {
-            throw new \Exception(__('translate.transaction-cannot-be-modified'));
+            throw new \Exception(__('error-transaction-cannot-be-modified'));
         }
         
         $this->is_posted = true;

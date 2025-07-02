@@ -29,7 +29,7 @@ class GlTransactionLineForm extends Form
             // Line description
             _Input()
                 ->name('line_description')
-                ->placeholder('translate.finance-optional-description')
+                ->placeholder('finance-optional-description')
                 ->maxlength(255),
             
             // Debit amount

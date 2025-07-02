@@ -93,7 +93,7 @@ class CreateGlTransactionDto extends ValidatedDTO
         if (!$this->validateBalance()) {
             $validator->errors()->add(
                 'lines', 
-                __('translate.transaction-must-balance', [
+                __('validation-with-values-transaction-must-balance', [
                     'debits' => finance_currency($this->getTotalDebits()),
                     'credits' => finance_currency($this->getTotalCredits())
                 ])
@@ -108,19 +108,19 @@ class CreateGlTransactionDto extends ValidatedDTO
             if (($debit > 0 && $credit > 0) || ($debit == 0 && $credit == 0)) {
                 $validator->errors()->add(
                     "lines.{$index}", 
-                    __('translate.line-must-have-either-debit-or-credit')
+                    __('error-line-must-have-either-debit-or-credit')
                 );
             }
         }
         
         // Validate vendor_id is required for AP transactions
         if ($glTransactionType === GlTransactionTypeEnum::PAYABLE && empty($vendorId)) {
-            $validator->errors()->add('vendor_id', __('translate.vendor-required-for-ap-transactions'));
+            $validator->errors()->add('vendor_id', __('error-vendor-required-for-ap-transactions'));
         }
         
         // Validate customer_id is required for AR transactions
         if ($glTransactionType === GlTransactionTypeEnum::RECEIVABLE && empty($customerId)) {
-            $validator->errors()->add('customer_id', __('translate.customer-required-for-ar-transactions'));
+            $validator->errors()->add('customer_id', __('error-customer-required-for-ar-transactions'));
         }
     }
     

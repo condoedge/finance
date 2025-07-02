@@ -26,8 +26,8 @@ class GlTransactionsTable extends WhiteTable
     public function top()
     {
         return _FlexBetween(
-            _TitleMain('translate.finance-gl-transactions'),
-            _Link('translate.finance-create-transaction')->button()
+            _TitleMain('finance-gl-transactions'),
+            _Link('finance-create-transaction')->button()
                 ->icon('plus')
                 ->href(route('finance.gl.gl-transaction-form'))
                 ->class('btn-primary')
@@ -37,14 +37,14 @@ class GlTransactionsTable extends WhiteTable
     public function headers()
     {
         return [
-            _Th('translate.finance-transaction-id')->sort('gl_transaction_id'),
-            _Th('translate.finance-date')->sort('fiscal_date'),
-            _Th('translate.finance-description'),
-            _Th('translate.finance-type'),
-            _Th('translate.finance-debits')->class('text-right'),
-            _Th('translate.finance-credits')->class('text-right'),
-            _Th('translate.finance-status')->class('text-center'),
-            _Th('translate.finance-actions')->class('text-center'),
+            _Th('finance-transaction-id')->sort('gl_transaction_id'),
+            _Th('finance-date')->sort('fiscal_date'),
+            _Th('finance-description'),
+            _Th('finance-type'),
+            _Th('finance-debits')->class('text-right'),
+            _Th('finance-credits')->class('text-right'),
+            _Th('finance-status')->class('text-center'),
+            _Th('finance-actions')->class('text-center'),
         ];
     }
     
@@ -94,8 +94,8 @@ class GlTransactionsTable extends WhiteTable
             
             // Posted status
             $transaction->is_posted ?
-                _Pill('translate.finance-posted')->class('bg-positive text-white') :
-                _Pill('translate.finance-draft')->class('bg-gray-200')
+                _Pill('finance-posted')->class('bg-positive text-white') :
+                _Pill('finance-draft')->class('bg-gray-200')
         )->class('gap-2 justify-center');
     }
     

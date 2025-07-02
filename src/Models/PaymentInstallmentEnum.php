@@ -14,7 +14,7 @@ enum PaymentInstallmentEnum: int
     public function label(): string
     {
         return match($this) {
-            default => __('translate.one-time'),
+            default => __('finance-one-time'),
         };
     }
 

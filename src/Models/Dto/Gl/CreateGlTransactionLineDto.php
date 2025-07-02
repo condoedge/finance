@@ -79,7 +79,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
         if (!$this->validateDebitCredit()) {
             $validator->errors()->add(
                 'amount', 
-                __('translate.line-must-have-either-debit-or-credit')
+                __('error-line-must-have-either-debit-or-credit')
             );
         }
     }
