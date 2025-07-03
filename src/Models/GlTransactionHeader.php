@@ -24,12 +24,24 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         'is_balanced' => 'boolean',
         'is_posted' => 'boolean',
     ];
-    
-    // Transaction Type Constants
-    const TYPE_MANUAL_GL = 1;
-    const TYPE_BANK = 2;
-    const TYPE_RECEIVABLE = 3;
-    const TYPE_PAYABLE = 4;
+
+    public static function boot()
+    {
+        parent::boot();
+        
+        // Ensure integrity checks are applied on create/update/delete        
+        static::updating(function ($model) {
+            if ($model->getOriginal('is_posted')) {
+                throw new \Exception(__('translate.error-cannot-modify-posted-transaction'));
+            }
+        });
+        
+        static::deleting(function ($model) {
+            if ($model->getOriginal('is_posted')) {
+                throw new \Exception(__('translate.error-cannot-delete-posted-transaction'));
+            }
+        });
+    }
     
     /**
      * Override fiscal period validation methods
@@ -166,22 +178,22 @@ class GlTransactionHeader extends AbstractMainFinanceModel
      */
     public function scopeManualGl($query)
     {
-        return $query->where('gl_transaction_type', self::TYPE_MANUAL_GL);
+        return $query->where('gl_transaction_type', GlTransactionTypeEnum::MANUAL_GL);
     }
     
     public function scopeBank($query)
     {
-        return $query->where('gl_transaction_type', self::TYPE_BANK);
+        return $query->where('gl_transaction_type', GlTransactionTypeEnum::BANK);
     }
     
     public function scopeReceivable($query)
     {
-        return $query->where('gl_transaction_type', self::TYPE_RECEIVABLE);
+        return $query->where('gl_transaction_type', GlTransactionTypeEnum::RECEIVABLE);
     }
     
     public function scopePayable($query)
     {
-        return $query->where('gl_transaction_type', self::TYPE_PAYABLE);
+        return $query->where('gl_transaction_type', GlTransactionTypeEnum::PAYABLE);
     }
     
     public function scopeBalanced($query)

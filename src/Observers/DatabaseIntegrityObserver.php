@@ -48,12 +48,6 @@ class DatabaseIntegrityObserver
         try {
             static::$isProcessing = true;
 
-            Log::info("DatabaseIntegrityObserver: Processing {$operation} on {$table}", [
-                'model' => $modelClass,
-                'affected_ids' => $affectedIds,
-                'operation' => $operation
-            ]);
-
             // Execute integrity checking based on operation type
             switch ($operation) {
                 case 'insert':

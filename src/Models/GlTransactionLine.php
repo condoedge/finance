@@ -3,7 +3,6 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
-use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 
 class GlTransactionLine extends AbstractMainFinanceModel
@@ -16,6 +15,24 @@ class GlTransactionLine extends AbstractMainFinanceModel
         'debit_amount' => SafeDecimalCast::class,
         'credit_amount' => SafeDecimalCast::class,
     ];
+
+    public static function boot()
+    {
+        parent::boot();
+        
+        // Ensure integrity checks are applied on create/update/delete        
+        static::updating(function ($model) {
+            if ($model->header->is_posted) {
+                throw new \Exception(__('translate.cannot-modify-posted-transaction'));
+            }
+        });
+        
+        static::deleting(function ($model) {
+            if ($model->header->is_posted) {
+                throw new \Exception(__('translate.cannot-delete-posted-transaction'));
+            }
+        });
+    }
     
     /**
      * Relationships

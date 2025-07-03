@@ -134,13 +134,6 @@ class SegmentDefaultHandlerService
         $segmentValue->is_active = true;
         $segmentValue->save();
 
-        Log::info('Created new segment value via default handler', [
-            'segment_id' => $segment->id,
-            'handler' => $segment->default_handler,
-            'code' => $code,
-            'description' => $description,
-        ]);
-
         return $segmentValue;
     }
 

@@ -26,6 +26,7 @@ class SegmentValue extends AbstractMainFinanceModel
     protected $casts = [
         'segment_definition_id' => 'integer',
         'is_active' => 'boolean',
+        'account_type' => AccountTypeEnum::class,
     ];
     
     /**

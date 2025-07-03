@@ -11,7 +11,7 @@ BEGIN
     DECLARE fiscal_period VARCHAR(10);
     
     -- Determine fiscal period from date
-    SELECT period_id INTO fiscal_period
+    SELECT id INTO fiscal_period
     FROM fin_fiscal_periods 
     WHERE p_fiscal_date BETWEEN start_date AND end_date
     LIMIT 1;
@@ -25,7 +25,7 @@ BEGIN
         ELSE FALSE
     END INTO period_open
     FROM fin_fiscal_periods 
-    WHERE period_id = fiscal_period;
+    WHERE id = fiscal_period;
     
     RETURN COALESCE(period_open, FALSE);
 END;

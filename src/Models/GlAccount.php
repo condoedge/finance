@@ -4,11 +4,7 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\AccountSegmentService;
-use Condoedge\Finance\Facades\GlAccountService;
 use Condoedge\Finance\Facades\GlTransactionService;
-use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
-use Condoedge\Finance\Services\GlSegmentService;
-use Condoedge\Utils\Models\Model;
 use Illuminate\Support\Facades\DB;
 
 class GlAccount extends AbstractMainFinanceModel
@@ -19,7 +15,6 @@ class GlAccount extends AbstractMainFinanceModel
     protected $casts = [
         'is_active' => 'boolean',
         'allow_manual_entry' => 'boolean',
-        'account_type' => AccountTypeEnum::class,
     ];
     
     // Removed fillable - using property assignment instead
@@ -82,6 +77,11 @@ class GlAccount extends AbstractMainFinanceModel
     public function getLastSegmentValueAttribute()
     {
         return $this->orderedSegmentValues->last();
+    }
+
+    public function getAccountTypeAttribute()
+    {
+        return $this->lastSegmentValue->account_type;
     }
     
     /**
@@ -150,7 +150,7 @@ class GlAccount extends AbstractMainFinanceModel
      */
     public function isNormalDebitAccount(): bool
     {
-        return in_array($this->lastSegmentValue?->account_type->value, [AccountTypeEnum::ASSET->value, AccountTypeEnum::EXPENSE->value]);
+        return in_array($this->lastSegmentValue?->account_type, [AccountTypeEnum::ASSET, AccountTypeEnum::EXPENSE]);
     }
     
     /**
@@ -158,7 +158,7 @@ class GlAccount extends AbstractMainFinanceModel
      */
     public function isNormalCreditAccount(): bool
     {
-        return in_array($this->lastSegmentValue?->account_type->value, [AccountTypeEnum::LIABILITY->value, AccountTypeEnum::EQUITY->value, AccountTypeEnum::REVENUE->value]);
+        return in_array($this->lastSegmentValue?->account_type, [AccountTypeEnum::LIABILITY, AccountTypeEnum::EQUITY, AccountTypeEnum::REVENUE]);
     }
     
     /**

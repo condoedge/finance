@@ -30,7 +30,7 @@ class CreateAccountDto extends ValidatedDTO
     public array $segment_value_ids;
     public bool $is_active;
     public bool $allow_manual_entry;
-    public bool $apply_defaults;
+    public ?bool $apply_defaults;
     
     public function rules(): array
     {
@@ -39,7 +39,7 @@ class CreateAccountDto extends ValidatedDTO
             'segment_value_ids.*' => 'nullable|integer|exists:fin_segment_values,id',
             'is_active' => 'required|boolean',
             'allow_manual_entry' => 'required|boolean',
-            'apply_defaults' => 'required|boolean',
+            'apply_defaults' => 'nullable|boolean',
         ];
     }
     
@@ -76,8 +76,9 @@ class CreateAccountDto extends ValidatedDTO
             // Validate segment values exist and are active
             $segmentsValidator = app(AccountSegmentValidator::class);
             $segmentsValidator->validateCompleteness($segmentValueIds);
-            $segmentsValidator->validateUniqueness($segmentValueIds, $teamId);
+            $segmentsValidator->validateUniqueness($segmentValueIds);
             $segmentsValidator->validateCompatibility($segmentValueIds);
+            $segmentsValidator->validateAreActive($segmentValueIds);
         }
     }
 }

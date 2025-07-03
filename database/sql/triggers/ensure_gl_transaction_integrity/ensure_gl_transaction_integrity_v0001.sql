@@ -22,4 +22,18 @@ BEGIN
     SET NEW.is_posted = FALSE;
 END$$
 
+CREATE TRIGGER ensure_gl_transaction_integrity
+    BEFORE UPDATE ON fin_gl_transaction_headers
+    FOR EACH ROW
+BEGIN
+    DECLARE is_posted BOOLEAN DEFAULT FALSE;
+    
+    OLD.is_posted INTO is_posted;
+
+    IF is_posted THEN
+        SIGNAL SQLSTATE '45000'
+          SET MESSAGE_TEXT = 'Cannot modify posted transaction';
+    END IF;
+END$$
+
 DELIMITER ;

@@ -29,6 +29,7 @@ class CreateSegmentValueDto extends ValidatedDTO
     public string $segment_value;
     public string $segment_description;
     public ?bool $is_active;
+    public ?bool $allow_manual_entry;
     public ?AccountTypeEnum $account_type;
 
     public $segmentDefinition;
@@ -59,6 +60,7 @@ class CreateSegmentValueDto extends ValidatedDTO
     {
         return [
             'is_active' => true,
+            'allow_manual_entry' => true
         ];
     }
 
@@ -87,7 +89,7 @@ class CreateSegmentValueDto extends ValidatedDTO
             ->first();
 
         if ($existing) {
-            $validator->errors()->add('segment_value', 'This segment value already exists for the selected segment definition.');
+            $validator->errors()->add('segment_value', __('translate.segment-value-already-exists'));
         }
     }
 }

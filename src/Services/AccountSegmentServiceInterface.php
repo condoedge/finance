@@ -46,7 +46,7 @@ interface AccountSegmentServiceInterface
     /**
      * Search accounts by partial segment pattern
      */
-    public function searchAccountsByPattern(array $segmentValueIds, int $teamId): Collection;
+    public function searchAccountsByPattern(array $segmentValueIds): Collection;
     
     /**
      * Get segment values for a specific segment definition

@@ -48,7 +48,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     public function rules(): array
     {
         return [
-            'account_id' => 'required_without:natural_account_id|integer|exists:fin_gl_accounts,account_id',
+            'account_id' => 'required_without:natural_account_id|integer|exists:fin_gl_accounts,id',
             'natural_account_id' => 'required_without:account_id|integer|exists:fin_segment_values,id',
             'line_description' => 'nullable|string|max:255',
             'debit_amount' => 'required|numeric|min:0',
@@ -81,6 +81,28 @@ class CreateGlTransactionLineDto extends ValidatedDTO
                 'amount', 
                 __('error-line-must-have-either-debit-or-credit')
             );
+        }
+
+        $accountId = $this->dtoData['account_id'] ?? null;
+        $naturalAccountId = $this->dtoData['natural_account_id'] ?? null;
+        $glTransactionType = $this->dtoData['gl_transaction_type'] ?? null;
+
+        $glService = app(\Condoedge\Finance\Services\GlTransactionServiceInterface::class);
+
+        if ($accountId && $glTransactionType) {
+            try {
+                $glService->validateAccountAbleToTransaction($accountId, $glTransactionType);
+            } catch (\InvalidArgumentException $e) {
+                $validator->errors()->add("account_id", $e->getMessage());
+            }
+        }
+
+        if ($naturalAccountId && $glTransactionType) {
+            try {
+                $glService->validateNaturalAccountAbleToTransaction($naturalAccountId, $glTransactionType);
+            } catch (\InvalidArgumentException $e) {
+                $validator->errors()->add("natural_account_id", $e->getMessage());
+            }
         }
     }
     

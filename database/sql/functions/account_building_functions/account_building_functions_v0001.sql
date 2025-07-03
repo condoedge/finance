@@ -38,7 +38,7 @@ BEGIN
         END IF;
         
         IF v_descriptor != '' THEN
-            SET v_descriptor = CONCAT(v_descriptor, ' - ');
+            SET v_descriptor = CONCAT(v_descriptor, '-');
         END IF;
         
         SET v_descriptor = CONCAT(v_descriptor, v_value_description);

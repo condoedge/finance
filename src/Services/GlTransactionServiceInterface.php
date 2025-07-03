@@ -30,12 +30,12 @@ interface GlTransactionServiceInterface
     /**
      * Reverse a posted transaction
      *
-     * @param string $transactionId
+     * @param int $transactionId
      * @param string|null $reversalDescription
      * @return GlTransactionHeader
      * @throws \Exception
      */
-    public function reverseTransaction(string $transactionId, string $reversalDescription = null): GlTransactionHeader;
+    public function reverseTransaction(int $transactionId, string $reversalDescription = null): GlTransactionHeader;
 
     /**
      * Get account balance for a date range
@@ -47,7 +47,7 @@ interface GlTransactionServiceInterface
      * @return SafeDecimal
      */
     public function getAccountBalance(
-        string $accountId, 
+        int $accountId, 
         Carbon $startDate = null, 
         Carbon $endDate = null,
         bool $postedOnly = true
@@ -81,4 +81,7 @@ interface GlTransactionServiceInterface
      * @param string $periodId
      */
     public function openFiscalPeriod(string $periodId): void;
+
+    public function validateAccountAbleToTransaction($accountId, $transactionType);
+    public function validateNaturalAccountAbleToTransaction($naturalAccountId, $transactionType);
 }

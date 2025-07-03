@@ -42,6 +42,7 @@ class CreateProperAccountSegmentSystem extends Migration
             
             // Account management flags
             $table->boolean('is_active')->default(true);
+            $table->boolean('allow_manual_entry')->default(true);
             
             // Ensure unique values per segment definition
             $table->unique(['segment_definition_id', 'segment_value']);

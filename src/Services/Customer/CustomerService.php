@@ -133,7 +133,7 @@ class CustomerService implements CustomerServiceInterface
             return true;
         } catch (\Exception $e) {
             // Log error but don't throw - sync is not critical
-            \Log::warning('Failed to sync customer with customable', [
+            \Log::error('Failed to sync customer with customable', [
                 'customer_id' => $customer->id,
                 'customable_type' => get_class($customable),
                 'error' => $e->getMessage()

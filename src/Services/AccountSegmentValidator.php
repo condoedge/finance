@@ -23,7 +23,7 @@ class AccountSegmentValidator
      */
     public function validateCompleteness(array $segmentValueIds): void
     {
-        $requiredSegments = AccountSegment::where('is_active', true)->get();
+        $requiredSegments = AccountSegment::get();
         
         $providedSegments = SegmentValue::whereIn('id', $segmentValueIds)
             ->with('segmentDefinition')
@@ -33,9 +33,28 @@ class AccountSegmentValidator
         foreach ($requiredSegments as $segment) {
             if (!isset($providedSegments[$segment->segment_position])) {
                 throw new \InvalidArgumentException(
-                    "Missing value for segment position {$segment->segment_position} ({$segment->segment_description})"
+                    __('translate.with-values-missing-value-value-for-segment-position', [
+                        'segment_position' => $segment->segment_position,
+                        'segment_description' => $segment->segment_description
+                    ])
                 );
             }
+        }
+    }
+
+    public function validateAreActive(array $segmentValueIds): void
+    {
+        $inactiveValues = SegmentValue::whereIn('id', $segmentValueIds)
+            ->where('is_active', false)
+            ->get();
+        
+        if ($inactiveValues->isNotEmpty()) {
+            throw new \InvalidArgumentException(
+                __('translate.with-values-inactive-value-value-for-segment-position', [
+                    'segment_position' => $inactiveValues->first()->segmentDefinition->segment_position,
+                    'segment_description' => $inactiveValues->first()->segmentDefinition->segment_description
+                ])
+            );
         }
     }
     
@@ -56,14 +75,13 @@ class AccountSegmentValidator
      * Validate that account doesn't already exist
      * 
      * @param array $segmentValueIds
-     * @param int $teamId
      * @param int|null $excludeAccountId For updates
      * @return void
      * @throws \InvalidArgumentException If account exists
      */
-    public function validateUniqueness(array $segmentValueIds, int $teamId, ?int $excludeAccountId = null): void
+    public function validateUniqueness(array $segmentValueIds, ?int $excludeAccountId = null): void
     {
-        $query = GlAccount::where('team_id', $teamId);
+        $query = GlAccount::query();
         
         if ($excludeAccountId) {
             $query->where('id', '!=', $excludeAccountId);
@@ -76,7 +94,7 @@ class AccountSegmentValidator
         }
         
         if ($query->exists()) {
-            throw new \InvalidArgumentException('An account with this segment combination already exists');
+            throw new \InvalidArgumentException(__('translate.account-already-exists'));
         }
     }
     
@@ -94,7 +112,10 @@ class AccountSegmentValidator
         
         if (strlen($value) != $definition->segment_length) {
             throw new \InvalidArgumentException(
-                "Value '{$value}' doesnt have the defined length of {$definition->segment_length}"
+                __('translate.value-length-mismatch', [
+                    'value' => $value,
+                    'length' => $definition->segment_length
+                ])
             );
         }
     }
@@ -116,7 +137,9 @@ class AccountSegmentValidator
         }
         
         if ($query->exists()) {
-            throw new \InvalidArgumentException("Position {$position} is already taken");
+            throw new \InvalidArgumentException(__('translate.segment-position-taken', [
+                'position' => $position
+            ]));
         }
     }
 }

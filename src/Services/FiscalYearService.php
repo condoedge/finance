@@ -6,9 +6,11 @@ use Condoedge\Finance\Models\FiscalYearSetup;
 use Condoedge\Finance\Models\FiscalPeriod;
 use Carbon\Carbon;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
+use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use InvalidArgumentException;
 
 /**
  * Enhanced Fiscal Year Service
@@ -96,7 +98,10 @@ class FiscalYearService
                 ->where('fiscal_year', $fiscalYear)
                 ->where('period_number', 0) // Custom periods have 0
                 ->exists()) {
-                throw new ValidationException("Period for fiscal year {$fiscalYear} already exists for team {$teamId}");
+                throw new Exception(__('translate.period-for-fiscal-year-already-exists', [
+                    'fiscal_year' => $fiscalYear,
+                    'team_id' => $teamId
+                ]));
             }
             
             $period = new FiscalPeriod();
@@ -146,14 +151,6 @@ class FiscalYearService
             
             $period->save();
             
-            // Log the closing action
-            \Log::info("Fiscal period closed", [
-                'period_id' => $periodId,
-                'modules' => array_map(fn($e) => $e->moduleCode(), $enums),
-                'closed_by' => auth()->id(),
-                'closed_at' => now()
-            ]);
-            
             return $period->refresh();
         });
     }
@@ -189,14 +186,6 @@ class FiscalYearService
             
             $period->save();
             
-            // Log the opening action
-            \Log::info("Fiscal period opened", [
-                'period_id' => $periodId,
-                'modules' => array_map(fn($e) => $e->moduleCode(), $enums),
-                'opened_by' => auth()->id(),
-                'opened_at' => now()
-            ]);
-            
             return $period->refresh();
         });
     }
@@ -210,6 +199,18 @@ class FiscalYearService
         return FiscalPeriod::getPeriodFromDate($date, $teamId);
     }
 
+    public function closeExpiredPeriods(int $teamId): void
+    {
+        $expiredPeriods = FiscalPeriod::where('team_id', $teamId)
+            ->where('end_date', '<', now()->startOfMonth())
+            ->get();
+
+        foreach ($expiredPeriods as $period) {
+            $this->closePeriod($period->id, GlTransactionTypeEnum::cases());
+        }
+    }
+
+
     /**
      * Get or create period for a specific date
      * 
@@ -217,14 +218,14 @@ class FiscalYearService
      * @param Carbon $date
      * @param bool $onlyCurrentMonth If true, only create periods for current month
      * @return FiscalPeriod
-     * @throws \Exception
+     * @throws Exception
      */
     public function getOrCreatePeriodForDate(int $teamId, Carbon $date, bool $onlyCurrentMonth = true): FiscalPeriod
     {
         $fiscalYear = $this->getFiscalYearForDate($date, $teamId);
 
         if (!$fiscalYear) {
-            throw new \Exception('No fiscal year setup found for team');
+            throw new Exception(__('translate.fiscal-year-not-found'));
         }
 
         // Try to get existing period
@@ -233,9 +234,10 @@ class FiscalYearService
         if (!$period) {
             // Check if we should create the period
             if ($onlyCurrentMonth && !$date->isSameMonth(now())) {
-                throw new ValidationException(
-                    'Period does not exist for date ' . $date->format('Y-m-d') . 
-                    '. Periods can only be auto-created for the current month.'
+                throw new InvalidArgumentException(
+                    __('translate.with-values.period-does-not-exist-just-can-create-for-current-month', [
+                        'date' => $date->format('Y-m-d')
+                    ])
                 );
             }
             
@@ -262,12 +264,6 @@ class FiscalYearService
             $period->is_open_rm = true;
             $period->is_open_pm = true;
             $period->save();
-            
-            \Log::info('Auto-created fiscal period', [
-                'period_id' => $period->id,
-                'team_id' => $teamId,
-                'created_for_date' => $date->format('Y-m-d')
-            ]);
         }
 
         return $period;
@@ -299,7 +295,7 @@ class FiscalYearService
                 
                 return [
                     'period' => $period,
-                    'period_display' => "{$period->id} from {$period->start_date->format('Y-m-d')} to {$period->end_date->format('Y-m-d')}",
+                    'period_display' => "per{$period->id} from {$period->start_date->format('Y-m-d')} to {$period->end_date->format('Y-m-d')}",
                     'status' => $status
                 ];
             });
@@ -312,19 +308,10 @@ class FiscalYearService
     public function validateTransactionDate(Carbon $transactionDate, GlTransactionTypeEnum $module, int $teamId): bool
     {
         // Try to get or create period (only for current month)
-        try {
-            $period = $this->getOrCreatePeriodForDate($teamId, $transactionDate, true);
-        } catch (ValidationException $e) {
-            // Period doesn't exist and can't be auto-created
-            throw new HttpException(
-                403,
-                __('finance-fiscal-year-no-period'),
-            );
-        }
+        $period = $this->getOrCreatePeriodForDate($teamId, $transactionDate, true);
         
         if (!$period->isOpenForModule($module)) {
-            throw new HttpException(
-                403,
+            throw new InvalidArgumentException(
                 __('finance-fiscal-year-period-closed', ['module' => $module->label()]),
             );
         }
@@ -344,7 +331,9 @@ class FiscalYearService
         if (is_string($module)) {
             $enum = GlTransactionTypeEnum::fromModuleCode($module);
             if (!$enum) {
-                throw new \InvalidArgumentException("Invalid module code: {$module}");
+                throw new InvalidArgumentException(
+                    __('translate.invalid-module-code', ['module' => $module])
+                );
             }
         } else {
             $enum = $module;
@@ -369,7 +358,7 @@ class FiscalYearService
         $fiscalSetup = FiscalYearSetup::getActiveForTeam($teamId);
         
         if (!$fiscalSetup) {
-            throw new \Exception('No fiscal year setup found');
+            throw new Exception(__('translate.fiscal-year-setup-not-found'));
         }
         
         $calendarYear = $fiscalYear - 1;
@@ -396,11 +385,11 @@ class FiscalYearService
     /**
      * Calculate period number for a given date
      */
-    protected function calculatePeriodNumber(Carbon $date, int $teamId): int
+    public function calculatePeriodNumber(Carbon $date, int $teamId): int
     {
         $fiscalSetup = FiscalYearSetup::getActiveForTeam($teamId);
         if (!$fiscalSetup) {
-            throw new \Exception('No fiscal year setup found');
+            throw new Exception(__('translate.fiscal-year-setup-not-found'));
         }
         
         $fiscalStartMonth = $fiscalSetup->fiscal_start_date->month;
@@ -426,17 +415,16 @@ class FiscalYearService
      * @param bool $closePrevious Whether to close previous periods
      * @return array Results of the operation
      */
-    public function preCreateUpcomingPeriods(int $daysAhead = 1, bool $closePrevious = false): array
+    public function preCreateUpcomingPeriods(int $daysAhead = 1, bool $closePrevious = false)
     {
         $upcomingDate = now()->addDays($daysAhead)->startOfMonth();
-        $results = [];
         
         // Get all teams with fiscal year setup
         $teams = FiscalYearSetup::query()
             ->select('team_id')
             ->distinct()
             ->pluck('team_id');
-        
+
         foreach ($teams as $teamId) {
             try {
                 // Closing previous periods if required
@@ -448,30 +436,11 @@ class FiscalYearService
                     }
                 }
 
-                $period = $this->getOrCreatePeriodForDate($teamId, $upcomingDate, false);
-                
-                $results[] = [
-                    'team_id' => $teamId,
-                    'period' => $period,
-                    'status' => 'created'
-                ];
-            } catch (\Exception $e) {
-                \Log::warning('Failed to pre-create period', [
-                    'team_id' => $teamId,
-                    'date' => $upcomingDate->format('Y-m-d'),
-                    'error' => $e->getMessage()
-                ]);
-                
-                $results[] = [
-                    'team_id' => $teamId,
-                    'period' => null,
-                    'status' => 'failed',
-                    'error' => $e->getMessage()
-                ];
+                $this->getOrCreatePeriodForDate($teamId, $upcomingDate, false);
+            } catch (Exception $e) {
+                Log::error("Failed to pre-create period for team {$teamId} on {$upcomingDate->format('Y-m-d')}: " . $e->getMessage());
             }
         }
-        
-        return $results;
     }
     
     /**
@@ -480,7 +449,7 @@ class FiscalYearService
     protected function validatePeriodDates(Carbon $startDate, Carbon $endDate, int $teamId, int $fiscalYear): void
     {
         if ($startDate->gte($endDate)) {
-            throw new ValidationException('Start date must be before end date');
+            throw new InvalidArgumentException(__('translate.start-date-must-be-before-end-date'));
         }
         
         // Check for overlapping periods
@@ -497,7 +466,7 @@ class FiscalYearService
             ->exists();
             
         if ($overlapping) {
-            throw new ValidationException('Period dates overlap with existing period');
+            throw new InvalidArgumentException(__('translate.period-dates-overlap'));
         }
     }
     
@@ -515,7 +484,7 @@ class FiscalYearService
                 // Get fiscal year for this month
                 $fiscalYear = $this->getFiscalYearForDate($currentDate, $teamId);
                 if (!$fiscalYear) {
-                    throw new \Exception('Could not determine fiscal year');
+                    throw new Exception(__('translate.fiscal-year-not-found'));
                 }
                 
                 // Calculate period number
@@ -540,22 +509,12 @@ class FiscalYearService
                     $period->save();
 
                     $periods[] = $period;
-                    
-                    \Log::info('Created fiscal period', [
-                        'team_id' => $teamId,
-                        'month' => $currentDate->format('Y-m')
-                    ]);
                 }
                 
                 // Move to next month
                 $currentDate->addMonth();
                 
-            } catch (\Exception $e) {
-                \Log::warning('Failed to create period', [
-                    'team_id' => $teamId,
-                    'month' => $currentDate->format('Y-m'),
-                    'error' => $e->getMessage()
-                ]);
+            } catch (Exception $e) {
                 // Continue with next month
                 $currentDate->addMonth();
             }
@@ -574,11 +533,6 @@ class FiscalYearService
         foreach ($periods as $period) {
             // Delete each period
             $period->forceDelete();
-            \Log::info("Deleted fiscal period", [
-                'period_id' => $period->id,
-                'team_id' => $teamId,
-                'start_date' => $period->start_date->format('Y-m-d')
-            ]);
         }
     }
 }

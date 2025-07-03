@@ -10,6 +10,7 @@ use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Condoedge\Finance\Facades\FiscalYearService;
 use Condoedge\Finance\Models\SegmentValue;
 
@@ -42,16 +43,13 @@ class GlTransactionService implements GlTransactionServiceInterface
             // Create lines
             $lines = $dto->getLinesDtos(); // Convert to DTOs if they're arrays
             foreach ($lines as $lineDto) {
-                // Validate account allows manual entry
-                $naturalAccount = $lineDto->account_id ? GlAccount::where('account_id', $lineDto->account_id)
-                    ->forTeam()
-                    ->first()
-                    ->getLastSegmentValue()
-                    : SegmentValue::find($lineDto->natural_account_id);
+                $account = $lineDto->account_id ? GlAccount::where('id', $lineDto->account_id)
+                    ->first() : null;
+                
+                $naturalAccount = $account?->getLastSegmentValue() ?? SegmentValue::find($lineDto->natural_account_id);
 
-                if (!$naturalAccount->is_active) {
-                    throw new \Exception(__("error-account-is-inactive", ['account_id' => $naturalAccount->id]));
-                }
+                if ($account) $this->validateAccountAbleToTransaction($account->id, $dto->gl_transaction_type);
+                $this->validateNaturalAccountAbleToTransaction($naturalAccount->id, $dto->gl_transaction_type);
 
                 $glTransactionLine = new GlTransactionLine;
                 $glTransactionLine->gl_transaction_id = $header->id;
@@ -72,6 +70,30 @@ class GlTransactionService implements GlTransactionServiceInterface
             
             return $header;
         });
+    }
+
+    public function validateAccountAbleToTransaction($accountId, $transactionType)
+    {
+        $account = GlAccount::find($accountId);
+        if (!$account || !$account->is_active) {
+            throw new \Exception(__("translate.error-account-inactive", ['account_id' => $accountId]));
+        }
+
+        if (!$account->allow_manual_entry && $transactionType === GlTransactionTypeEnum::MANUAL_GL) {
+            throw new \Exception(__("error-account-not-allow-manual-entry", ['account_id' => $accountId]));
+        }
+    }
+
+    public function validateNaturalAccountAbleToTransaction($naturalAccountId, $transactionType)
+    {
+        $naturalAccount = SegmentValue::find($naturalAccountId);
+        if (!$naturalAccount || !$naturalAccount->is_active) {
+            throw new \Exception(__("translate.error-account-inactive", ['account_id' => $naturalAccountId]));
+        }
+
+        if (!$naturalAccount->allow_manual_entry && $transactionType === GlTransactionTypeEnum::MANUAL_GL) {
+            throw new \Exception(__("error-account-not-allow-manual-entry", ['account_id' => $naturalAccountId]));
+        }
     }
     
     /**
@@ -159,38 +181,36 @@ class GlTransactionService implements GlTransactionServiceInterface
     /**
      * Reverse a posted transaction
      */
-    public function reverseTransaction(string $transactionId, string $reversalDescription = null): GlTransactionHeader
+    public function reverseTransaction(int $transactionId, string $reversalDescription = null): GlTransactionHeader
     {
         $originalTransaction = GlTransactionHeader::findOrFail($transactionId);
         
         if (!$originalTransaction->is_posted) {
             throw new \Exception(__('error-cannot-reverse-unposted-transaction'));
         }
-        
+
         return DB::transaction(function() use ($originalTransaction, $reversalDescription) {
             // Create reversal header
-            $reversalData = [
+            $reversalData = new CreateGlTransactionDto([
                 'fiscal_date' => now()->format('Y-m-d'),
                 'gl_transaction_type' => $originalTransaction->gl_transaction_type,
                 'transaction_description' => $reversalDescription ?? 
-                    __("error-reversal-of-transaction", ['transaction_id' => $originalTransaction->gl_transaction_id]),
+                    __("error-reversal-of-transaction", ['transaction_id' => $originalTransaction->id]),
                 'customer_id' => $originalTransaction->customer_id,
                 'vendor_id' => $originalTransaction->vendor_id,
                 'team_id' => $originalTransaction->team_id,
-            ];
+
+                'lines' => collect($originalTransaction->lines)->map(function($line) {
+                    return [
+                        'account_id' => $line->account_id,
+                        'line_description' => __("finance-reversal-line", ['description' => $line->line_description ?? '']),
+                        'debit_amount' => $line->credit_amount->toFloat(),
+                        'credit_amount' => $line->debit_amount->toFloat(),
+                    ];
+                })->all()
+            ]);
             
-            $reversalHeader = GlTransactionHeader::createTransaction($reversalData);
-            
-            // Create reversed lines (swap debits and credits)
-            foreach ($originalTransaction->lines as $originalLine) {
-                $transactionLine = new GlTransactionLine;
-                $transactionLine->gl_transaction_id = $reversalHeader->id;
-                $transactionLine->account_id = $originalLine->account_id;
-                $transactionLine->line_description = __("finance-reversal-line", ['description' => $originalLine->line_description ?? '']);
-                $transactionLine->debit_amount = $originalLine->credit_amount;
-                $transactionLine->credit_amount = $originalLine->debit_amount;
-                $transactionLine->save();
-            }
+            $reversalHeader = $this->createTransaction($reversalData);
             
             // Post the reversal automatically
             $reversalHeader->refresh();
@@ -204,7 +224,7 @@ class GlTransactionService implements GlTransactionServiceInterface
      * Get account balance for a date range
      */
     public function getAccountBalance(
-        string $accountId, 
+        int $accountId, 
         \Carbon\Carbon $startDate = null, 
         \Carbon\Carbon $endDate = null,
         bool $postedOnly = true
@@ -226,13 +246,8 @@ class GlTransactionService implements GlTransactionServiceInterface
         
         $debits = new SafeDecimal($query->sum('debit_amount'));
         $credits = new SafeDecimal($query->sum('credit_amount'));
-        
-        // Return natural balance based on account type
-        if ($account->isNormalDebitAccount()) {
-            return $debits->subtract($credits);
-        } else {
-            return $credits->subtract($debits);
-        }
+
+        return $debits->subtract($credits);
     }
     
     /**
@@ -248,17 +263,17 @@ class GlTransactionService implements GlTransactionServiceInterface
         
         foreach ($accounts as $account) {
             $balance = $this->getAccountBalance(
-                $account->account_id, 
+                $account->id, 
                 $startDate, 
                 $endDate, 
                 $postedOnly
             );
-            
+
             if (!$balance->equals(0)) {
                 $trialBalance[] = [
-                    'account_id' => $account->account_id,
+                    'account_id' => $account->id,
                     'account_description' => $account->account_description,
-                    'account_type' => $account->account_type,
+                    'account_type' => $account->lastSegmentValue?->account_type,
                     'balance' => $balance,
                     'debit_balance' => $account->isNormalDebitAccount() && $balance->greaterThan(0) ? $balance : new SafeDecimal(0),
                     'credit_balance' => $account->isNormalCreditAccount() && $balance->greaterThan(0) ? $balance : new SafeDecimal(0),

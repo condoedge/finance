@@ -4,6 +4,9 @@ namespace Condoedge\Finance\Models\Dto\Gl;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
+use Condoedge\Finance\Models\SegmentValue;
+use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Services\GlTransactionServiceInterface;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
@@ -61,7 +64,7 @@ class CreateGlTransactionDto extends ValidatedDTO
             'customer_id' => 'nullable|integer|exists:fin_customers,id',
             'vendor_id' => 'nullable|integer',
             'lines' => 'required|array|min:2', // At least 2 lines required for double-entry
-            'lines.*.account_id' => 'required_without:lines.*.natural_account_id|string|exists:fin_gl_accounts,account_id',
+            'lines.*.account_id' => 'required_without:lines.*.natural_account_id|integer|exists:fin_gl_accounts,id',
             'lines.*.natural_account_id' => 'required_without:lines.*.account_id|integer|exists:fin_segment_values,id',
             'lines.*.line_description' => 'nullable|string|max:255',
             'lines.*.debit_amount' => 'required|numeric|min:0',
@@ -102,14 +105,34 @@ class CreateGlTransactionDto extends ValidatedDTO
         
         // Validate each line has either debit or credit, not both
         foreach ($lines as $index => $line) {
-            $debit = is_array($line) ? ($line['debit_amount'] ?? 0) : $line->debit_amount;
-            $credit = is_array($line) ? ($line['credit_amount'] ?? 0) : $line->credit_amount;
+            $debit = is_array($line) ? ($line['debit_amount'] ?? 0) : $line->debit_amount->toFloat();
+            $credit = is_array($line) ? ($line['credit_amount'] ?? 0) : $line->credit_amount->toFloat();
             
             if (($debit > 0 && $credit > 0) || ($debit == 0 && $credit == 0)) {
                 $validator->errors()->add(
                     "lines.{$index}", 
                     __('error-line-must-have-either-debit-or-credit')
                 );
+            }
+
+            $accountId = $line['account_id'] ?? null;
+            $naturalAccountId = $line['natural_account_id'] ?? null;
+            $glService = app(GlTransactionServiceInterface::class);
+
+            if ($accountId && $glTransactionType) {
+                try{
+                    $glService->validateAccountAbleToTransaction($accountId, $glTransactionType);
+                } catch (\Exception $e) {
+                    $validator->errors()->add("lines.{$index}.account_id", $e->getMessage());
+                }
+            }
+
+            if ($naturalAccountId && $glTransactionType) {
+                try {
+                    $glService->validateNaturalAccountAbleToTransaction($naturalAccountId, $glTransactionType);
+                } catch (\Exception $e) {
+                    $validator->errors()->add("lines.{$index}.natural_account_id", $e->getMessage());
+                }
             }
         }
         

@@ -10,6 +10,7 @@ use Condoedge\Utils\CondoedgeUtilsServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Kompo\Auth\KompoAuthServiceProvider;
+use Kompo\KompoServiceProvider;
 
 abstract class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -39,6 +40,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     protected function serviceProviders($app)
     {
         return [
+            KompoServiceProvider::class,
             CondoedgeUtilsServiceProvider::class,
             CondoedgeFinanceServiceProvider::class,
             KompoAuthServiceProvider::class,

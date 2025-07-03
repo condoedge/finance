@@ -93,7 +93,8 @@ class CreateOrUpdateSegmentDto extends ValidatedDTO
             }
         }
 
-        $this->validateLastSegmentIsAccount($validator);
+        // For now we'll just display an error somewhere
+        // $this->validateLastSegmentIsAccount($validator);
     }
 
     protected function validateLastSegmentIsAccount(\Illuminate\Validation\Validator $validator): void

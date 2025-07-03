@@ -123,12 +123,6 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             $segmentValue->is_active = $dto->is_active;
             $segmentValue->account_type = $dto->account_type ?? null;
             $segmentValue->save();
-            
-            Log::info('Created new segment value', [
-                'segment_value_id' => $segmentValue->id,
-                'segment_definition_id' => $dto->segment_definition_id,
-                'value' => $dto->segment_value,
-            ]);
 
             return $segmentValue;
         });
@@ -214,9 +208,9 @@ class AccountSegmentService implements AccountSegmentServiceInterface
      * Search accounts by partial segment pattern
      * @param array $segmentValueIds Array of segment value IDs (use null for wildcards)
      */
-    public function searchAccountsByPattern(array $segmentValueIds, int $teamId): Collection
+    public function searchAccountsByPattern(array $segmentValueIds): Collection
     {
-        $query = GlAccount::where('team_id', $teamId);
+        $query = GlAccount::query();
 
         // Join with assignments for each non-null segment value
         foreach ($segmentValueIds as $index => $segmentValueId) {
@@ -385,11 +379,6 @@ class AccountSegmentService implements AccountSegmentServiceInterface
                 $defaultValue = $this->handlerService->resolveDefaultValue($segment, $context);
                 if ($defaultValue) {
                     $finalSegmentValueIds[] = $defaultValue->id;
-                    Log::info('Applied default handler for segment', [
-                        'segment_id' => $segment->id,
-                        'handler' => $segment->default_handler,
-                        'resolved_value' => $defaultValue->segment_value,
-                    ]);
                 }
             } else {
                 // No value provided and no handler

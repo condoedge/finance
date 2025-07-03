@@ -254,12 +254,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             \Condoedge\Finance\Services\Tax\TaxService::class
         );
         
-        // GL Account Service
-        $this->app->bind(
-            \Condoedge\Finance\Services\Account\GlAccountServiceInterface::class,
-            \Condoedge\Finance\Services\Account\GlAccountService::class
-        );
-        
         // Account Segment Validator
         $this->app->singleton(\Condoedge\Finance\Services\AccountSegmentValidator::class);
         
