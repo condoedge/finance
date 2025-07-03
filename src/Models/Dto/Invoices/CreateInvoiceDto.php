@@ -68,6 +68,8 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoiceDetails.*.revenue_natural_account_id' => 'required_without:invoiceDetails.*.revenue_account_id|integer|exists:fin_segment_values,id',
             'invoiceDetails.*.taxesIds' => 'nullable|array',
             'invoiceDetails.*.taxesIds.*' => 'integer|exists:fin_taxes,id',
+            'invoiceDetails.*.product_id' => 'nullable|integer|exists:fin_products,id',
+            'invoiceDetails.*.create_product_on_save' => 'nullable|boolean',
 
             'possible_payment_methods' => 'nullable|array',
             'possible_payment_installments' => 'nullable|array',

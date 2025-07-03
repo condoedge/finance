@@ -2,6 +2,7 @@
 
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\TaxModel;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\SegmentValue;
 
 \Kompo\Elements\Element::macro('asCurrency', function(){
@@ -48,11 +49,10 @@ if (!function_exists('_MiniLabelFinanceCcy')) {
 }
 
 if (!function_exists('_AccountsSelect')) {
-    function _AccountsSelect($name = 'natural_account_id')
+    function _AccountsSelect($label = '', ?GlAccount $account = null)
     {
-        return _Select()->placeholder('finance-account')
-            ->class('w-36 !mb-0')
-            ->name($name)
+        return _Select($label)->placeholder('finance-account')
+            ->default($account?->getLastSegmentValue()->id ?? null)
             ->options(SegmentValue::forLastSegment()->get()->mapWithKeys(
                 fn($it) => [$it->id => $it->segment_value . ' - ' . $it->segment_description]
             ));

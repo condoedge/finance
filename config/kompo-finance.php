@@ -143,6 +143,10 @@ return [
     PAYMENT_METHOD_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\PaymentMethodEnum::class,
 
     INVOICE_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\InvoiceTypeEnum::class,
+
+    PRODUCT_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\ProductTypeEnum::class,
+
+    PRODUCT_MODEL_KEY . '-namespace' => \Condoedge\Finance\Models\Product::class,
     
     SEGMENT_DEFAULT_HANDLER_ENUM_KEY . '-namespace' => \Condoedge\Finance\Enums\SegmentDefaultHandlerEnum::class,
 ];

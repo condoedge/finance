@@ -45,6 +45,8 @@ class UpdateInvoiceDto extends ValidatedDTO
 
             'invoiceDetails.*.taxesIds' => 'nullable|array',
             'invoiceDetails.*.taxesIds.*' => 'integer|exists:fin_taxes,id',
+            'invoiceDetails.*.product_id' => 'nullable|integer|exists:fin_products,id',
+            'invoiceDetails.*.create_product_on_save' => 'nullable|boolean',
         ];
     }
 

@@ -21,7 +21,7 @@ class GlTransactionLineForm extends Form
     public function render()
     {
         return [
-            _AccountsSelect()->default($this->model->account?->getLastSegmentValue()->id),
+            _AccountsSelect(account: $this->model->account)->class('w-36 !mb-0'),
             
             // Line description
             _Input()

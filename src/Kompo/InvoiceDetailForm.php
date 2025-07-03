@@ -4,8 +4,10 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\InvoiceService;
+use Condoedge\Finance\Facades\ProductModel;
 use Condoedge\Finance\Models\Tax;
 use Kompo\Form;
+use Condoedge\Finance\Facades\ProductTypeEnum;
 
 class InvoiceDetailForm extends Form
 {
@@ -15,34 +17,50 @@ class InvoiceDetailForm extends Form
 	protected $invoiceId;
 	protected $invoice;
 
+	protected $productId;
+	protected $product;
+
+	protected $createProductsOnSave = false;
+
 	public function created()
 	{
 		$this->teamId = $this->prop('team_id');
+
+		$this->productId = $this->prop('product_id');
+		$this->product = $this->productId > 0 ? ProductModel::find($this->productId) : null;
+
+		$this->createProductsOnSave = $this->productId === -1;
 	}
 
 	public function render()
 	{
 		return [
 			_Rows(
-				_Input()->placeholder('finance.new-item-name')->name('name')->class('w-72'),
+				_Hidden()->name('create_product_on_save')->default($this->createProductsOnSave ? 1 : 0),
+				_Hidden()->name('product_id')->default($this->product->id ?? null),
+				_Input()->placeholder('finance.new-item-name')->name('name')->class('w-72 !mb-2')
+					->default($this->product?->product_name),
 
-				_Input()->placeholder('finance.item-description')->name('description')->style('width: 190%'),
-
+				_Input()->placeholder('finance.item-description')->name('description')->class('!mb-0')->style('width: 170%')
+					->default($this->product?->product_description),
 			),
 
-			_AccountsSelect('revenue_natural_account_id')->class('w-full'),
+			_AccountsSelect(account: $this->model->invoice?->accountReceivable ?? $this->product?->defaultRevenueAccount)
+				->name('revenue_natural_account_id', false)
+				->class('w-full !mb-0'),
 
 			_Rows(
 				_Flex(
 					_Input()->type('number')
 						->name('quantity')
 						->default(1)
-						->class('w-28 mb-0')
+						->class('w-28 !mb-0')
 						->run('calculateTotals'),
 
 					_Input()->type('number')
-						->name('unit_price')
-						->class('w-28 mb-0')
+						->name('unit_price', false)
+						->default($this->model->unit_price?->toFloat() ?? $this->product?->getAmount() ?? 0)
+						->class('w-28 !mb-0')
 						->run('calculateTotals'),
 
 					_FinanceCurrency($this->model->extended_price)
@@ -51,7 +69,7 @@ class InvoiceDetailForm extends Form
 				_FlexBetween(
 					_Flex(
 						_TaxesSelect($this->invoice, 'taxesIds')
-							->class('w-60 mb-0 mt-2'),
+							->class('w-60 !mb-0 mt-2'),
 
 						_FlexEnd(
 							_TaxesInfoLink()->class('left-0 top-1 ml-1'),
@@ -61,7 +79,7 @@ class InvoiceDetailForm extends Form
 								)
 							)->class('w-32 item-taxes font-semibold text-level1 text-right')
 						)->class('relative'),
-					)->class('mb-4'),
+					),
 				),
 			),
 

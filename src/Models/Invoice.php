@@ -132,6 +132,11 @@ class Invoice extends AbstractMainFinanceModel
         return $this->morphTo();
     }
 
+    public function accountReceivable()
+    {
+        return $this->belongsTo(GlAccount::class, 'account_receivable_id');
+    }
+
     /* ATTRIBUTES */
     public function getInvoiceTypeLabelAttribute()
     {

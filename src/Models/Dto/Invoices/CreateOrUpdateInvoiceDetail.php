@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Models\Dto\Invoices;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
+use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
 use WendellAdriel\ValidatedDTO\Casting\FloatCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
@@ -30,11 +31,15 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
     public ?int $invoiceable_id;
     public ?string $invoiceable_type;
 
+    public ?bool $create_product_on_save;
+
     /**
      * The IDs of the taxes to be applied to this invoice detail.
      * @var int[]
      */
     public ?array $taxesIds;
+
+    public ?int $product_id;
 
     public function rules(): array
     {
@@ -57,8 +62,12 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
             'taxesIds' => 'nullable|array',
             'taxesIds.*' => 'integer|exists:fin_taxes,id',
 
+            'product_id' => 'nullable|integer|exists:fin_products,id',
+
             'invoiceable_type' => 'nullable|string',
             'invoiceable_id' => 'nullable|integer',
+
+            'create_product_on_save' => 'nullable|boolean',
         ];
     }
 
@@ -74,6 +83,16 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
             'revenue_account_id' => new IntegerCast,
             'revenue_natural_account_id' => new IntegerCast,
             'taxesIds' => new ArrayCast,
+            'product_id' => new IntegerCast,
+            'create_product_on_save' => new BooleanCast,
+        ];
+    }
+
+    public function defaults(): array
+    {
+        return [
+            'revenue_account_id' => 0,
+            'create_product_on_save' => 0,
         ];
     }
 }
