@@ -1,16 +1,16 @@
 # laravel: '@testbench'
 
-# providers:
-#   - Kompo\KompoServiceProvider
-#   - Condoedge\Utils\CondoedgeUtilsServiceProvider
-#   - Condoedge\Finance\CondoedgeFinanceServiceProvider
-#   - Kompo\Auth\KompoAuthServiceProvider
+providers:
+  - Kompo\KompoServiceProvider
+  - Condoedge\Utils\CondoedgeUtilsServiceProvider
+  - Condoedge\Finance\CondoedgeFinanceServiceProvider
+  - Kompo\Auth\KompoAuthServiceProvider
 
 migrations:
   - ./database/migrations
 
 seeders:
-  - Condoedge\Finance\Database\Seeders\DatabaseSeeder
+  # - Condoedge\Finance\Database\Seeders\DatabaseSeeder
 
 tests:
   - ./tests/Feature
