@@ -76,7 +76,7 @@ class GlTransactionService implements GlTransactionServiceInterface
     {
         $account = GlAccount::find($accountId);
         if (!$account || !$account->is_active) {
-            throw new \Exception(__("translate.error-account-inactive", ['account_id' => $accountId]));
+            throw new \Exception(__("error-account-inactive", ['account_id' => $accountId]));
         }
 
         if (!$account->allow_manual_entry && $transactionType === GlTransactionTypeEnum::MANUAL_GL) {
@@ -88,7 +88,7 @@ class GlTransactionService implements GlTransactionServiceInterface
     {
         $naturalAccount = SegmentValue::find($naturalAccountId);
         if (!$naturalAccount || !$naturalAccount->is_active) {
-            throw new \Exception(__("translate.error-account-inactive", ['account_id' => $naturalAccountId]));
+            throw new \Exception(__("error-account-inactive", ['account_id' => $naturalAccountId]));
         }
 
         if (!$naturalAccount->allow_manual_entry && $transactionType === GlTransactionTypeEnum::MANUAL_GL) {

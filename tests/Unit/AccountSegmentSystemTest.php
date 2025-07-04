@@ -89,7 +89,7 @@ class AccountSegmentSystemTest extends TestCase
 
         // Test getting error when segment value is too short
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('translate.value-length-mismatch'));
+        $this->expectExceptionMessage(__('error-value-length-mismatch'));
 
         $this->segmentService->createSegmentValue(new CreateSegmentValueDto([
             'segment_definition_id' => $segment->id,
@@ -142,7 +142,7 @@ class AccountSegmentSystemTest extends TestCase
 
         // Try to create duplicate account with same segments
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(__('translate.account-already-exists'));
+        $this->expectExceptionMessage(__('error-account-already-exists'));
 
         $this->segmentService->createAccount(new CreateAccountDto([
             'segment_value_ids' => $valueIds,
@@ -310,7 +310,7 @@ class AccountSegmentSystemTest extends TestCase
         
         // Try to create account with only 2 segments (missing one)
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(__('translate.with-values-missing-value-value-for-segment-position'));
+        $this->expectExceptionMessage(__('error-with-values-missing-value-value-for-segment-position'));
 
         $this->segmentService->createAccount(new CreateAccountDto([
             'segment_value_ids' => [
@@ -338,7 +338,7 @@ class AccountSegmentSystemTest extends TestCase
         $segmentValue->save();
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(__('translate.with-values-inactive-value-value-for-segment-position'));
+        $this->expectExceptionMessage(__('error-with-values-inactive-value-value-for-segment-position'));
 
         $this->segmentService->createAccount(new CreateAccountDto([
             'segment_value_ids' => array_column($segmentValues, 'id'),

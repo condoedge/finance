@@ -145,7 +145,7 @@ class GlTransactionSystemTest extends TestCase
 
         // Try to modify a posted transaction
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage(__('translate.error-cannot-modify-posted-transaction'));
+        $this->expectExceptionMessage(__('error-cannot-modify-posted-transaction'));
 
         // Try to update description
         $transaction->transaction_description = 'Modified description';
@@ -387,7 +387,7 @@ class GlTransactionSystemTest extends TestCase
         $inactiveAccount = $this->createTestAccount(AccountTypeEnum::ASSET, false);
 
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage(__('translate.error-account-inactive'));
+        $this->expectExceptionMessage(__('error-account-inactive'));
 
         $dto = new CreateGlTransactionDto([
             'fiscal_date' => now()->format('Y-m-d'),

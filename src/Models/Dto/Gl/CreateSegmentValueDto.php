@@ -89,7 +89,7 @@ class CreateSegmentValueDto extends ValidatedDTO
             ->first();
 
         if ($existing) {
-            $validator->errors()->add('segment_value', __('translate.segment-value-already-exists'));
+            $validator->errors()->add('segment_value', __('error-segment-value-already-exists'));
         }
     }
 }

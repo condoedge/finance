@@ -23,13 +23,13 @@ class GlTransactionLine extends AbstractMainFinanceModel
         // Ensure integrity checks are applied on create/update/delete        
         static::updating(function ($model) {
             if ($model->header->is_posted) {
-                throw new \Exception(__('translate.cannot-modify-posted-transaction'));
+                throw new \Exception(__('error-cannot-modify-posted-transaction'));
             }
         });
         
         static::deleting(function ($model) {
             if ($model->header->is_posted) {
-                throw new \Exception(__('translate.cannot-delete-posted-transaction'));
+                throw new \Exception(__('error-cannot-delete-posted-transaction'));
             }
         });
     }

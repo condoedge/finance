@@ -33,7 +33,7 @@ class AccountSegmentValidator
         foreach ($requiredSegments as $segment) {
             if (!isset($providedSegments[$segment->segment_position])) {
                 throw new \InvalidArgumentException(
-                    __('translate.with-values-missing-value-value-for-segment-position', [
+                    __('error-with-values-missing-value-value-for-segment-position', [
                         'segment_position' => $segment->segment_position,
                         'segment_description' => $segment->segment_description
                     ])
@@ -50,7 +50,7 @@ class AccountSegmentValidator
         
         if ($inactiveValues->isNotEmpty()) {
             throw new \InvalidArgumentException(
-                __('translate.with-values-inactive-value-value-for-segment-position', [
+                __('error-with-values-inactive-value-value-for-segment-position', [
                     'segment_position' => $inactiveValues->first()->segmentDefinition->segment_position,
                     'segment_description' => $inactiveValues->first()->segmentDefinition->segment_description
                 ])
@@ -94,7 +94,7 @@ class AccountSegmentValidator
         }
         
         if ($query->exists()) {
-            throw new \InvalidArgumentException(__('translate.account-already-exists'));
+            throw new \InvalidArgumentException(__('error-account-already-exists'));
         }
     }
     
@@ -112,7 +112,7 @@ class AccountSegmentValidator
         
         if (strlen($value) != $definition->segment_length) {
             throw new \InvalidArgumentException(
-                __('translate.value-length-mismatch', [
+                __('error-with-values-length-mismatch', [
                     'value' => $value,
                     'length' => $definition->segment_length
                 ])
@@ -137,7 +137,7 @@ class AccountSegmentValidator
         }
         
         if ($query->exists()) {
-            throw new \InvalidArgumentException(__('translate.segment-position-taken', [
+            throw new \InvalidArgumentException(__('error-segment-position-taken', [
                 'position' => $position
             ]));
         }

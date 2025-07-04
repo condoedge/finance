@@ -98,7 +98,7 @@ class FiscalYearService
                 ->where('fiscal_year', $fiscalYear)
                 ->where('period_number', 0) // Custom periods have 0
                 ->exists()) {
-                throw new Exception(__('translate.period-for-fiscal-year-already-exists', [
+                throw new Exception(__('error-period-for-fiscal-year-already-exists', [
                     'fiscal_year' => $fiscalYear,
                     'team_id' => $teamId
                 ]));
@@ -225,7 +225,7 @@ class FiscalYearService
         $fiscalYear = $this->getFiscalYearForDate($date, $teamId);
 
         if (!$fiscalYear) {
-            throw new Exception(__('translate.fiscal-year-not-found'));
+            throw new Exception(__('error-fiscal-year-not-found'));
         }
 
         // Try to get existing period
@@ -235,7 +235,7 @@ class FiscalYearService
             // Check if we should create the period
             if ($onlyCurrentMonth && !$date->isSameMonth(now())) {
                 throw new InvalidArgumentException(
-                    __('translate.with-values.period-does-not-exist-just-can-create-for-current-month', [
+                    __('error-with-values-period-does-not-exist-just-can-create-for-current-month', [
                         'date' => $date->format('Y-m-d')
                     ])
                 );
@@ -332,7 +332,7 @@ class FiscalYearService
             $enum = GlTransactionTypeEnum::fromModuleCode($module);
             if (!$enum) {
                 throw new InvalidArgumentException(
-                    __('translate.invalid-module-code', ['module' => $module])
+                    __('error-with-values-invalid-module-code', ['module' => $module])
                 );
             }
         } else {
@@ -358,7 +358,7 @@ class FiscalYearService
         $fiscalSetup = FiscalYearSetup::getActiveForTeam($teamId);
         
         if (!$fiscalSetup) {
-            throw new Exception(__('translate.fiscal-year-setup-not-found'));
+            throw new Exception(__('error-fiscal-year-setup-not-found'));
         }
         
         $calendarYear = $fiscalYear - 1;
@@ -389,7 +389,7 @@ class FiscalYearService
     {
         $fiscalSetup = FiscalYearSetup::getActiveForTeam($teamId);
         if (!$fiscalSetup) {
-            throw new Exception(__('translate.fiscal-year-setup-not-found'));
+            throw new Exception(__('error-fiscal-year-setup-not-found'));
         }
         
         $fiscalStartMonth = $fiscalSetup->fiscal_start_date->month;
@@ -449,7 +449,7 @@ class FiscalYearService
     protected function validatePeriodDates(Carbon $startDate, Carbon $endDate, int $teamId, int $fiscalYear): void
     {
         if ($startDate->gte($endDate)) {
-            throw new InvalidArgumentException(__('translate.start-date-must-be-before-end-date'));
+            throw new InvalidArgumentException(__('error-start-date-must-be-before-end-date'));
         }
         
         // Check for overlapping periods
@@ -466,7 +466,7 @@ class FiscalYearService
             ->exists();
             
         if ($overlapping) {
-            throw new InvalidArgumentException(__('translate.period-dates-overlap'));
+            throw new InvalidArgumentException(__('error-period-dates-overlap'));
         }
     }
     
@@ -484,7 +484,7 @@ class FiscalYearService
                 // Get fiscal year for this month
                 $fiscalYear = $this->getFiscalYearForDate($currentDate, $teamId);
                 if (!$fiscalYear) {
-                    throw new Exception(__('translate.fiscal-year-not-found'));
+                    throw new Exception(__('error-fiscal-year-not-found'));
                 }
                 
                 // Calculate period number
