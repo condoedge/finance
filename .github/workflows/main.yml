@@ -153,12 +153,13 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}
+          name: test-results-php${{ matrix.php }}-laravel10
           path: |
             storage/logs/
             tests/_output/
             .phpunit.cache/
             phpunit.xml
+          if-no-files-found: ignore
 
   code-quality:
     name: Code Quality Checks
