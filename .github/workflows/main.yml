@@ -66,6 +66,23 @@ jobs:
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
           composer update --prefer-stable --prefer-dist --no-interaction --no-progress
 
+      - name: Create testbench directories
+        run: |
+          # Create all possible testbench cache locations before any testbench command
+          mkdir -p vendor/orchestra/testbench-core/laravel/bootstrap/cache
+          mkdir -p vendor/orchestra/testbench/laravel/bootstrap/cache
+          mkdir -p vendor/orchestra/testbench-core/src/bootstrap/cache
+          mkdir -p testbench/bootstrap/cache
+          mkdir -p bootstrap/cache
+          mkdir -p storage/framework/cache
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p storage/logs
+          
+          # Set permissions
+          find vendor/orchestra -name "cache" -type d -exec chmod -R 777 {} \; 2>/dev/null || true
+          chmod -R 777 bootstrap storage 2>/dev/null || true
+
       - name: Configure MySQL
         run: |
           # Wait for MySQL to be ready
@@ -109,26 +126,6 @@ jobs:
       - name: Dump database schema
         run: |
           vendor/bin/testbench schema:dump
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: testbench
-          DB_USERNAME: root
-          DB_PASSWORD: testing_password
-
-      - name: Setup testbench environment
-        run: |
-          # Clear any previous cache
-          vendor/bin/testbench package:purge-skeleton --ansi || true
-          # Discover packages
-          vendor/bin/testbench package:discover --ansi
-          # Ensure all cache directories exist
-          mkdir -p bootstrap/cache
-          mkdir -p storage/framework/cache
-          mkdir -p storage/framework/sessions
-          mkdir -p storage/framework/views
-          chmod -R 775 bootstrap storage
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
