@@ -2,13 +2,183 @@ name: Run tests
 
 on:
   push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
 
 jobs:
-  phpunit:
-    name: Run PHPUnit
-    runs-on: ubuntu-latest
+  test:
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        php: [8.1, 8.2]
+        laravel: [10.*, 11.*]
+        include:
+          - laravel: 10.*
+            testbench: 8.*
+          - laravel: 11.*
+            testbench: 9.*
+    
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: testing_password
+          MYSQL_DATABASE: testbench
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+          --tmpfs /var/lib/mysql
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: php-actions/composer@v6
-      - uses: php-actions/phpunit@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysql, pdo_mysql, bcmath, soap, intl, gd, exif, iconv, fileinfo
+          coverage: none
+          ini-values: memory_limit=-1, error_reporting=E_ALL, display_errors=On
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}-composer-
+            ${{ runner.os }}-php-${{ matrix.php }}-composer-
+
+      - name: Install dependencies
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --prefer-stable --prefer-dist --no-interaction --no-progress
+
+      - name: Configure MySQL
+        run: |
+          # Wait for MySQL to be ready
+          for i in {1..30}; do
+            mysql -h127.0.0.1 -uroot -ptesting_password -e "SELECT 1" && break
+            echo "Waiting for MySQL..."
+            sleep 1
+          done
+          
+          # Enable function creation
+          mysql -h127.0.0.1 -uroot -ptesting_password -e "SET GLOBAL log_bin_trust_function_creators = 1;"
+          
+          # Create test database if it doesn't exist
+          mysql -h127.0.0.1 -uroot -ptesting_password -e "CREATE DATABASE IF NOT EXISTS testbench;"
+
+      - name: Configure environment for MySQL
+        run: |
+          # Create a CI-specific phpunit.xml
+          cp phpunit.xml phpunit.xml.dist
+          
+          # Update the MySQL host to use 127.0.0.1 instead of localhost
+          sed -i 's|<server name="MYSQL_HOST" value="127.0.0.1"/>|<server name="MYSQL_HOST" value="127.0.0.1"/>|g' phpunit.xml
+          sed -i 's|<server name="MYSQL_PORT" value="3309"/>|<server name="MYSQL_PORT" value="3306"/>|g' phpunit.xml
+          
+          # Ensure DB_CONNECTION is set to mysql
+          if ! grep -q "DB_CONNECTION" phpunit.xml; then
+            sed -i '/<php>/a\        <server name="DB_CONNECTION" value="mysql"/>' phpunit.xml
+          fi
+
+      - name: Execute database migrations
+        run: |
+          vendor/bin/testbench migrate:fresh --force --seed
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testbench
+          DB_USERNAME: root
+          DB_PASSWORD: testing_password
+
+      - name: Dump database schema
+        run: |
+          vendor/bin/testbench schema:dump
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testbench
+          DB_USERNAME: root
+          DB_PASSWORD: testing_password
+
+      - name: Execute tests
+        run: |
+          vendor/bin/testbench package:test --no-coverage
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: testbench
+          DB_USERNAME: root
+          DB_PASSWORD: testing_password
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PORT: 3306
+          MYSQL_USER: root
+          MYSQL_PASSWORD: testing_password
+          MYSQL_DATABASE: testbench
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-php-${{ matrix.php }}-laravel-${{ matrix.laravel }}
+          path: |
+            storage/logs/
+            tests/_output/
+            .phpunit.cache/
+            phpunit.xml
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysql, pdo_mysql
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Check code style (Pint)
+        run: |
+          if [ -f "vendor/bin/pint" ]; then
+            vendor/bin/pint --test
+          else
+            echo "Pint not installed, skipping code style check"
+          fi
+        continue-on-error: true
+
+      - name: Run static analysis (PHPStan)
+        run: |
+          if [ -f "vendor/bin/phpstan" ] && [ -f "phpstan.neon" -o -f "phpstan.neon.dist" ]; then
+            vendor/bin/phpstan analyse --memory-limit=2G
+          else
+            echo "PHPStan not configured, skipping static analysis"
+          fi
+        continue-on-error: true
