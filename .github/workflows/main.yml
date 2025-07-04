@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         php: [8.2]
-        laravel: [9.*, 10.*]
+        laravel: [10.*]
         include:
           - laravel: 10.*
             testbench: 7.0.*
