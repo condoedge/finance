@@ -17,7 +17,7 @@ class SegmentsTable extends Table
     {
         return AccountSegment::getAllOrdered();
     }
-    
+
     public function headers()
     {
         return [

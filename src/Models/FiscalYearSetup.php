@@ -7,14 +7,14 @@ use Condoedge\Utils\Models\Model;
 class FiscalYearSetup extends Model
 {
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
-    
+
     protected $table = 'fin_fiscal_year_setup';
-    
+
     protected $fillable = [
         'team_id',
         'fiscal_start_date',
     ];
-    
+
     protected $casts = [
         'fiscal_start_date' => 'date',
     ];
@@ -25,10 +25,10 @@ class FiscalYearSetup extends Model
     public static function getActiveForTeam(int $teamId = null): ?self
     {
         $teamId = $teamId ?? currentTeamId();
-        
+
         return static::forTeam($teamId)->first();
     }
-    
+
     /**
      * Scope for team
      */
@@ -37,22 +37,22 @@ class FiscalYearSetup extends Model
         $teamId = $teamId ?? currentTeamId();
         return $query->where('team_id', $teamId);
     }
-    
+
     /**
      * Get fiscal year for a given date
      */
     public function getFiscalYear(\Carbon\Carbon $date): int
     {
         $fiscalStart = $this->fiscal_start_date->copy();
-        
+
         // If date is before fiscal start in the same year, use previous fiscal year
         if ($date->lt($fiscalStart->copy()->year($date->year))) {
             return $date->year - 1;
         }
-        
+
         return $date->year;
     }
-    
+
     /**
      * Get fiscal year start date for a given year
      */
@@ -60,7 +60,7 @@ class FiscalYearSetup extends Model
     {
         return $this->fiscal_start_date->copy()->year($fiscalYear);
     }
-    
+
     /**
      * Get fiscal year end date for a given year
      */
@@ -76,10 +76,10 @@ class FiscalYearSetup extends Model
     {
         $start = $this->getFiscalYearStart($fiscalYear);
         $end = $this->getFiscalYearEnd($fiscalYear);
-        
+
         return $date->between($start, $end);
     }
-    
+
     /**
      * Get the active fiscal year setup
      */
@@ -87,7 +87,7 @@ class FiscalYearSetup extends Model
     {
         return static::first();
     }
-    
+
     /**
      * Get fiscal year from date
      */
@@ -97,16 +97,16 @@ class FiscalYearSetup extends Model
         if (!$setup) {
             return null;
         }
-        
+
         $fiscalStartMonth = $setup->fiscal_start_date->month;
         $fiscalStartDay = $setup->fiscal_start_date->day;
-        
+
         // If date is after fiscal start in same year, it's next fiscal year
-        if ($date->month > $fiscalStartMonth || 
+        if ($date->month > $fiscalStartMonth ||
             ($date->month == $fiscalStartMonth && $date->day >= $fiscalStartDay)) {
             return $date->year + 1;
         }
-        
+
         return $date->year;
     }
 }

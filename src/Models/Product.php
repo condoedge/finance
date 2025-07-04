@@ -3,12 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Facades\InvoiceDetailService;
-use Condoedge\Finance\Models\ProductTypeEnum;
-use Condoedge\Finance\Facades\ProductTypeEnum as ProductTypeEnumFacade;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
-use Condoedge\Finance\Models\AbstractMainFinanceModel;
-use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Utils\Models\Model;
 
 class Product extends AbstractMainFinanceModel
@@ -71,8 +66,8 @@ class Product extends AbstractMainFinanceModel
     public function scopeMain($query)
     {
         return $query->where(
-            fn($q) => $q->product()
-                ->orWhere(fn($q) => $q->service())
+            fn ($q) => $q->product()
+                ->orWhere(fn ($q) => $q->service())
         );
     }
 

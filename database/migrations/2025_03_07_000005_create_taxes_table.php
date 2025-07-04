@@ -8,14 +8,12 @@ class CreateTaxesTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
         Schema::create('fin_taxes', function (Blueprint $table) {
             addMetaData($table);
-            
+
             $table->string('name');
             $table->decimal('rate', 10, 6);
             $table->foreignId('account_id')->nullable()->constrained('fin_gl_accounts');
@@ -26,8 +24,6 @@ class CreateTaxesTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {

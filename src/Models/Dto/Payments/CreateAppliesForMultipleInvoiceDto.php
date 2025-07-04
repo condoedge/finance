@@ -2,11 +2,11 @@
 
 namespace Condoedge\Finance\Models\Dto\Payments;
 
-use Carbon\Carbon;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\ApplicableToInvoiceContract;
 use Condoedge\Finance\Rule\SafeDecimalRule;
+use stdClass;
 use WendellAdriel\ValidatedDTO\Attributes\Rules;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -14,11 +14,11 @@ use WendellAdriel\ValidatedDTO\Casting\ObjectCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyRules;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
-use stdClass;
 
 class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
 {
-    use EmptyRules, EmptyDefaults;
+    use EmptyRules;
+    use EmptyDefaults;
 
     #[Rules(['date', 'required'])]
     public string|\Carbon\Carbon $apply_date;
@@ -32,16 +32,18 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
     // See below in rules method. The rules were to complex to be defined in line
     public array $amounts_to_apply;
 
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
-            'apply_date' => new CarbonCast,
-            'applicable' => new ObjectCast,
+            'apply_date' => new CarbonCast(),
+            'applicable' => new ObjectCast(),
 
-            'applicable_type' => new IntegerCast,
+            'applicable_type' => new IntegerCast(),
         ];
     }
-    
-    protected function defaults(): array {
+
+    protected function defaults(): array
+    {
         return [];
     }
 
@@ -64,7 +66,7 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
     public function after(\Illuminate\Validation\Validator $validator): void
     {
         parent::after($validator);
-        
+
         $this->validateInvoicesState($validator);
         $this->validateIndividualAmounts($validator);
         $this->validateTotalApplicableAmount($validator);
@@ -136,7 +138,7 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
              * @var ApplicableToInvoiceContract $applicableModel
              */
             $applicableModel = getFinanceMorphableModel($applicableType, $applicable['id']);
-            
+
             $totalAmount = collect($amountsToApply)->reduce(function ($carry, $amountToApply) {
                 return $carry->add(new SafeDecimal($amountToApply['amount_applied'] ?? '0.00'));
             }, new SafeDecimal('0.00'));

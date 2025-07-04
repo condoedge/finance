@@ -24,7 +24,6 @@ class FiscalSetupForm extends Form
     {
         return _CardGray100(
             _Date('finance-fiscal-start-date')->name('fiscal_start_date'),
-
             _FlexEnd(
                 _SubmitButton('generic.save')->alert('finance-saved')->refresh('finance-fiscal-setup-page'),
             ),

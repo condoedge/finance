@@ -13,6 +13,7 @@ class CreateOrUpdateCustomerDto extends ValidatedDTO
 
     /**
      * Send this field as null to create a new customer.
+     *
      * @var int
      */
     public ?int $id;
@@ -26,7 +27,7 @@ class CreateOrUpdateCustomerDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'name' => new StringCast,
+            'name' => new StringCast(),
             'address' => new DTOCast(CreateAddressDto::class),
         ];
     }
@@ -36,7 +37,9 @@ class CreateOrUpdateCustomerDto extends ValidatedDTO
         return [
             /**
              * Send this field as null to create a new customer.
-             * @var integer|null
+             *
+             * @var int|null
+             *
              * @example null
              */
             'id' => ['nullable', 'integer', 'exists:fin_customers,id'],

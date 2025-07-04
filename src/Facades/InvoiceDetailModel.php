@@ -6,8 +6,9 @@ use Kompo\Komponents\Form\KompoModelFacade;
 
 /**
  * @mixin \Condoedge\Finance\Models\InvoiceDetail
+ *
  * @see \Condoedge\Finance\Models\InvoiceDetail
- * 
+ *
  * @method static \Condoedge\Finance\Models\InvoiceDetail findOrFail()
  * @method static \Condoedge\Finance\Models\InvoiceDetail find()
  * @method static \Condoedge\Finance\Models\InvoiceDetail first()

@@ -15,7 +15,7 @@ class ProductFactory extends Factory
         return [
             'name' => $this->faker->word,
             'default_revenue_account_id' => GlAccount::factory(),
-            
+
         ];
     }
 }

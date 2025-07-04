@@ -3,17 +3,14 @@
 namespace Tests\Unit;
 
 use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto;
-use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
-use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionLineDto;
-use Condoedge\Finance\Models\FiscalPeriod;
-use Condoedge\Finance\Models\FiscalYearSetup;
-use Condoedge\Finance\Models\GlTransactionHeader;
-use Condoedge\Finance\Models\GlTransactionLine;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Condoedge\Finance\Models\AccountTypeEnum;
 use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
+use Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto;
+use Condoedge\Finance\Models\FiscalPeriod;
+use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Services\AccountSegmentService;
 use Condoedge\Finance\Services\FiscalYearService;
 use Condoedge\Finance\Services\GlTransactionService;
@@ -40,13 +37,15 @@ class GlTransactionSystemTest extends TestCase
 
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
         $this->actingAs($user);
 
         $this->glService = app(GlTransactionService::class);
         $this->fiscalService = app(FiscalYearService::class);
         $this->accountService = app(AccountSegmentService::class);
-        
+
         // Setup test environment
         $this->setupTestEnvironment();
     }
@@ -57,7 +56,7 @@ class GlTransactionSystemTest extends TestCase
     public function test_it_generates_sequential_numbers_without_gaps()
     {
         $transactions = [];
-        
+
         // Create 5 transactions
         for ($i = 1; $i <= 5; $i++) {
             $dto = $this->createBalancedTransactionDto(100 * $i);
@@ -75,7 +74,7 @@ class GlTransactionSystemTest extends TestCase
         $numbers = GlTransactionHeader::orderBy('gl_transaction_number')
             ->pluck('gl_transaction_number')
             ->toArray();
-        
+
         $this->assertEquals(range(1, 5), $numbers);
     }
 
@@ -140,7 +139,7 @@ class GlTransactionSystemTest extends TestCase
         // Post the transaction
         $this->glService->postTransaction($transaction);
         $transaction->refresh();
-        
+
         $this->assertTrue($transaction->is_posted);
 
         // Try to modify a posted transaction
@@ -160,7 +159,7 @@ class GlTransactionSystemTest extends TestCase
         // Create original transaction
         $originalDto = $this->createBalancedTransactionDto(750);
         $original = $this->glService->createTransaction($originalDto);
-        
+
         // Post it
         $this->glService->postTransaction($original);
 
@@ -180,7 +179,7 @@ class GlTransactionSystemTest extends TestCase
 
         foreach ($originalLines as $index => $originalLine) {
             $reversalLine = $reversalLines[$index];
-            
+
             // Debits and credits should be swapped
             $this->assertEqualsDecimals($originalLine->debit_amount, $reversalLine->credit_amount);
             $this->assertEqualsDecimals($originalLine->credit_amount, $reversalLine->debit_amount);
@@ -228,13 +227,13 @@ class GlTransactionSystemTest extends TestCase
         // Verify balances
         // Asset: 1000 - 300 + 5000 = 5700 (debit balance)
         $this->assertEqualsDecimals(5700, $assetAccount['balance']);
-        
+
         // Revenue: 1000 (credit balance, shown as negative)
         $this->assertEqualsDecimals(-1000, $revenueAccount['balance']);
-        
+
         // Expense: 300 (debit balance)
         $this->assertEqualsDecimals(300, $expenseAccount['balance']);
-        
+
         // Equity: 5000 (credit balance, shown as negative)
         $this->assertEqualsDecimals(-5000, $equityAccount['balance']);
     }
@@ -255,14 +254,14 @@ class GlTransactionSystemTest extends TestCase
             $type = GlTransactionTypeEnum::from($type);
             // Get current period and close specific module
             $period = FiscalPeriod::getPeriodFromDate(now(), currentTeamId());
-            
+
             // Open all modules first
             $period->is_open_gl = true;
             $period->is_open_bnk = true;
             $period->is_open_rm = true;
             $period->is_open_pm = true;
             $period->save();
-            
+
             // Close only the specific module
             $period->$field = false;
             $period->save();
@@ -277,7 +276,7 @@ class GlTransactionSystemTest extends TestCase
             } catch (Exception $e) {
                 $this->assertStringContainsString(__('finance-fiscal-year-period-closed'), $e->getMessage());
             }
-            
+
             // Reopen module for next test
             $period->$field = true;
             $period->save();
@@ -455,7 +454,7 @@ class GlTransactionSystemTest extends TestCase
     {
         $transactionId = 100;
 
-        // Create transaction manually to test trigger        
+        // Create transaction manually to test trigger
         DB::table('fin_gl_transaction_headers')->insert([
             'id' => $transactionId,
             'gl_transaction_number' => 999999,
@@ -582,7 +581,7 @@ class GlTransactionSystemTest extends TestCase
         // Test with date in first half of fiscal year (May)
         $dto2 = $this->createBalancedTransactionDto(500, $secondDate);
         $transaction2 = $this->glService->createTransaction($dto2);
-        
+
         $this->assertEquals(2025, $transaction2->fiscalPeriod->fiscal_year); // FY 2025 starts May 2024
     }
 
@@ -595,7 +594,7 @@ class GlTransactionSystemTest extends TestCase
 
         // Setup account segments
         $this->accountService->createDefaultSegments();
-        
+
         // Create test accounts for each type
         $this->createTestAccounts();
     }
@@ -603,7 +602,7 @@ class GlTransactionSystemTest extends TestCase
     private function createTestAccounts(): void
     {
         $accountTypes = AccountTypeEnum::cases();
-        
+
         foreach ($accountTypes as $type) {
             $this->createTestAccount($type);
         }
@@ -637,15 +636,15 @@ class GlTransactionSystemTest extends TestCase
 
     private function getTestAccountId(AccountTypeEnum $type): int
     {
-        $account = GlAccount::whereHas('lastSegmentValue', fn($q) => $q->where('account_type', $type))
+        $account = GlAccount::whereHas('lastSegmentValue', fn ($q) => $q->where('account_type', $type))
             ->where('is_active', true)
             ->where('allow_manual_entry', true)
             ->first();
-            
+
         if (!$account) {
             $account = $this->createTestAccount($type);
         }
-        
+
         return $account->id;
     }
 
@@ -695,7 +694,7 @@ class GlTransactionSystemTest extends TestCase
 
         $transaction = $this->glService->createTransaction($dto);
         $this->glService->postTransaction($transaction);
-        
+
         return $transaction;
     }
 }

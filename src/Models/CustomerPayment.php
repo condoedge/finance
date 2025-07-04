@@ -7,22 +7,22 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Class CustomerPayment
- * 
+ *
  * @description This model represents payments of customer as separated entities (before being applied to invoices).
- * 
+ *
  * @package Condoedge\Finance\Models
- * 
+ *
  * @property int $id
  * @property int $customer_id Foreign key to fin_customers
  * @property \DateTime $payment_date The date of the payment
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount The total amount of the payment
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount_left @CALCULATED BY calculate_payment_amount_left() - Amount left to be applied to invoices
- * 
-**/ 
+ *
+ **/
 class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToInvoiceContract
 {
     use \Condoedge\Finance\Models\Traits\ApplicableUtilsTrait;
-    
+
     protected $table = 'fin_customer_payments';
 
     protected $casts = [

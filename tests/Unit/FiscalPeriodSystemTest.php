@@ -2,10 +2,9 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Models\FiscalPeriod;
-use Condoedge\Finance\Models\FiscalYearSetup;
-use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
+use Condoedge\Finance\Models\FiscalPeriod;
+use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Services\FiscalYearService;
 use Exception;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -15,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Kompo\Auth\Database\Factories\TeamFactory;
 use Kompo\Auth\Database\Factories\UserFactory;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 class FiscalPeriodSystemTest extends TestCase
@@ -30,11 +28,13 @@ class FiscalPeriodSystemTest extends TestCase
 
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
         $this->actingAs($user);
 
         $this->fiscalService = app(FiscalYearService::class);
-        
+
         // Clean up any existing fiscal setup
         DB::table('fin_fiscal_periods')->delete();
         DB::table('fin_fiscal_year_setup')->delete();
@@ -62,7 +62,7 @@ class FiscalPeriodSystemTest extends TestCase
             ['date' => '2024-12-31', 'expected_fy' => 2025], // End of calendar year
             ['date' => '2025-01-15', 'expected_fy' => 2025], // Middle of fiscal year
             ['date' => '2025-04-30', 'expected_fy' => 2025], // End of fiscal year
-            
+
             // Dates in FY 2024 (would be May 2023 - April 2024)
             ['date' => '2024-04-30', 'expected_fy' => 2024], // Day before FY 2025 starts
             ['date' => '2024-01-01', 'expected_fy' => 2024], // Earlier in calendar year
@@ -70,12 +70,12 @@ class FiscalPeriodSystemTest extends TestCase
 
         foreach ($testCases as $test) {
             $calculatedFY = $this->fiscalService->getFiscalYearForDate(
-                Carbon::parse($test['date']), 
+                Carbon::parse($test['date']),
                 currentTeamId()
             );
-            
+
             $this->assertEquals(
-                $test['expected_fy'], 
+                $test['expected_fy'],
                 $calculatedFY,
                 "Date {$test['date']} should be in FY {$test['expected_fy']}"
             );
@@ -92,8 +92,8 @@ class FiscalPeriodSystemTest extends TestCase
 
         // Try to get period for current month (should auto-create)
         $currentPeriod = $this->fiscalService->getOrCreatePeriodForDate(
-            currentTeamId(), 
-            now(), 
+            currentTeamId(),
+            now(),
             true // onlyCurrentMonth = true
         );
 
@@ -108,8 +108,8 @@ class FiscalPeriodSystemTest extends TestCase
         $this->expectExceptionMessage(__('error-with-values-period-does-not-exist-just-can-create-for-current-month'));
 
         $this->fiscalService->getOrCreatePeriodForDate(
-            currentTeamId(), 
-            now()->addMonth(), 
+            currentTeamId(),
+            now()->addMonth(),
             true // onlyCurrentMonth = true
         );
     }
@@ -215,8 +215,8 @@ class FiscalPeriodSystemTest extends TestCase
 
         // Creating for current month
         $currentPeriod = $this->fiscalService->getOrCreatePeriodForDate(
-            currentTeamId(), 
-            now(), 
+            currentTeamId(),
+            now(),
             true // onlyCurrentMonth = true
         );
 
@@ -238,7 +238,7 @@ class FiscalPeriodSystemTest extends TestCase
         // Verify period was created
         $period = FiscalPeriod::getPeriodFromDate($nextMonth, currentTeamId());
         $this->assertNotNull($period);
-        
+
         // Should be created opened
         $this->assertTrue($period->is_open_gl);
         $this->assertTrue($period->is_open_bnk);
@@ -288,10 +288,10 @@ class FiscalPeriodSystemTest extends TestCase
         foreach ($expectedMapping as $yearMonth => $expectedPeriod) {
             $date = Carbon::parse($yearMonth . '-15');
             $period = FiscalPeriod::getPeriodFromDate($date, currentTeamId());
-            
+
             $this->assertNotNull($period, "Period should exist for {$yearMonth}");
             $this->assertEquals(
-                $expectedPeriod, 
+                $expectedPeriod,
                 $period->period_number,
                 "Period number for {$yearMonth} should be {$expectedPeriod}"
             );
@@ -305,7 +305,7 @@ class FiscalPeriodSystemTest extends TestCase
     {
         // Initial setup with May start
         $this->fiscalService->setupFiscalYear(currentTeamId(), Carbon::parse('2024-05-01'));
-        
+
         // Create some periods
         $this->fiscalService->createPeriodsUpToDate(
             currentTeamId(),
@@ -323,7 +323,7 @@ class FiscalPeriodSystemTest extends TestCase
         $oldPeriods = FiscalPeriod::where('team_id', currentTeamId())
             ->whereDate('start_date', '<', '2025-01-01')
             ->count();
-            
+
         $this->assertEquals(0, $oldPeriods, 'Old periods should be cleaned up');
     }
 
@@ -333,7 +333,7 @@ class FiscalPeriodSystemTest extends TestCase
     public function test_period_date_ranges_are_correct()
     {
         $this->fiscalService->setupFiscalYear(currentTeamId(), Carbon::parse('2024-05-01'));
-        
+
         // Create a few periods
         $this->fiscalService->createPeriodsUpToDate(
             currentTeamId(),
@@ -346,7 +346,7 @@ class FiscalPeriodSystemTest extends TestCase
         $this->assertEquals('2024-05-01', $mayPeriod->start_date->format('Y-m-d'));
         $this->assertEquals('2024-05-31', $mayPeriod->end_date->format('Y-m-d'));
 
-        // June period  
+        // June period
         $junePeriod = FiscalPeriod::getPeriodFromDate(Carbon::parse('2024-06-15'), currentTeamId());
         $this->assertEquals('2024-06-01', $junePeriod->start_date->format('Y-m-d'));
         $this->assertEquals('2024-06-30', $junePeriod->end_date->format('Y-m-d'));
@@ -366,7 +366,7 @@ class FiscalPeriodSystemTest extends TestCase
 
         // Setup fiscal year for team 1
         $this->fiscalService->setupFiscalYear(currentTeamId(), Carbon::parse('2024-05-01'));
-        
+
         // Setup different fiscal year for team 2
         $this->fiscalService->setupFiscalYear($team2->id, Carbon::parse('2024-01-01'));
 
@@ -376,11 +376,11 @@ class FiscalPeriodSystemTest extends TestCase
 
         // Verify isolation
         $this->assertNotEquals($team1Period->id, $team2Period->id);
-        
+
         // Verify fiscal years are different
         $team1FY = $this->fiscalService->getCurrentFiscalYear(currentTeamId());
         $team2FY = $this->fiscalService->getCurrentFiscalYear($team2->id);
-        
+
         $this->assertEquals(now()->year + 1, $team1FY);
         $this->assertEquals(now()->year + 1, $team2FY);
 
@@ -394,7 +394,7 @@ class FiscalPeriodSystemTest extends TestCase
     public function test_transaction_at_period_boundary()
     {
         $this->fiscalService->setupFiscalYear(currentTeamId(), Carbon::parse('2024-05-01'));
-        
+
         // Create May and June periods
         $this->fiscalService->createPeriodsUpToDate(
             currentTeamId(),
@@ -424,10 +424,10 @@ class FiscalPeriodSystemTest extends TestCase
         // Get period display info
         $periodInfo = $this->fiscalService->getPeriodsForFiscalYear(currentTeamId(), $period->fiscal_year);
         $currentPeriodInfo = collect($periodInfo)->firstWhere('period.id', $period->id);
-        
+
         $this->assertNotNull($currentPeriodInfo);
         $this->assertArrayHasKey('period_display', $currentPeriodInfo);
-        
+
         // Format should be like "per09-2025 from 2025-01-01 to 2025-01-31"
         $this->assertStringContainsString('per' . $period->id, $currentPeriodInfo['period_display']);
         $this->assertStringContainsString('2025', $currentPeriodInfo['period_display']);
@@ -441,11 +441,11 @@ class FiscalPeriodSystemTest extends TestCase
     public function test_closing_expired_periods()
     {
         $this->fiscalService->setupFiscalYear(currentTeamId(), Carbon::parse('2024-05-01'));
-        
+
         // Create past period that should be closed
         $pastDate = now()->subMonth();
         $pastPeriod = $this->fiscalService->getOrCreatePeriodForDate(currentTeamId(), $pastDate, false);
-        
+
         // Make sure it's open
         $pastPeriod->is_open_gl = true;
         $pastPeriod->is_open_bnk = true;
@@ -476,7 +476,7 @@ class FiscalPeriodSystemTest extends TestCase
         $this->fiscalService->setupFiscalYear(currentTeamId(), Carbon::parse('2024-05-01'));
 
         $nextMonth = now()->addMonth()->startOfMonth();
-        
+
         // Run in dry-run mode
         Artisan::call('finance:pre-create-periods', [
             '--days-ahead' => 1,
@@ -497,7 +497,7 @@ class FiscalPeriodSystemTest extends TestCase
 
         $date = now();
         $results = [];
-        
+
         // Simulate concurrent requests trying to create same period
         for ($i = 0; $i < 5; $i++) {
             try {
@@ -511,13 +511,13 @@ class FiscalPeriodSystemTest extends TestCase
         // Should only create one period despite concurrent attempts
         $uniquePeriods = array_unique($results);
         $this->assertCount(1, $uniquePeriods);
-        
+
         // Verify only one period exists in database
         $count = FiscalPeriod::where('team_id', currentTeamId())
             ->whereDate('start_date', '<=', $date)
             ->whereDate('end_date', '>=', $date)
             ->count();
-            
+
         $this->assertEquals(1, $count);
     }
 }

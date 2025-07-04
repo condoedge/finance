@@ -34,7 +34,7 @@ class CreateGlFunctionsAndTriggers extends Migration
         DB::unprepared('DROP TRIGGER IF EXISTS ensure_gl_line_integrity');
         DB::unprepared('DROP TRIGGER IF EXISTS ensure_gl_transaction_integrity');
         DB::unprepared('DROP TRIGGER IF EXISTS tr_transaction_number_before_insert');
-        
+
         // Drop functions
         DB::unprepared('DROP FUNCTION IF EXISTS validate_gl_transaction_balance');
         DB::unprepared('DROP FUNCTION IF EXISTS get_gl_transaction_out_of_balance_amount');

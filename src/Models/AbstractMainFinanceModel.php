@@ -3,7 +3,6 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Models\Traits\HasEventsOnDbInteraction;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 use Condoedge\Finance\Models\Traits\HasSqlColumnCalculation;
@@ -52,15 +51,14 @@ abstract class AbstractMainFinanceModel extends Model
      * Each concrete model must implement this method.
      *
      * @param array|null $ids Specific IDs to check
-     * @return void
      */
-    public final static function checkIntegrity($ids = null): void
+    final public static function checkIntegrity($ids = null): void
     {
         if (count(static::columnsIntegrityCalculations()) === 0) {
             return;
         }
 
-        DB::table((new static)->getTable())
+        DB::table((new static())->getTable())
             ->when($ids, function ($query) use ($ids) {
                 return $query->whereIn('id', $ids);
             })

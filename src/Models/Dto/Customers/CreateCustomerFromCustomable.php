@@ -41,8 +41,8 @@ class CreateCustomerFromCustomable extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'customable_id' => new IntegerCast,
-            'customable_type' => new StringCast,
+            'customable_id' => new IntegerCast(),
+            'customable_type' => new StringCast(),
             'address' => new DTOCast(CreateAddressDto::class),
         ];
     }

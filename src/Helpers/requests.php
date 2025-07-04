@@ -5,11 +5,11 @@ if (!function_exists('parseDataWithMultiForm')) {
     {
         $requestData = request()->all();
 
-		if (isset($requestData[$key])) {
-			$requestData[$key] = collect($requestData[$key])->map(function ($detail) {
-				return array_merge($detail, ['id' => $detail['multiFormKey'] ?? null]);
-			})->toArray();
-		}
+        if (isset($requestData[$key])) {
+            $requestData[$key] = collect($requestData[$key])->map(function ($detail) {
+                return array_merge($detail, ['id' => $detail['multiFormKey'] ?? null]);
+            })->toArray();
+        }
 
         return $requestData;
     }

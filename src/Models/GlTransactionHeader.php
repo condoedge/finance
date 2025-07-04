@@ -2,20 +2,18 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
-use Condoedge\Finance\Models\Traits\ValidatesFiscalPeriod;
-use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Enums\GlTransactionTypeEnum;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Condoedge\Finance\Enums\GlTransactionTypeEnum;
+use Condoedge\Finance\Models\Traits\ValidatesFiscalPeriod;
+use Illuminate\Support\Facades\DB;
 
 class GlTransactionHeader extends AbstractMainFinanceModel
 {
     use ValidatesFiscalPeriod;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
-    
+
     protected $table = 'fin_gl_transaction_headers';
-    
+
     protected $casts = [
         'fiscal_date' => 'date',
         'fiscal_year' => 'integer',
@@ -28,21 +26,21 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     public static function boot()
     {
         parent::boot();
-        
-        // Ensure integrity checks are applied on create/update/delete        
+
+        // Ensure integrity checks are applied on create/update/delete
         static::updating(function ($model) {
             if ($model->getOriginal('is_posted')) {
                 throw new \Exception(__('error-cannot-modify-posted-transaction'));
             }
         });
-        
+
         static::deleting(function ($model) {
             if ($model->getOriginal('is_posted')) {
                 throw new \Exception(__('error-cannot-delete-posted-transaction'));
             }
         });
     }
-    
+
     /**
      * Override fiscal period validation methods
      */
@@ -50,22 +48,22 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     {
         return $this->fiscal_date ? Carbon::parse($this->fiscal_date) : null;
     }
-    
+
     protected function getModuleForValidation(): ?GlTransactionTypeEnum
     {
         return $this->gl_transaction_type ?? GlTransactionTypeEnum::MANUAL_GL;
     }
-    
+
     public function shouldValidateFiscalPeriod(): bool
     {
         // Skip validation for posted transactions (they're immutable)
         if ($this->is_posted) {
             return false;
         }
-        
+
         return $this->getModuleForValidation() !== null;
     }
-    
+
     /**
      * Relationships
      */
@@ -73,12 +71,12 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     {
         return $this->hasMany(GlTransactionLine::class, 'gl_transaction_id');
     }
-    
+
     public function fiscalPeriod()
     {
         return $this->belongsTo(FiscalPeriod::class, 'fiscal_period_id');
     }
-    
+
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'customer_id');
@@ -90,20 +88,20 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     protected static function determineFiscalData(string $date): array
     {
         $carbonDate = \Carbon\Carbon::parse($date);
-        
+
         $fiscalYear = FiscalYearSetup::getFiscalYearFromDate($carbonDate);
         $period = FiscalPeriod::getPeriodFromDate($carbonDate);
-        
+
         if (!$fiscalYear || !$period) {
             throw new \Exception(__("error-could-not-determine-fiscal-data", ['date' => $date]));
         }
-        
+
         return [
             'fiscal_year' => $fiscalYear,
             'fiscal_period' => $period->id,
         ];
     }
-    
+
     /**
      * Generate transaction ID
      */
@@ -111,7 +109,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     {
         return sprintf('%04d-%02d-%06d', $fiscalYear, $transactionType, $transactionNumber);
     }
-    
+
     /**
      * Check if transaction can be modified
      */
@@ -121,7 +119,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         if ($this->is_posted) {
             return false;
         }
-        
+
         // Cannot modify if period is closed
         $period = $this->fiscalPeriod;
         if ($period) {
@@ -130,10 +128,10 @@ class GlTransactionHeader extends AbstractMainFinanceModel
                 return false;
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * Post the transaction (make it final)
      */
@@ -142,15 +140,15 @@ class GlTransactionHeader extends AbstractMainFinanceModel
         if (!$this->is_balanced) {
             throw new \Exception(__('error-cannot-post-unbalanced-transaction'));
         }
-        
+
         if (!$this->canBeModified()) {
             throw new \Exception(__('error-transaction-cannot-be-modified'));
         }
-        
+
         $this->is_posted = true;
         $this->save();
     }
-    
+
     /**
      * Integrity calculations - balance status is handled by triggers
      */
@@ -164,7 +162,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
             'total_credits' => DB::raw('calculate_total_credits(fin_gl_transaction_headers.id)'),
         ];
     }
-    
+
     /**
      * Get human-readable transaction type label
      */
@@ -172,7 +170,7 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     {
         return $this->gl_transaction_type->label();
     }
-    
+
     /**
      * Scopes
      */
@@ -180,42 +178,42 @@ class GlTransactionHeader extends AbstractMainFinanceModel
     {
         return $query->where('gl_transaction_type', GlTransactionTypeEnum::MANUAL_GL);
     }
-    
+
     public function scopeBank($query)
     {
         return $query->where('gl_transaction_type', GlTransactionTypeEnum::BANK);
     }
-    
+
     public function scopeReceivable($query)
     {
         return $query->where('gl_transaction_type', GlTransactionTypeEnum::RECEIVABLE);
     }
-    
+
     public function scopePayable($query)
     {
         return $query->where('gl_transaction_type', GlTransactionTypeEnum::PAYABLE);
     }
-    
+
     public function scopeBalanced($query)
     {
         return $query->where('is_balanced', true);
     }
-    
+
     public function scopeUnbalanced($query)
     {
         return $query->where('is_balanced', false);
     }
-    
+
     public function scopePosted($query)
     {
         return $query->where('is_posted', true);
     }
-    
+
     public function scopeUnposted($query)
     {
         return $query->where('is_posted', false);
     }
-    
+
     public function scopeForTeam($query, $teamId = null)
     {
         $teamId = $teamId ?? currentTeamId();

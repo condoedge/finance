@@ -7,7 +7,7 @@ use Condoedge\Utils\Models\Model;
 
 /**
  * GL Transaction Type Model
- * 
+ *
  * Table-linked enum for GL transaction types following the established pattern.
  * This provides referential integrity and allows for future extensibility.
  */
@@ -15,7 +15,7 @@ class GlTransactionType extends Model
 {
     protected $table = 'fin_gl_transaction_types';
     protected $primaryKey = 'id';
-    
+
     protected $casts = [
         'allows_manual_entry' => 'boolean',
     ];

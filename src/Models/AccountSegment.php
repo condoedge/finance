@@ -7,10 +7,10 @@ use Condoedge\Utils\Models\Model;
 
 /**
  * Account Segment Definition Model
- * 
+ *
  * Defines the structure of account segments (position, length, description)
  * Example: Position 1 = 'Parent Team' with length 2, Position 2 = 'Team' with length 2, etc.
- * 
+ *
  * @property int $id
  * @property string $segment_description Description like 'Parent Team', 'Team', 'Account'
  * @property int $segment_position Position of the segment (1, 2, 3)
@@ -21,15 +21,15 @@ use Condoedge\Utils\Models\Model;
 class AccountSegment extends AbstractMainFinanceModel
 {
     protected $table = 'fin_account_segments';
-    
+
     // Removed fillable - using property assignment instead
-    
+
     protected $casts = [
         'segment_position' => 'integer',
         'segment_length' => 'integer',
         'default_handler_config' => 'array',
     ];
-    
+
     /**
      * Get all segment values for this segment definition
      */
@@ -37,7 +37,7 @@ class AccountSegment extends AbstractMainFinanceModel
     {
         return $this->hasMany(SegmentValue::class, 'segment_definition_id');
     }
-    
+
     /**
      * Get active segment values for this segment definition
      */
@@ -47,7 +47,7 @@ class AccountSegment extends AbstractMainFinanceModel
             ->where('is_active', true)
             ->orderBy('segment_value');
     }
-    
+
     /**
      * Scope to order by position
      */
@@ -55,7 +55,7 @@ class AccountSegment extends AbstractMainFinanceModel
     {
         return $query->orderBy('segment_position');
     }
-    
+
     /**
      * Get segment definition by position
      */
@@ -63,7 +63,7 @@ class AccountSegment extends AbstractMainFinanceModel
     {
         return static::where('segment_position', $position)->first();
     }
-    
+
     /**
      * Get all segment definitions ordered by position
      */
@@ -71,7 +71,7 @@ class AccountSegment extends AbstractMainFinanceModel
     {
         return static::orderedByPosition()->with($with)->get();
     }
-    
+
     /**
      * Check if segment has values
      */
@@ -79,7 +79,7 @@ class AccountSegment extends AbstractMainFinanceModel
     {
         return $this->segmentValues()->exists();
     }
-    
+
     /**
      * Reorder segment positions to ensure they are sequential
      */
@@ -87,7 +87,7 @@ class AccountSegment extends AbstractMainFinanceModel
     {
         $segments = static::orderedByPosition()->get();
         $position = 1;
-        
+
         foreach ($segments as $segment) {
             if ($segment->segment_position !== $position) {
                 $segment->segment_position = $position;
@@ -101,26 +101,26 @@ class AccountSegment extends AbstractMainFinanceModel
     {
         return true;
     }
-    
+
     /**
      * Get the default handler enum instance
      */
     public function getDefaultHandlerEnumAttribute(): ?SegmentDefaultHandlerEnum
     {
-        return $this->default_handler 
+        return $this->default_handler
             ? SegmentDefaultHandlerEnum::tryFrom($this->default_handler)
             : null;
     }
-    
+
     /**
      * Check if this segment has automated defaults
      */
     public function hasDefaultHandler(): bool
     {
-        return $this->default_handler && 
+        return $this->default_handler &&
                $this->default_handler !== SegmentDefaultHandlerEnum::MANUAL->value;
     }
-    
+
     /**
      * Check if this segment requires configuration for its handler
      */
@@ -129,7 +129,7 @@ class AccountSegment extends AbstractMainFinanceModel
         $handler = $this->default_handler_enum;
         return $handler ? $handler->requiresConfig() : false;
     }
-    
+
     /**
      * Validate handler configuration
      */
@@ -138,7 +138,7 @@ class AccountSegment extends AbstractMainFinanceModel
         if (!$this->default_handler_enum) {
             return [];
         }
-        
+
         return $this->default_handler_enum->validateConfig($this->default_handler_config);
     }
 }

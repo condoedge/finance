@@ -29,11 +29,13 @@ class AccountSegmentSystemTest extends TestCase
 
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
         $this->actingAs($user);
 
         $this->segmentService = app(AccountSegmentService::class);
-        
+
         // Setup default segment structure for tests
         $this->setupTestSegmentStructure();
     }
@@ -47,17 +49,17 @@ class AccountSegmentSystemTest extends TestCase
         $structure = $this->segmentService->getSegmentStructure();
 
         $this->assertCount(3, $structure);
-        
+
         // Verify first segment
         $this->assertEquals('Parent Team', $structure[0]->segment_description);
         $this->assertEquals(1, $structure[0]->segment_position);
         $this->assertEquals(2, $structure[0]->segment_length);
-        
+
         // Verify second segment
         $this->assertEquals('Team', $structure[1]->segment_description);
         $this->assertEquals(2, $structure[1]->segment_position);
         $this->assertEquals(2, $structure[1]->segment_length);
-        
+
         // Verify third segment
         $this->assertEquals('Natural Account', $structure[2]->segment_description);
         $this->assertEquals(3, $structure[2]->segment_position);
@@ -70,7 +72,7 @@ class AccountSegmentSystemTest extends TestCase
     public function test_it_creates_segment_values_with_validation()
     {
         $segment = AccountSegment::where('segment_position', 1)->first();
-        
+
         // Create valid segment value
         $segmentValue = $this->segmentService->createSegmentValue(new CreateSegmentValueDto([
             'segment_definition_id' => $segment->id,
@@ -115,10 +117,10 @@ class AccountSegmentSystemTest extends TestCase
 
         // Verify account was created
         $this->assertNotNull($account);
-        
+
         // Force refresh to get trigger-calculated values
         $account->refresh();
-        
+
         // Verify the account_segments_descriptor was built correctly
         $this->assertEquals('10-03-4000', $account->account_segments_descriptor);
     }
@@ -130,7 +132,7 @@ class AccountSegmentSystemTest extends TestCase
     {
         $segmentValues = $this->createTestSegmentValues();
         $valueIds = array_column($segmentValues, 'id');
-        
+
         // Create first account
         $account1 = $this->segmentService->createAccount(new CreateAccountDto([
             'segment_value_ids' => $valueIds,
@@ -159,10 +161,10 @@ class AccountSegmentSystemTest extends TestCase
     public function test_it_validates_segment_lengths()
     {
         $segment = AccountSegment::where('segment_position', 3)->where('segment_length', 4)->first();
-        
+
         // Try to create value that's too long
         $this->expectException(ValidationException::class);
-        
+
         $this->segmentService->createSegmentValue(new CreateSegmentValueDto([
             'segment_definition_id' => $segment->id,
             'segment_value' => '12345', // 5 chars but segment expects 4
@@ -187,7 +189,7 @@ class AccountSegmentSystemTest extends TestCase
         $teamSegment->save();
 
         $accountSegment = AccountSegment::where('segment_position', 3)->first();
-        
+
         // Create account value
         $accountValue = $this->segmentService->createSegmentValue(new CreateSegmentValueDto([
             'segment_definition_id' => $accountSegment->id,
@@ -206,7 +208,7 @@ class AccountSegmentSystemTest extends TestCase
         $thirdSegmentValue = str_pad($accountValue->segment_value, $accountSegment->segment_length, '0', STR_PAD_LEFT);
 
         // Verify default handler was applied
-       $this->assertEquals("$firstSegmentValue-$secondSegmentValue-$thirdSegmentValue", $account->account_segments_descriptor);
+        $this->assertEquals("$firstSegmentValue-$secondSegmentValue-$thirdSegmentValue", $account->account_segments_descriptor);
     }
 
     /**
@@ -215,7 +217,7 @@ class AccountSegmentSystemTest extends TestCase
     public function test_it_updates_descriptors_on_value_change()
     {
         $segmentValues = $this->createTestSegmentValues();
-        
+
         // Create account
         $account = $this->segmentService->createAccount(new CreateAccountDto([
             'segment_value_ids' => array_column($segmentValues, 'id'),
@@ -227,7 +229,7 @@ class AccountSegmentSystemTest extends TestCase
 
         $account->refresh();
         $originalDescriptor = $account->account_segments_descriptor;
-        
+
         // Update segment value description
         $segmentValue = SegmentValue::find($segmentValues[0]['id']);
         $segmentValue->segment_value = '31';
@@ -235,7 +237,7 @@ class AccountSegmentSystemTest extends TestCase
 
         // Trigger should update all accounts using this value
         $account->refresh();
-        
+
         $this->assertNotEquals($originalDescriptor, $account->account_segments_descriptor);
         $this->assertStringContainsString('31', $account->account_segments_descriptor);
     }
@@ -289,13 +291,13 @@ class AccountSegmentSystemTest extends TestCase
     {
         // Delete middle segment
         AccountSegment::where('segment_position', 2)->forceDelete();
-        
+
         // Reorder positions
         AccountSegment::reorderPositions();
-        
+
         // Verify positions are sequential
         $segments = AccountSegment::orderBy('segment_position')->get();
-        
+
         $this->assertEquals(1, $segments[0]->segment_position);
         $this->assertEquals(2, $segments[1]->segment_position);
         $this->assertCount(2, $segments);
@@ -307,7 +309,7 @@ class AccountSegmentSystemTest extends TestCase
     public function test_it_prevents_incomplete_segment_combinations()
     {
         $segmentValues = $this->createTestSegmentValues();
-        
+
         // Try to create account with only 2 segments (missing one)
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage(__('error-with-values-missing-value-value-for-segment-position'));
@@ -331,7 +333,7 @@ class AccountSegmentSystemTest extends TestCase
     public function test_it_prevents_using_inactive_segment_values()
     {
         $segmentValues = $this->createTestSegmentValues();
-        
+
         // Deactivate one segment value
         $segmentValue = SegmentValue::find($segmentValues[0]['id']);
         $segmentValue->is_active = false;
@@ -348,7 +350,7 @@ class AccountSegmentSystemTest extends TestCase
     }
 
     // Helper Methods
-    
+
     private function setupTestSegmentStructure()
     {
         // Clean up any existing structure
@@ -412,19 +414,19 @@ class AccountSegmentSystemTest extends TestCase
     private function createMultipleTestAccounts(): void
     {
         $segments = AccountSegment::orderBy('segment_position')->get();
-        
+
         // Create various combinations
         $parentTeams = ['15', '25'];
         $teams = ['07', '08'];
         $accounts = ['4004', '5005', '6006'];
 
         foreach ($parentTeams as $pt) {
-           $this->segmentService->createSegmentValue(new CreateSegmentValueDto([
-                'segment_definition_id' => $segments[0]->id,
-                'segment_value' => $pt,
-                'segment_description' => "Parent $pt",
-                'is_active' => true,
-            ]));
+            $this->segmentService->createSegmentValue(new CreateSegmentValueDto([
+                 'segment_definition_id' => $segments[0]->id,
+                 'segment_value' => $pt,
+                 'segment_description' => "Parent $pt",
+                 'is_active' => true,
+             ]));
         }
 
         foreach ($teams as $t) {
@@ -465,6 +467,6 @@ class AccountSegmentSystemTest extends TestCase
                     }
                 }
             }
-        }        
+        }
     }
 }

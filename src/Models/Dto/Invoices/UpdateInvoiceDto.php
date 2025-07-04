@@ -33,7 +33,9 @@ class UpdateInvoiceDto extends ValidatedDTO
             'invoiceDetails' => 'array',
             /**
              * Send this field as null to create a new invoice details instead of updating it.
-             * @var integer|null
+             *
+             * @var int|null
+             *
              * @example null
              */
             'invoiceDetails.*.id' => 'nullable|integer|exists:fin_invoice_details,id',
@@ -53,11 +55,11 @@ class UpdateInvoiceDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'id' => new IntegerCast,
-            'payment_method_id' => new IntegerCast,
-            'invoice_date' => new CarbonCast,
-            'invoice_due_date' => new CarbonCast,
-            'invoiceDetails' => new ArrayCast,
+            'id' => new IntegerCast(),
+            'payment_method_id' => new IntegerCast(),
+            'invoice_date' => new CarbonCast(),
+            'invoice_due_date' => new CarbonCast(),
+            'invoiceDetails' => new ArrayCast(),
         ];
     }
 

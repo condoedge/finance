@@ -3,12 +3,7 @@
 namespace Condoedge\Finance\Observers;
 
 use Condoedge\Finance\Facades\IntegrityChecker;
-use Condoedge\Finance\Models\CustomerPayment;
-use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceApply;
-use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Services\Graph;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class DatabaseIntegrityObserver
@@ -41,7 +36,7 @@ class DatabaseIntegrityObserver
         }
 
         static::$tableModelMap = collect((new Graph(config('kompo-finance.model_integrity_relations')))->getAllNodesBFS())
-            ->mapWithKeys(fn($e) => [(new $e)->getTable() => $e])->all();
+            ->mapWithKeys(fn ($e) => [(new $e())->getTable() => $e])->all();
 
         $modelClass = static::$tableModelMap[$table];
 
@@ -54,7 +49,7 @@ class DatabaseIntegrityObserver
                 case 'update':
                     static::handleInsertOrUpdate($modelClass, $affectedIds, $data);
                     break;
-                
+
                 case 'delete':
                     static::handleDelete($modelClass, $affectedIds, $data);
                     break;

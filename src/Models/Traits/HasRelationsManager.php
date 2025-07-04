@@ -7,25 +7,25 @@ use Illuminate\Support\Facades\DB;
 
 trait HasRelationsManager
 {
-   public static function getRelationships($relatedClass = null)
-   {
-       $instance = new static;
+    public static function getRelationships($relatedClass = null)
+    {
+        $instance = new static();
 
-       // Get public methods declared without parameters and non inherited
-       $class = get_class($instance);
-       $allMethods = (new \ReflectionClass($class))->getMethods(\ReflectionMethod::IS_PUBLIC);
-       $methods = array_filter(
-           $allMethods,
-           function ($method) use ($class) {
-               return $method->class === $class
-                      && !$method->isStatic()                        // relationships are not static
-                      && !$method->getParameters()                  // relationships have no parameters
-                      && $method->getName() !== 'getRelationships'; // prevent infinite recursion
-           }
-       );
+        // Get public methods declared without parameters and non inherited
+        $class = get_class($instance);
+        $allMethods = (new \ReflectionClass($class))->getMethods(\ReflectionMethod::IS_PUBLIC);
+        $methods = array_filter(
+            $allMethods,
+            function ($method) use ($class) {
+                return $method->class === $class
+                       && !$method->isStatic()                        // relationships are not static
+                       && !$method->getParameters()                  // relationships have no parameters
+                       && $method->getName() !== 'getRelationships'; // prevent infinite recursion
+            }
+        );
 
-       $relations = [];
-       DB::pretend(function () use ($instance, $methods, $relatedClass, &$relations) {
+        $relations = [];
+        DB::pretend(function () use ($instance, $methods, $relatedClass, &$relations) {
 
             foreach ($methods as $method) {
                 try {
@@ -46,8 +46,8 @@ trait HasRelationsManager
                     continue;
                 }
             }
-       });
+        });
 
-       return $relations;
+        return $relations;
     }
 }

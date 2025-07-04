@@ -16,7 +16,7 @@ class InvoiceDetailFactory extends Factory
     {
         $quantity = $this->faker->numberBetween(1, 10);
         $unit_price = $this->faker->randomFloat(2, 10, 100);
-        
+
         return [
             'name' => $this->faker->word,
             'invoice_id' => Invoice::factory(),

@@ -24,5 +24,5 @@ enum AccountTypeEnum: int
             self::REVENUE => 'Revenue',
             self::EXPENSE => 'Expense',
         };
-    }    
+    }
 }

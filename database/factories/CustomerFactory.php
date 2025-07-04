@@ -3,8 +3,8 @@
 namespace Condoedge\Finance\Database\Factories;
 
 use Condoedge\Finance\Models\Customer;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Condoedge\Utils\Facades\TeamModel;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CustomerFactory extends Factory
 {

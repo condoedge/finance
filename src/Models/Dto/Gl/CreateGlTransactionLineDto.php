@@ -4,17 +4,16 @@ namespace Condoedge\Finance\Models\Dto\Gl;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use WendellAdriel\ValidatedDTO\ValidatedDTO;
-use WendellAdriel\ValidatedDTO\Casting\FloatCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
+use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
  * Create GL Transaction Line DTO
- * 
+ *
  * Represents a single line item in a general ledger transaction.
  * Each line must have either a debit OR credit amount (but not both).
- * 
+ *
  * @property string $account_id The GL account this line applies to
  * @property string|null $line_description Optional description for this transaction line
  * @property float $debit_amount Debit amount (must be 0 if credit_amount > 0)
@@ -27,7 +26,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     public ?string $line_description;
     public SafeDecimal $debit_amount;
     public SafeDecimal $credit_amount;
-    
+
     /**
      * Defines the casts for the DTO properties.
      */
@@ -41,7 +40,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
             'credit_amount' => new SafeDecimalCast(),
         ];
     }
-    
+
     /**
      * Validation rules
      */
@@ -55,7 +54,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
             'credit_amount' => 'required|numeric|min:0',
         ];
     }
-    
+
     /**
      * Default values for DTO properties
      */
@@ -69,7 +68,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
             'natural_account_id' => 0,
         ];
     }
-    
+
     /**
      * Additional validation after basic rules
      */
@@ -78,7 +77,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
         // Validate that either debit or credit is specified, but not both
         if (!$this->validateDebitCredit()) {
             $validator->errors()->add(
-                'amount', 
+                'amount',
                 __('error-line-must-have-either-debit-or-credit')
             );
         }
@@ -105,7 +104,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
             }
         }
     }
-    
+
     /**
      * Validate that either debit or credit is specified, but not both
      */
@@ -117,7 +116,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
         // Either debit OR credit must be specified, but not both
         return ($hasDebit && !$hasCredit) || (!$hasDebit && $hasCredit);
     }
-    
+
     /**
      * Get the amount (debit or credit)
      */
@@ -125,7 +124,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     {
         return $this->dtoData['debit_amount'] > 0 ? $this->dtoData['debit_amount'] : $this->dtoData['credit_amount'];
     }
-    
+
     /**
      * Check if this is a debit line
      */
@@ -133,7 +132,7 @@ class CreateGlTransactionLineDto extends ValidatedDTO
     {
         return $this->dtoData['debit_amount'] > 0;
     }
-    
+
     /**
      * Check if this is a credit line
      */

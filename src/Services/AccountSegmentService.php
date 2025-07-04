@@ -4,23 +4,22 @@ namespace Condoedge\Finance\Services;
 
 use Condoedge\Finance\Enums\SegmentDefaultHandlerEnum;
 use Condoedge\Finance\Models\AccountSegment;
-use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Finance\Models\AccountSegmentAssignment;
-use Condoedge\Finance\Models\AccountSegmentValue;
-use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
 use Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto;
 use Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto;
+use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\SegmentValue;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Dynamic Account Segment Management Service
- * 
+ *
  * Handles the creation and management of a fully dynamic segment-based account system where:
  * - Segments define structure (position, length) dynamically
- * - Segment values are reusable building blocks 
+ * - Segment values are reusable building blocks
  * - Accounts are created by combining segment values via assignments
  * - Account IDs and descriptors are computed via SQL functions
  * - Segments can have default handlers for automatic value generation
@@ -29,7 +28,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
 {
     protected AccountSegmentValidator $validator;
     protected SegmentDefaultHandlerService $handlerService;
-    
+
     public function __construct(
         AccountSegmentValidator $validator,
         SegmentDefaultHandlerService $handlerService
@@ -37,12 +36,14 @@ class AccountSegmentService implements AccountSegmentServiceInterface
         $this->validator = $validator;
         $this->handlerService = $handlerService;
     }
-    
+
     /**
      * Execute a callback within a database transaction with proper error handling
-     * 
+     *
      * @param callable $callback
+     *
      * @return mixed
+     *
      * @throws \Exception
      */
     protected function executeInTransaction(callable $callback)
@@ -62,7 +63,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             }
         });
     }
-    
+
     public function getLastSegmentPosition(): int
     {
         // Get the highest segment position currently defined
@@ -85,7 +86,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
         return $this->executeInTransaction(function () use ($dto) {
             // Validate last segment must be 'account' related
             if ($dto->id) {
-                $segment = AccountSegment::findOrFail($dto->id);    
+                $segment = AccountSegment::findOrFail($dto->id);
                 $segment->segment_description = $dto->segment_description;
                 $segment->segment_position = $dto->segment_position;
                 $segment->segment_length = $dto->segment_length;
@@ -206,6 +207,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
 
     /**
      * Search accounts by partial segment pattern
+     *
      * @param array $segmentValueIds Array of segment value IDs (use null for wildcards)
      */
     public function searchAccountsByPattern(array $segmentValueIds): Collection
@@ -342,12 +344,13 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             ];
         });
     }
-    
+
     /**
      * Apply default handlers to fill missing segment values
-     * 
+     *
      * @param array $providedSegmentValueIds Array of segment value IDs (can have gaps)
      * @param array $context Context for handlers (team_id, fiscal_year_id, etc.)
+     *
      * @return array Complete array of segment value IDs
      */
     public function applyDefaultHandlers(array $providedSegmentValueIds, array $context): array
@@ -367,7 +370,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
                 $providedByPosition[$position] = $segmentValueId;
             }
         }
-        
+
         // Process each segment position
         foreach ($segments as $segment) {
             $position = $segment->segment_position;
@@ -390,16 +393,17 @@ class AccountSegmentService implements AccountSegmentServiceInterface
                 );
             }
         }
-        
+
         return $finalSegmentValueIds;
     }
-    
+
     /**
      * Create account with smart defaults
      * Convenience method that automatically applies defaults
-     * 
+     *
      * @param array $manualSegments Array of segment value IDs for manually specified segments
      * @param array $accountData Account attributes
+     *
      * @return GlAccount
      */
     public function createAccountWithDefaults(array $manualSegments, array $accountData): GlAccount
@@ -408,10 +412,10 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             'segment_value_ids' => $manualSegments,
             'apply_defaults' => true,
         ]));
-        
+
         return $this->createAccount($dto);
     }
-    
+
     /**
      * Get segment handler options for UI
      */
@@ -419,38 +423,38 @@ class AccountSegmentService implements AccountSegmentServiceInterface
     {
         return $this->handlerService->getAvailableHandlers($segmentPosition);
     }
-    
+
     /**
      * Get the last segment definition
-     * 
+     *
      * @return AccountSegment|null
      */
     public function getLastSegment(): ?AccountSegment
     {
         return AccountSegment::orderBy('segment_position', 'desc')->first();
     }
-    
+
     /**
      * Check if all segments except the last have default handlers
-     * 
+     *
      * @return bool
      */
     public function canCreateAccountFromLastSegmentOnly(): bool
     {
         $segments = $this->getSegmentStructure();
         $lastSegment = $this->getLastSegment();
-        
+
         if (!$lastSegment) {
             return false;
         }
-        
+
         // Check all segments except the last have handlers
         foreach ($segments as $segment) {
             if ($segment->id !== $lastSegment->id && !$segment->hasDefaultHandler()) {
                 return false;
             }
         }
-        
+
         return true;
     }
 

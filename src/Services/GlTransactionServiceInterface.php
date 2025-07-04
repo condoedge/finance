@@ -2,10 +2,10 @@
 
 namespace Condoedge\Finance\Services;
 
-use Condoedge\Finance\Models\GlTransactionHeader;
-use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
-use Condoedge\Finance\Casts\SafeDecimal;
 use Carbon\Carbon;
+use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
+use Condoedge\Finance\Models\GlTransactionHeader;
 
 interface GlTransactionServiceInterface
 {
@@ -14,7 +14,9 @@ interface GlTransactionServiceInterface
      *
      * @param array $headerData
      * @param array $lines
+     *
      * @return GlTransactionHeader
+     *
      * @throws \Exception
      */
     public function createTransaction(CreateGlTransactionDto $dto): GlTransactionHeader;
@@ -22,7 +24,9 @@ interface GlTransactionServiceInterface
      * Post a transaction (make it final)
      *
      * @param string|GlTransactionHeader $transaction
+     *
      * @return GlTransactionHeader
+     *
      * @throws \Exception
      */
     public function postTransaction($transaction): GlTransactionHeader;
@@ -32,7 +36,9 @@ interface GlTransactionServiceInterface
      *
      * @param int $transactionId
      * @param string|null $reversalDescription
+     *
      * @return GlTransactionHeader
+     *
      * @throws \Exception
      */
     public function reverseTransaction(int $transactionId, string $reversalDescription = null): GlTransactionHeader;
@@ -44,11 +50,12 @@ interface GlTransactionServiceInterface
      * @param Carbon|null $startDate
      * @param Carbon|null $endDate
      * @param bool $postedOnly
+     *
      * @return SafeDecimal
      */
     public function getAccountBalance(
-        int $accountId, 
-        Carbon $startDate = null, 
+        int $accountId,
+        Carbon $startDate = null,
         Carbon $endDate = null,
         bool $postedOnly = true
     ): SafeDecimal;
@@ -59,10 +66,11 @@ interface GlTransactionServiceInterface
      * @param Carbon $startDate
      * @param Carbon $endDate
      * @param bool $postedOnly
+     *
      * @return array
      */
     public function getTrialBalance(
-        Carbon $startDate, 
+        Carbon $startDate,
         Carbon $endDate,
         bool $postedOnly = true
     ): array;
@@ -71,6 +79,7 @@ interface GlTransactionServiceInterface
      * Close fiscal period for GL
      *
      * @param string $periodId
+     *
      * @throws \Exception
      */
     public function closeFiscalPeriod(string $periodId): void;

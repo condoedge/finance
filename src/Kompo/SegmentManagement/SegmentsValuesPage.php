@@ -44,7 +44,7 @@ class SegmentsValuesPage extends Table
 
         return _Select('finance-select-segment-to-manage')->name('segment_position', false)
             ->options($segments->pluck('segment_description', 'segment_position')->map(
-                fn($desc, $position) => _Html($desc)->attr(['data-segment-position' => $position])
+                fn ($desc, $position) => _Html($desc)->attr(['data-segment-position' => $position])
             ))
             ->value($this->selectedSegmentPosition)
             ->run('() => {

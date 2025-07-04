@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Account Segment Assignment Model
- * 
+ *
  * Pivot table that creates accounts by assigning segment values.
  * Account ID and descriptor are computed by database functions.
- * 
+ *
  * @property int $id
  * @property int $account_id References fin_gl_accounts
  * @property int $segment_value_id References fin_segment_values
@@ -18,14 +18,14 @@ use Illuminate\Support\Facades\DB;
 class AccountSegmentAssignment extends AbstractMainFinanceModel
 {
     protected $table = 'fin_account_segment_assignments';
-    
+
     // Removed fillable - using property assignment instead
-    
+
     protected $casts = [
         'account_id' => 'integer',
         'segment_value_id' => 'integer',
     ];
-    
+
     /**
      * Get the account this assignment belongs to
      */
@@ -33,7 +33,7 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
     {
         return $this->belongsTo(GlAccount::class, 'account_id');
     }
-    
+
     /**
      * Get the segment value for this assignment
      */
@@ -41,7 +41,7 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
     {
         return $this->belongsTo(SegmentValue::class, 'segment_value_id');
     }
-    
+
     /**
      * Get assignments for a specific account ordered by segment position
      */
@@ -54,10 +54,10 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
                 return $assignment->segmentValue->segmentDefinition->segment_position;
             });
     }
-    
+
     /**
      * Create assignments for an account from segment value IDs
-     * 
+     *
      * @param int $accountId
      * @param array $segmentValueIds Array of segment_value_ids
      */
@@ -66,7 +66,7 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
         DB::transaction(function () use ($accountId, $segmentValueIds) {
             // Clear existing assignments
             static::where('account_id', $accountId)->delete();
-            
+
             // Create new assignments
             foreach ($segmentValueIds as $segmentValueId) {
                 $assignment = new static();
@@ -76,11 +76,12 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
             }
         });
     }
-    
+
     /**
      * Validate segment value combination has all required segments
-     * 
+     *
      * @param array $segmentValueIds Array of segment value IDs
+     *
      * @return bool
      */
     public static function validateSegmentValueCombination(array $segmentValueIds): bool
@@ -91,20 +92,21 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
             ->get()
             ->pluck('segmentDefinition.segment_position')
             ->unique();
-        
+
         // Get all active segment positions
         $requiredPositions = AccountSegment::where('is_active', true)
             ->pluck('segment_position');
-        
+
         // Check all required positions are covered
         return $requiredPositions->diff($providedSegments)->isEmpty();
     }
-    
+
     /**
      * Find accounts by exact segment value combination
-     * 
+     *
      * @param array $segmentValueIds
      * @param int $teamId
+     *
      * @return \Illuminate\Support\Collection
      */
     public static function findAccountsBySegmentValues(array $segmentValueIds): \Illuminate\Support\Collection
@@ -115,11 +117,11 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
             ->groupBy('account_id')
             ->havingRaw('COUNT(DISTINCT segment_value_id) = ?', [count($segmentValueIds)])
             ->pluck('account_id');
-        
+
         if ($accountIds->isEmpty()) {
             return collect();
         }
-        
+
         // Verify accounts have ONLY these segments
         $validAccountIds = [];
         foreach ($accountIds as $accountId) {
@@ -128,10 +130,10 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
                 $validAccountIds[] = $accountId;
             }
         }
-        
+
         return GlAccount::whereIn('id', $validAccountIds)->get();
     }
-    
+
     /**
      * Get all accounts using a specific segment value
      */
@@ -143,7 +145,7 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
             ->pluck('account')
             ->unique('id');
     }
-    
+
     /**
      * Get segment value for specific position in an account
      * Uses database function for consistency
@@ -154,10 +156,10 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
             'SELECT get_account_segment_value(?, ?) as segment_value',
             [$accountId, $position]
         );
-        
+
         return $result ? $result->segment_value : null;
     }
-    
+
     /**
      * Validate account has all required segments
      * Uses database function
@@ -168,7 +170,7 @@ class AccountSegmentAssignment extends AbstractMainFinanceModel
             'SELECT validate_account_segments(?) as is_valid',
             [$accountId]
         );
-        
+
         return $result && $result->is_valid;
     }
 }

@@ -7,10 +7,10 @@ use Condoedge\Utils\Models\Model;
 
 /**
  * Segment Value Model
- * 
+ *
  * Stores reusable segment values that can be shared across different accounts
  * Example: segment_value="10" with description="parent_team_10" for position 1
- * 
+ *
  * @property int $id
  * @property int $segment_definition_id References fin_account_segments
  * @property string $segment_value The actual code ('10', '03', '4000')
@@ -20,15 +20,15 @@ use Condoedge\Utils\Models\Model;
 class SegmentValue extends AbstractMainFinanceModel
 {
     protected $table = 'fin_segment_values';
-    
+
     // Removed fillable - using property assignment instead
-    
+
     protected $casts = [
         'segment_definition_id' => 'integer',
         'is_active' => 'boolean',
         'account_type' => AccountTypeEnum::class,
     ];
-    
+
     /**
      * Get the segment definition this value belongs to
      */
@@ -36,7 +36,7 @@ class SegmentValue extends AbstractMainFinanceModel
     {
         return $this->belongsTo(AccountSegment::class, 'segment_definition_id');
     }
-    
+
     /**
      * Get all account assignments for this segment value
      */
@@ -44,7 +44,7 @@ class SegmentValue extends AbstractMainFinanceModel
     {
         return $this->hasMany(AccountSegmentAssignment::class, 'segment_value_id');
     }
-    
+
     /**
      * Get all accounts that use this segment value
      */
@@ -57,7 +57,7 @@ class SegmentValue extends AbstractMainFinanceModel
     {
         return $this->segment_value . ' - ' . $this->segment_description;
     }
-    
+
     /**
      * Scope for active values
      */
@@ -68,35 +68,35 @@ class SegmentValue extends AbstractMainFinanceModel
 
     public function scopeForLastSegment($query)
     {
-        return $query->whereHas('segmentDefinition', function($q) {
+        return $query->whereHas('segmentDefinition', function ($q) {
             $q->where('segment_position', AccountSegmentService::getLastSegmentPosition());
         });
     }
-    
+
     /**
      * Scope for specific segment position
      */
     public function scopeForPosition($query, int $position)
     {
-        return $query->whereHas('segmentDefinition', function($q) use ($position) {
+        return $query->whereHas('segmentDefinition', function ($q) use ($position) {
             $q->where('segment_position', $position);
         });
     }
-    
+
     /**
      * Get segment values for a specific position
      */
     public static function getForPosition(int $position, bool $activeOnly = true): \Illuminate\Support\Collection
     {
         $query = static::forPosition($position);
-        
+
         if ($activeOnly) {
             $query->active();
         }
-        
+
         return $query->orderBy('segment_value')->get();
     }
-    
+
     /**
      * Get options for dropdown (value => description)
      */
@@ -105,7 +105,7 @@ class SegmentValue extends AbstractMainFinanceModel
         return static::getForPosition($position)
             ->pluck('segment_description', 'segment_value');
     }
-    
+
     /**
      * Find segment value by position and value
      */
@@ -115,7 +115,7 @@ class SegmentValue extends AbstractMainFinanceModel
             ->where('segment_value', $value)
             ->first();
     }
-    
+
     /**
      * Validate that a segment value exists for a position
      */
@@ -123,7 +123,7 @@ class SegmentValue extends AbstractMainFinanceModel
     {
         return static::findByPositionAndValue($position, $value) !== null;
     }
-    
+
     /**
      * Get usage count (how many accounts use this segment value)
      */
@@ -131,7 +131,7 @@ class SegmentValue extends AbstractMainFinanceModel
     {
         return $this->accountAssignments()->count();
     }
-    
+
     /**
      * Check if this segment value can be deleted
      */

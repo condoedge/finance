@@ -14,7 +14,7 @@ class ApplyPaymentToInvoiceModal extends Modal
     protected $plugins = [
         FormCanHaveTableWithFields::class,
     ];
-    
+
     public $_Title = 'finance-apply-payment-to-invoice';
 
     public $class = 'max-w-6xl';
@@ -75,26 +75,22 @@ class ApplyPaymentToInvoiceModal extends Modal
                         ->options(CustomerModel::forTeam(currentTeamId())->pluck('name', 'id'))
                         ->default($this->customerId)
                         ->onChange(
-                            fn($e) => $e->selfGet('getApplicableOptions')->inPanel('applicables-panel') &&
+                            fn ($e) => $e->selfGet('getApplicableOptions')->inPanel('applicables-panel') &&
                                 $e->selfGet('getInvoicesToBeApliedTable')->inPanel('invoice-to-be-applied')
                         ),
                     _Panel(
                         !$this->customerId ? null : $this->getApplicableOptions($this->customerId)
                     )->id('applicables-panel'),
                 )->class('gap-2'),
-
                 _Panel(
                     $this->getPaymentInfo($this->applicableKey),
                 )->id('payment-info')->class('h-full'),
             )->class('items-stretch'),
-
             _Date('finance.apply-date')->name('apply_date')->required(),
-
             _ErrorField()->name('amounts_to_apply', false)->noInputWrapper()->class('!my-0'),
             _Panel(
                 $this->getInvoicesToBeApliedTable($this->customerId),
             )->id('invoice-to-be-applied'),
-
             _FlexEnd(
                 _SubmitButton('finance.save')->refresh($this->refreshId)->closeModal(),
             )->class('mt-4'),
@@ -134,7 +130,7 @@ class ApplyPaymentToInvoiceModal extends Modal
             ->selfGet('getPaymentInfo')->inPanel('payment-info')
             ->default($this->applicableKey)
             ->options(InvoiceApply::getAllApplicablesRecords($customerId)
-                ->mapWithKeys(fn($i) => [
+                ->mapWithKeys(fn ($i) => [
                     $i->applicable_type . '|' . $i->applicable_id  => $i->applicable_name . ' (' . finance_currency($i->applicable_amount_left) . ')'
                 ]));
     }

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * Fiscal Year Service Facade
- * 
+ *
  * @method static \Condoedge\Finance\Models\FiscalYearSetup setupFiscalYear(int $teamId, \Carbon\Carbon $startDate)
  * @method static int calculateFiscalYear(\Carbon\Carbon $startDate)
  * @method static int|null getFiscalYearForDate(\Carbon\Carbon $date, int $teamId)

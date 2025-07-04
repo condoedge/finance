@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Models\Dto\Payments;
 
-use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Illuminate\Support\Facades\DB;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 
@@ -28,10 +27,10 @@ class CreateCustomerPaymentForInvoiceDto extends CreateCustomerPaymentDto
     {
         $previousCasts = parent::casts();
         unset($previousCasts['customer_id']);
-        
+
         return [
             ...parent::casts(),
-            'invoice_id' => new IntegerCast,
+            'invoice_id' => new IntegerCast(),
         ];
     }
 

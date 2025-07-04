@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -12,7 +11,7 @@ return new class extends Migration
     {
         // Load and execute the SQL functions
         $sqlPath = __DIR__ . '/../sql/functions/account_building_functions/account_building_functions_v0001.sql';
-        
+
         $sql = file_get_contents($sqlPath);
         DB::unprepared(processDelimiters($sql));
     }

@@ -9,9 +9,9 @@ class FiscalPeriod extends AbstractMainFinanceModel
 {
     use HasIntegrityCheck;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
-    
+
     protected $table = 'fin_fiscal_periods';
-    
+
     protected $casts = [
         'fiscal_year' => 'integer',
         'period_number' => 'integer',
@@ -22,7 +22,7 @@ class FiscalPeriod extends AbstractMainFinanceModel
         'is_open_rm' => 'boolean',
         'is_open_pm' => 'boolean',
     ];
-    
+
     /**
      * Get fiscal period from date for a specific team
      */
@@ -35,7 +35,7 @@ class FiscalPeriod extends AbstractMainFinanceModel
                     ->whereDate('end_date', '>=', $date)
                     ->first();
     }
-    
+
     /**
      * Check if period is open for specific module
      */
@@ -45,7 +45,7 @@ class FiscalPeriod extends AbstractMainFinanceModel
 
         return $this->{$column} ?? false;
     }
-    
+
     /**
      * Close period for specific module
      */
@@ -56,7 +56,7 @@ class FiscalPeriod extends AbstractMainFinanceModel
         $this->$column = false;
         $this->save();
     }
-    
+
     /**
      * Open period for specific module
      */
@@ -67,7 +67,7 @@ class FiscalPeriod extends AbstractMainFinanceModel
         $this->$column = true;
         $this->save();
     }
-    
+
     /**
      * No calculated columns for this model
      */

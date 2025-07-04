@@ -8,14 +8,12 @@ class CreateTransactionsTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
         Schema::create('fin_transactions', function (Blueprint $table) {
             addMetaData($table);
-            
+
             $table->date('transaction_date');
             $table->string('transaction_source');
         });
@@ -23,8 +21,6 @@ class CreateTransactionsTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {

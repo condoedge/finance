@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
  * GL Transaction Type Factory
- * 
+ *
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Condoedge\Finance\Models\GlTransactionType>
  */
 class GlTransactionTypeFactory extends Factory

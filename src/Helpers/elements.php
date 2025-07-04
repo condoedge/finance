@@ -5,7 +5,7 @@ use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\SegmentValue;
 
-\Kompo\Elements\Element::macro('asCurrency', function(){
+\Kompo\Elements\Element::macro('asCurrency', function () {
     return $this->label(finance_currency($this->label));
 });
 
@@ -34,7 +34,7 @@ if (!function_exists('_TotalFinanceCurrencyCols')) {
         return _Columns(
             _Html($title)->class('text-level1 font-medium title-currency'),
             _FinanceCurrency($amount ?? 0)->id($id)->class('ccy-amount text-lg text-level1')
-        )->class('px-4 py-2 text-right font-semibold'.($border ? '': ' -mt-4'));
+        )->class('px-4 py-2 text-right font-semibold'.($border ? '' : ' -mt-4'));
     }
 }
 
@@ -54,7 +54,7 @@ if (!function_exists('_AccountsSelect')) {
         return _Select($label)->placeholder('finance-account')
             ->default($account?->getLastSegmentValue()->id ?? null)
             ->options(SegmentValue::forLastSegment()->get()->mapWithKeys(
-                fn($it) => [$it->id => $it->segment_value . ' - ' . $it->segment_description]
+                fn ($it) => [$it->id => $it->segment_value . ' - ' . $it->segment_description]
             ));
     }
 }
@@ -63,8 +63,8 @@ if (!function_exists('_TaxesSelect')) {
     function _TaxesSelect($invoice = null, $name = 'taxes_ids')
     {
         $taxesOptions = TaxModel::active()->get()->pluck('complete_label_html', 'id')->union($invoice?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
-			fn($it) => [$it->tax->id => $it->complete_label_html]
-		));
+            fn ($it) => [$it->tax->id => $it->complete_label_html]
+        ));
 
         return	_MultiSelect()->placeholder('taxes')
             ->name($name)

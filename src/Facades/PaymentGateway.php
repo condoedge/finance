@@ -4,19 +4,20 @@ namespace Condoedge\Finance\Facades;
 
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
-use Condoedge\Finance\Services\PaymentGatewayService;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethodEnum;
+use Condoedge\Finance\Services\PaymentGatewayService;
 
 /**
  * Payment Gateway Facade
- * 
+ *
  * Supports both legacy (stateful) and new (stateless) approaches
- * 
+ *
  * Legacy usage (still supported):
+ *
  * @method static \Condoedge\Finance\Models\GlAccount getCashAccount()
  * @method static mixed setRoutes()
- * 
+ *
  * New stateless usage (recommended):
  * @method static \Condoedge\Finance\Models\GlAccount getCashAccountForInvoice(\Condoedge\Finance\Models\Invoice $invoice)
  * @method static \Condoedge\Finance\Models\GlAccount getCashAccountForPaymentType(\Condoedge\Finance\Models\PaymentMethodEnum $paymentType)
@@ -25,7 +26,7 @@ use Condoedge\Finance\Models\PaymentMethodEnum;
  * @method static array getAvailableGateways()
  * @method static void processRefund(\Condoedge\Finance\Models\Invoice $invoice)
  * @method static bool validatePaymentType(\Condoedge\Finance\Models\PaymentMethodEnum $paymentType)
- * 
+ *
  * @mixin \Condoedge\Finance\Billing\PaymentGatewayInterface
  * @mixin \Condoedge\Finance\Services\PaymentGatewayService
  */
@@ -46,7 +47,7 @@ class PaymentGateway extends \Illuminate\Support\Facades\Facade
         if (!self::$paymentGatewayService) {
             self::$paymentGatewayService = app(PaymentGatewayService::class);
         }
-        
+
         return self::$paymentGatewayService;
     }
 

@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * Invoice Detail Service Facade
- * 
+ *
  * @method static \Condoedge\Finance\Models\InvoiceDetail createInvoiceDetail(\Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail $dto)
  * @method static \Condoedge\Finance\Models\InvoiceDetail updateInvoiceDetail(\Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail $dto)
  * @method static bool deleteInvoiceDetail(\Condoedge\Finance\Models\InvoiceDetail $invoiceDetail)
@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Support\Collection getInvoiceTaxes(\Condoedge\Finance\Models\Invoice $invoice, string|null $taxName = null)
  * @method static \Condoedge\Finance\Models\InvoiceDetail copyDetailToInvoice(\Condoedge\Finance\Models\InvoiceDetail $sourceDetail, \Condoedge\Finance\Models\Invoice $targetInvoice)
  * @method static \Illuminate\Support\Collection createBulkDetails(\Condoedge\Finance\Models\Invoice $invoice, \Illuminate\Support\Collection $detailsData)
- * 
+ *
  * @see \Condoedge\Finance\Services\InvoiceDetail\InvoiceDetailServiceInterface
  */
 class InvoiceDetailService extends Facade

@@ -31,8 +31,8 @@ class DatabaseQueryInterceptor
     public function __construct(DatabaseIntegrityObserver $observer)
     {
         $this->observer = $observer;
-    }    
-    
+    }
+
     /**
      * Enable the query interceptor
      */
@@ -53,21 +53,21 @@ class DatabaseQueryInterceptor
         $operation = static::getOperationType($sql);
         $table = static::getTableName($sql);
 
-        static::$monitoredTables = collect((new Graph(config('kompo-finance.model_integrity_relations')))->getAllNodesBFS())->map(fn($e) => (new $e)->getTable())->all();
+        static::$monitoredTables = collect((new Graph(config('kompo-finance.model_integrity_relations')))->getAllNodesBFS())->map(fn ($e) => (new $e())->getTable())->all();
 
         // Only process queries on monitored tables
-        if (!$table || !in_array($table, static::$monitoredTables)) {
+        if (!$table || !in_array($table, static::$monitoredTables, true)) {
             return;
         }
 
         // Only process INSERT, UPDATE, DELETE operations
-        if (!in_array($operation, ['insert', 'update', 'delete'])) {
+        if (!in_array($operation, ['insert', 'update', 'delete'], true)) {
             return;
         }
 
         try {
             $affectedIds = static::extractAffectedIds($sql, $bindings, $table, $operation);
-            
+
             if (!empty($affectedIds)) {
                 // Trigger integrity checking
                 $this->observer->handleDatabaseChange($table, $operation, $affectedIds);
@@ -87,7 +87,7 @@ class DatabaseQueryInterceptor
     protected static function getOperationType(string $sql): ?string
     {
         $sql = trim(strtolower($sql));
-        
+
         if (str_starts_with($sql, 'insert')) {
             return 'insert';
         } elseif (str_starts_with($sql, 'update')) {
@@ -95,7 +95,7 @@ class DatabaseQueryInterceptor
         } elseif (str_starts_with($sql, 'delete')) {
             return 'delete';
         }
-        
+
         return null;
     }
 
@@ -106,22 +106,22 @@ class DatabaseQueryInterceptor
     {
         // Normalize SQL
         $sql = preg_replace('/\s+/', ' ', trim(strtolower($sql)));
-        
+
         // Match INSERT INTO table_name
         if (preg_match('/^insert\s+into\s+`?([^`\s]+)`?/i', $sql, $matches)) {
             return $matches[1];
         }
-        
+
         // Match UPDATE table_name
         if (preg_match('/^update\s+`?([^`\s]+)`?/i', $sql, $matches)) {
             return $matches[1];
         }
-        
+
         // Match DELETE FROM table_name
         if (preg_match('/^delete\s+from\s+`?([^`\s]+)`?/i', $sql, $matches)) {
             return $matches[1];
         }
-        
+
         return null;
     }
 
@@ -131,7 +131,7 @@ class DatabaseQueryInterceptor
     protected static function extractAffectedIds(string $sql, array $bindings, string $table, string $operation): array
     {
         $affectedIds = [];
-        
+
         try {
             switch ($operation) {
                 case 'insert':
@@ -141,7 +141,7 @@ class DatabaseQueryInterceptor
                         $affectedIds = [(int) $lastId];
                     }
                     break;
-                    
+
                 case 'update':
                 case 'delete':
                     // For updates/deletes, try to extract IDs from WHERE clause
@@ -155,7 +155,7 @@ class DatabaseQueryInterceptor
                 'error' => $e->getMessage()
             ]);
         }
-        
+
         return array_filter($affectedIds);
     }
 
@@ -165,7 +165,7 @@ class DatabaseQueryInterceptor
     protected static function extractIdsFromWhereClause(string $sql, array $bindings, string $table): array
     {
         $ids = [];
-        
+
         // Look for WHERE id = ? or WHERE id IN (?)
         if (preg_match('/where\s+(?:`?id`?\s*=\s*\?|`?id`?\s+in\s*\([^)]*\))/i', $sql)) {
             // Simple case: direct ID binding
@@ -187,7 +187,7 @@ class DatabaseQueryInterceptor
                 Log::debug("Could not convert query to SELECT for ID extraction: " . $e->getMessage());
             }
         }
-        
+
         return array_map('intval', array_unique($ids));
     }
 
@@ -197,13 +197,13 @@ class DatabaseQueryInterceptor
     protected static function convertToSelectIds(string $sql, string $table): ?string
     {
         $sql = trim($sql);
-        
+
         // Extract WHERE clause
         if (preg_match('/\bwhere\b(.+?)(?:\border\s+by\b|\blimit\b|\bgroup\s+by\b|$)/i', $sql, $matches)) {
             $whereClause = trim($matches[1]);
             return "SELECT id FROM `{$table}` WHERE {$whereClause}";
         }
-        
+
         return null;
     }
 }

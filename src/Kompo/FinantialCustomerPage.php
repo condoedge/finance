@@ -17,7 +17,6 @@ class FinantialCustomerPage extends Form
                 _Html('due-amount'),
                 _FinanceCurrency($this->model->customer_due_amount),
             )->class('text-white')->p4(),
-
             new FinantialCustomerPayments([
                 'customer_id' => $this->model->id,
             ]),

@@ -4,11 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
-     * 
+     *
      * Adds default handler functionality to account segments to enable
      * automatic value generation based on context (team, fiscal year, etc.)
      */
@@ -19,11 +18,11 @@ return new class extends Migration
             $table->string('default_handler', 50)->nullable()
                 ->after('segment_length')
                 ->comment('Handler type for automatic value generation');
-            
+
             $table->json('default_handler_config')->nullable()
                 ->after('default_handler')
                 ->comment('Configuration for the default handler');
-            
+
             $table->index('default_handler');
         });
 
@@ -34,7 +33,7 @@ return new class extends Migration
             $table->unsignedBigInteger('team_id')->nullable()->comment('Team scope for sequence');
             $table->unsignedBigInteger('current_value')->default(0);
             $table->string('scope', 20)->default('global')->comment('Scope: global, team, parent_team');
-            
+
             $table->unique(['sequence_key', 'team_id', 'scope']);
             $table->foreign('team_id')->references('id')->on('teams')->onDelete('cascade');
             $table->index(['sequence_key', 'scope']);

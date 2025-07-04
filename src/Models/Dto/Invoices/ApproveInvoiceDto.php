@@ -11,7 +11,7 @@ class ApproveInvoiceDto extends ValidatedDTO
     use EmptyDefaults;
 
     public int $invoice_id;
-    
+
     public function rules(): array
     {
         return [
@@ -22,7 +22,7 @@ class ApproveInvoiceDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'invoice_id' => new IntegerCast,
+            'invoice_id' => new IntegerCast(),
         ];
     }
 }

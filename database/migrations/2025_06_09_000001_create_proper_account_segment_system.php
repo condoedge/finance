@@ -8,9 +8,9 @@ class CreateProperAccountSegmentSystem extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Implements the complete account segment system where:
-     * - fin_account_segments: defines segment structure (position, length, description)  
+     * - fin_account_segments: defines segment structure (position, length, description)
      * - fin_segment_values: stores reusable segment values (10, 03, 4000, etc.)
      * - fin_account_segment_assignments: creates accounts by combining segment values
      * - fin_gl_accounts: accounts that reference these assignments
@@ -23,7 +23,7 @@ class CreateProperAccountSegmentSystem extends Migration
             $table->string('segment_description'); // 'Parent Team', 'Team', 'Account'
             $table->unsignedTinyInteger('segment_position'); // 1, 2, 3
             $table->unsignedTinyInteger('segment_length'); // Character length for this segment
-            
+
             // Ensure unique positions
             $table->unique('segment_position');
             $table->index('segment_position');
@@ -39,11 +39,11 @@ class CreateProperAccountSegmentSystem extends Migration
             // If is the last segment in the account structure indicates account type
             // e.g. 1 for asset, 2 for liability, etc.
             $table->tinyInteger('account_type')->nullable();
-            
+
             // Account management flags
             $table->boolean('is_active')->default(true);
             $table->boolean('allow_manual_entry')->default(true);
-            
+
             // Ensure unique values per segment definition
             $table->unique(['segment_definition_id', 'segment_value']);
             $table->index(['segment_definition_id', 'is_active']);
@@ -55,7 +55,7 @@ class CreateProperAccountSegmentSystem extends Migration
             addMetadata($table);
             $table->foreignId('account_id')->constrained('fin_gl_accounts')->onDelete('cascade');
             $table->foreignId('segment_value_id')->constrained('fin_segment_values')->onDelete('cascade');
-            
+
             // Ensure no duplicate assignments
             $table->unique(['account_id', 'segment_value_id'], 'unique_account_segment_assignment');
             $table->index('account_id'); // For fast account lookups

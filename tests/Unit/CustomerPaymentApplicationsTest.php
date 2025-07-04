@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
@@ -11,8 +11,8 @@ use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
@@ -33,7 +33,9 @@ class CustomerPaymentApplicationsTest extends TestCase
 
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
         $this->actingAs($user);
     }
 
@@ -88,7 +90,7 @@ class CustomerPaymentApplicationsTest extends TestCase
     {
         $invoice = $this->createApprovedInvoice(null, 1000);
         $payment = $this->createCustomerPayment($invoice->customer_id, 500);
-        
+
         $applicationAmount = 200;
         $applyDate = now();
 
@@ -130,7 +132,7 @@ class CustomerPaymentApplicationsTest extends TestCase
         $payment = $this->createCustomerPayment($customer->id, 500);
 
         $applyDate = now();
-        
+
         PaymentService::applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
             'apply_date' => $applyDate->format('Y-m-d'),
             'applicable' => (object)[
@@ -218,7 +220,7 @@ class CustomerPaymentApplicationsTest extends TestCase
     {
         $customer1 = CustomerFactory::new()->create();
         $customer2 = CustomerFactory::new()->create();
-        
+
         $invoice = $this->createApprovedInvoice($customer1->id);
         $payment = $this->createCustomerPayment($customer2->id, 500);
 
@@ -314,7 +316,7 @@ class CustomerPaymentApplicationsTest extends TestCase
     {
         $customer = CustomerFactory::new()->create();
         $originalInvoice = $this->createApprovedInvoice($customer->id, 500);
-        
+
         // Create a credit note
         $creditNote = $this->createCreditNote($customer->id, 200);
 

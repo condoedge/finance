@@ -2,29 +2,28 @@
 
 namespace Condoedge\Finance\Services\Payment;
 
-use Condoedge\Finance\Models\CustomerPayment;
-use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Models\Customer;
-use Condoedge\Finance\Models\MorphablesEnum;
+use Condoedge\Finance\Models\CustomerPayment;
+use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
-use Condoedge\Finance\Facades\InvoicePaymentModel;
-use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
+use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceApply;
+use Condoedge\Finance\Models\MorphablesEnum;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Payment Service Implementation
- * 
+ *
  * Handles all payment business logic including creation, application to invoices,
  * validation, and amount calculations.
- * 
- * This implementation can be easily overridden by binding a custom 
+ *
+ * This implementation can be easily overridden by binding a custom
  * implementation to the PaymentServiceInterface in your service provider.
  */
 class PaymentService implements PaymentServiceInterface
@@ -37,11 +36,11 @@ class PaymentService implements PaymentServiceInterface
         return DB::transaction(function () use ($dto) {
             // Create payment
             $payment = $this->createPaymentRecord($dto);
-            
+
             return $payment->refresh();
         });
     }
-    
+
     /**
      * Create payment and apply to invoice atomically
      */
@@ -50,7 +49,7 @@ class PaymentService implements PaymentServiceInterface
         return DB::transaction(function () use ($dto) {
             // Create the payment first
             $payment = $this->createPayment(new CreateCustomerPaymentDto($dto->toArray()));
-            
+
             // Apply payment to invoice
             $this->createPaymentApplication(new CreateApplyForInvoiceDto([
                 'invoice_id' => $dto->invoice_id,
@@ -59,20 +58,20 @@ class PaymentService implements PaymentServiceInterface
                 'applicable' => $payment,
                 'applicable_type' => MorphablesEnum::PAYMENT->value,
             ]));
-            
+
             return $payment->refresh();
         });
     }
-    
+
     /**
      * Apply existing payment to invoice
      */
     public function applyPaymentToInvoice(CreateApplyForInvoiceDto $data): InvoiceApply
     {
-        return DB::transaction(function () use ($data) {            
+        return DB::transaction(function () use ($data) {
             // Create application record
             $applyment = $this->createPaymentApplication($data);
-            
+
             return $applyment;
         });
     }
@@ -82,14 +81,14 @@ class PaymentService implements PaymentServiceInterface
      */
     public function applyPaymentToInvoices(CreateAppliesForMultipleInvoiceDto $data): Collection
     {
-        return DB::transaction(function () use ($data) {            
+        return DB::transaction(function () use ($data) {
             // Create applications records
             $applies = $this->createPaymentApplicationForManyInvoices($data);
-            
+
             return $applies;
         });
     }
-    
+
     /**
      * Get available payments for application
      */
@@ -97,14 +96,14 @@ class PaymentService implements PaymentServiceInterface
     {
         $query = CustomerPayment::query()
             ->where('amount_left', '>', 0);
-            
+
         if ($customer) {
             $query->where('customer_id', $customer->id);
         }
-        
+
         return $query->get();
     }
-    
+
     /**
      * Calculate payment amount left
      */
@@ -122,7 +121,7 @@ class PaymentService implements PaymentServiceInterface
         // Use database function for accuracy and consistency
         return new SafeDecimal($payment->sql_amount_left ?? '0.00');
     }
-    
+
     /**
      * Get payment applications
      */
@@ -132,7 +131,7 @@ class PaymentService implements PaymentServiceInterface
             ->where('applicable_type', MorphablesEnum::PAYMENT->value)
             ->get();
     }
-    
+
     /* PROTECTED METHODS - Can be overridden for customization */
 
     /**
@@ -145,10 +144,10 @@ class PaymentService implements PaymentServiceInterface
         $payment->payment_date = $dto->payment_date;
         $payment->amount = $dto->amount;
         $payment->save();
-        
+
         return $payment;
     }
-    
+
     /**
      * Create payment application record
      */

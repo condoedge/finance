@@ -5,7 +5,6 @@ namespace Tests;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\CondoedgeFinanceServiceProvider;
 use Condoedge\Finance\Models\CustomableTeam;
-use Condoedge\Finance\Services\IntegrityChecker;
 use Condoedge\Utils\CondoedgeUtilsServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -22,7 +21,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         parent::setUp();
 
         $this->app->bind('team-model', function () {
-            return new CustomableTeam;
+            return new CustomableTeam();
         });
 
         foreach ($this->serviceProviders($this->app) as $class) {

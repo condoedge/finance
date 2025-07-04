@@ -26,7 +26,7 @@ class FinantialCustomersTable extends Table
             _Th('finance.customer-due-amount')->sort('customer_due_amount'),
         ];
     }
-    
+
     public function render($customer)
     {
         return _TableRow(

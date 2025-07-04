@@ -3,18 +3,16 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Events\InvoiceDetailGenerated;
+use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
-use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
 use Illuminate\Support\Facades\DB;
-use Kompo\Auth\Models\Teams\PermissionTypeEnum;
 
 /**
  * Class InvoiceDetail
- * 
+ *
  * @package Condoedge\Finance\Models
- * 
+ *
  * @property int $id
  * @property int $invoice_id Foreign key to fin_invoices
  * @property int $revenue_account_id Foreign key to fin_gl_accounts
@@ -26,7 +24,6 @@ use Kompo\Auth\Models\Teams\PermissionTypeEnum;
  * @property \Condoedge\Finance\Casts\SafeDecimal $extended_price @CALCULATED: Calculated as quantity * unit_price
  * @property \Condoedge\Finance\Casts\SafeDecimal $tax_amount @CALCULATED: Calculated using get_detail_tax_amount() function
  * @property \Condoedge\Finance\Casts\SafeDecimal $total_amount @CALCULATED: Calculated as extended_price + tax_amount
- * 
  * @property-read \Condoedge\Finance\Models\Invoice $invoice
  */
 class InvoiceDetail extends AbstractMainFinanceModel
@@ -49,7 +46,7 @@ class InvoiceDetail extends AbstractMainFinanceModel
     {
         /**
          * WE ARE USING A DB TRIGGER TO CREATE TAXES FOR EACH DETAIL.
-         * 
+         *
          * @see tr_invoice_details_before_insert (insert_invoice_details_v0001.sql)
          */
         return parent::save($options);
@@ -118,5 +115,5 @@ class InvoiceDetail extends AbstractMainFinanceModel
         ];
     }
 
-    /* ELEMENTS */    
+    /* ELEMENTS */
 }

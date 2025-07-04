@@ -6,7 +6,6 @@ use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
-use WendellAdriel\ValidatedDTO\Casting\FloatCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
@@ -35,6 +34,7 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
 
     /**
      * The IDs of the taxes to be applied to this invoice detail.
+     *
      * @var int[]
      */
     public ?array $taxesIds;
@@ -46,7 +46,9 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
         return [
             /**
              * Send this field as null to create a new invoice detail instead of updating it.
-             * @var integer|null
+             *
+             * @var int|null
+             *
              * @example null
              */
             'id' => 'nullable|integer|exists:fin_invoice_details,id',
@@ -74,17 +76,17 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'id' => new IntegerCast,
-            'name' => new StringCast,
-            'invoice_id' => new IntegerCast,
-            'description' => new StringCast,
-            'quantity' => new IntegerCast,
-            'unit_price' => new SafeDecimalCast,
-            'revenue_account_id' => new IntegerCast,
-            'revenue_natural_account_id' => new IntegerCast,
-            'taxesIds' => new ArrayCast,
-            'product_id' => new IntegerCast,
-            'create_product_on_save' => new BooleanCast,
+            'id' => new IntegerCast(),
+            'name' => new StringCast(),
+            'invoice_id' => new IntegerCast(),
+            'description' => new StringCast(),
+            'quantity' => new IntegerCast(),
+            'unit_price' => new SafeDecimalCast(),
+            'revenue_account_id' => new IntegerCast(),
+            'revenue_natural_account_id' => new IntegerCast(),
+            'taxesIds' => new ArrayCast(),
+            'product_id' => new IntegerCast(),
+            'create_product_on_save' => new BooleanCast(),
         ];
     }
 

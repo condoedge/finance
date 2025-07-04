@@ -5,7 +5,6 @@ namespace Tests\Unit;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Facades\CustomerModel;
-use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
@@ -15,7 +14,6 @@ use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceApply;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Exception;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -33,7 +31,9 @@ class DatabaseIntegrityTest extends TestCase
 
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
         $this->actingAs($user);
     }
 
@@ -351,7 +351,7 @@ class DatabaseIntegrityTest extends TestCase
         // Test initial due amounts
         $invoiceDue = DB::selectOne('SELECT calculate_invoice_due(?) as invoice_due', [$invoice->id]);
         $creditDue = DB::selectOne('SELECT calculate_invoice_due(?) as invoice_due', [$creditNote->id]);
-        
+
         $this->assertEquals(500, $invoiceDue->invoice_due);
         $this->assertEquals(-200, $creditDue->invoice_due); // Credit notes have negative due amounts
 
@@ -370,7 +370,7 @@ class DatabaseIntegrityTest extends TestCase
         // Test due amounts after application
         $invoiceDue = DB::selectOne('SELECT calculate_invoice_due(?) as invoice_due', [$invoice->id]);
         $creditDue = DB::selectOne('SELECT calculate_invoice_due(?) as invoice_due', [$creditNote->id]);
-        
+
         $this->assertEquals(300, $invoiceDue->invoice_due); // 500 - 200
         $this->assertEquals(0, $creditDue->invoice_due); // -200 + 200 = 0
     }
@@ -378,17 +378,17 @@ class DatabaseIntegrityTest extends TestCase
     public function test_it_validates_complex_scenario_with_multiple_payments_and_invoices()
     {
         $customer = CustomerFactory::new()->create();
-        
+
         // Create multiple invoices
         $invoice1 = $this->createInvoice($customer->id, 300);
         $invoice2 = $this->createInvoice($customer->id, 400);
         $invoice3 = $this->createInvoice($customer->id, 200);
-        
+
         // Create multiple payments
         $payment1 = $this->createCustomerPayment($customer->id, 250);
         $payment2 = $this->createCustomerPayment($customer->id, 350);
         $payment3 = $this->createCustomerPayment($customer->id, 150);
-        
+
         // Create a credit note
         $creditNote = $this->createCreditNote($customer->id, 100);
 
@@ -570,7 +570,7 @@ class DatabaseIntegrityTest extends TestCase
     {
         $customer = CustomerFactory::new()->create();
         $payment = $this->createCustomerPayment($customer->id, 500);
-        
+
         // Create draft invoice (not approved) directly in database
         $draftInvoiceId = $this->createInvoice($customer->id, 300, approved: false)->id;
 
@@ -729,15 +729,17 @@ class DatabaseIntegrityTest extends TestCase
             ],
         ]));
 
-        if ($approved) $invoice->markApproved();
-        
+        if ($approved) {
+            $invoice->markApproved();
+        }
+
         return $invoice->fresh();
     }
 
     private function createCreditNote($customerId, $amount): Invoice
     {
         $customer = CustomerModel::find($customerId);
-        
+
         $creditNote = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,

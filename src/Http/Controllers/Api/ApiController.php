@@ -9,8 +9,10 @@ use Illuminate\Routing\Controller as BaseController;
 
 abstract class ApiController extends BaseController
 {
-    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-    
+    use AuthorizesRequests;
+    use DispatchesJobs;
+    use ValidatesRequests;
+
     /**
      * Return success response
      */
@@ -22,7 +24,7 @@ abstract class ApiController extends BaseController
             'data' => $data,
         ], $code);
     }
-    
+
     /**
      * Return error response
      */
@@ -34,7 +36,7 @@ abstract class ApiController extends BaseController
             'errors' => $errors,
         ], $code);
     }
-    
+
     /**
      * Return validation error response
      */
@@ -42,7 +44,7 @@ abstract class ApiController extends BaseController
     {
         return $this->error('Validation failed', 422, $errors);
     }
-    
+
     /**
      * Return paginated response
      */

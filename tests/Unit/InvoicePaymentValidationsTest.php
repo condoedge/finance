@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
@@ -11,8 +11,8 @@ use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;
@@ -32,7 +32,9 @@ class InvoicePaymentValidationsTest extends TestCase
 
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
         $this->actingAs($user);
     }
 
@@ -89,7 +91,7 @@ class InvoicePaymentValidationsTest extends TestCase
     {
         $customer = CustomerFactory::new()->create();
         $invoice = $this->createApprovedInvoice($customer->id, 500);
-        
+
         // Verify initial state
         $this->assertEqualsDecimals(500, $invoice->invoice_total_amount);
         $this->assertEqualsDecimals(500, $invoice->invoice_due_amount);
@@ -261,7 +263,7 @@ class InvoicePaymentValidationsTest extends TestCase
     {
         $customer = CustomerFactory::new()->create();
         $payment = $this->createCustomerPayment($customer->id, 500);
-        
+
         // Create draft invoice (not approved)
         $draftInvoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
@@ -301,7 +303,7 @@ class InvoicePaymentValidationsTest extends TestCase
     {
         $customer = CustomerFactory::new()->create();
         $invoice = $this->createApprovedInvoice($customer->id, 500);
-        
+
         // Create credit note with amount 200
         $creditNote = $this->createCreditNote($customer->id, 200);
 
@@ -322,7 +324,7 @@ class InvoicePaymentValidationsTest extends TestCase
 
         // Invoice due amount should be reduced
         $this->assertEqualsDecimals(300, $invoice->invoice_due_amount);
-        
+
         // Credit note should be fully applied (due amount becomes 0)
         $this->assertEqualsDecimals(0, $creditNote->abs_invoice_due_amount);
     }
@@ -443,7 +445,7 @@ class InvoicePaymentValidationsTest extends TestCase
     private function createCreditNote($customerId, $amount): Invoice
     {
         $customer = CustomerModel::find($customerId);
-        
+
         $creditNote = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,

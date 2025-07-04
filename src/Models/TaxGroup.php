@@ -8,20 +8,20 @@ use Condoedge\Utils\Models\Model;
 class TaxGroup extends Model
 {
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
-    
+
     protected $table = 'fin_taxes_groups';
-    
+
     protected $fillable = [
         'name',
         'team_id',
     ];
-    
+
     /* RELATIONSHIPS */
     public function taxes()
     {
         return $this->belongsToMany(Tax::class, 'fin_taxes_group_taxes', 'tax_group_id', 'tax_id');
     }
-    
+
     /**
      * Scope for team
      */
@@ -30,7 +30,7 @@ class TaxGroup extends Model
         $teamId = $teamId ?? currentTeamId();
         return $query->where('team_id', $teamId);
     }
-    
+
     /* ACTIONS */
     /**
      * Create tax group with taxes
@@ -39,7 +39,7 @@ class TaxGroup extends Model
     {
         return TaxService::createTaxGroup($name, $taxIds, $teamId);
     }
-    
+
     /**
      * Update taxes in this group
      */

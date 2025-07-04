@@ -9,7 +9,7 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
 class ApproveManyInvoicesDto extends ValidatedDTO
 {
     use EmptyDefaults;
-    
+
     public array $invoices_ids;
 
     public function rules(): array
@@ -23,7 +23,7 @@ class ApproveManyInvoicesDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'invoice_id' => new ArrayCast,
+            'invoice_id' => new ArrayCast(),
         ];
     }
 }

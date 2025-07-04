@@ -22,7 +22,7 @@ class InvoicesTable extends WhiteTable
     {
         $this->teamId = currentTeamId();
 
-        Element::macro('gotoInvoice', function($invoiceId){
+        Element::macro('gotoInvoice', function ($invoiceId) {
             return $this->href('invoices.show', [
                 'id' => $invoiceId,
             ]);
@@ -69,7 +69,6 @@ class InvoicesTable extends WhiteTable
                             ->config(['withCheckedItemIds' => true])
                             ->browse(),
                     ),
-
                 _Flex(
                     _Columns(
                         _Select()->placeholder('finance-client')->name('customer_id')
@@ -84,12 +83,10 @@ class InvoicesTable extends WhiteTable
                                     ->pluck('label', 'value')
                             )
                             ->filter(),
-    
                         _MultiSelect()->placeholder('finance-filter-by-status')
                             ->name('invoice_status_id')->options(InvoiceStatusEnum::optionsWithLabels())
                             ->filter(),
                     ),
-                    
                     _ExcelExportButton(),
                 )->class('gap-4'),
             )->alignCenter()
@@ -112,7 +109,7 @@ class InvoicesTable extends WhiteTable
 
     public function render($invoice)
     {
-    	return _TableRow(
+        return _TableRow(
             _CheckSingleItem($invoice->id),
             _Rows(
                 _HtmlDate($invoice->invoice_date)->class('taxt-gray-400 font-bold'),
@@ -157,7 +154,7 @@ class InvoicesTable extends WhiteTable
     public function getPaymentForm()
     {
         return new PaymentForm(null, [
-			'go_to_apply_model_after' => 1,
+            'go_to_apply_model_after' => 1,
         ]);
     }
 

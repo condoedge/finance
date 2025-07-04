@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Models\GlobalScopesTypes;
 
-use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\ApplicableToInvoiceContract;

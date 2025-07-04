@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Http\Controllers\Api;
 
-use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
 use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;

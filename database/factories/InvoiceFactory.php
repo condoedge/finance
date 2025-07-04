@@ -4,8 +4,8 @@ namespace Condoedge\Finance\Database\Factories;
 
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
-use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Customer;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

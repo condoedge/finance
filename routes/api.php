@@ -36,10 +36,10 @@ Route::prefix('gl-transactions')->group(function () {
 });
 
 Route::prefix('taxes')->group(function () {
-    Route::post('/sync-many',  [\Condoedge\Finance\Http\Controllers\Api\TaxesController::class, 'syncTaxes'])
+    Route::post('/sync-many', [\Condoedge\Finance\Http\Controllers\Api\TaxesController::class, 'syncTaxes'])
     ->name('invoice-taxes.sync-many');
 
-    Route::post('/add',  [\Condoedge\Finance\Http\Controllers\Api\TaxesController::class, 'addTax'])
+    Route::post('/add', [\Condoedge\Finance\Http\Controllers\Api\TaxesController::class, 'addTax'])
         ->name('invoice-taxes.add');
 });
 

@@ -12,13 +12,13 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
  * Create Invoice DTO
- * 
+ *
  * Used to create new invoices with associated details and tax information.
  * Supports both draft and final invoices creation.
- * 
+ *
  * @property int $customer_id The customer this invoice belongs to
  * @property int $invoice_type_id Type of invoice (from InvoiceTypeEnum)
- * @property int $payment_method_id Payment method type (from PaymentTypeEnum) 
+ * @property int $payment_method_id Payment method type (from PaymentTypeEnum)
  * @property Carbon $invoice_date Date the invoice was issued
  * @property Carbon|null $invoice_due_date Payment due date (optional)
  * @property bool $is_draft Whether this invoice is a draft
@@ -56,7 +56,9 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoiceDetails' => 'array',
             /**
              * Send this field as null to create a new invoice detail instead of updating it.
-             * @var integer|null
+             *
+             * @var int|null
+             *
              * @example null
              */
             'invoiceDetails.*.id' => 'nullable|integer|exists:fin_invoice_details,id',
@@ -82,13 +84,13 @@ class CreateInvoiceDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'customer_id' => new IntegerCast,
-            'invoice_type_id' => new IntegerCast,
-            'payment_method_id' => new IntegerCast,
-            'invoice_date' => new CarbonCast,
-            'invoice_due_date' => new CarbonCast,
-            'invoiceDetails' => new ArrayCast,
-            'is_draft' => new BooleanCast,
+            'customer_id' => new IntegerCast(),
+            'invoice_type_id' => new IntegerCast(),
+            'payment_method_id' => new IntegerCast(),
+            'invoice_date' => new CarbonCast(),
+            'invoice_due_date' => new CarbonCast(),
+            'invoiceDetails' => new ArrayCast(),
+            'is_draft' => new BooleanCast(),
         ];
     }
 

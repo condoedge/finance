@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use App\Models\Finance\ChargeDetail;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Kompo\Table;
 
@@ -34,7 +33,7 @@ class InvoiceDetailsTable extends Table
 
     public function render($invoiceDetail)
     {
-    	return _TableRow(
+        return _TableRow(
             _Html($invoiceDetail->name),
             _Html($invoiceDetail->revenueAccount?->display)->class('text-right'),
             _Html($invoiceDetail->quantity)->class('text-right'),

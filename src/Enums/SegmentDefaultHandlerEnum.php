@@ -4,10 +4,10 @@ namespace Condoedge\Finance\Enums;
 
 /**
  * Segment Default Handler Enum
- * 
+ *
  * Defines the automatic value generation strategies for account segments.
  * Each handler provides a different method for deriving segment values automatically.
- * 
+ *
  * This enum follows the same pattern as other enums in the finance package
  * for consistency and to enable facade usage.
  */

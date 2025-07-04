@@ -1,4 +1,5 @@
 <?php
+
 namespace Condoedge\Finance\Kompo\FiscalSetup;
 
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
@@ -40,19 +41,14 @@ class FiscalSetupPeriods extends WhiteTable
                 _Html($period->start_date->format('Y-m-d')),
                 _Html($period->end_date->format('Y-m-d')),
             )->class('text-sm gap-1 text-gray-700'),
-
             _Checkbox()->name('toggle' . GlTransactionTypeEnum::MANUAL_GL->value)->class('!mb-0')->default($period->isOpenForModule(GlTransactionTypeEnum::MANUAL_GL))
                 ->selfPost('toggleModule', ['module' => GlTransactionTypeEnum::MANUAL_GL->value, 'period_id' => $period->id]),
-
             _Checkbox()->name('toggle' . GlTransactionTypeEnum::BANK->value)->class('!mb-0')->default($period->isOpenForModule(GlTransactionTypeEnum::BANK))
                 ->selfPost('toggleModule', ['module' => GlTransactionTypeEnum::BANK->value, 'period_id' => $period->id]),
-
             _Checkbox()->name('toggle' . GlTransactionTypeEnum::RECEIVABLE->value)->class('!mb-0')->default($period->isOpenForModule(GlTransactionTypeEnum::RECEIVABLE))
                 ->selfPost('toggleModule', ['module' => GlTransactionTypeEnum::RECEIVABLE->value, 'period_id' => $period->id]),
-
             _Checkbox()->name('toggle' . GlTransactionTypeEnum::PAYABLE->value)->class('!mb-0')->default($period->isOpenForModule(GlTransactionTypeEnum::PAYABLE))
                 ->selfPost('toggleModule', ['module' => GlTransactionTypeEnum::PAYABLE->value, 'period_id' => $period->id]),
-
             _TripleDotsDropdown(),
         );
     }

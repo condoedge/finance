@@ -40,7 +40,7 @@ if (!function_exists('finance_currency')) {
             $decimal_separator,
             $thousands_separator
         );
-    
+
         return $position === 'left'
             ? $symbol . ' ' . $formatted
             : $formatted . ' ' . $symbol;
@@ -48,7 +48,8 @@ if (!function_exists('finance_currency')) {
 }
 
 if (!function_exists('db_decimal_format')) {
-    function db_decimal_format($value, $precision = 5) {
+    function db_decimal_format($value, $precision = 5)
+    {
         if (is_object($value) && method_exists($value, 'toFloat')) {
             $value = $value->toFloat();
         }
@@ -58,19 +59,22 @@ if (!function_exists('db_decimal_format')) {
 }
 
 if (!function_exists('db_datetime_format')) {
-    function db_datetime_format($value) {
+    function db_datetime_format($value)
+    {
         return date('Y-m-d H:i:s', strtotime($value));
     }
 }
 
 if (!function_exists('db_date_format')) {
-    function db_date_format($value) {
+    function db_date_format($value)
+    {
         return date('Y-m-d', strtotime($value));
     }
 }
 
 if (!function_exists('get_currency_config')) {
-    function get_currency_config($overridingOptions = null) {
+    function get_currency_config($overridingOptions = null)
+    {
         $config = config('kompo-finance.currency', []);
 
         if (app()->has('config-currency')) {
@@ -88,7 +92,7 @@ if (!function_exists('get_currency_config')) {
 
             preg_match('/#|0/', $format, $matches, PREG_OFFSET_CAPTURE);
             $config['position'] = $matches[0][1] === 0 ? 'right' : 'left';
-            $config['symbol'] = trim(substr($format, $config['position'] == 'left' ? 0 : -str_regex_pos(strrev($format), '/#|0/'), $config['position'] == 'left' ? str_regex_pos($format,  '/#|0/') : strlen($format) - str_regex_pos(strrev($format),  '/#|0/')));
+            $config['symbol'] = trim(substr($format, $config['position'] == 'left' ? 0 : -str_regex_pos(strrev($format), '/#|0/'), $config['position'] == 'left' ? str_regex_pos($format, '/#|0/') : strlen($format) - str_regex_pos(strrev($format), '/#|0/')));
             $config['thousands_separator'] = preg_match('/#+([^0-9])/', $format, $matches) ? $matches[1] : ',';
             $config['decimal_separator'] = preg_match('/\\' .$config['thousands_separator'] . '#+([^#])/', $format, $matches) ? $matches[1] : '.';
             $config['min_number_of_decimals'] = substr_count(substr($format, strpos($format, $config['decimal_separator'])), '0');
@@ -100,21 +104,23 @@ if (!function_exists('get_currency_config')) {
 }
 
 if (!function_exists('str_regex_pos')) {
-    function str_regex_pos($string, $regex) {
+    function str_regex_pos($string, $regex)
+    {
         preg_match($regex, $string, $matches, PREG_OFFSET_CAPTURE);
         return isset($matches[0]) ? $matches[0][1] : false;
     }
 }
 
 if (!function_exists('finance_round_value')) {
-    function get_decimal_qty($value) {
+    function get_decimal_qty($value)
+    {
         $value = (string) $value;
         $formattedParts = explode('.', $value);
 
         if (isset($formattedParts[1])) {
             return strlen($formattedParts[1]);
         }
-        
+
         return 0;
     }
 }

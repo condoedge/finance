@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Create Payment Types table
- * 
+ *
  * CRITICAL: This migration MUST run before any table that references payment_method_id
  * This creates the table-linked enum for payment types following established patterns.
  */
@@ -22,7 +22,7 @@ class CreatePaymentTypesTable extends Migration
             $table->string('name', 100)->unique(); // Internal enum name
             $table->string('code', 10)->unique(); // Short code for references
             $table->text('description')->nullable();
-            
+
             $table->index('code');
         });
     }

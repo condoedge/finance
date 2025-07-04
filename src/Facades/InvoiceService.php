@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * Invoice Service Facade
- * 
+ *
  * @method static \Condoedge\Finance\Models\Invoice upsertInvoice(\Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto|\Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice createInvoice(\Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice updateInvoice(\Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto $dto)
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Support\Collection getDefaultTaxesIds(\Condoedge\Finance\Models\Invoice $invoice)
  * @method static array calculateInvoiceTotals(\Condoedge\Finance\Models\Invoice $invoice)
  * @method static bool validateInvoiceBusinessRules(\Condoedge\Finance\Models\Invoice $invoice)
- * 
+ *
  * @see \Condoedge\Finance\Services\Invoice\InvoiceServiceInterface
  */
 class InvoiceService extends Facade

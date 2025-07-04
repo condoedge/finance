@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * Account Segment Service Facade
- * 
+ *
  * @method static \Illuminate\Support\Collection getSegmentStructure()
  * @method static int getLastSegmentPosition()
  * @method static \Condoedge\Finance\Models\AccountSegment createOrUpdateSegment(\Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto $dto)
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string getAccountFormatExample()
  * @method static array getSegmentStatistics()
  * @method static \Illuminate\Support\Collection getSegmentsCoverageData()
- * 
+ *
  * @see \Condoedge\Finance\Services\AccountSegmentServiceInterface
  */
 class AccountSegmentService extends Facade

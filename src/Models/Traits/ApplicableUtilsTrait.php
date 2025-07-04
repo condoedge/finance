@@ -12,14 +12,14 @@ trait ApplicableUtilsTrait
 
     public static function bootApplicableUtilsTrait()
     {
-        if (!in_array(ApplicableToInvoiceContract::class, class_implements(static::class))) {
+        if (!in_array(ApplicableToInvoiceContract::class, class_implements(static::class), true)) {
             throw new \RuntimeException('ApplicableUtilsTrait must be used with ApplicableToInvoiceContract');
         }
     }
 
     public static function getApplicableType(): string
     {
-        return MorphablesEnum::getFromM(new static)->value;
+        return MorphablesEnum::getFromM(new static())->value;
     }
 
     public function getApplicableAmountLeftAttribute(): SafeDecimal

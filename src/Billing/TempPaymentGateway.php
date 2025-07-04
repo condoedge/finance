@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Billing;
 
-use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Models\GlAccount;
 use Illuminate\Support\Facades\Log;
 
@@ -10,7 +9,7 @@ class TempPaymentGateway implements PaymentGatewayInterface
 {
     protected array $context = [];
 
-    public function getCashAccount(): GlAccount 
+    public function getCashAccount(): GlAccount
     {
         return GlAccount::latest()->first();
     }
@@ -21,20 +20,20 @@ class TempPaymentGateway implements PaymentGatewayInterface
     public function initializeContext(array $context = []): void
     {
         $this->context = $context;
-        
+
         Log::info('TempPaymentGateway initialized with context', [
             'context_keys' => array_keys($context),
         ]);
     }
-    
-    public function refundOrder() 
+
+    public function refundOrder()
     {
         Log::info('Refunding order...', [
             'gateway_context' => $this->context,
         ]);
     }
-    
-    public function setRoutes() 
+
+    public function setRoutes()
     {
         Log::info('Setting routes...', [
             'gateway_context' => $this->context,

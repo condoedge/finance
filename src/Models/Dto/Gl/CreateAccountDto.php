@@ -6,16 +6,15 @@ use Condoedge\Finance\Models\AccountTypeEnum;
 use Condoedge\Finance\Services\AccountSegmentValidator;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
-use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
  * Create Account DTO
- * 
+ *
  * Used to create new GL accounts from segment values.
  * Handles validation of segment value IDs and account attributes.
- * 
+ *
  * @property array $segment_value_ids Array of segment value IDs to compose the account
  * @property string $account_description Description/name of the account
  * @property string $account_type Type from AccountTypeEnum (ASSET, LIABILITY, etc.)
@@ -31,7 +30,7 @@ class CreateAccountDto extends ValidatedDTO
     public bool $is_active;
     public bool $allow_manual_entry;
     public ?bool $apply_defaults;
-    
+
     public function rules(): array
     {
         return [
@@ -42,7 +41,7 @@ class CreateAccountDto extends ValidatedDTO
             'apply_defaults' => 'nullable|boolean',
         ];
     }
-    
+
     public function casts(): array
     {
         return [
@@ -54,7 +53,7 @@ class CreateAccountDto extends ValidatedDTO
             'apply_defaults' => new BooleanCast(),
         ];
     }
-    
+
     public function defaults(): array
     {
         return [

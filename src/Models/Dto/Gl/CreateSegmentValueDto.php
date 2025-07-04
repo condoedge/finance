@@ -14,10 +14,10 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
  * Create Segment Value DTO
- * 
+ *
  * Used to create segment values that can be assigned to accounts.
  * Each segment value belongs to a specific segment definition (position).
- * 
+ *
  * @property int $segment_definition_id The segment definition this value belongs to
  * @property string $segment_value The actual value (e.g., '10', '03', '4000')
  * @property string $segment_description Human-readable description
@@ -33,7 +33,7 @@ class CreateSegmentValueDto extends ValidatedDTO
     public ?AccountTypeEnum $account_type;
 
     public $segmentDefinition;
-    
+
     public function rules(): array
     {
         return [
@@ -44,7 +44,7 @@ class CreateSegmentValueDto extends ValidatedDTO
             'account_type' => 'nullable|in:' . collect(AccountTypeEnum::cases())->pluck('value')->implode(','),
         ];
     }
-    
+
     public function casts(): array
     {
         return [
@@ -55,7 +55,7 @@ class CreateSegmentValueDto extends ValidatedDTO
             'account_type' => new EnumCast(AccountTypeEnum::class),
         ];
     }
-    
+
     public function defaults(): array
     {
         return [
@@ -72,7 +72,7 @@ class CreateSegmentValueDto extends ValidatedDTO
         $segmentsValidator = app(AccountSegmentValidator::class);
 
         // Validate value length
-        try{
+        try {
             $segmentsValidator->validateSegmentValueLength($segmentDefinitionId, $segmentValue);
         } catch (\InvalidArgumentException $e) {
             $validator->errors()->add('segment_value', $e->getMessage());
@@ -80,7 +80,7 @@ class CreateSegmentValueDto extends ValidatedDTO
         }
 
         if ($segmentDefinitionId) {
-            $this->segmentDefinition = AccountSegment::find($segmentDefinitionId);    
+            $this->segmentDefinition = AccountSegment::find($segmentDefinitionId);
         }
 
         // Ensure segment value is unique within its segment definition

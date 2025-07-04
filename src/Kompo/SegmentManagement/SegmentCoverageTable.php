@@ -33,7 +33,6 @@ class SegmentCoverageTable extends Table
             _Flex(
                 _ProgressBar($segmentData->usage_percentage / 100)
                     ->class('w-[130px]'),
-                
                 _Html(sprintf('%.2f%%', $segmentData->usage_percentage)),
             )->class('gap-4')
         );

@@ -3,9 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
-use Condoedge\Finance\Kompo\Plugins\TableIntoFormSetValuesPlugin;
 use Condoedge\Utils\Kompo\Common\WhiteTable;
-use Condoedge\Utils\Kompo\Plugins\Base\HasComponentPlugins;
 
 class CustomerInvoicesToBeAppliedTable extends WhiteTable
 {
@@ -45,7 +43,6 @@ class CustomerInvoicesToBeAppliedTable extends WhiteTable
             _HtmlDate($invoice->invoice_date),
             _FinanceCurrency($invoice->invoice_total_amount),
             _FinanceCurrency($invoice->invoice_due_amount),
-
             _Input()->name('amount_applied_to_' . $invoice->id)->shareToParentForm()->class('!mb-0'),
         )->class('text-gray-700');
     }

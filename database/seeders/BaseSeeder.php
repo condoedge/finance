@@ -2,13 +2,13 @@
 
 namespace Condoedge\Finance\Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Condoedge\Finance\Models\Tax;
-use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\Customer;
-use Condoedge\Finance\Models\TaxGroup;
-use Condoedge\Finance\Models\InvoiceDetail;
+use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceApply;
+use Condoedge\Finance\Models\InvoiceDetail;
+use Condoedge\Finance\Models\Tax;
+use Condoedge\Finance\Models\TaxGroup;
+use Illuminate\Database\Seeder;
 
 class BaseSeeder extends Seeder
 {

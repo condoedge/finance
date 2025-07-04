@@ -6,6 +6,7 @@ use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Rule\SafeDecimalRule;
+use stdClass;
 use WendellAdriel\ValidatedDTO\Attributes\Rules;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -13,11 +14,11 @@ use WendellAdriel\ValidatedDTO\Casting\ObjectCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyRules;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
-use stdClass;
 
 class CreateApplyForInvoiceDto extends ValidatedDTO
 {
-    use EmptyRules, EmptyDefaults;
+    use EmptyRules;
+    use EmptyDefaults;
 
     #[Rules(['date', 'required'])]
     public string|\Carbon\Carbon $apply_date;
@@ -33,19 +34,20 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
 
     #[Rules(['numeric', 'required', 'exists:fin_invoices,id'])]
     public $invoice_id;
-    
+
 
     /**
      * @inheritDoc
      */
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
-            'apply_date' => new CarbonCast,
-            'amount_applied' => new SafeDecimalCast,
-            'invoice_id' => new IntegerCast,
-            'applicable_type' => new IntegerCast,
+            'apply_date' => new CarbonCast(),
+            'amount_applied' => new SafeDecimalCast(),
+            'invoice_id' => new IntegerCast(),
+            'applicable_type' => new IntegerCast(),
 
-            'applicable' => new ObjectCast,
+            'applicable' => new ObjectCast(),
         ];
     }
 
@@ -149,4 +151,3 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
         }
     }
 }
-    

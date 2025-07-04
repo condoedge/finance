@@ -14,7 +14,7 @@ class SafeDecimal implements \Stringable, Arrayable
         $this->scale = $scale ?? config('kompo-finance.decimal-scale', 2);
         $this->value = $this->normalizeValue($number);
     }
-    
+
     private function normalizeValue(mixed $number): string
     {
         return match (true) {
@@ -33,7 +33,7 @@ class SafeDecimal implements \Stringable, Arrayable
         if ($value instanceof self) {
             return $value;
         }
-        
+
         return new self($value, $this->scale);
     }
 

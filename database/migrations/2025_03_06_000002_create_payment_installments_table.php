@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Create Payment installments table
- * 
  */
 class CreatePaymentInstallmentsTable extends Migration
 {
@@ -20,7 +19,7 @@ class CreatePaymentInstallmentsTable extends Migration
             $table->string('name', 100)->unique(); // Internal enum name
             $table->string('code', 10)->unique(); // Short code for references
             $table->text('description')->nullable();
-            
+
             $table->index('code');
         });
     }

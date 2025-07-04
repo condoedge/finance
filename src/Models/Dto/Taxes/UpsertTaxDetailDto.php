@@ -25,8 +25,8 @@ class UpsertTaxDetailDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'tax_id' => new IntegerCast,
-            'invoice_detail_id' => new IntegerCast,
+            'tax_id' => new IntegerCast(),
+            'invoice_detail_id' => new IntegerCast(),
         ];
     }
 }

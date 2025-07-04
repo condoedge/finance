@@ -2,44 +2,39 @@
 
 namespace Condoedge\Finance\Services\InvoiceDetail;
 
-use Condoedge\Finance\Models\InvoiceDetail;
-use Condoedge\Finance\Models\InvoiceDetailTax;
-use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceStatusEnum;
-use Condoedge\Finance\Models\Tax;
-use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
-use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
-use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;
-use Condoedge\Finance\Services\Tax\TaxServiceInterface;
-use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\ProductModel;
+use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
+use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;
 use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Models\InvoiceDetail;
+use Condoedge\Finance\Models\InvoiceDetailTax;
+use Condoedge\Finance\Models\Tax;
+use Condoedge\Finance\Services\Tax\TaxServiceInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
-use Kompo\Auth\Models\Teams\PermissionTypeEnum;
 
 /**
  * Invoice Detail Service Implementation
- * 
+ *
  * Handles all invoice detail business logic including creation, updates,
  * tax application, calculations, and validation.
- * 
- * This implementation can be easily overridden by binding a custom 
+ *
+ * This implementation can be easily overridden by binding a custom
  * implementation to the InvoiceDetailServiceInterface in your service provider.
  */
 class InvoiceDetailService implements InvoiceDetailServiceInterface
 {
     protected TaxServiceInterface $taxService;
-    
+
     public function __construct(TaxServiceInterface $taxService)
     {
         $this->taxService = $taxService;
     }
-    
+
     /**
      * Create invoice detail with taxes
      */
@@ -48,7 +43,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         return DB::transaction(function () use ($dto) {
             // Create base detail
             $detail = $this->createBaseDetail($dto);
-            
+
             // Apply taxes if provided
             if (!empty($dto->taxesIds)) {
                 $this->applyTaxesToDetail(new UpsertManyTaxDetailDto([
@@ -56,11 +51,11 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
                     'taxes_ids' => $dto->taxesIds
                 ]));
             }
-            
+
             return $detail->refresh();
         });
     }
-    
+
     /**
      * Update existing invoice detail
      */
@@ -68,36 +63,36 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
     {
         return DB::transaction(function () use ($dto) {
             $detail = InvoiceDetail::findOrFail($dto->id);
-            
+
             // Update detail fields
             $this->updateDetailFields($detail, $dto);
-            
+
             // Update taxes
             $this->applyTaxesToDetail(new UpsertManyTaxDetailDto([
                 'invoice_detail_id' => $detail->id,
                 'taxes_ids' => $dto->taxesIds ?? []
             ]));
-            
+
             return $detail->refresh();
         });
     }
-    
+
     /**
      * Delete invoice detail
      */
     public function deleteInvoiceDetail(InvoiceDetail $invoiceDetail): bool
     {
-        return DB::transaction(function () use ($invoiceDetail) { 
+        return DB::transaction(function () use ($invoiceDetail) {
             // Delete associated taxes first
             $invoiceDetail->invoiceTaxes()->delete();
-            
+
             // Delete the detail
             $invoiceDetail->delete();
-            
+
             return true;
         });
     }
-    
+
     /**
      * Apply taxes to detail
      */
@@ -109,7 +104,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
 
             // Create/update tax records
             $appliedTaxes = collect();
-            
+
             foreach ($taxIds as $taxId) {
                 $taxDetail = $this->upsertTaxForDetail(new UpsertTaxDetailDto([
                     'invoice_detail_id' => $invoiceDetail->id,
@@ -117,14 +112,14 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
                 ]));
                 $appliedTaxes->push($taxDetail);
             }
-            
+
             // Remove taxes that are no longer applied
             $this->removeUnspecifiedTaxes($invoiceDetail, $taxIds);
-            
+
             return $appliedTaxes;
         });
     }
-    
+
     /**
      * Remove taxes from detail
      */
@@ -134,11 +129,11 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             $invoiceDetail->invoiceTaxes()
                 ->whereIn('tax_id', $taxIds)
                 ->delete();
-            
+
             return true;
         });
     }
-    
+
     /**
      * Calculate extended price
      */
@@ -146,7 +141,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
     {
         return $unitPrice->multiply(new SafeDecimal((string) $quantity));
     }
-    
+
     /**
      * Calculate total tax amount
      */
@@ -160,10 +155,10 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             // TODO: We could put a placeholder calculation here
             return new SafeDecimal('0.00');
         }
-        
+
         return $invoiceDetail->sql_tax_amount;
     }
-    
+
     /**
      * Calculate total amount
      */
@@ -180,23 +175,23 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
 
         return $invoiceDetail->sql_total_amount;
     }
-    
+
     /**
      * Get detail taxes
      */
     public function getDetailTaxes(InvoiceDetail $invoiceDetail, ?string $taxName = null): Collection
     {
         $query = $invoiceDetail->invoiceTaxes()->with('tax');
-        
+
         if ($taxName) {
             $query->whereHas('tax', function ($q) use ($taxName) {
                 $q->where('name', $taxName);
             });
         }
-        
+
         return $query->get();
     }
-    
+
     /**
      * Get invoice taxes
      */
@@ -205,16 +200,16 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         $query = InvoiceDetailTax::whereHas('invoiceDetail', function ($q) use ($invoice) {
             $q->where('invoice_id', $invoice->id);
         })->with(['tax', 'invoiceDetail']);
-        
+
         if ($taxName) {
             $query->whereHas('tax', function ($q) use ($taxName) {
                 $q->where('name', $taxName);
             });
         }
-        
+
         return $query->get();
     }
-    
+
     /**
      * Copy detail to another invoice
      */
@@ -232,7 +227,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             $newDetail->unit_price = $sourceDetail->unit_price;
             $newDetail->product_id = $sourceDetail->product_id;
             $newDetail->save();
-            
+
             // Copy taxes
             $taxIds = $sourceDetail->invoiceTaxes()->pluck('tax_id');
             if ($taxIds->isNotEmpty()) {
@@ -241,11 +236,11 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
                     'taxes_ids' => $taxIds->toArray()
                 ]));
             }
-            
+
             return $newDetail->refresh();
         });
     }
-    
+
     /**
      * Bulk create details
      */
@@ -253,21 +248,21 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
     {
         return DB::transaction(function () use ($invoice, $detailsData) {
             $createdDetails = collect();
-            
+
             foreach ($detailsData as $detailDto) {
                 // Ensure invoice_id is set
                 $detailDto->invoice_id = $invoice->id;
-                
+
                 $detail = $this->createInvoiceDetail($detailDto);
                 $createdDetails->push($detail);
             }
-            
+
             return $createdDetails;
         });
     }
-    
+
     /* PROTECTED METHODS - Can be overridden for customization */
-    
+
     /**
      * Create base detail record
      */
@@ -287,10 +282,10 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         if ($dto->create_product_on_save) {
             ProductModel::createFromInvoiceDetail($detail);
         }
-        
+
         return $detail;
     }
-    
+
     /**
      * Update detail fields
      */
@@ -305,7 +300,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         $detail->product_id = $dto->product_id;
         $detail->save();
     }
-    
+
     /**
      * Upsert tax for detail
      */
@@ -315,16 +310,16 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         $existingTax = InvoiceDetailTax::where('invoice_detail_id', $data->invoice_detail_id)
             ->where('tax_id', $data->tax_id)
             ->first();
-            
+
         if ($existingTax) {
             return $existingTax;
         }
 
         $invoiceDetail = InvoiceDetailModel::findOrFail($data->invoice_detail_id);
-        
+
         // Create new tax record
         $tax = Tax::findOrFail($data->tax_id);
-        
+
         $detailTax = new InvoiceDetailTax();
         $detailTax->invoice_detail_id = $invoiceDetail->id;
         $detailTax->tax_id = $tax->id;
@@ -334,10 +329,10 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             $tax
         ); // We'll be overriding this in the database. So it's just a placeholder
         $detailTax->save();
-        
+
         return $detailTax;
     }
-    
+
     /**
      * Remove taxes not in specified list
      */

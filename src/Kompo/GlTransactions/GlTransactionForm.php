@@ -3,12 +3,9 @@
 namespace Condoedge\Finance\Kompo\GlTransactions;
 
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
-use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Models\Dto\Gl\CreateGlTransactionDto;
-use Condoedge\Finance\Models\SegmentValue;
-use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\GlTransactionHeader;
 use Condoedge\Finance\Services\GlTransactionServiceInterface;
-use WendellAdriel\ValidatedDTO\Exceptions\ValidatedDTOException;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class GlTransactionForm extends Form
@@ -40,7 +37,7 @@ class GlTransactionForm extends Form
 
         $this->model = $glTransactionService->createTransaction($dto);
         $glTransactionService->postTransaction($this->model);
-        
+
         return redirect()->route('finance.gl.gl-transactions');
     }
 
@@ -64,14 +61,12 @@ class GlTransactionForm extends Form
                         ->name('fiscal_date')
                         ->required()
                         ->default(now()->format('Y-m-d')),
-
                     _Select('finance-transaction-type')
                         ->name('gl_transaction_type')
                         ->options(GlTransactionTypeEnum::optionsWithLabels())
                         ->default(GlTransactionTypeEnum::MANUAL_GL)
                         ->required(),
                 )->class('gap-4 mb-4'),
-
                 _Textarea('finance-description')
                     ->name('transaction_description')
                     ->required(),
@@ -80,7 +75,7 @@ class GlTransactionForm extends Form
             // Transaction lines
             _Card(
                 _TitleMini('finance-transaction-lines')->class('mb-4'),
-                
+
                 // Totals
                 _MultiForm()
                     ->noLabel()
@@ -100,7 +95,6 @@ class GlTransactionForm extends Form
                     ->class('mb-6')
                     ->id('gl-transaction-lines'),
             ),
-
             $this->model->id ? null : _SubmitButton('finance-save')->redirect(),
         );
     }

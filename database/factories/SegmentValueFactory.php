@@ -4,8 +4,6 @@ namespace Condoedge\Finance\Database\Factories;
 
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\AccountTypeEnum;
-use Condoedge\Finance\Models\GlAccount;
-use Condoedge\Finance\Models\GlAccountSegment;
 use Condoedge\Finance\Models\SegmentValue;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

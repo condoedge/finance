@@ -2,8 +2,6 @@
 
 namespace Condoedge\Finance\Kompo\ChartOfAccounts;
 
-use Condoedge\Finance\Kompo\ChartOfAccounts\AccountsList;
-use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Kompo\SegmentManagement\SegmentValueFormModal;
 use Condoedge\Finance\Models\AccountTypeEnum;
@@ -34,16 +32,12 @@ class ChartOfAccounts extends Form
         return _Rows(
             _Html('finance-chart-of-accounts')
                 ->class('text-2xl font-bold mb-4'),
-
             $this->renderSegmentStructureInfo(),
-
             _FlexEnd(
                 _Button('finance.create-account')->class('mb-2')
                     ->selfGet('getLastSegmentValueForm')->inModal(),
             ),
-
             $this->renderAccountTypeTabs(),
-
             new AccountsList([
                 'account_type' => $this->accountType,
             ])
@@ -67,15 +61,13 @@ class ChartOfAccounts extends Form
                 _Html('finance-account-format')->class('text-sm text-gray-600'),
                 _Html($formatExample)->class('font-bold pr-2 border-r border-gray-300'),
                 _Flex(collect($this->segmentStructure)->map(
-                    fn($seg) =>
+                    fn ($seg) =>
                     _Html("{$seg->segment_description} ({$seg->segment_length})")
                         ->class('text-xs text-gray-500')
                 ))->class('gap-3'),
             ),
-
             _Link('finance-go-to-definition')->button()
                 ->href('finance.segment-manager'),
-
         )->class('mb-4 p-3 bg-blue-50 border-blue-200 justify-between items-center flex-row');
     }
 
@@ -90,7 +82,7 @@ class ChartOfAccounts extends Form
 
         return _Flex(
             collect($accountTypes)->map(
-                fn($label, $value) => _TabLink($label, $this->accountType == $value)
+                fn ($label, $value) => _TabLink($label, $this->accountType == $value)
                     ->href('finance.chart-of-accounts', [
                         'account_type' => $value,
                     ])

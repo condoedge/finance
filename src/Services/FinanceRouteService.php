@@ -15,7 +15,7 @@ class FinanceRouteService
             Route::get('/', \Condoedge\Finance\Kompo\InvoicesTable::class)->name('list');
             Route::get('/page/{id}', \Condoedge\Finance\Kompo\InvoicePage::class)->name('show');
             Route::get('/form/{id?}', \Condoedge\Finance\Kompo\InvoiceForm::class)->name('form');
-            
+
             // Invoice details
             Route::prefix('{invoice_id}/details')->name('details.')->group(function () {
                 Route::get('/', \Condoedge\Finance\Kompo\InvoiceDetailsTable::class)->name('index');
@@ -52,7 +52,7 @@ class FinanceRouteService
         Route::prefix('finance/accounting')->name('finance.')->group(function () {
             // Chart of Accounts
             Route::get('/chart-of-accounts', \Condoedge\Finance\Kompo\ChartOfAccounts\ChartOfAccounts::class)->name('chart-of-accounts');
-            
+
             // Segment Management
             Route::get('/segments', \Condoedge\Finance\Kompo\SegmentManagement\SegmentManager::class)->name('segment-manager');
         });

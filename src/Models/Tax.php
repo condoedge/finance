@@ -6,19 +6,18 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
 
 /**
  * Class InvoiceDetailTax
- * 
+ *
  * @package Condoedge\Finance\Models
- * 
+ *
  * @TRIGGERED BY: tr_invoice_details_after_insert (insert_invoice_taxes_v0001.sql)
- * 
+ *
  * @property int $id
  * @property string $name
  * @property int $invoice_detail_id Foreign key to fin_invoices
  * @property int $account_id Foreign key to fin_gl_accounts
  * @property int $tax_id Foreign key to the original tax fin_taxes. The tax rate can mismatch if it was changed
- * @property \Condoedge\Finance\Casts\SafeDecimal $tax_amount Tax amount 
+ * @property \Condoedge\Finance\Casts\SafeDecimal $tax_amount Tax amount
  * @property \Condoedge\Finance\Casts\SafeDecimal $rate Tax rate as percentage / 100
- * 
  * @property-read \Condoedge\Finance\Models\Invoice $invoice
  */
 class Tax extends AbstractMainFinanceModel
@@ -52,10 +51,10 @@ class Tax extends AbstractMainFinanceModel
     public function scopeActive($query)
     {
         return $query->where('valide_from', '<=', now())
-            ->where(fn($q) => $q->where('valide_to', '>=', now())->orWhereNull('valide_to'));
+            ->where(fn ($q) => $q->where('valide_to', '>=', now())->orWhereNull('valide_to'));
     }
 
     /* ACTIONS */
 
-    /* ELEMENTS */    
+    /* ELEMENTS */
 }

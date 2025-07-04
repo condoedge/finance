@@ -3,9 +3,8 @@
 namespace Condoedge\Finance\Kompo\SegmentManagement;
 
 use Condoedge\Finance\Facades\AccountSegmentService;
-use Condoedge\Finance\Kompo\SegmentManagement\SegmentsTable;
 use Condoedge\Finance\Models\AccountSegment;
-use \Condoedge\Utils\Kompo\Common\Form;
+use Condoedge\Utils\Kompo\Common\Form;
 
 class SegmentStructurePage extends Form
 {
@@ -21,7 +20,6 @@ class SegmentStructurePage extends Form
                         ->selfGet('getSegmentStructureFormModal')->inModal()
                         ->disabled($segments->count() >= 10) // Reasonable limit
                 )->class('mb-4'),
-
                 new SegmentsTable() // Custom table component for segments
             ),
 

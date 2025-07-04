@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Create GL Transaction Types table
- * 
+ *
  * This migration creates the table-linked enum for GL transaction types
  * following the established pattern used by other enum tables in the system.
  */
@@ -26,7 +26,7 @@ class CreateGlTransactionTypesTable extends Migration
             $table->boolean('allows_manual_entry')->default(false);
             $table->text('description')->nullable();
             $table->integer('next_number')->default(1); // Next number for this type
-            
+
             // Add indexes for performance
             $table->index('code');
             $table->index('fiscal_period_field');

@@ -22,7 +22,7 @@ trait CanBeFinancialCustomer
         return $this->belongsTo(CustomerModel::getClass(), 'customer_id');
     }
 
-    public function createInvoiceForThisModel() 
+    public function createInvoiceForThisModel()
     {
         $customer = $this->upsertCustomerFromThisModel();
 

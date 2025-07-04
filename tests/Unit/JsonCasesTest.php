@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
@@ -59,14 +59,14 @@ class JsonCasesTest extends TestCase
 
                 $this->setupValues['transaction'] = $this->createTransaction($jsonData['transaction']);
 
-                try{
+                try {
                     $this->checkExpectedResult($jsonData['expectedResult']);
                 } catch (\Exception $e) {
                     fwrite(STDERR, "  ✗ {$jsonData['testCase']} - Error: {$e->getMessage()}\n");
 
                     throw $e; // Re-throw the exception to fail the test
                 }
-                
+
 
                 fwrite(STDOUT, "  ✓ {$jsonData['testCase']}.\n");
             }
@@ -90,7 +90,7 @@ class JsonCasesTest extends TestCase
         $customer = $this->setupValues['customer']->refresh();
 
         $this->assertEqualsDecimals($expectedResult['newCustomerBalance'], $customer->customer_due_amount);
-        
+
         $documents = $expectedResult['documentStatus'];
 
         foreach ($documents as $reference => $totalAmount) {
@@ -237,7 +237,7 @@ class JsonCasesTest extends TestCase
         return $payment;
     }
 
-    protected function createInvoice($transaction) 
+    protected function createInvoice($transaction)
     {
         return InvoiceService::createInvoice(new CreateInvoiceDto([
             'is_draft' => false,

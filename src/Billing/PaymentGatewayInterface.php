@@ -13,7 +13,7 @@ interface PaymentGatewayInterface
 
     /**
      * Optional: Initialize gateway with context
-     * 
+     *
      * This method is called by PaymentGatewayResolver::resolveWithContext()
      * to provide additional context to the gateway
      */

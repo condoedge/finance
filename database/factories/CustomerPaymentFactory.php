@@ -5,7 +5,6 @@ namespace Condoedge\Finance\Database\Factories;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\CustomerPayment;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Condoedge\Utils\Facades\TeamModel;
 
 class CustomerPaymentFactory extends Factory
 {

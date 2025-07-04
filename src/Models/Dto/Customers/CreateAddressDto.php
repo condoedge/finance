@@ -30,11 +30,11 @@ class CreateAddressDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'city' => new StringCast,
-            'state' => new StringCast,
-            'country' => new StringCast,
-            'address1' => new StringCast,
-            'postal_code' => new StringCast,
+            'city' => new StringCast(),
+            'state' => new StringCast(),
+            'country' => new StringCast(),
+            'address1' => new StringCast(),
+            'postal_code' => new StringCast(),
         ];
     }
 }

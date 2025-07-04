@@ -3,7 +3,6 @@
 namespace Condoedge\Finance\Kompo\SegmentManagement;
 
 use Condoedge\Finance\Facades\AccountSegmentService;
-use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class SegmentValidationPage extends Form
@@ -17,7 +16,7 @@ class SegmentValidationPage extends Form
             // Validation results
             $issues ?
                 _Rows(
-                    collect($issues)->map(fn($issue) => _Html($issue)->class('text-red-600'))
+                    collect($issues)->map(fn ($issue) => _Html($issue)->class('text-red-600'))
                 )->class('gap-2 mb-4') :
                 _Card(
                     _Html('finance-segment-structure-valid')
@@ -43,7 +42,6 @@ class SegmentValidationPage extends Form
             // Coverage analysis
             _Card(
                 _TitleMini('finance-segment-coverage')->class('mb-4'),
-
                 new SegmentCoverageTable(),
             )
         )->class('space-y-4');

@@ -12,7 +12,8 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
  */
 class CreateGlTransactionHeaderDto extends ValidatedDTO
 {
-    use EmptyDefaults, EmptyCasts;
+    use EmptyDefaults;
+    use EmptyCasts;
 
     public ?int $team_id = null;
     public ?string $fiscal_date = null;
@@ -21,7 +22,7 @@ class CreateGlTransactionHeaderDto extends ValidatedDTO
     public ?int $customer_id = null;
     public ?int $vendor_id = null;
     public array $transaction_lines = []; // Array of CreateGlTransactionLineDto
-    
+
     /**
      * Validation rules
      */

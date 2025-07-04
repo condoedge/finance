@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void cascadeIntegrity(string $modelClass, mixed $ids = null)
  * @method static \Condoedge\Finance\Services\IntegrityService addRelation(string $parent, string $child)
  * @method static \Condoedge\Finance\Services\IntegrityService removeRelation(string $parent, string $child)
- * 
+ *
  * @see \Condoedge\Finance\Services\IntegrityService
  */
 class Integrity extends Facade

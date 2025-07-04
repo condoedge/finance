@@ -9,14 +9,14 @@ class IntegrityChecker
 {
     /**
      * Graph representing relationships between models
-     * 
+     *
      * @var \Condoedge\Finance\Services\Graph
      */
     protected $graph;
-    
+
     /**
      * Configuration of relationships between models
-     * 
+     *
      * @var array
      */
     protected $modelRelations = [];
@@ -32,7 +32,7 @@ class IntegrityChecker
         $this->graph = Graph::new($this->modelRelations);
 
         foreach ($this->graph->getAllNodesBFS() as $node) {
-            if (!in_array(HasIntegrityCheck::class, all_class_uses($node))) {
+            if (!in_array(HasIntegrityCheck::class, all_class_uses($node), true)) {
                 throw new \Exception("Model $node must use the HasIntegrityCheck trait.");
             }
         }
@@ -42,6 +42,7 @@ class IntegrityChecker
      * Set custom relationships between models.
      *
      * @param array $modelRelations
+     *
      * @return self
      */
     public function setModelRelations(array $modelRelations): self
@@ -50,12 +51,13 @@ class IntegrityChecker
         $this->graph->setLinks($modelRelations);
         return $this;
     }
-    
+
     /**
      * Add a relationship to the graph.
      *
      * @param string $parent Parent model class
      * @param string $child Child model class
+     *
      * @return self
      */
     public function addRelation(string $parent, string $child): self
@@ -63,12 +65,13 @@ class IntegrityChecker
         $this->graph->addLink($parent, $child);
         return $this;
     }
-    
+
     /**
      * Remove a relationship from the graph.
      *
      * @param string $parent Parent model class
      * @param string $child Child model class
+     *
      * @return self
      */
     public function removeRelation(string $parent, string $child): self
@@ -76,28 +79,25 @@ class IntegrityChecker
         $this->graph->removeLink($parent, $child);
         return $this;
     }
-    
+
     /**
      * Check integrity of all models in the proper order.
-     *
-     * @return void
      */
     public function checkFullIntegrity(): void
     {
         $nodes = array_reverse($this->graph->getAllNodesBFS());
-        
+
         foreach ($nodes as $node) {
             $this->runCheckIntegrityOn($node::getMainClass());
         }
     }
-    
+
     /**
      * Check integrity of children first, then the specified model.
      * Used when you want to ensure a model's integrity by first ensuring its dependencies.
      *
      * @param string $class Model class
      * @param array|number|null $ids Specific IDs to check
-     * @return void
      */
     public function checkChildrenThenModel(string $class, $ids = null): void
     {
@@ -109,7 +109,7 @@ class IntegrityChecker
         if ($ids) {
             foreach ($children as $child) {
                 $relationClass = $child::getRelationships($currentRelationClass)[0] ?? null;
-                $childrenIds[$child] = !$relationClass ? null : $child::whereHas($relationClass[0], fn($q) => $q->whereIn((new $relationClass[1])->getTable() . '.id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
+                $childrenIds[$child] = !$relationClass ? null : $child::whereHas($relationClass[0], fn ($q) => $q->whereIn((new $relationClass[1]())->getTable() . '.id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
 
                 $currentRelationClass = $child;
             }
@@ -123,14 +123,13 @@ class IntegrityChecker
 
         $this->runCheckIntegrityOn($class::getMainClass(), $ids);
     }
-    
+
     /**
      * Check integrity of a model and propagate changes to its parents.
      * Used when a model is modified and we need to recalculate its parent models.
      *
      * @param string $class Model class
      * @param array|number|null $ids Specific IDs to check
-     * @return void
      */
     public function checkModelThenParents(string $class, $ids = null): void
     {
@@ -148,7 +147,7 @@ class IntegrityChecker
 
                 collect($relationsClass)->each(function ($relationClass) use ($ancestor, &$ids) {
                     $ids = array_merge($ids, $ancestor::whereHas($relationClass[0], function ($query) use ($relationClass, $ids) {
-                        $query->whereIn((new $relationClass[1])->getTable() . '.id', $this->parseIds($ids) ?? []);
+                        $query->whereIn((new $relationClass[1]())->getTable() . '.id', $this->parseIds($ids) ?? []);
                     })->withTrashed()->pluck('id')->all());
                 });
             }

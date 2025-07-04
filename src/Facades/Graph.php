@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array getAncestors(mixed $node)
  * @method static array getDescendants(mixed $node, array $visited = [])
  * @method static array buildParentMap()
- * 
+ *
  * @see \Condoedge\Finance\Services\Graph
  */
 class Graph extends Facade

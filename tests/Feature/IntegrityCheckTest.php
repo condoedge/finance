@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\IntegrityChecker;
-use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\InvoiceType;
-use Condoedge\Finance\Casts\SafeDecimal;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -24,7 +24,7 @@ class IntegrityCheckTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         // Create test data using seeded data
         $this->customer = Customer::factory()->create();
         $this->invoiceType = InvoiceType::first(); // Use seeded data
@@ -48,7 +48,7 @@ class IntegrityCheckTest extends TestCase
         $createdDetails = [];
         foreach ($details as $detail) {
             $createdDetails[] = $this->createInvoiceDetail(
-                $invoice, 
+                $invoice,
                 $detail['unit_price'] ?? '50.00',
                 $detail['quantity'] ?? 1,
                 $detail['name'] ?? 'Test Product'
@@ -89,7 +89,7 @@ class IntegrityCheckTest extends TestCase
 
         // Update the detail
         $detail->quantity = 3;
-        $detail->unit_price = new SafeDecimal('50.00'); 
+        $detail->unit_price = new SafeDecimal('50.00');
         $detail->save();
 
         // Check parent was updated (50.00 * 3 = 150.00)
@@ -163,7 +163,7 @@ class IntegrityCheckTest extends TestCase
         // Check both were corrected
         $invoice1->refresh();
         $invoice2->refresh();
-        
+
         $this->assertEqualsDecimals('100.00', $invoice1->invoice_amount_before_taxes);
         $this->assertEqualsDecimals('200.00', $invoice2->invoice_amount_before_taxes);
     }
@@ -217,10 +217,10 @@ class IntegrityCheckTest extends TestCase
         $endTime = microtime(true);
 
         $executionTime = $endTime - $startTime;
-        
+
         // Should complete within reasonable time (less than 1 second)
         $this->assertLessThan(1.0, $executionTime);
-        
+
         // Verify calculation is correct (100 * 10.00 = 1000.00)
         $invoice->refresh();
         $this->assertEqualsDecimals('1000.00', $invoice->invoice_amount_before_taxes);
@@ -256,7 +256,7 @@ class IntegrityCheckTest extends TestCase
         $this->createInvoiceDetail($invoice, '33.34', 1);
 
         $invoice->refresh();
-        
+
         // Should handle decimal precision correctly (33.33 + 33.34 = 66.67)
         $this->assertEqualsDecimals('66.67', $invoice->invoice_amount_before_taxes);
     }
@@ -287,7 +287,7 @@ class IntegrityCheckTest extends TestCase
     public function test_integrity_events_are_triggered_correctly()
     {
         $eventsFired = [];
-        
+
         // Listen for model events
         Invoice::saved(function ($model) use (&$eventsFired) {
             $eventsFired['invoice_saved'] = $model->id;

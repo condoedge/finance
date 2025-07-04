@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Models\Customer;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class SelectCustomer extends Form

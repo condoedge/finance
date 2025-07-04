@@ -2,12 +2,10 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\InvoiceFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
-use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
@@ -16,7 +14,6 @@ use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
 use Exception;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\Cache;
 use Kompo\Auth\Database\Factories\UserFactory;
 use Tests\TestCase;
 
@@ -29,7 +26,9 @@ class InvoicesTest extends TestCase
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
 
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
 
         $this->actingAs($user);
 
@@ -131,7 +130,9 @@ class InvoicesTest extends TestCase
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
 
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
 
         $this->actingAs($user);
 

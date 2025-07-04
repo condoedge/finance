@@ -6,14 +6,12 @@ use Condoedge\Finance\Enums\SegmentDefaultHandlerEnum;
 use Condoedge\Finance\Facades\SegmentDefaultHandlerEnum as FacadesSegmentDefaultHandlerEnum;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\SegmentValue;
-use Condoedge\Finance\Models\FiscalPeriod;
-use Condoedge\Finance\Models\FiscalYear;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Segment Default Handler Service
- * 
+ *
  * Handles automatic generation of segment values based on configured handlers.
  * Each segment can have a default handler that generates values automatically
  * based on context like team, fiscal year, or sequences.
@@ -22,9 +20,10 @@ class SegmentDefaultHandlerService
 {
     /**
      * Resolve default value for a segment based on its handler
-     * 
+     *
      * @param AccountSegment $segment The segment definition
      * @param array $context Context data (team_id, fiscal_year_id, etc.)
+     *
      * @return SegmentValue|null The resolved segment value or null
      */
     public function resolveDefaultValue(AccountSegment $segment, array $context = []): ?SegmentValue
@@ -71,7 +70,7 @@ class SegmentDefaultHandlerService
 
         // For team handler, we use the team ID padded to segment length
         $code = str_pad((string)$teamId, $segment->segment_length, '0', STR_PAD_LEFT);
-        
+
         // If code is too long, take the last N characters
         if (strlen($code) > $segment->segment_length) {
             $code = substr($code, -$segment->segment_length);
@@ -218,7 +217,7 @@ class SegmentDefaultHandlerService
         // All handlers are available for all positions
         // But we can add business logic here if needed
         return collect(FacadesSegmentDefaultHandlerEnum::cases())
-            ->mapWithKeys(fn($handler) => [
+            ->mapWithKeys(fn ($handler) => [
                 $handler->value => [
                     'label' => $handler->label(),
                     'description' => $handler->description(),

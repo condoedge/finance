@@ -4,24 +4,23 @@ namespace Condoedge\Finance;
 
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
-use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\Product;
+use Condoedge\Finance\Observers\DatabaseIntegrityObserver;
+use Condoedge\Finance\Services\DatabaseQueryInterceptor;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
-use Condoedge\Finance\Services\DatabaseQueryInterceptor;
-use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
 use Condoedge\Finance\Services\Invoice\InvoiceService;
+use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
 use Condoedge\Finance\Services\PaymentGatewayService;
-use Condoedge\Finance\Observers\DatabaseIntegrityObserver;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
 
 class CondoedgeFinanceServiceProvider extends ServiceProvider
 {
@@ -29,13 +28,11 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap services.
-     *
-     * @return void
      */
     public function boot()
     {
         $this->registerServiceLayer();
-        
+
         EloquentFactory::guessFactoryNamesUsing(function (string $modelName) {
             return 'Condoedge\\Finance\\Database\\Factories\\'.class_basename($modelName).'Factory';
         });
@@ -54,9 +51,9 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->loadCommands();
 
         $this->registerFacades();
-        
+
         $this->bootDatabaseIntegritySystem();
-        
+
         $this->loadRelationsMorphMap();
 
         $this->setCronExecutions();
@@ -64,8 +61,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
 
     /**
      * Register services.
-     *
-     * @return void
      */
     public function register()
     {
@@ -93,7 +88,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 ? config('kompo-finance.currency_preformats.en')
                 : config('kompo-finance.currency_preformats.fr');
         });
-        
+
         // Publish configuration
         $this->publishes([
             __DIR__.'/../config/kompo-finance.php' => config_path('kompo-finance.php'),
@@ -138,15 +133,15 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->bind(PRODUCT_MODEL_KEY, function () {
             return new (config('kompo-finance.' . PRODUCT_MODEL_KEY . '-namespace'));
         });
-        
+
         $this->app->bind(SEGMENT_DEFAULT_HANDLER_ENUM_KEY, function () {
             return config('kompo-finance.' . SEGMENT_DEFAULT_HANDLER_ENUM_KEY . '-namespace');
         });
 
         $this->app->bind(INVOICE_TYPE_ENUM_KEY, function () {
             return config('kompo-finance.' . INVOICE_TYPE_ENUM_KEY . '-namespace');
-        });        
-        
+        });
+
         $this->app->bind(CUSTOMER_PAYMENT_MODEL_KEY, function () {
             return new (config('kompo-finance.' . CUSTOMER_PAYMENT_MODEL_KEY . '-namespace'));
         });
@@ -162,7 +157,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     {
         $helpersDir = __DIR__.'/Helpers';
 
-        $autoloadedHelpers = collect(File::allFiles($helpersDir))->map(fn($file) => $file->getRealPath());
+        $autoloadedHelpers = collect(File::allFiles($helpersDir))->map(fn ($file) => $file->getRealPath());
 
         $packageHelpers = [
         ];
@@ -196,7 +191,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $this->mergeConfigFrom($path, $key);
         }
     }
-    
+
     /**
      * Loads a relations morph map.
      */
@@ -204,8 +199,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     {
         Relation::morphMap(array_merge([
             'product' => Product::class
-        ], CustomerService::getValidCustomableModels()->all() , collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
-                return [$case->value => $case->getMorphableClass()];
+        ], CustomerService::getValidCustomableModels()->all(), collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
+            return [$case->value => $case->getMorphableClass()];
         })->all()));
     }
 
@@ -223,7 +218,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     {
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
-            
+
             // Daily integrity check
             $schedule->command('finance:ensure-integrity')->dailyAt('01:00');
 
@@ -233,7 +228,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 ->appendOutputTo(storage_path('logs/fiscal-periods.log'));
         });
     }
-    
+
     /**
      * Register service layer bindings
      */
@@ -241,60 +236,60 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     {
         // Invoice Service (existing)
         $this->app->bind(InvoiceServiceInterface::class, InvoiceService::class);
-        
+
         // Payment Gateway Service (existing)
         $this->app->singleton(PaymentGatewayService::class);
-        
+
         // Customer Service
         $this->app->bind(
             \Condoedge\Finance\Services\Customer\CustomerServiceInterface::class,
             \Condoedge\Finance\Services\Customer\CustomerService::class
         );
-        
+
         // Payment Service
         $this->app->bind(
             \Condoedge\Finance\Services\Payment\PaymentServiceInterface::class,
             \Condoedge\Finance\Services\Payment\PaymentService::class
         );
-        
+
         // Tax Service
         $this->app->bind(
             \Condoedge\Finance\Services\Tax\TaxServiceInterface::class,
             \Condoedge\Finance\Services\Tax\TaxService::class
         );
-        
+
         // Account Segment Validator
         $this->app->singleton(\Condoedge\Finance\Services\AccountSegmentValidator::class);
-        
+
         // Segment Default Handler Service
         $this->app->singleton(\Condoedge\Finance\Services\SegmentDefaultHandlerService::class);
-        
+
         // Account Segment Service (new segment-based system)
         $this->app->bind(
             \Condoedge\Finance\Services\AccountSegmentServiceInterface::class,
             \Condoedge\Finance\Services\AccountSegmentService::class
         );
         $this->app->singleton(\Condoedge\Finance\Services\AccountSegmentService::class);
-        
+
         // Legacy GL Segment Service (for backward compatibility)
         $this->app->singleton(\Condoedge\Finance\Services\GlSegmentService::class);
-        
+
         // Fiscal Year Service
         $this->app->singleton(\Condoedge\Finance\Services\FiscalYearService::class);
-        
+
         // Invoice Detail Service
         $this->app->bind(
             \Condoedge\Finance\Services\InvoiceDetail\InvoiceDetailServiceInterface::class,
             \Condoedge\Finance\Services\InvoiceDetail\InvoiceDetailService::class
         );
-        
+
         // GL Transaction Service
         $this->app->bind(
             \Condoedge\Finance\Services\GlTransactionServiceInterface::class,
             \Condoedge\Finance\Services\GlTransactionService::class
         );
     }
-    
+
     /**
      * Boot the database integrity checking system
      */

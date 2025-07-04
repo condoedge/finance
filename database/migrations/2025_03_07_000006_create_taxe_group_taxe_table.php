@@ -8,14 +8,12 @@ class CreateTaxeGroupTaxeTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
         Schema::create('fin_taxes_group_taxes', function (Blueprint $table) {
             addMetaData($table);
-            
+
             $table->foreignId('tax_group_id')->constrained('fin_taxes_groups');
             $table->foreignId('tax_id')->constrained('fin_taxes');
         });
@@ -23,8 +21,6 @@ class CreateTaxeGroupTaxeTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {

@@ -4,10 +4,10 @@ namespace Condoedge\Finance\Enums;
 
 /**
  * GL Transaction Type Enum
- * 
+ *
  * Defines the types of General Ledger transactions that can be created.
  * Each type has specific rules for posting periods and validation.
- * 
+ *
  * CRITICAL: This enum follows the same pattern as other financial enums in the system
  * for consistency and to enable facade usage.
  */
@@ -50,7 +50,7 @@ enum GlTransactionTypeEnum: int
     {
         return match($this) {
             self::MANUAL_GL => 'is_open_gl',
-            self::BANK => 'is_open_bnk', 
+            self::BANK => 'is_open_bnk',
             self::RECEIVABLE => 'is_open_rm',
             self::PAYABLE => 'is_open_pm',
         };
@@ -68,7 +68,7 @@ enum GlTransactionTypeEnum: int
             self::PAYABLE => 'AP',
         };
     }
-    
+
     /**
      * Get module code for fiscal period management
      * This matches the codes used in fiscal period open/close operations
@@ -98,7 +98,7 @@ enum GlTransactionTypeEnum: int
     {
         return array_column(self::cases(), 'value');
     }
-    
+
     /**
      * Get enum from module code (GL, BNK, RM, PM)
      */
@@ -112,15 +112,15 @@ enum GlTransactionTypeEnum: int
             default => null,
         };
     }
-    
+
     /**
      * Get all valid module codes
      */
     public static function getValidModuleCodes(): array
     {
-        return array_map(fn($case) => $case->moduleCode(), self::cases());
+        return array_map(fn ($case) => $case->moduleCode(), self::cases());
     }
-    
+
     /**
      * Get module code to enum mapping
      */

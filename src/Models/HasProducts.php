@@ -2,8 +2,6 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Models\Product;
-
 trait HasProducts
 {
     public function products()

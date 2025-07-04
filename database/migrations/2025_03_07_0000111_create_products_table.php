@@ -11,7 +11,7 @@ return new class () extends Migration {
     public function up(): void
     {
         Schema::dropIfExists('fin_products');
-        
+
         Schema::create('fin_products', function (Blueprint $table) {
             addMetaData($table);
 

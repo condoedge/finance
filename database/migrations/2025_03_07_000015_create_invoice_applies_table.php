@@ -8,8 +8,6 @@ class CreateInvoiceAppliesTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
@@ -19,10 +17,10 @@ class CreateInvoiceAppliesTable extends Migration
             $table->date('apply_date');
             $table->foreignId('invoice_id')->constrained('fin_invoices');
             // $table->decimal('invoice_applied_amount', 19, config('kompo-finance.decimal-scale'));
-            
+
             // We set the morphable_type to use integers to improve performance
             $table->unsignedBigInteger('applicable_id');
-            $table->unsignedSmallInteger('applicable_type'); 
+            $table->unsignedSmallInteger('applicable_type');
 
             $table->index(['applicable_id', 'applicable_type'], 'fin_invoice_applicable_index');
 
@@ -33,8 +31,6 @@ class CreateInvoiceAppliesTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {

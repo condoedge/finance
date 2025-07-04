@@ -2,13 +2,13 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 
 class GlTransactionLine extends AbstractMainFinanceModel
 {
     use HasIntegrityCheck;
-    
+
     protected $table = 'fin_gl_transaction_lines';
 
     protected $casts = [
@@ -19,21 +19,21 @@ class GlTransactionLine extends AbstractMainFinanceModel
     public static function boot()
     {
         parent::boot();
-        
-        // Ensure integrity checks are applied on create/update/delete        
+
+        // Ensure integrity checks are applied on create/update/delete
         static::updating(function ($model) {
             if ($model->header->is_posted) {
                 throw new \Exception(__('error-cannot-modify-posted-transaction'));
             }
         });
-        
+
         static::deleting(function ($model) {
             if ($model->header->is_posted) {
                 throw new \Exception(__('error-cannot-delete-posted-transaction'));
             }
         });
     }
-    
+
     /**
      * Relationships
      */
@@ -41,12 +41,12 @@ class GlTransactionLine extends AbstractMainFinanceModel
     {
         return $this->belongsTo(GlTransactionHeader::class, 'gl_transaction_id');
     }
-    
+
     public function account()
     {
         return $this->belongsTo(GlAccount::class, 'account_id');
     }
-    
+
     /**
      * No calculated columns for this model - validation handled by triggers
      */
@@ -54,7 +54,7 @@ class GlTransactionLine extends AbstractMainFinanceModel
     {
         return [];
     }
-    
+
     /**
      * Scope for lines with debit amounts
      */
@@ -62,7 +62,7 @@ class GlTransactionLine extends AbstractMainFinanceModel
     {
         return $query->where('debit_amount', '>', 0);
     }
-    
+
     /**
      * Scope for lines with credit amounts
      */

@@ -8,8 +8,6 @@ class AddTeamIdToInvoices extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
@@ -22,8 +20,6 @@ class AddTeamIdToInvoices extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {

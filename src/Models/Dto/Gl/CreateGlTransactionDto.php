@@ -4,21 +4,18 @@ namespace Condoedge\Finance\Models\Dto\Gl;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
-use Condoedge\Finance\Models\SegmentValue;
-use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Services\GlTransactionServiceInterface;
-use WendellAdriel\ValidatedDTO\ValidatedDTO;
-use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
-use WendellAdriel\ValidatedDTO\Casting\DTOCast;
 use WendellAdriel\ValidatedDTO\Casting\EnumCast;
+use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
+use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
  * Create GL Transaction DTO
- * 
+ *
  * Used to create new general ledger transactions with multiple line items.
  * Ensures double-entry bookkeeping by requiring balanced debits and credits.
- * 
+ *
  * @property string $fiscal_date The fiscal date for this transaction
  * @property int $gl_transaction_type Type of GL transaction (1=Manual, 2=Bank, 3=AR, 4=AP)
  * @property string $transaction_description Description of the transaction
@@ -36,7 +33,7 @@ class CreateGlTransactionDto extends ValidatedDTO
     public ?int $customer_id = null;
     public ?int $vendor_id = null;
     public array $lines;
-    
+
     /**
      * Defines the casts for the DTO properties.
      */
@@ -50,7 +47,7 @@ class CreateGlTransactionDto extends ValidatedDTO
             'lines' => new ArrayCast(),
         ];
     }
-    
+
     /**
      * Validation rules
      */
@@ -71,7 +68,7 @@ class CreateGlTransactionDto extends ValidatedDTO
             'lines.*.credit_amount' => 'required|numeric|min:0',
         ];
     }
-    
+
     /**
      * Default values
      */
@@ -81,7 +78,7 @@ class CreateGlTransactionDto extends ValidatedDTO
             'line_description' => null,
         ];
     }
-    
+
     /**
      * Additional validation after basic rules
      */
@@ -95,22 +92,22 @@ class CreateGlTransactionDto extends ValidatedDTO
         // Validate that transaction is balanced
         if (!$this->validateBalance()) {
             $validator->errors()->add(
-                'lines', 
+                'lines',
                 __('validation-with-values-transaction-must-balance', [
                     'debits' => finance_currency($this->getTotalDebits()),
                     'credits' => finance_currency($this->getTotalCredits())
                 ])
             );
         }
-        
+
         // Validate each line has either debit or credit, not both
         foreach ($lines as $index => $line) {
             $debit = is_array($line) ? ($line['debit_amount'] ?? 0) : $line->debit_amount->toFloat();
             $credit = is_array($line) ? ($line['credit_amount'] ?? 0) : $line->credit_amount->toFloat();
-            
+
             if (($debit > 0 && $credit > 0) || ($debit == 0 && $credit == 0)) {
                 $validator->errors()->add(
-                    "lines.{$index}", 
+                    "lines.{$index}",
                     __('error-line-must-have-either-debit-or-credit')
                 );
             }
@@ -120,7 +117,7 @@ class CreateGlTransactionDto extends ValidatedDTO
             $glService = app(GlTransactionServiceInterface::class);
 
             if ($accountId && $glTransactionType) {
-                try{
+                try {
                     $glService->validateAccountAbleToTransaction($accountId, $glTransactionType);
                 } catch (\Exception $e) {
                     $validator->errors()->add("lines.{$index}.account_id", $e->getMessage());
@@ -135,18 +132,18 @@ class CreateGlTransactionDto extends ValidatedDTO
                 }
             }
         }
-        
+
         // Validate vendor_id is required for AP transactions
         if ($glTransactionType === GlTransactionTypeEnum::PAYABLE && empty($vendorId)) {
             $validator->errors()->add('vendor_id', __('error-vendor-required-for-ap-transactions'));
         }
-        
+
         // Validate customer_id is required for AR transactions
         if ($glTransactionType === GlTransactionTypeEnum::RECEIVABLE && empty($customerId)) {
             $validator->errors()->add('customer_id', __('error-customer-required-for-ar-transactions'));
         }
     }
-    
+
     /**
      * Validate that the transaction balances (debits = credits)
      */
@@ -154,11 +151,11 @@ class CreateGlTransactionDto extends ValidatedDTO
     {
         $totalDebits = new SafeDecimal($this->getTotalDebits());
         $totalCredits = new SafeDecimal($this->getTotalCredits());
-        
+
         // Allow for small rounding differences
         return $totalDebits->equals($totalCredits);
     }
-    
+
     /**
      * Get total debit amount
      */
@@ -166,7 +163,7 @@ class CreateGlTransactionDto extends ValidatedDTO
     {
         $total = new SafeDecimal(0.0);
         $lines = $this->dtoData['lines'] ?? [];
-        
+
         foreach ($lines as $lineData) {
             if (is_array($lineData)) {
                 $total = $total->add(new SafeDecimal($lineData['debit_amount'] ?? 0));
@@ -174,10 +171,10 @@ class CreateGlTransactionDto extends ValidatedDTO
                 $total = $total->add($lineData->debit_amount);
             }
         }
-        
+
         return $total;
     }
-    
+
     /**
      * Get total credit amount
      */
@@ -185,7 +182,7 @@ class CreateGlTransactionDto extends ValidatedDTO
     {
         $total = new SafeDecimal(0.0);
         $lines = $this->dtoData['lines'] ?? [];
-        
+
         foreach ($lines as $lineData) {
             if (is_array($lineData)) {
                 $total = $total->add(new SafeDecimal($lineData['credit_amount'] ?? 0));
@@ -193,17 +190,17 @@ class CreateGlTransactionDto extends ValidatedDTO
                 $total = $total->add($lineData->credit_amount);
             }
         }
-        
+
         return $total;
     }
-    
+
     /**
      * Convert lines to DTOs if they're arrays
      */
     public function getLinesDtos(): array
     {
         $lineDtos = [];
-        
+
         foreach ($this->lines as $lineData) {
             if (is_array($lineData)) {
                 $lineDtos[] = new CreateGlTransactionLineDto($lineData);
@@ -211,10 +208,10 @@ class CreateGlTransactionDto extends ValidatedDTO
                 $lineDtos[] = $lineData;
             }
         }
-        
+
         return $lineDtos;
     }
-    
+
     /**
      * Check if this is a manual GL transaction
      */

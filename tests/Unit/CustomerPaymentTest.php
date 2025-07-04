@@ -2,8 +2,8 @@
 
 namespace Tests\Unit;
 
-use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
+use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
@@ -11,8 +11,8 @@ use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;
@@ -33,7 +33,9 @@ class CustomerPaymentTest extends TestCase
 
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
-        if (!$user) throw new Exception('Unknown error creating user');
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
         $this->actingAs($user);
     }
 
@@ -95,7 +97,8 @@ class CustomerPaymentTest extends TestCase
             'applicable_type' => MorphablesEnum::PAYMENT->value,
             'amount_applied' => 200, // Note: this should be positive when applying to credit
             'invoice_id' => $creditNote->id,
-        ]));        $this->assertDatabaseHas('fin_invoice_applies', [
+        ]));
+        $this->assertDatabaseHas('fin_invoice_applies', [
             'id' => $invoiceApply->id,
             'invoice_id' => $creditNote->id,
             'applicable_id' => $negativePayment->id,
@@ -113,7 +116,8 @@ class CustomerPaymentTest extends TestCase
     }
 
     public function test_negative_payment_cannot_exceed_its_absolute_amount_left()
-    {        $customer = CustomerFactory::new()->create();
+    {
+        $customer = CustomerFactory::new()->create();
         $creditNote = $this->createCreditNote($customer->id, 500);
         $negativePayment = $this->createCustomerPayment($customer->id, -200);
 
@@ -156,7 +160,7 @@ class CustomerPaymentTest extends TestCase
     {
         $customer = CustomerFactory::new()->create();
         $invoice = $this->createApprovedInvoice($customer->id, 1000);
-        
+
         // Customer owes 1000
         $customer->refresh();
         $this->assertEqualsDecimals(1000, $customer->customer_due_amount);
@@ -336,7 +340,7 @@ class CustomerPaymentTest extends TestCase
     public function test_sign_consistency_in_calculations()
     {
         $customer = CustomerFactory::new()->create();
-        
+
         // Regular invoice (positive)
         $invoice = $this->createApprovedInvoice($customer->id, 500);
         $this->assertTrue($invoice->invoice_total_amount->greaterThan(0));
@@ -381,11 +385,11 @@ class CustomerPaymentTest extends TestCase
         // Verify trigger updated amounts correctly
         $negativePayment->refresh();
         $creditNote->refresh();
-        
+
         $this->assertEqualsDecimals(0, $negativePayment->amount_left); // -100 + 100 = 0
         $this->assertEqualsDecimals(100, $creditNote->abs_invoice_due_amount); // 200 - 100
-    }    
-    
+    }
+
     public function test_prevents_incorrect_sign_applications()
     {
         // You cannot apply a negative payment to a positive invoice
@@ -394,7 +398,7 @@ class CustomerPaymentTest extends TestCase
         $negativePayment = $this->createCustomerPayment($customer->id, -200);
 
         $this->expectException(\Illuminate\Validation\ValidationException::class);
-        
+
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
@@ -459,11 +463,11 @@ class CustomerPaymentTest extends TestCase
     public function test_negative_payment_application_behaves_like_positive_payment_to_credit()
     {
         $customer = CustomerFactory::new()->create();
-        
+
         // Scenario 1: Regular payment to regular invoice
         $regularInvoice = $this->createApprovedInvoice($customer->id, 500);
         $regularPayment = $this->createCustomerPayment($customer->id, 300);
-        
+
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
@@ -478,7 +482,7 @@ class CustomerPaymentTest extends TestCase
         // Scenario 2: Negative payment to credit note (should behave symmetrically)
         $creditNote = $this->createCreditNote($customer->id, 500);
         $negativePayment = $this->createCustomerPayment($customer->id, -300);
-        
+
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
@@ -505,17 +509,17 @@ class CustomerPaymentTest extends TestCase
     public function test_customer_balance_calculation_with_mixed_transactions()
     {
         $customer = CustomerFactory::new()->create();
-        
+
         // Create various transactions
         $invoice1 = $this->createApprovedInvoice($customer->id, 1000); // Customer owes 1000
         $creditNote1 = $this->createCreditNote($customer->id, 300);   // Customer credit 300
         $regularPayment = $this->createCustomerPayment($customer->id, 400); // Customer pays 400
         $negativePayment = $this->createCustomerPayment($customer->id, -200); // Company pays customer 200        // Check customer balance calculation
         $customer->refresh();
-        
+
         // Expected calculation:
         // Total debt: 1000 (invoice) - 300 (credit note) = 700
-        // Total paid: 400 (payment) - 200 (negative payment) = 200  
+        // Total paid: 400 (payment) - 200 (negative payment) = 200
         // Customer due = 700 - 200 = 500
         $this->assertEqualsDecimals(500, $customer->customer_due_amount);
     }    public function test_credit_note_creation_with_credit_payment_service()
@@ -525,10 +529,10 @@ class CustomerPaymentTest extends TestCase
 
         // Create credit note using the helper method
         $creditNote = $this->createCreditNote($customer->id, $amount);
-        
+
         // Create a payment and apply it to the credit note (simulating the service behavior)
         $payment = $this->createCustomerPayment($customer->id, $creditNote->invoice_due_amount);
-        
+
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
@@ -560,13 +564,13 @@ class CustomerPaymentTest extends TestCase
     {
         $customer1 = CustomerFactory::new()->create();
         $customer2 = CustomerFactory::new()->create();
-        
+
         $invoice = $this->createApprovedInvoice($customer1->id, 500);
         $payment = $this->createCustomerPayment($customer2->id, 300);
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('validation-custom-finance-invoice-customer-mismatch'));        
-        
+        $this->expectExceptionMessage(__('validation-custom-finance-invoice-customer-mismatch'));
+
         PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
             'apply_date' => now(),
             'applicable' => (object)[
@@ -579,11 +583,11 @@ class CustomerPaymentTest extends TestCase
         ]));
     }    /**
      * Test that validates the new business rule: negative payments cannot be applied to regular invoices.
-     * This prevents logical contradictions where the company owes money to the customer 
+     * This prevents logical contradictions where the company owes money to the customer
      * but the customer also owes money to the company for the same invoice.
      */
     public function test_validation_prevents_negative_payment_application_to_regular_invoice()
-    {        
+    {
         $customer = CustomerFactory::new()->create();
         $regularInvoice = $this->createApprovedInvoice($customer->id, 1000);
         $negativePayment = $this->createCustomerPayment($customer->id, -300);
@@ -599,21 +603,21 @@ class CustomerPaymentTest extends TestCase
                 'amount_applied' => -300,
                 'invoice_id' => $regularInvoice->id,
             ]));
-            
+
             $this->fail('Expected ValidationException was not thrown');
         } catch (ValidationException $e) {
             // Verify the specific validation error message is about negative payment to regular invoice
             $this->assertArrayHasKey('applicable', $e->errors());
             // The validation should prevent this operation
         }
-        
+
         // Verify no invoice application was created
         $this->assertDatabaseMissing('fin_invoice_applies', [
             'invoice_id' => $regularInvoice->id,
             'applicable_id' => $negativePayment->id,
             'applicable_type' => MorphablesEnum::PAYMENT->value,
         ]);
-        
+
         $regularInvoice->refresh();
         $customer->refresh();
         $negativePayment->refresh();
@@ -692,7 +696,8 @@ class CustomerPaymentTest extends TestCase
      * This is allowed because both represent money owed from company to customer.
      */
     public function test_negative_payment_can_be_applied_to_credit_note_with_validation()
-    {        $customer = CustomerFactory::new()->create();
+    {
+        $customer = CustomerFactory::new()->create();
         $creditNote = $this->createCreditNote($customer->id, 500);
         $negativePayment = $this->createCustomerPayment($customer->id, -300);
 
@@ -719,7 +724,7 @@ class CustomerPaymentTest extends TestCase
         // Verify amounts are updated correctly
         $negativePayment->refresh();
         $creditNote->refresh();
-        
+
         $this->assertEqualsDecimals(0, $negativePayment->amount_left); // -300 + 300 = 0
         $this->assertEqualsDecimals(200, $creditNote->abs_invoice_due_amount); // 500 - 300 = 200
     }

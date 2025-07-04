@@ -8,14 +8,12 @@ class CreateInvoiceDetailTaxesTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
     {
         Schema::create('fin_invoice_detail_taxes', function (Blueprint $table) {
             addMetaData($table);
-            
+
             $table->foreignId('invoice_detail_id')->constrained('fin_invoice_details');
             $table->foreignId('tax_id')->constrained('fin_taxes');
             $table->foreignId('account_id')->nullable()->constrained('fin_gl_accounts');
@@ -26,8 +24,6 @@ class CreateInvoiceDetailTaxesTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {

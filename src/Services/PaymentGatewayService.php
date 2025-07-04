@@ -4,13 +4,13 @@ namespace Condoedge\Finance\Services;
 
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethodEnum;
-use Condoedge\Finance\Models\GlAccount;
 
 /**
  * Stateless Payment Gateway Service
- * 
+ *
  * Provides a clean, stateless API for payment gateway operations
  * without relying on static context.
  */
@@ -81,7 +81,7 @@ class PaymentGatewayService
     public function setupAllRoutes(): void
     {
         $gateways = $this->getAvailableGateways();
-        
+
         foreach ($gateways as $gatewayInfo) {
             $gateway = $this->getGatewayForPaymentType($gatewayInfo['payment_method']);
             $gateway->setRoutes();

@@ -1,8 +1,6 @@
 <?php
 
-use Condoedge\Finance\Billing\TempPaymentGateway;
 use Condoedge\Finance\Models\CustomableTeam;
-use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 
 return [
@@ -18,7 +16,7 @@ return [
     | This configuration defines the relationships between models for integrity verification.
     | The keys are parent model classes and the values are arrays of child model classes.
     |
-    */    
+    */
     'model_integrity_relations' => [
         \Condoedge\Finance\Models\Customer::class => [
             \Condoedge\Finance\Models\Invoice::class,
@@ -147,6 +145,6 @@ return [
     PRODUCT_TYPE_ENUM_KEY . '-namespace' => \Condoedge\Finance\Models\ProductTypeEnum::class,
 
     PRODUCT_MODEL_KEY . '-namespace' => \Condoedge\Finance\Models\Product::class,
-    
+
     SEGMENT_DEFAULT_HANDLER_ENUM_KEY . '-namespace' => \Condoedge\Finance\Enums\SegmentDefaultHandlerEnum::class,
 ];

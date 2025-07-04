@@ -3,18 +3,17 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Billing\TempPaymentGateway;
-use Condoedge\Finance\Services\PaymentGatewayService;
 
 /**
  * Payment Type Enum
- * 
+ *
  * Defines the available payment types in the system.
  * This enum is linked to the fin_payment_methods table for referential integrity.
  */
 enum PaymentMethodEnum: int
 {
     use \Kompo\Models\Traits\EnumKompo;
-    
+
     case CASH = 1;
     case CHECK = 2;
     case CREDIT_CARD = 3;

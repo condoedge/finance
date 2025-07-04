@@ -2,26 +2,25 @@
 
 namespace Condoedge\Finance\Services\Customer;
 
-use Condoedge\Finance\Models\Customer;
-use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\CustomableContract;
-use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
-use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
 use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Utils\Models\ContactInfo\Maps\Address;
+use Condoedge\Finance\Models\CustomableContract;
+use Condoedge\Finance\Models\Customer;
+use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
+use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
+use Condoedge\Finance\Models\Invoice;
 use Condoedge\Utils\Facades\GlobalConfig;
+use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Customer Service Implementation
- * 
+ *
  * Handles all customer business logic including creation, updates,
  * address management, and invoice integration.
- * 
- * This implementation can be easily overridden by binding a custom 
+ *
+ * This implementation can be easily overridden by binding a custom
  * implementation to the CustomerServiceInterface in your service provider.
  */
 class CustomerService implements CustomerServiceInterface
@@ -35,29 +34,29 @@ class CustomerService implements CustomerServiceInterface
             if (isset($dto->id)) {
                 return $this->updateExistingCustomer($dto);
             }
-            
+
             return $this->createNewCustomer($dto);
         });
     }
-    
+
     /**
      * Create customer from customable model
      */
     public function createFromCustomable(CreateCustomerFromCustomable $dto): Customer
     {
-        return DB::transaction(function () use ($dto) {  
+        return DB::transaction(function () use ($dto) {
             // Create/update customer from customable
             $customer = $this->upsertCustomerFromCustomable($dto);
-            
+
             // Setup address if provided
             if ($dto->address) {
                 $this->createAddressForCustomer($customer, $dto->address->toArray());
             }
-            
+
             return $customer->refresh();
         });
     }
-    
+
     /**
      * Set default address for customer
      */
@@ -67,11 +66,11 @@ class CustomerService implements CustomerServiceInterface
             // Update default address
             $customer->default_billing_address_id = $addressId;
             $customer->save();
-            
+
             return $customer->refresh();
         });
     }
-    
+
     /**
      * Fill invoice with customer data
      */
@@ -79,27 +78,27 @@ class CustomerService implements CustomerServiceInterface
     {
         // Apply customer data to invoice
         $invoice->customer_id = $customer->id;
-        $invoice->payment_method_id = $customer->default_payment_method_id 
+        $invoice->payment_method_id = $customer->default_payment_method_id
             ?? GlobalConfig::getOrFail('default_payment_method_id');
-        
+
         return $invoice;
     }
-    
+
     /**
      * Get validated customable models
      */
     public function getValidCustomableModels(): Collection
     {
         $customables = collect(config('kompo-finance.customable_models'));
-        
+
         // Validate each customable implements required contract
         $customables->each(function ($customable) {
             $this->validateCustomableImplementsContract($customable);
         });
-        
+
         return $customables;
     }
-    
+
     /**
      * Calculate customer due amount
      */
@@ -116,18 +115,18 @@ class CustomerService implements CustomerServiceInterface
 
         return new SafeDecimal($customer->sql_customer_due_amount ?? '0.00');
     }
-    
+
     /**
      * Sync customer with customable
      */
     public function syncWithCustomable(Customer $customer): bool
     {
         $customable = $customer->customable()->first();
-        
+
         if (!$customable) {
             return false;
         }
-        
+
         try {
             $customable->updateFromCustomer($customer);
             return true;
@@ -138,13 +137,13 @@ class CustomerService implements CustomerServiceInterface
                 'customable_type' => get_class($customable),
                 'error' => $e->getMessage()
             ]);
-            
+
             return false;
         }
     }
-    
+
     /* PROTECTED METHODS - Can be overridden for customization */
-    
+
     /**
      * Update existing customer
      */
@@ -153,10 +152,10 @@ class CustomerService implements CustomerServiceInterface
         $customer = Customer::findOrFail($dto->id);
         $customer->name = $dto->name;
         $customer->save();
-        
+
         return $customer;
     }
-    
+
     /**
      * Create new customer
      */
@@ -166,15 +165,15 @@ class CustomerService implements CustomerServiceInterface
         $customer->name = $dto->name;
         $customer->team_id = $dto->team_id ?? currentTeamId();
         $customer->save();
-        
+
         // Create address if provided
         if ($dto->address) {
             $this->createAddressForCustomer($customer, $dto->address->toArray());
         }
-        
+
         return $customer;
     }
-    
+
     /**
      * Create/update customer from customable
      */
@@ -182,7 +181,7 @@ class CustomerService implements CustomerServiceInterface
     {
         return $dto->customable->upsertCustomerFromThisModel();
     }
-    
+
     /**
      * Create address for customer
      */
@@ -190,13 +189,13 @@ class CustomerService implements CustomerServiceInterface
     {
         Address::createMainForFromRequest($customer, $addressData);
     }
-    
+
     /**
      * Validate customable model implements required contract
      */
     protected function validateCustomableImplementsContract(string $customableClass): void
     {
-        if (!in_array(CustomableContract::class, class_implements($customableClass))) {
+        if (!in_array(CustomableContract::class, class_implements($customableClass), true)) {
             throw new \Exception(__('finance-customable-model-must-implement', ['model' => $customableClass]));
         }
     }

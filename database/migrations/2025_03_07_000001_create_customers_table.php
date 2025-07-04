@@ -8,11 +8,10 @@ class CreateCustomersTable extends Migration
 {
     /**
      * Run the migrations.
-     *
-     * @return void
      */
     public function up()
-    {        Schema::create('fin_customers', function (Blueprint $table) {
+    {
+        Schema::create('fin_customers', function (Blueprint $table) {
             addMetaData($table);
 
             $table->string('name');
@@ -33,8 +32,6 @@ class CreateCustomersTable extends Migration
 
     /**
      * Reverse the migrations.
-     *
-     * @return void
      */
     public function down()
     {

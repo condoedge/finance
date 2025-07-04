@@ -3,24 +3,24 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use Illuminate\Support\Facades\DB;
 use Condoedge\Finance\Models\Dto\Invoices\ApplicableRecordDto;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class InvoiceApply
- * 
+ *
  * @description This model represents the applyment of a payment/credit to an invoice.
- * 
+ *
  * @package Condoedge\Finance\Models
- * 
+ *
  * @property int $id
  * @property int $invoice_id Foreign key to fin_invoices
  * @property string|\Carbon $apply_date The date of the payment application
  * @property int $applicable_id The ID of the applicable record (e.g., invoice, credit, etc.)
  * @property int $applicable_type The type of the applicable record (e.g., payment = 1, credit = 2, etc.)
  * @property \Condoedge\Finance\Casts\SafeDecimal $payment_applied_amount The amount of the payment applied to the invoice
- * 
-**/ 
+ *
+ **/
 class InvoiceApply extends AbstractMainFinanceModel
 {
     protected $table = 'fin_invoice_applies';
@@ -51,8 +51,9 @@ class InvoiceApply extends AbstractMainFinanceModel
 
     /**
      * Returns the required information of all applicable records to apply payments to invoices.
-     * 
+     *
      * Each item in the returned collection is a stdClass with:
+     *
      * @property-read float $applicable_amount_left The remaining amount that can be applied.
      * @property-read string $applicable_name A human-readable name or description of the applicable record.
      *
@@ -93,7 +94,7 @@ class InvoiceApply extends AbstractMainFinanceModel
         $types = config('kompo-finance.invoice_applicable_types');
 
         foreach ($types as $type) {
-            if (!in_array(ApplicableToInvoiceContract::class, class_implements($type))) {
+            if (!in_array(ApplicableToInvoiceContract::class, class_implements($type), true)) {
                 throw new \Exception("Class $type does not implement the required interface.");
             }
         }

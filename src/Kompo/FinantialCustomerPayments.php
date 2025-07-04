@@ -45,7 +45,6 @@ class FinantialCustomerPayments extends Table
             _HtmlDate($customerPayment->payment_date),
             _FinanceCurrency($customerPayment->amount),
             _FinanceCurrency($customerPayment->amount_left),
-
             _TripleDotsDropdown(
                 $customerPayment->amount_left->lessThanOrEqual(0) ? null : _DropdownLink('finance-apply-payment')->selfGet('getApplyPaymentToInvoiceModal', [
                     'customer_payment_id' => $customerPayment->id,

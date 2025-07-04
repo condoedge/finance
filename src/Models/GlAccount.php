@@ -5,20 +5,19 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Facades\GlTransactionService;
-use Illuminate\Support\Facades\DB;
 
 class GlAccount extends AbstractMainFinanceModel
 {
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     protected $table = 'fin_gl_accounts';
-    
+
     protected $casts = [
         'is_active' => 'boolean',
         'allow_manual_entry' => 'boolean',
     ];
-    
+
     // Removed fillable - using property assignment instead
-    
+
     /**
      * Relationships
      */
@@ -26,7 +25,7 @@ class GlAccount extends AbstractMainFinanceModel
     {
         return $this->hasMany(GlTransactionLine::class, 'account_id', 'account_id');
     }
-    
+
     /**
      * Get segment assignments for this account
      */
@@ -46,20 +45,20 @@ class GlAccount extends AbstractMainFinanceModel
             'segment_value_id',
         )->latest();
     }
-    
+
     /**
      * Get segment values for this account through assignments
      */
     public function segmentValues()
     {
         return $this->belongsToMany(
-            SegmentValue::class, 
-            'fin_account_segment_assignments', 
-            'account_id', 
+            SegmentValue::class,
+            'fin_account_segment_assignments',
+            'account_id',
             'segment_value_id'
         )->with('segmentDefinition');
     }
-    
+
     /**
      * Get ordered segment values with their definitions
      */
@@ -70,7 +69,7 @@ class GlAccount extends AbstractMainFinanceModel
             ->sortBy('segmentDefinition.segment_position')
             ->values();
     }
-    
+
     /**
      * Get the last segment value (for editing)
      */
@@ -83,7 +82,7 @@ class GlAccount extends AbstractMainFinanceModel
     {
         return $this->lastSegmentValue->account_type;
     }
-    
+
     /**
      * Get detailed segment information
      */
@@ -99,7 +98,7 @@ class GlAccount extends AbstractMainFinanceModel
             ];
         });
     }
-    
+
     /**
      * Scopes
      */
@@ -112,17 +111,17 @@ class GlAccount extends AbstractMainFinanceModel
     {
         return $query->withTrashed()->where('is_active', 0);
     }
-    
+
     public function scopeAllowManualEntry($query)
     {
         return $query->where('allow_manual_entry', true);
     }
-    
+
     public function scopeByType($query, string $accountType)
     {
         return $query->where('account_type', $accountType);
     }
-    
+
     public function scopeWithSegmentValue($query, int $segmentValueId)
     {
         return $query->whereHas('segmentAssignments', function ($q) use ($segmentValueId) {
@@ -144,23 +143,23 @@ class GlAccount extends AbstractMainFinanceModel
     {
         return $this->is_active && $this->allow_manual_entry;
     }
-    
+
     /**
      * Check if this is a normal debit account
      */
     public function isNormalDebitAccount(): bool
     {
-        return in_array($this->lastSegmentValue?->account_type, [AccountTypeEnum::ASSET, AccountTypeEnum::EXPENSE]);
+        return in_array($this->lastSegmentValue?->account_type, [AccountTypeEnum::ASSET, AccountTypeEnum::EXPENSE], true);
     }
-    
+
     /**
      * Check if this is a normal credit account
      */
     public function isNormalCreditAccount(): bool
     {
-        return in_array($this->lastSegmentValue?->account_type, [AccountTypeEnum::LIABILITY, AccountTypeEnum::EQUITY, AccountTypeEnum::REVENUE]);
+        return in_array($this->lastSegmentValue?->account_type, [AccountTypeEnum::LIABILITY, AccountTypeEnum::EQUITY, AccountTypeEnum::REVENUE], true);
     }
-    
+
     /**
      * Get account balance for a specific date range
      */
@@ -185,7 +184,7 @@ class GlAccount extends AbstractMainFinanceModel
     {
         return $this->getLastSegmentValue()?->display;
     }
-    
+
     /**
      * Columns for integrity check (none for accounts)
      */

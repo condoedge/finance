@@ -2,8 +2,8 @@
 
 namespace Condoedge\Finance\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Condoedge\Utils\Models\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class PaymentInstallment extends Model
 {
@@ -18,7 +18,7 @@ class PaymentInstallment extends Model
 
     /**
      * Get the enum instance for this payment type
-     * 
+     *
      * @return PaymentInstallmentEnum
      */
     public function getEnum(): PaymentInstallmentEnum

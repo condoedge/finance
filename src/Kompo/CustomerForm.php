@@ -5,8 +5,8 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Kompo\Common\Modal;
-use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
 use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
+use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 class CustomerForm extends Modal
@@ -54,11 +54,9 @@ class CustomerForm extends Modal
                     return [$morphableType => $customable::getVisualName()];
                 }))
                 ->selfGet('getCustomableOptions')->inPanel('customableOptionsPanel'),
-
             _Panel(
                 $this->manualForm()
             )->id('customableOptionsPanel'),
-
             _FlexEnd(
                 _SubmitButton('finance-save')->closeModal()->refresh($this->refreshId),
             ),
@@ -99,7 +97,7 @@ class CustomerForm extends Modal
     public function ensureAddress()
     {
         $modelInstance = $this->getModelRelationInstance();
-   
+
         if (!$modelInstance->getFirstValidAddress()) {
             return _Place()->name('address');
         }

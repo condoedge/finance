@@ -5,21 +5,21 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\CustomerCreated;
 use Condoedge\Finance\Facades\CustomerService;
-use Illuminate\Support\Facades\DB;
-use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Condoedge\Utils\Facades\TeamModel;
+use Condoedge\Utils\Models\ContactInfo\Maps\Address;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class Customer
- * 
+ *
  * @package Condoedge\Finance\Models
- * 
- * This table shouldn't be called in the app if you're not touching any financial part. You must have 
+ *
+ * This table shouldn't be called in the app if you're not touching any financial part. You must have
  * your own Customer class into your app implementing CustomableContract.
- * 
+ *
  * @property int $id
  * @property string $name
- * @property int $team_id 
+ * @property int $team_id
  * @property \Condoedge\Finance\Casts\SafeDecimal $customer_due_amount @CALCULATED BY calculate_customer_due() - Remaining amount to be paid
  * @property int|null $default_billing_address_id Foreign key to fin_addresses
  * @property int|null $default_payment_method_id Foreign key to fin_payment_methods
@@ -44,14 +44,14 @@ class Customer extends AbstractMainFinanceModel
 
         parent::boot();
     }
-    
+
     protected $table = 'fin_customers';
 
     protected function getCreatedEventClass()
     {
         return CustomerCreated::class;
     }
-    
+
     /* RELATIONSHIPS */
     public function invoices()
     {

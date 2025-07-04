@@ -8,13 +8,13 @@ use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Models\GlTransactionType;
 use Condoedge\Finance\Models\InvoiceStatus;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
-use Condoedge\Finance\Models\PaymentMethod;
-use Condoedge\Finance\Models\PaymentMethodEnum;
-use Illuminate\Database\Seeder;
 use Condoedge\Finance\Models\InvoiceType;
 use Condoedge\Finance\Models\InvoiceTypeEnum as ModelsInvoiceTypeEnum;
 use Condoedge\Finance\Models\PaymentInstallment;
 use Condoedge\Finance\Models\PaymentInstallmentEnum;
+use Condoedge\Finance\Models\PaymentMethod;
+use Condoedge\Finance\Models\PaymentMethodEnum;
+use Illuminate\Database\Seeder;
 
 class SettingsSeeder extends Seeder
 {

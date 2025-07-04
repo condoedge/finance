@@ -83,7 +83,7 @@ class PaymentForm extends Modal
                 ->placeholder('finance-payment-date'),
 
             $this->invoice ? _Hidden()->name('type')->default($paymentType) : _ButtonGroup('finance-select-type')->name('type')
-                ->when($this->invoice, fn($e) => $e->default($paymentType))
+                ->when($this->invoice, fn ($e) => $e->default($paymentType))
                 ->options([
                     1 => __('finance-from-customer'),
                     -1 => __('finance-to-customer'),
@@ -96,16 +96,16 @@ class PaymentForm extends Modal
 
             _FlexEnd(
                 _SubmitButton('finance-save')->refresh($this->refreshId)->closeModal()
-                    ->when($this->goToApplyModelAfter, fn($e) => $e->inModal()),
+                    ->when($this->goToApplyModelAfter, fn ($e) => $e->inModal()),
             )
         ];
     }
 
     public function rules()
     {
-    	return [
+        return [
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:1,-1',
-    	];
+        ];
     }
 }

@@ -13,10 +13,10 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
  * Create or Update Segment Structure DTO
- * 
+ *
  * Used to define or update segment structure definitions.
  * Segments define the position and length of account code components.
- * 
+ *
  * @property int|null $id Segment ID for updates (null for create)
  * @property string $segment_description Description of what this segment represents
  * @property int $segment_position Position in the account code (1, 2, 3, etc.)
@@ -39,7 +39,7 @@ class CreateOrUpdateSegmentDto extends ValidatedDTO
         $validHandlers = collect(SegmentDefaultHandlerEnum::cases())
             ->pluck('value')
             ->implode(',');
-            
+
         return [
             'id' => 'nullable|integer|exists:fin_account_segments,id',
             'segment_description' => 'required|string|max:255',
@@ -49,7 +49,7 @@ class CreateOrUpdateSegmentDto extends ValidatedDTO
             'default_handler_config' => 'nullable|array',
         ];
     }
-    
+
     public function casts(): array
     {
         return [
@@ -62,7 +62,7 @@ class CreateOrUpdateSegmentDto extends ValidatedDTO
             'default_handler_config' => new ArrayCast(),
         ];
     }
-    
+
     public function defaults(): array
     {
         return [
@@ -79,9 +79,9 @@ class CreateOrUpdateSegmentDto extends ValidatedDTO
         $defaultHandlerConfig = $this->dtoData['default_handler_config'] ?? null;
 
         $segmentsValidator = app(AccountSegmentValidator::class);
-        
+
         $segmentsValidator->validateSegmentPosition($segmentPosition, $id);
-        
+
         // Validate handler configuration if handler is set
         if ($defaultHandler) {
             $handler = SegmentDefaultHandlerEnum::tryFrom($defaultHandler);
@@ -102,7 +102,7 @@ class CreateOrUpdateSegmentDto extends ValidatedDTO
         $segmentPosition = $this->dtoData['segment_position'] ?? null;
         $segmentDescription = $this->dtoData['segment_description'] ?? null;
         $maxPosition = AccountSegment::max('segment_position') ?? 0;
-        
+
         // If this is going to be the last segment
         if ($segmentPosition >= $maxPosition || $maxPosition === 0) {
             // Check if it's account-related
