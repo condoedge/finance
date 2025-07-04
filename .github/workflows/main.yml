@@ -63,62 +63,45 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Disable all composer scripts during installation
+          export COMPOSER_DISABLE_PLUGIN_LOADER=1
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
           composer update --prefer-stable --prefer-dist --no-interaction --no-progress --no-scripts
 
-      - name: Create Testbench directories
+      - name: Prepare Testbench Environment
         run: |
-          # Debug: Show vendor structure
-          echo "=== Vendor Orchestra structure ==="
-          find vendor/orchestra -type d -name "*testbench*" | head -20
+          # Create the Laravel application structure that Testbench expects
+          # This mimics what workbench:install would do
           
-          # Find the actual testbench-core installation
-          TESTBENCH_PATH=$(find vendor/orchestra -name "testbench-core" -type d | head -n1)
-          if [ -n "$TESTBENCH_PATH" ]; then
-            echo "Found testbench at: $TESTBENCH_PATH"
+          # Find testbench-core path
+          TESTBENCH_PATH="vendor/orchestra/testbench-core"
+          
+          # Create Laravel directory structure inside testbench
+          if [ -d "$TESTBENCH_PATH" ]; then
+            # Create all necessary directories
             mkdir -p "$TESTBENCH_PATH/laravel/bootstrap/cache"
-            chmod -R 777 "$TESTBENCH_PATH/laravel/bootstrap/cache"
-            echo "Created: $TESTBENCH_PATH/laravel/bootstrap/cache"
+            mkdir -p "$TESTBENCH_PATH/laravel/storage/framework/cache/data"
+            mkdir -p "$TESTBENCH_PATH/laravel/storage/framework/sessions"
+            mkdir -p "$TESTBENCH_PATH/laravel/storage/framework/testing"
+            mkdir -p "$TESTBENCH_PATH/laravel/storage/framework/views"
+            mkdir -p "$TESTBENCH_PATH/laravel/storage/logs"
+            
+            # Set permissions
+            chmod -R 777 "$TESTBENCH_PATH/laravel/bootstrap"
+            chmod -R 777 "$TESTBENCH_PATH/laravel/storage"
+            
+            # Create .gitignore files to ensure directories are preserved
+            echo "*" > "$TESTBENCH_PATH/laravel/bootstrap/cache/.gitignore"
+            echo "!.gitignore" >> "$TESTBENCH_PATH/laravel/bootstrap/cache/.gitignore"
           fi
           
-          # Also create in the expected workbench location
-          mkdir -p workbench/bootstrap/cache
-          chmod -R 777 workbench/bootstrap/cache
-          
-          # Create standard Laravel directories
+          # Also create in project root for fallback
           mkdir -p bootstrap/cache
           mkdir -p storage/framework/cache
           mkdir -p storage/framework/sessions
           mkdir -p storage/framework/views
           mkdir -p storage/logs
-          chmod -R 777 bootstrap storage
-          
-          # Debug: Show what we created
-          echo "=== Created directories ==="
-          find . -path "*/bootstrap/cache" -type d | grep -v vendor/composer
-
-      - name: Setup Testbench
-        run: |
-          vendor/bin/testbench workbench:install
-          vendor/bin/testbench workbench:build
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: testbench
-          DB_USERNAME: root
-          DB_PASSWORD: testing_password
-
-      - name: Run Composer Scripts
-        run: |
-          composer run-script post-autoload-dump
-        env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: testbench
-          DB_USERNAME: root
-          DB_PASSWORD: testing_password
+          chmod -R 777 bootstrap storage 2>/dev/null || true
 
       - name: Configure MySQL
         run: |
