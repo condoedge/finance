@@ -63,101 +63,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Disable all composer scripts during installation
-          export COMPOSER_DISABLE_PLUGIN_LOADER=1
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --prefer-stable --prefer-dist --no-interaction --no-progress --no-scripts
+          composer update --prefer-stable --prefer-dist --no-interaction --no-progress
 
-      - name: Prepare Testbench Environment
+      - name: Fix Testbench permissions
         run: |
-          # Create the Laravel application structure that Testbench expects
-          # This mimics what workbench:install would do
-          
-          # Find testbench-core path
-          TESTBENCH_PATH="vendor/orchestra/testbench-core"
-          
-          # Create Laravel directory structure inside testbench
-          if [ -d "$TESTBENCH_PATH" ]; then
-            # Create all necessary directories
-            mkdir -p "$TESTBENCH_PATH/laravel/bootstrap/cache"
-            mkdir -p "$TESTBENCH_PATH/laravel/storage/framework/cache/data"
-            mkdir -p "$TESTBENCH_PATH/laravel/storage/framework/sessions"
-            mkdir -p "$TESTBENCH_PATH/laravel/storage/framework/testing"
-            mkdir -p "$TESTBENCH_PATH/laravel/storage/framework/views"
-            mkdir -p "$TESTBENCH_PATH/laravel/storage/logs"
-            
-            # Set permissions
-            chmod -R 777 "$TESTBENCH_PATH/laravel/bootstrap"
-            chmod -R 777 "$TESTBENCH_PATH/laravel/storage"
-            
-            # Create .gitignore files to ensure directories are preserved
-            echo "*" > "$TESTBENCH_PATH/laravel/bootstrap/cache/.gitignore"
-            echo "!.gitignore" >> "$TESTBENCH_PATH/laravel/bootstrap/cache/.gitignore"
-          fi
-          
-          # Also create in project root for fallback
-          mkdir -p bootstrap/cache
-          mkdir -p storage/framework/cache
-          mkdir -p storage/framework/sessions
-          mkdir -p storage/framework/views
-          mkdir -p storage/logs
-          chmod -R 777 bootstrap storage 2>/dev/null || true
-
-      - name: Debug Testbench Paths
-        run: |
-          # Create a debug script to understand what's happening
-          cat > debug_testbench.php << 'EOF'
-          <?php
-          require_once 'vendor/autoload.php';
-          
-          // Try to find where @testbench resolves to
-          $testbenchPath = __DIR__ . '/vendor/orchestra/testbench-core/laravel';
-          echo "Expected testbench path: " . $testbenchPath . "\n";
-          echo "Exists: " . (is_dir($testbenchPath) ? 'YES' : 'NO') . "\n";
-          
-          $bootstrapCache = $testbenchPath . '/bootstrap/cache';
-          echo "\nBootstrap cache path: " . $bootstrapCache . "\n";
-          echo "Exists: " . (is_dir($bootstrapCache) ? 'YES' : 'NO') . "\n";
-          echo "Writable: " . (is_writable($bootstrapCache) ? 'YES' : 'NO') . "\n";
-          
-          // Check what Laravel's base_path would be
-          if (class_exists('Orchestra\\Testbench\\Foundation\\Application')) {
-              echo "\nTestbench Application class exists\n";
-          }
-          
-          // Show all bootstrap/cache directories
-          echo "\nAll bootstrap/cache directories found:\n";
-          $iterator = new RecursiveIteratorIterator(
-              new RecursiveDirectoryIterator('.', RecursiveDirectoryIterator::SKIP_DOTS),
-              RecursiveIteratorIterator::SELF_FIRST
-          );
-          foreach ($iterator as $path) {
-              if ($path->isDir() && preg_match('/bootstrap\/cache$/', $path->getPathname())) {
-                  echo $path->getPathname() . "\n";
-              }
-          }
-          EOF
-          
-          php debug_testbench.php || echo "Debug script failed"
-          
-          # Also check the testbench binary
-          echo -e "\n=== Testbench binary contents ==="
-          head -20 vendor/bin/testbench || echo "Could not read testbench binary"
-          
-          # Find the actual bootstrap file testbench uses
-          echo -e "\n=== Looking for testbench bootstrap ==="
-          find vendor/orchestra -name "bootstrap.php" -type f | head -10
-          
-          # Check testbench-core structure
-          echo -e "\n=== Testbench-core structure ==="
-          ls -la vendor/orchestra/testbench-core/ || echo "testbench-core not found"
-          
-          # If laravel dir exists in testbench-core, show its structure
-          if [ -d "vendor/orchestra/testbench-core/laravel" ]; then
-            echo -e "\n=== Testbench Laravel structure ==="
-            ls -la vendor/orchestra/testbench-core/laravel/
-            ls -la vendor/orchestra/testbench-core/laravel/bootstrap/ 2>/dev/null || echo "No bootstrap dir"
-          fi
+          sudo chmod -R 0777 vendor/orchestra/testbench-core/laravel/bootstrap/*
+          sudo chmod -R 0777 vendor/orchestra/testbench-core/laravel/storage/*
 
       - name: Configure MySQL
         run: |
@@ -190,46 +102,6 @@ jobs:
 
       - name: Execute database migrations
         run: |
-          # First, let's debug what path testbench is using
-          echo "=== Debugging testbench paths before migration ==="
-          
-          # Check if we can run testbench at all
-          vendor/bin/testbench --version || echo "Testbench version check failed"
-          
-          # Try to understand the Laravel path
-          cat > check_laravel_path.php << 'EOF'
-          <?php
-          // Load composer autoloader
-          require_once __DIR__ . '/vendor/autoload.php';
-          
-          // Check if we can instantiate PackageManifest directly
-          try {
-              $basePath = __DIR__ . '/vendor/orchestra/testbench-core/laravel';
-              echo "Trying base path: " . $basePath . "\n";
-              
-              $manifestPath = $basePath . '/bootstrap/cache/packages.php';
-              $vendorPath = $basePath . '/vendor';
-              
-              echo "Manifest would be at: " . $manifestPath . "\n";
-              echo "Vendor path: " . $vendorPath . "\n";
-              
-              // Try to create the PackageManifest
-              $manifest = new \Illuminate\Foundation\PackageManifest(
-                  new \Illuminate\Filesystem\Filesystem(),
-                  $basePath,
-                  $manifestPath
-              );
-              
-              echo "PackageManifest created successfully\n";
-          } catch (\Exception $e) {
-              echo "Error: " . $e->getMessage() . "\n";
-              echo "Line: " . $e->getLine() . " in " . $e->getFile() . "\n";
-          }
-          EOF
-          
-          php check_laravel_path.php || echo "Path check failed"
-          
-          echo -e "\n=== Now running migration ==="
           vendor/bin/testbench migrate:fresh --force --seed
         env:
           DB_CONNECTION: mysql
