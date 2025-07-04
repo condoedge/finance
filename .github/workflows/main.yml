@@ -19,7 +19,7 @@ jobs:
         laravel: [10.*]
         include:
           - laravel: 10.*
-            testbench: 7.0.*
+            testbench: 9.0.*
     
     services:
       mysql:
