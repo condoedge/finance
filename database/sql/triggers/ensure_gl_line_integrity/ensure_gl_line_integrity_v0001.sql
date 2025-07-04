@@ -1,6 +1,15 @@
+DELIMITER $$
+
 -- GL Transaction Line integrity triggers
 
-CREATE FUNCTION validate_gl_line_integrity(gl_transaction_id INT, account_id INT, credit_amount DECIMAL(19,4), debit_amount DECIMAL(19,4))
+DROP PROCEDURE IF EXISTS validate_gl_line_integrity$$
+
+CREATE PROCEDURE validate_gl_line_integrity(
+    IN gl_transaction_id INT, 
+    IN account_id INT, 
+    IN credit_amount DECIMAL(19,4), 
+    IN debit_amount DECIMAL(19,4)
+)
 READS SQL DATA
 DETERMINISTIC
 BEGIN
@@ -36,30 +45,24 @@ BEGIN
     IF (COALESCE(debit_amount, 0) = 0 AND COALESCE(credit_amount, 0) = 0) THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Line must have either debit or credit amount';
     END IF;
-END;
+END$$
 
-
-DROP TRIGGER IF EXISTS ensure_gl_line_integrity;
+DROP TRIGGER IF EXISTS ensure_gl_line_integrity$$
 
 CREATE TRIGGER ensure_gl_line_integrity
     BEFORE INSERT ON fin_gl_transaction_lines
     FOR EACH ROW
 BEGIN
-    validate_gl_line_integrity(NEW.gl_transaction_id, NEW.account_id, NEW.credit_amount, NEW.debit_amount);
-END;
+    CALL validate_gl_line_integrity(NEW.gl_transaction_id, NEW.account_id, NEW.credit_amount, NEW.debit_amount);
+END$$
 
-DROP TRIGGER IF EXISTS ensure_gl_line_integrity;
+DROP TRIGGER IF EXISTS ensure_gl_line_integrity_update$$
 
-CREATE TRIGGER ensure_gl_line_integrity
+CREATE TRIGGER ensure_gl_line_integrity_update
     BEFORE UPDATE ON fin_gl_transaction_lines
-    FOR EACH ROW 
+    FOR EACH ROW
 BEGIN
-    validate_gl_line_integrity(NEW.gl_transaction_id, NEW.account_id, NEW.credit_amount, NEW.debit_amount);
-END;
+    CALL validate_gl_line_integrity(NEW.gl_transaction_id, NEW.account_id, NEW.credit_amount, NEW.debit_amount);
+END$$
 
-CREATE TRIGGER ensure_gl_line_integrity
-    BEFORE DELETE ON fin_gl_transaction_lines
-    FOR EACH ROW 
-BEGIN
-    validate_gl_line_integrity(OLD.gl_transaction_id, OLD.account_id, OLD.credit_amount, OLD.debit_amount);
-END;
+DELIMITER ;
