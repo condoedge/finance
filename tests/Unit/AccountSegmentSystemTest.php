@@ -91,7 +91,10 @@ class AccountSegmentSystemTest extends TestCase
 
         // Test getting error when segment value is too short
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('error-value-length-mismatch'));
+        $this->expectExceptionMessage(__('error-with-values-length-mismatch', [
+            'value' => '5',
+            'length' => $segment->segment_length
+        ]));
 
         $this->segmentService->createSegmentValue(new CreateSegmentValueDto([
             'segment_definition_id' => $segment->id,
@@ -312,7 +315,10 @@ class AccountSegmentSystemTest extends TestCase
 
         // Try to create account with only 2 segments (missing one)
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(__('error-with-values-missing-value-value-for-segment-position'));
+        $this->expectExceptionMessage(__('error-with-values-missing-value-value-for-segment-position', [
+                'segment_position' => 3,
+                'segment_description' => 'Natural Account'
+            ]));
 
         $this->segmentService->createAccount(new CreateAccountDto([
             'segment_value_ids' => [
@@ -340,7 +346,10 @@ class AccountSegmentSystemTest extends TestCase
         $segmentValue->save();
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(__('error-with-values-inactive-value-value-for-segment-position'));
+        $this->expectExceptionMessage(__('error-with-values-inactive-value-value-for-segment-position', [
+                    'segment_position' => $segmentValue->segmentDefinition->segment_position,
+                    'segment_description' => $segmentValue->segmentDefinition->segment_description
+                ]));
 
         $this->segmentService->createAccount(new CreateAccountDto([
             'segment_value_ids' => array_column($segmentValues, 'id'),

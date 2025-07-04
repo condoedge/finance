@@ -28,7 +28,7 @@
 	"error-vendor-required-for-ap-transactions": "Vendor required for payables transactions",
 	"error-with-values-inactive-value-value-for-segment-position": "Inactive value for segment position<br>:segment_position<br>:segment_description",
 	"error-with-values-invalid-module-code": "This module is invalid: :module",
-	"error-with-values-length-mismatch": "Lenght mismatch<br>Value: :value<br>Lenght: :lenght",
+	"error-with-values-length-mismatch": "Length mismatch<br>Value: :value<br>Length: :length",
 	"error-with-values-missing-value-value-for-segment-position": "Missing value for segment position<br>:segment_position<br>:segment_description",
 	"error-with-values-period-does-not-exist-just-can-create-for-current-month": "Period does not exist. You can only create for this month: :date",
 	"finance-12months-allocation": "Twelve months allocation",

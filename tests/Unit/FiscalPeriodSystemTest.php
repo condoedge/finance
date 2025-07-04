@@ -105,7 +105,9 @@ class FiscalPeriodSystemTest extends TestCase
 
         // Try to get period for next month (should fail)
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(__('error-with-values-period-does-not-exist-just-can-create-for-current-month'));
+        $this->expectExceptionMessage(__('error-with-values-period-does-not-exist-just-can-create-for-current-month', [
+            'date' => now()->addMonth()->format('Y-m-d'),
+        ]));
 
         $this->fiscalService->getOrCreatePeriodForDate(
             currentTeamId(),

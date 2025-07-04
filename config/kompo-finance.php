@@ -43,10 +43,6 @@ return [
         \Condoedge\Finance\Models\GlTransactionHeader::class => [
             \Condoedge\Finance\Models\GlTransactionLine::class,
         ],
-        // Account hierarchy (accounts can have sub-accounts in future)
-        // \Condoedge\Finance\Models\Account::class => [
-            // \Condoedge\Finance\Models\GlTransactionLine::class,
-        // ],
     ],
 
     'invoice_applicable_types' => [
