@@ -1,7 +1,10 @@
 # laravel: '@testbench'
 
 providers:
-  # - Workbench\App\Providers\WorkbenchServiceProvider
+  - Kompo\KompoServiceProvider
+  - Condoedge\Utils\CondoedgeUtilsServiceProvider
+  - Condoedge\Finance\CondoedgeFinanceServiceProvider
+  - Kompo\Auth\KompoAuthServiceProvider
 
 migrations:
   - ./database/migrations
