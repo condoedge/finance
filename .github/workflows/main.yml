@@ -117,6 +117,11 @@ jobs:
           DB_USERNAME: root
           DB_PASSWORD: testing_password
 
+      - name: Create testbench cache directory
+        run: |
+          mkdir -p vendor/orchestra/testbench-core/laravel/bootstrap/cache
+          chmod -R 775 vendor/orchestra/testbench-core/laravel/bootstrap/cache
+
       - name: Execute tests
         run: |
           vendor/bin/testbench package:test --no-coverage
