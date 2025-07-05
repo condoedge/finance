@@ -147,6 +147,10 @@ class AccountSegmentService implements AccountSegmentServiceInterface
                 ));
             }
 
+            if ($account = $this->searchAccountsByPattern($dto->segment_value_ids)->first()) {
+                return $account;
+            }
+
             // Create the account record using property assignment
             $account = new GlAccount();
             $account->account_segments_descriptor = 'TEMP'; // Will be updated by trigger

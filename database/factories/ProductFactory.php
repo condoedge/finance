@@ -19,7 +19,7 @@ class ProductFactory extends Factory
             'default_revenue_account_id' => GlAccount::factory(),
             'product_type' => ProductTypeEnum::PRODUCT_COST,
             'product_description' => $this->faker->sentence,
-            'product_cost' => $this->faker->randomFloat(2, 1, 1000),
+            'product_cost_abs' => $this->faker->randomFloat(2, 1, 1000),
             'team_id' => TeamFactory::new()->create()->id,
         ];
     }

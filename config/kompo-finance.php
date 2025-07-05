@@ -43,6 +43,8 @@ return [
         \Condoedge\Finance\Models\GlTransactionHeader::class => [
             \Condoedge\Finance\Models\GlTransactionLine::class,
         ],
+        \Condoedge\Finance\Models\Product::class => [
+        ],
     ],
 
     'invoice_applicable_types' => [

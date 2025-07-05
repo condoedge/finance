@@ -2,10 +2,33 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Facades\InvoiceDetailService;
+use Condoedge\Finance\Facades\ProductService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
+use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
 use Condoedge\Utils\Models\Model;
+use Illuminate\Support\Facades\DB;
 
+/**
+ * A class representing a financial product, service, or commission. (rebates as well)
+ * 
+ * @property int $id
+ * @property string $productable_type If it's associated to a representative model of what this product is for
+ * @property int $productable_id The id of the associated model
+ * @property int|null $product_template_id The id of the product template if this is a template-based product
+ * @property string $product_name The name of the product
+ * @property string|null $product_description A description of the product
+ * @property SafeDecimal $product_cost_abs The base cost of the product (always positive)
+ * @property SafeDecimal|null $product_cost Product cost adjusted for sign sensitivity based on product type
+ * @property SafeDecimal|null $product_cost_total The total cost of the product including taxes (if applicable)
+ * @property int|null $team_id The team this product belongs to
+ * @property int $default_revenue_account_id The default GL account for revenue associated with this product
+ * @property array|null $taxes_ids An array of tax IDs that apply to this product
+ * @property ProductTypeEnum $product_type
+ */
 class Product extends AbstractMainFinanceModel
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
@@ -13,14 +36,22 @@ class Product extends AbstractMainFinanceModel
     protected $casts = [
         'product_type' => ProductTypeEnum::class,
         'taxes_ids' =>  'array',
+        'product_cost_abs' => SafeDecimalCast::class,
+        'product_cost' => SafeDecimalCast::class,
+        'product_cost_total' => SafeDecimalCast::class,
     ];
 
     protected $table = 'fin_products';
 
     public function save(array $options = [])
     {
+        // We're also doing it in the product service, this is just to ensure
         if ($this->countInTotal() && !$this->product_template_id) {
-            $this->product_cost_total = $this->product_type->getValue($this);
+            $this->product_cost = $this->product_type->getSignedValue($this);
+        }
+
+        if ($this->isDirty('taxes_ids')) {
+            $this->taxes_ids = integerArray($this->taxes_ids);
         }
 
         parent::save($options);
@@ -66,8 +97,8 @@ class Product extends AbstractMainFinanceModel
     public function scopeMain($query)
     {
         return $query->where(
-            fn ($q) => $q->product()
-                ->orWhere(fn ($q) => $q->service())
+            fn($q) => $q->product()
+                ->orWhere(fn($q) => $q->service())
         );
     }
 
@@ -117,10 +148,10 @@ class Product extends AbstractMainFinanceModel
     public function getAmount()
     {
         if ($this->template) {
-            return $this->template->product_cost_total;
+            return $this->template->product_cost;
         }
 
-        return $this->product_cost_total;
+        return $this->product_cost;
     }
 
     public function getCommissionAmount()
@@ -129,110 +160,114 @@ class Product extends AbstractMainFinanceModel
     }
 
     /* ACTIONS */
-    public static function createProduct(?Model $productable, ProductTypeEnum $type, float $amount, $name = '', $templateId = null, $description = '', $accountId = null)
+    /**
+     * @deprecated Use ProductService::createProduct() instead
+     * Maintained for backward compatibility
+     */
+    public static function createProduct(?Model $productable, ProductTypeEnum $type, SafeDecimal|float $amount, $name = '', $templateId = null, $description = '', $accountId = null)
     {
-        $cost = new static();
-        $cost->productable_type = $productable?->getMorphClass();
-        $cost->productable_id = $productable?->getKey();
-        $cost->product_type = $type;
-        $cost->product_cost = $amount;
-        $cost->product_name = $name ?: $type->label();
-        $cost->product_description = $description;
-        $cost->product_template_id = $templateId;
-        $cost->default_revenue_account_id = $accountId ?? GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id)->id; // ! TODO we must add a real way to get the account here
-        $cost->team_id = currentTeamId();
-        $cost->save();
-
-        return $cost;
+        return ProductService::createProduct(new CreateProductDto([
+            'productable_type' => $productable?->getMorphClass(),
+            'productable_id' => $productable?->getKey(),
+            'product_type' => $type->value,
+            'product_cost_abs' => $amount,
+            'product_name' => $name ?: $type->label(),
+            'product_description' => $description,
+            'product_template_id' => $templateId,
+            'default_revenue_account_id' => $accountId ?? GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id)->id, // ! TODO we must add a real way to get the account here
+            'team_id' => currentTeamId(),
+        ]));
     }
 
-    public static function createCost(?Model $productable, ProductTypeEnum $type, float $amount, $name = '', $templateId = null, $description = '', $accountId = null)
+    /**
+     * @deprecated Use ProductService::createProduct() instead
+     * Maintained for backward compatibility
+     */
+    public static function createCost(?Model $productable, ProductTypeEnum $type, SafeDecimal|float $amount, $name = '', $templateId = null, $description = '', $accountId = null)
     {
         return static::createProduct($productable, $type, $amount, $name, $templateId, $description, $accountId);
     }
 
-    public static function createOrUpdateProduct(Model $productable, ProductTypeEnum $type, float $amount, $name = '', $accountId = null)
+    /**
+     * @deprecated Use ProductService::createOrUpdateProduct() instead
+     * Maintained for backward compatibility
+     */
+    public static function createOrUpdateProduct(Model $productable, ProductTypeEnum $type, SafeDecimal|float $amount, $name = '', $accountId = null, $teamId = null)
     {
-        $cost = static::where('productable_type', $productable->getMorphClass())
-            ->where('productable_id', $productable->getKey())
-            ->where('product_type', $type)->forTeam()->first();
-
-        if (!$cost) {
-            $cost = new static();
-        }
-
-        $cost->productable_type = $productable->getMorphClass();
-        $cost->productable_id = $productable->getKey();
-        $cost->product_type = $type;
-        $cost->product_cost = $amount;
-        $cost->product_name = $name ?: $type->label();
-        $cost->default_revenue_account_id = $accountId ?? GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id)->id; // ! TODO we must add a real way to get the account here
-        $cost->team_id = currentTeamId();
-        $cost->save();
-
-        return $cost;
+        return ProductService::createOrUpdateProduct(new CreateProductDto([
+            'productable_type' => $productable->getMorphClass(),
+            'productable_id' => $productable->getKey(),
+            'product_type' => $type->value,
+            'product_cost_abs' => $amount,
+            'product_name' => $name ?: $type->label(),
+            'default_revenue_account_id' => $accountId ?? GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id)->id, // ! TODO we must add a real way to get the account here
+            'team_id' => $teamId ?? currentTeamId(),
+        ]));
     }
 
-    public static function createOrUpdateCost(Model $productable, ProductTypeEnum $type, float $amount, $name = '')
+    /**
+     * @deprecated Use ProductService::createOrUpdateProduct() instead
+     * Maintained for backward compatibility
+     */
+    public static function createOrUpdateCost(Model $productable, ProductTypeEnum $type, SafeDecimal|float $amount, $name = '', $teamId = null)
     {
-        return static::createOrUpdateProduct($productable, $type, $amount, $name);
+        return static::createOrUpdateProduct($productable, $type, $amount, $name, $teamId);
     }
 
+    /**
+     * @deprecated Use ProductService::createProductFromInvoiceDetail() instead
+     * Maintained for backward compatibility
+     */
     public static function createFromInvoiceDetail(InvoiceDetail $invoiceDetail)
     {
-        $product = static::createProduct(
-            null,
-            ProductTypeEnum::PRODUCT_COST,
-            $invoiceDetail->unit_price->toFloat(),
-            $invoiceDetail->name,
-            null,
-            $invoiceDetail->description,
-            $invoiceDetail->revenue_account_id
-        );
-
-        $invoiceDetail->product_id = $product->id;
-        $invoiceDetail->save();
+        return ProductService::createProductFromInvoiceDetail($invoiceDetail->id);
     }
 
     public function normalizeToInvoiceDetail($invoice = null)
     {
-        return [
-            'invoiceable_type' => 'product',
-            'invoiceable_id' => $this->id,
-            'name' => $this->product_name,
-            'description' => $this->product_description,
-            'unit_price' => $this->getAmount(),
-            'quantity' => 1,
-            'revenue_account_id' => $this->default_revenue_account_id,
-            'taxesIds' => $this->taxes_ids ?: [],
-            'invoice_id' => $invoice ? $invoice->id : null,
-            'product_id' => $this->id,
-        ];
+        return ProductService::normalizeToInvoiceDetail($this->id, $invoice);
     }
 
+    /**
+     * @deprecated Use ProductService::copyProductToInvoice() instead
+     * Maintained for backward compatibility
+     */
     public function copyToInvoice($invoice)
     {
-        return InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail(
-            $this->normalizeToInvoiceDetail($invoice)
-        ));
+        return ProductService::copyProductToInvoice($this->id, $invoice->id);
     }
 
+    /**
+     * @deprecated Use ProductService::createProduct() with template_id instead
+     * Maintained for backward compatibility
+     */
     public function createProductCopy($productable)
     {
-        return static::createProduct($productable, $this->product_type, $this->product_cost, $this->product_name, $this->id, $this->product_description);
+        return static::createProduct($productable, $this->product_type, $this->product_cost_abs->toFloat(), $this->product_name, $this->id, $this->product_description, $this->default_revenue_account_id);
     }
 
+    /**
+     * @deprecated Use ProductService::createProduct() with template_id instead
+     * Maintained for backward compatibility
+     */
     public function createCostCopy($productable)
     {
         return static::createProductCopy($productable);
     }
 
+    /**
+     * @deprecated Use ProductService::deleteProduct() instead
+     * Maintained for backward compatibility
+     */
     public function delete()
     {
-        if ($this->children()->count() > 0) {
-            return abort(403, __('error.cannot-delete-a-template-that-has-products-associated'));
-        }
+        return ProductService::deleteProduct($this->id);
+    }
 
-        return parent::delete();
+    public static function columnsIntegrityCalculations(): array
+    {
+        return [
+            'product_taxes_amount' => DB::raw('calculate_product_taxes_amount(fin_products.id)'),
+        ];
     }
 }

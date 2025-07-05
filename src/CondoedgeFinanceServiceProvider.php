@@ -288,6 +288,12 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             \Condoedge\Finance\Services\GlTransactionServiceInterface::class,
             \Condoedge\Finance\Services\GlTransactionService::class
         );
+
+        // Product Service
+        $this->app->bind(
+            \Condoedge\Finance\Services\Product\ProductServiceInterface::class,
+            \Condoedge\Finance\Services\Product\ProductService::class
+        );
     }
 
     /**

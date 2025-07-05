@@ -31,20 +31,20 @@ enum ProductTypeEnum: int
         };
     }
 
-    public function getValue(Product $product)
+    public function getSignedValue(Product $product)
     {
         return match ($this) {
-            self::TEAM_LEVEL_COMMISSION => $product->product_cost,
-            self::SERVICE_COST => $product->product_cost,
-            self::PRODUCT_COST => $product->product_cost,
-            self::REBATE => -$product->product_cost,
+            self::TEAM_LEVEL_COMMISSION => $product->product_cost_abs,
+            self::SERVICE_COST => $product->product_cost_abs,
+            self::PRODUCT_COST => $product->product_cost_abs,
+            self::REBATE => $product->product_cost_abs->negate(),
         };
     }
 
     public function getCommissionValue(Product $product)
     {
         return match ($this) {
-            self::TEAM_LEVEL_COMMISSION => $product->product_cost,
+            self::TEAM_LEVEL_COMMISSION => $product->product_cost_abs,
             default => 0,
         };
     }
