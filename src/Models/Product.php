@@ -4,17 +4,14 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Facades\ProductService;
-use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
-use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Support\Facades\DB;
 
 /**
  * A class representing a financial product, service, or commission. (rebates as well)
- * 
+ *
  * @property int $id
  * @property string $productable_type If it's associated to a representative model of what this product is for
  * @property int $productable_id The id of the associated model
@@ -97,8 +94,8 @@ class Product extends AbstractMainFinanceModel
     public function scopeMain($query)
     {
         return $query->where(
-            fn($q) => $q->product()
-                ->orWhere(fn($q) => $q->service())
+            fn ($q) => $q->product()
+                ->orWhere(fn ($q) => $q->service())
         );
     }
 

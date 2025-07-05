@@ -6,13 +6,11 @@ use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\ProductFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
-use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Facades\ProductService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
 use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
 use Condoedge\Finance\Models\InvoiceDetail;
@@ -43,7 +41,7 @@ class ProductTest extends TestCase
     {
         $revenueAccount = GlAccountFactory::new()->create();
         $taxes = TaxFactory::new()->count(2)->create();
-        
+
         $productName = $this->faker->words(3, true);
         $productDescription = $this->faker->sentence();
         $productCost = $this->faker->randomFloat(2, 10, 1000);
@@ -59,7 +57,7 @@ class ProductTest extends TestCase
         ]));
 
         $this->assertInstanceOf(Product::class, $product);
-        
+
         $this->assertDatabaseHas('fin_products', [
             'id' => $product->id,
             'product_type' => ProductTypeEnum::SERVICE_COST->value,
@@ -143,7 +141,7 @@ class ProductTest extends TestCase
         $product = ProductService::createProductFromInvoiceDetail($invoiceDetail->id);
 
         $this->assertInstanceOf(Product::class, $product);
-        
+
         $this->assertDatabaseHas('fin_products', [
             'id' => $product->id,
             'product_name' => $detailName,
@@ -202,7 +200,7 @@ class ProductTest extends TestCase
     {
         $product = ProductFactory::new()->create();
         $customer = CustomerFactory::new()->create();
-        
+
         // Create invoice with detail
         $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
@@ -258,7 +256,7 @@ class ProductTest extends TestCase
         ]));
 
         $invoiceDetail = $invoice->invoiceDetails->first();
-        
+
         // Create product from invoice detail
         $product = ProductService::createProductFromInvoiceDetail($invoiceDetail->id);
 
@@ -277,7 +275,7 @@ class ProductTest extends TestCase
     {
         $product = ProductFactory::new()->create();
         $customer = CustomerFactory::new()->create();
-        
+
         // Create invoice with detail using the product
         $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
@@ -335,7 +333,7 @@ class ProductTest extends TestCase
     public function test_create_product_without_taxes()
     {
         $revenueAccount = GlAccountFactory::new()->create();
-        
+
         $product = ProductService::createProduct(new CreateProductDto([
             'product_type' => ProductTypeEnum::SERVICE_COST->value,
             'product_name' => 'Tax Free Service',
@@ -358,7 +356,7 @@ class ProductTest extends TestCase
             'product_cost_abs' => 150.00,
         ]);
         $customer = CustomerFactory::new()->create();
-        
+
         // Create empty invoice
         $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
@@ -374,7 +372,7 @@ class ProductTest extends TestCase
         $invoiceDetail = ProductService::copyProductToInvoice($product->id, $invoice->id);
 
         $this->assertInstanceOf(InvoiceDetail::class, $invoiceDetail);
-        
+
         $this->assertDatabaseHas('fin_invoice_details', [
             'invoice_id' => $invoice->id,
             'product_id' => $product->id,

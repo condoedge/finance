@@ -20,7 +20,7 @@ class UpdateProductDto extends CreateProductDto
     {
         $rules = parent::rules();
         $rules['id'] = 'required|integer|exists:fin_products,id';
-        
+
         // Make all fields optional for update except id
         foreach ($rules as $field => $rule) {
             if ($field !== 'id') {
@@ -37,7 +37,7 @@ class UpdateProductDto extends CreateProductDto
                 }
             }
         }
-        
+
         return $rules;
     }
 }

@@ -2,13 +2,13 @@
 
 namespace Condoedge\Finance\Services\Product;
 
+use Condoedge\Finance\Facades\InvoiceDetailService;
+use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
+use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Product;
 use Condoedge\Finance\Models\ProductTypeEnum;
-use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
-use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
-use Condoedge\Finance\Facades\InvoiceDetailService;
-use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Illuminate\Support\Facades\DB;
 
 class ProductService implements ProductServiceInterface
@@ -20,7 +20,7 @@ class ProductService implements ProductServiceInterface
     {
         return DB::transaction(function () use ($dto) {
             $product = new Product();
-            
+
             // Manual field assignment following the pattern
             $product->productable_type = $dto->productable_type;
             $product->productable_id = $dto->productable_id;
@@ -34,7 +34,7 @@ class ProductService implements ProductServiceInterface
             $product->team_id = $dto->team_id ?? currentTeamId();
             $product->product_cost = $product->product_type->getSignedValue($product);
             $product->save();
-            
+
             return $product->refresh();
         });
     }
@@ -70,15 +70,15 @@ class ProductService implements ProductServiceInterface
     {
         return DB::transaction(function () use ($invoiceDetailId) {
             $invoiceDetail = InvoiceDetail::with(['invoice', 'invoiceTaxes.tax'])->findOrFail($invoiceDetailId);
-            
+
             // Check if product already exists for this detail
             if ($invoiceDetail->product_id) {
                 throw new \Exception(__('translate.product-already-exists-for-invoice-detail'));
             }
-            
+
             // Get tax IDs from invoice detail taxes
             $taxesIds = $invoiceDetail->invoiceTaxes->pluck('tax_id')->toArray();
-            
+
             // Create product from invoice detail data
             $dto = new CreateProductDto([
                 'productable_type' => null,
@@ -92,13 +92,13 @@ class ProductService implements ProductServiceInterface
                 'taxes_ids' => $taxesIds,
                 'team_id' => $invoiceDetail->invoice->team_id,
             ]);
-            
+
             $product = $this->createProduct($dto);
-            
+
             // Update invoice detail to reference the new product
             $invoiceDetail->product_id = $product->id;
             $invoiceDetail->save();
-            
+
             return $product;
         });
     }
@@ -128,18 +128,18 @@ class ProductService implements ProductServiceInterface
     {
         return DB::transaction(function () use ($productId) {
             $product = Product::findOrFail($productId);
-            
+
             // Check if product has children (is a template)
             if ($product->children()->count() > 0) {
                 abort(403, __('error.cannot-delete-a-template-that-has-products-associated'));
             }
-            
+
             // Check if product is being used in invoice details
             $invoiceDetailsCount = InvoiceDetail::where('product_id', $productId)->count();
             if ($invoiceDetailsCount > 0) {
                 throw new \Exception(__('translate.cannot-delete-product-in-use'));
             }
-            
+
             return $product->forceDelete();
         });
     }
@@ -158,7 +158,7 @@ class ProductService implements ProductServiceInterface
     public function getAllProducts()
     {
         $teamId = function_exists('currentTeamId') ? currentTeamId() : 1;
-        
+
         return Product::forTeam($teamId)
             ->with(['defaultRevenueAccount', 'productTemplate'])
             ->orderBy('product_name')
@@ -171,14 +171,14 @@ class ProductService implements ProductServiceInterface
     public function getProductTemplates()
     {
         $teamId = function_exists('currentTeamId') ? currentTeamId() : 1;
-        
+
         return Product::forTeam($teamId)
             ->isTemplate()
             ->with('defaultRevenueAccount')
             ->orderBy('product_name')
             ->get();
     }
-    
+
     /**
      * Create or update a product based on productable
      */
@@ -198,11 +198,11 @@ class ProductService implements ProductServiceInterface
                 return $this->updateProduct($updateDto);
             }
         }
-        
+
         // Create new product
         return $this->createProduct($dto);
     }
-    
+
     /**
      * Copy a product to a new invoice
      */
