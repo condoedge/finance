@@ -4,7 +4,6 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Billing\BnaPaymentProvider;
 use Condoedge\Finance\Billing\Kompo\PaymentCreditCardForm;
-use Condoedge\Finance\Billing\TempPaymentGateway;
 use Faker\Provider\ar_EG\Payment;
 
 /**

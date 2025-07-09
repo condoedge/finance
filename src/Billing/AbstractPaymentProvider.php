@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Billing;
 
-use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
@@ -90,7 +89,7 @@ abstract class AbstractPaymentProvider implements PaymentGatewayInterface
 
     /**
      * Get the payable lines for the invoice.
-     * 
+     *
      * @return \Illuminate\Support\Collection<\Condoedge\Finance\Models\Dto\Invoices\InvoicePayableLineDto>
      */
     protected function getPayableLines()

@@ -2,9 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
-use Condoedge\Finance\Models\CustomerPayment;
 
 // This is done to have a map for morhables using integer values for the enum
 enum MorphablesEnum: int

@@ -40,7 +40,6 @@ class SelectMissingInfoInvoice extends Modal
             _Select('finance-payment-term')
                 ->name('payment_term_id')
                 ->options(PaymentTerm::pluck('term_name', 'id')->toArray()),
-
             _SubmitButton('translate.finance-save-and-approve')
         );
     }

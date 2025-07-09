@@ -4,15 +4,14 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use Condoedge\Finance\Models\AbstractMainFinanceModel;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Represent each installment period of a payment plan for an invoice.
- * 
+ *
  * This model is used to track the due amounts, payment status, and other details
  * related to each installment period of a payment plan associated with an invoice.
- * 
+ *
  * @property int $id The unique identifier for the installment period.
  * @property int $invoice_id The ID of the associated invoice.
  * @property SafeDecimal $due_amount The amount due for this installment period.

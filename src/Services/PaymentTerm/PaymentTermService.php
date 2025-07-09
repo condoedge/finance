@@ -44,7 +44,7 @@ class PaymentTermService implements PaymentTermServiceInterface
 
         $invoice->invoice_due_date = $paymentTerm->term_type->calculateDueDate($invoice->invoice_date, $paymentTerm->settings);
         $invoice->save();
-        
+
         $paymentTerm->term_type->manageNewPaymentTermIntoInvoice($invoice, $paymentTerm->settings);
     }
 
@@ -72,7 +72,9 @@ class PaymentTermService implements PaymentTermServiceInterface
             ];
         }
 
-        if (!$dto->dry_run) PaymentInstallmentPeriod::insert($installmentPeriods);
+        if (!$dto->dry_run) {
+            PaymentInstallmentPeriod::insert($installmentPeriods);
+        }
 
         return $installmentPeriods;
     }

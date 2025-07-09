@@ -2,25 +2,20 @@
 
 namespace Condoedge\Finance\Models\Dto\PaymentTerms;
 
-use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Models\PaymentTermTypeEnum;
-use Condoedge\Finance\Rule\SafeDecimalRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Validator as FacadesValidator;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\EnumCast;
-use WendellAdriel\ValidatedDTO\Casting\FloatCast;
-use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
  * Data Transfer Object for creating a new payment term
- * 
+ *
  * This DTO is used to encapsulate the data required to create a new payment term,
  * including the type, name, description, and any additional settings.
- * 
+ *
  * @property PaymentTermTypeEnum $term_type The type of payment term (e.g., Installment, COD)
  * @property string $term_name The name of the payment term
  * @property string|null $term_description Optional description of the payment term

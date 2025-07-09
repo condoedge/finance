@@ -88,9 +88,8 @@ class InvoiceForm extends Form
                 _MultiSelect('translate.finance-payment-types')
                     ->name('possible_payment_methods')
                     ->options(PaymentMethodEnum::optionsWithLabels()),
-
                 $this->getPaymentTermsSelector(),
-                
+
                 // _MultiSelect('translate.finance-payment-terms')
                 //     ->name('possible_payment_terms')
                 //     ->options(PaymentTerm::pluck('term_name', 'id')->all()),

@@ -2,8 +2,6 @@
 
 namespace Condoedge\Finance;
 
-use Condoedge\Finance\Billing\PaymentGatewayInterface;
-use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\Product;
@@ -13,7 +11,6 @@ use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
 use Condoedge\Finance\Services\Invoice\InvoiceService;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
-use Condoedge\Finance\Services\PaymentGatewayService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
 use Illuminate\Database\Eloquent\Relations\Relation;

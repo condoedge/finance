@@ -52,7 +52,7 @@ use Kompo\Auth\Models\Teams\Team;
  * @property-read SafeDecimal $abs_invoice_due_amount The absolute value of the invoice due amount
  * @property-read string $payment_method_label The payment type label (Cash, Credit Card, etc.)
  * @property-read InvoiceableInterface $invoiceable The invoiceable model associated with the invoice
- * 
+ *
  * Relationships:
  * @property Customer $customer The customer associated with the invoice
  * @property Collection<InvoiceDetail> $invoiceDetails The details of the invoice (items, services, etc.)
@@ -266,14 +266,18 @@ class Invoice extends AbstractMainFinanceModel
 
     public function onCompletePayment()
     {
-        if (!$this->checkInvoiceable()) return;
+        if (!$this->checkInvoiceable()) {
+            return;
+        }
 
         $this->invoiceable?->onCompletePayment();
     }
 
     public function onPartialPayment()
     {
-        if (!$this->checkInvoiceable()) return;
+        if (!$this->checkInvoiceable()) {
+            return;
+        }
 
         $this->invoiceable?->onPartialPayment();
     }
