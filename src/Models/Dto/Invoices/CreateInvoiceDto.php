@@ -36,7 +36,7 @@ class CreateInvoiceDto extends ValidatedDTO
 
     public Carbon $invoice_date;
 
-    public bool $is_draft;
+    // public bool $is_draft;
 
     public array $invoiceDetails;
 
@@ -52,7 +52,7 @@ class CreateInvoiceDto extends ValidatedDTO
             'payment_term_id' => 'nullable|integer|exists:fin_payment_terms,id',
             'invoice_date' => 'required|date',
             // 'invoice_due_date' => 'nullable|date|after_or_equal:invoice_date',
-            'is_draft' => 'boolean',
+            // 'is_draft' => 'boolean',
 
             'invoiceDetails' => 'array',
             /**
@@ -98,7 +98,7 @@ class CreateInvoiceDto extends ValidatedDTO
     public function defaults(): array
     {
         return [
-            'is_draft' => true,
+            // 'is_draft' => true,
             'invoiceDetails' => [],
             'possible_payment_methods' => [],
             'possible_payment_terms' => [],

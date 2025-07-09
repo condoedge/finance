@@ -189,7 +189,7 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice->customer_id = $dto->customer_id;
         $invoice->invoice_date = $dto->invoice_date;
         $invoice->invoice_type_id = $dto->invoice_type_id;
-        $invoice->is_draft = $dto->is_draft;
+        // $invoice->is_draft = $dto->is_draft;
         $invoice->possible_payment_terms = $dto->possible_payment_terms ?? [];
         $invoice->possible_payment_methods = $dto->possible_payment_methods ?? [];
         $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods) == 1 ? $invoice->possible_payment_methods[0] : null);
