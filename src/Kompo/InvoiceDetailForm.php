@@ -41,7 +41,7 @@ class InvoiceDetailForm extends Form
                     ->default($this->product?->product_description),
             ),
 
-            _AccountsSelect(account: $this->model->invoice?->accountReceivable ?? $this->product?->defaultRevenueAccount)
+            _AccountsSelect(account: $this->model->revenueAccount()->first() ?? $this->product?->defaultRevenueAccount)
                 ->name('revenue_natural_account_id', false)
                 ->class('w-full !mb-0'),
 

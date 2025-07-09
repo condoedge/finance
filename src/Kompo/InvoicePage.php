@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
+use Condoedge\Finance\Kompo\PaymentTerms\PaymentInstallmentPeriodsTable;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Kompo\Form;
 
@@ -55,15 +56,24 @@ class InvoicePage extends Form
                     $this->model->approvedBy ?
                         $this->model->approvalEls() :
                         _Flex(
-                            _Html(__('finance-invoice-created-at').' :')->class('font-bold'),
+                            _Html(__('finance-invoice-created-at') . ' :')->class('font-bold'),
                             _HtmlDate($this->model->created_at)->class('ml-4')
                         )
                 ),
                 _FlexEnd4(
                     !$this->model->canApprove() ? null :
                         _Button('finance-approve-draft')
-                            ->selfPost('approveInvoice', ['id' => $this->model->id])
-                            ->inAlert()->refresh(),
+                        ->when(
+                            $this->model->hasMissingInfoToApprove(),
+                            fn($e) =>
+                            $e->selfGet('getMissingInfoToApproveModal')->inModal()
+                        )
+                        ->when(
+                            !$this->model->hasMissingInfoToApprove(),
+                            fn($e) =>
+                            $e->selfPost('approveInvoice', ['id' => $this->model->id])
+                                ->inAlert()->refresh()
+                        ),
                 )->class('text-right')
             )->class('mb-4 p-6 bg-white rounded-2xl'),
             // $this->model->canApprove() ? null : $this->stepBox(
@@ -100,10 +110,23 @@ class InvoicePage extends Form
                         ->selfUpdate('getApplyPaymentToInvoiceModal')->inModal()
                 )
             )->class('mb-4 p-6 bg-white rounded-2xl'),
-            _TitleMini($this->model->isRefund() ? 'finance-credit-note-details' : 'finance-invoice-details')->class('uppercase mb-2 mt-4 text-greenmain opacity-70'),
-            (new InvoiceDetailsTable([
-                'invoice_id' => $this->model->id,
-            ]))->class('p-6 bg-white rounded-2xl mb-6'),
+
+            _Rows(
+                _TitleMini('translate.payment-period-installments')->class('uppercase text-greenmain opacity-70'),
+                _Rows(
+                    new PaymentInstallmentPeriodsTable([
+                        'invoice_id' => $this->model->id,
+                    ]),
+                )->class('mb-4 bg-white'),
+            ),
+
+            _Rows(
+                _TitleMini($this->model->isRefund() ? 'finance-credit-note-details' : 'finance-invoice-details')->class('uppercase mb-2 mt-4 text-greenmain opacity-70'),
+                new InvoiceDetailsTable([
+                    'invoice_id' => $this->model->id,
+                ]),
+            ),
+
 
             // _TitleMini('finance-journal-transactions')->class('uppercase mb-2 text-greenmain opacity-70'),
             // (new TransactionsMiniTable([
@@ -140,6 +163,11 @@ class InvoicePage extends Form
     public function getSendingModal()
     {
         return new ContributionSendingSingleModal($this->model->id);
+    }
+
+    public function getMissingInfoToApproveModal()
+    {
+        return new SelectMissingInfoInvoice($this->model->id);
     }
 
     public function getLateInterestModal()
@@ -196,5 +224,4 @@ class InvoicePage extends Form
             )->class('border-l border-level4 pl-4')
         );
     }
-
 }

@@ -36,7 +36,12 @@ if (!function_exists('is_decimal')) {
 
 Collection::macro('sumDecimals', function ($key = null) {
     return $this->reduce(function (?SafeDecimal $carry, $item) use ($key) {
-        $value = $key ? data_get($item, $key) : $item;
+        if (is_callable($key)) {
+            $value = $key($item);
+        } else {
+            $value = $key ? data_get($item, $key) : $item;
+        }
+
         $decimal = $value instanceof SafeDecimal ? $value : new SafeDecimal($value);
         return $carry ? $carry->add($decimal) : $decimal;
     });

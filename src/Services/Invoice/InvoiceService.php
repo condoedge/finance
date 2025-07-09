@@ -5,17 +5,24 @@ namespace Condoedge\Finance\Services\Invoice;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
+use Condoedge\Finance\Facades\PaymentGateway;
+use Condoedge\Finance\Facades\PaymentTermService;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
+use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Models\PaymentTerm;
 use Condoedge\Finance\Models\TaxGroup;
 use Condoedge\Finance\Services\PaymentGatewayService;
 use Condoedge\Utils\Facades\GlobalConfig;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Invoice Service Implementation
@@ -28,13 +35,6 @@ use Illuminate\Support\Facades\DB;
  */
 class InvoiceService implements InvoiceServiceInterface
 {
-    protected PaymentGatewayService $paymentGatewayService;
-
-    public function __construct(PaymentGatewayService $paymentGatewayService)
-    {
-        $this->paymentGatewayService = $paymentGatewayService;
-    }
-
     public function upsertInvoice(CreateInvoiceDto|UpdateInvoiceDto $dto): Invoice
     {
         if ($dto instanceof CreateInvoiceDto) {
@@ -55,9 +55,6 @@ class InvoiceService implements InvoiceServiceInterface
             // Create base invoice
             $invoice = $this->createBaseInvoice($dto);
 
-            // Setup payment gateway integration
-            $this->setupInvoicePaymentGateway($invoice);
-
             // Apply customer preferences and data
             $this->applyCustomerDataToInvoice($invoice, $dto->customer_id);
 
@@ -67,8 +64,13 @@ class InvoiceService implements InvoiceServiceInterface
             // Create invoice details
             $this->createInvoiceDetails($invoice, $dto->invoiceDetails);
 
+            if ($invoice->payment_method_id) $this->setupInvoiceAccount($invoice);
+            if ($invoice->payment_term_id) PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
+
             // Refresh to get calculated fields
-            return $invoice->refresh();
+            $invoice->refresh();
+
+            return $invoice;
         });
     }
 
@@ -80,13 +82,22 @@ class InvoiceService implements InvoiceServiceInterface
         return DB::transaction(function () use ($dto) {
             $invoice = Invoice::findOrFail($dto->id);
 
+            $oldPaymentTermId = $invoice->getOriginal('payment_term_id');
+
             // Update base fields
             $this->updateInvoiceFields($invoice, $dto);
 
             // Handle invoice details updates/creation
-            $this->updateInvoiceDetails($invoice, $dto->invoiceDetails);
+            if (isset($dto->invoiceDetails)) $this->updateInvoiceDetails($invoice, $dto->invoiceDetails);
 
-            return $invoice->refresh();
+            $originalPaymentTerm = PaymentTerm::find($oldPaymentTermId);
+            PaymentTermService::manageNewPaymentTermIntoInvoice($invoice, $originalPaymentTerm?->term_type);
+
+            if ($invoice->payment_method_id) $this->setupInvoiceAccount($invoice);
+
+            $invoice->refresh();
+
+            return $invoice;
         });
     }
 
@@ -97,10 +108,39 @@ class InvoiceService implements InvoiceServiceInterface
     {
         $invoice = Invoice::findOrFail($dto->invoice_id);
 
+        if ($invoice->is_draft) {
+            $this->updateInvoice(new UpdateInvoiceDto([
+                'id' => $invoice->id,
+                'payment_method_id' => $invoice->payment_method_id ?? $dto->payment_method_id,
+                'payment_term_id' => $invoice->payment_term_id ?? $dto->payment_term_id,
+            ]));
+        }
+
         // Apply approval
         $this->applyApprovalToInvoice($invoice);
 
         return $invoice;
+    }
+
+    public function payInvoice(PayInvoiceDto $dto): bool
+    {
+        $invoice = Invoice::findOrFail($dto->invoice_id);
+
+        if ($invoice->is_draft) {
+            $this->approveInvoice(new ApproveInvoiceDto([
+                'invoice_id' => $dto->invoice_id,
+                'payment_method_id' => $dto->payment_method_id,
+                'payment_term_id' => $dto->payment_term_id,
+            ]));
+        }
+
+        $paymentGateway = PaymentGateway::getGatewayForInvoice($invoice, [
+            'installment_ids' => count($dto->installment_ids ?? []) ? $dto->installment_ids : null,
+        ]);
+
+        $isSuccessful = $paymentGateway->executeSale(request()->all());
+
+        return $isSuccessful;
     }
 
     /**
@@ -113,7 +153,9 @@ class InvoiceService implements InvoiceServiceInterface
 
             // Approve all if validation passes
             foreach ($invoices as $invoice) {
-                $this->applyApprovalToInvoice($invoice);
+                $this->approveInvoice(new ApproveInvoiceDto([
+                    'invoice_id' => $invoice->id,
+                ]));
             }
 
             return $invoices;
@@ -145,15 +187,19 @@ class InvoiceService implements InvoiceServiceInterface
     {
         $invoice = new Invoice();
         $invoice->customer_id = $dto->customer_id;
-        $invoice->invoice_type_id = $dto->invoice_type_id;
-        $invoice->payment_method_id = $dto->payment_method_id;
         $invoice->invoice_date = $dto->invoice_date;
-        $invoice->invoice_due_date = $dto->invoice_due_date;
+        $invoice->invoice_type_id = $dto->invoice_type_id;
         $invoice->is_draft = $dto->is_draft;
-        $invoice->possible_payment_installments = $dto->possible_payment_installments;
-        $invoice->possible_payment_methods = $dto->possible_payment_methods;
+        $invoice->possible_payment_terms = $dto->possible_payment_terms ?? [];
+        $invoice->possible_payment_methods = $dto->possible_payment_methods ?? [];
+        $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods) == 1 ? $invoice->possible_payment_methods[0] : null);
+        $invoice->payment_term_id = $dto->payment_term_id ?? (count($invoice->possible_payment_terms) == 1 ? $invoice->possible_payment_terms[0] : null);
         $invoice->invoiceable_type = $dto->invoiceable_type;
         $invoice->invoiceable_id = $dto->invoiceable_id;
+
+        if ($invoice->paymentTerm) {
+            $invoice->invoice_due_date = $invoice->paymentTerm->calculateDueDate($invoice->invoice_date);
+        }
 
         return $invoice;
     }
@@ -161,11 +207,11 @@ class InvoiceService implements InvoiceServiceInterface
     /**
      * Setup payment gateway for invoice using stateless approach
      */
-    protected function setupInvoicePaymentGateway(Invoice $invoice): void
+    protected function setupInvoiceAccount(Invoice $invoice): void
     {
-        // Using new stateless approach - no static state required
-        $cashAccount = $this->paymentGatewayService->getCashAccountForInvoice($invoice);
-        $invoice->account_receivable_id = $cashAccount->id;
+        $account = $invoice->payment_method_id->getReceivableAccount();
+        $invoice->account_receivable_id = $account?->id;
+        $invoice->save();
     }
 
     /**
@@ -196,9 +242,20 @@ class InvoiceService implements InvoiceServiceInterface
      */
     protected function updateInvoiceFields(Invoice $invoice, UpdateInvoiceDto $dto): void
     {
-        $invoice->payment_method_id = $dto->payment_method_id;
-        $invoice->invoice_date = $dto->invoice_date;
-        $invoice->invoice_due_date = $dto->invoice_due_date;
+        if (!$invoice->is_draft) {
+            throw new Exception('translate.cannot-update-non-draft-invoice');
+        }
+
+        $invoice->possible_payment_terms = $dto->possible_payment_terms ?? $invoice->possible_payment_terms ?? [];
+        $invoice->possible_payment_methods = $dto->possible_payment_methods ?? $invoice->possible_payment_methods ?? [];
+        $invoice->payment_term_id = $dto->payment_term_id ?? (count($invoice->possible_payment_terms ?? []) == 1 ? $invoice->possible_payment_terms[0] : ($invoice->isDirty('possible_payment_terms') ? null : $invoice->payment_term_id));
+        $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods ?? []) == 1 ? $invoice->possible_payment_methods[0] : ($invoice->isDirty('possible_payment_methods') ? null : $invoice->payment_method_id));
+        $invoice->invoice_date = $dto->invoice_date ?? $invoice->invoice_date;
+
+        if ($invoice->isDirty('payment_term_id') && $invoice->paymentTerm) {
+            $invoice->invoice_due_date = $invoice->paymentTerm->calculateDueDate($invoice->invoice_date);
+        }
+
         $invoice->save();
     }
 
@@ -227,6 +284,10 @@ class InvoiceService implements InvoiceServiceInterface
      */
     protected function applyApprovalToInvoice(Invoice $invoice): void
     {
+        if ($invoice->invoiceDetails()->count() == 0) {
+            throw new Exception('translate.invoice-must-have-at-least-one-detail');
+        }
+
         $invoice->is_draft = false;
         $invoice->approved_by = auth()->user()->id;
         $invoice->approved_at = now();

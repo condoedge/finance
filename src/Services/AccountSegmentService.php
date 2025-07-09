@@ -231,7 +231,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             }
         }
 
-        return $query->distinct()->get();
+        return $query->selectRaw('fin_gl_accounts.*')->distinct()->get();
     }
 
     public function deleteSegment(int $segmentId): bool

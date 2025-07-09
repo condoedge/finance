@@ -85,6 +85,32 @@ class SafeDecimal implements \Stringable, Arrayable
         return new self(bcmul($this->value, $other->value, $this->scale), $this->scale);
     }
 
+    /**
+     * If you're dividing a result that will give you a periodic decimal,
+     * this method ensures the first division step is rounded up and the remaining ones will be rounded down.
+     * @param mixed $other
+     * @throws \DivisionByZeroError
+     * @return array<string, SafeDecimal>
+     */
+    public function preciseDivide(mixed $other): array
+    {
+        $other = $this->ensureSafeDecimal($other);
+        if ($other->equals(new self(0))) {
+            throw new \DivisionByZeroError('Cannot divide by zero');
+        }
+
+        $preciseDivision = bcdiv($this->value, $other->value, $this->scale + 1);
+        $roundedUp = ceil($preciseDivision * pow(10, $this->scale)) 
+            / pow(10, $this->scale);
+        $roundedDown = floor($preciseDivision * pow(10, $this->scale))
+            / pow(10, $this->scale);
+
+        return [
+            'first_division' => new self($roundedUp, $this->scale),
+            'remaining_values' => new self($roundedDown, $this->scale),
+        ];
+    }
+
     public function divide(mixed $other): SafeDecimal
     {
         $other = $this->ensureSafeDecimal($other);

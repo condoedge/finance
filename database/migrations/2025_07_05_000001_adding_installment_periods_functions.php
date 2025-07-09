@@ -1,0 +1,25 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
+
+return new class () extends Migration {
+    /**
+     * Run the migrations.
+     */
+    public function up()
+    {
+        $functionsPath = __DIR__ . '/../sql/functions';
+
+        // Load from files
+        DB::unprepared(processDelimiters(file_get_contents($functionsPath . '/calculate_installment_period_due_amount/calculate_installment_period_due_amount_v0001.sql')));
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down()
+    {
+        DB::unprepared('DROP FUNCTION IF EXISTS calculate_installment_period_due_amount');
+    }
+};

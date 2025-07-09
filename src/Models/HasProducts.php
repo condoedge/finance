@@ -27,7 +27,7 @@ trait HasProducts
 
     public function getAmount()
     {
-        return $this->getAllCostsCountInTotal()->sum(fn ($cost) => $cost->getAmount());
+        return $this->getAllCostsCountInTotal()->sumDecimals(fn ($cost) => $cost->getAmount());
     }
 
     public function getAllCostsCountInTotal()
@@ -37,7 +37,7 @@ trait HasProducts
 
     public function getCommisions()
     {
-        return $this->getParentCommisionCosts()->sum(fn ($cost) => $cost->getCommissionAmount());
+        return $this->getParentCommisionCosts()->sumDecimals(fn ($cost) => $cost->getCommissionAmount());
     }
 
     public function getParentCommisionCosts()
@@ -47,7 +47,7 @@ trait HasProducts
 
     public function getProfit()
     {
-        return $this->getAmount() - $this->getCommisions();
+        return $this->getAmount()->subtract($this->getCommisions());
     }
 
     public function getParentCosts($withActual = false)

@@ -12,25 +12,32 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
 class UpdateInvoiceDto extends ValidatedDTO
 {
     public int $id;
-    public int $payment_method_id;
-    public Carbon $invoice_date;
-    public Carbon $invoice_due_date;
+    public ?int $payment_method_id;
+    public ?int $payment_term_id;
+    public ?array $possible_payment_methods;
+    public ?array $possible_payment_terms;
+    public ?Carbon $invoice_date;
+    // public Carbon $invoice_due_date;
 
-    public array $invoiceDetails;
+    public ?array $invoiceDetails;
 
 
     public function rules(): array
     {
         return [
             'id' => 'required|integer|exists:fin_invoices,id',
-            'payment_method_id' => 'required|integer|in:' . collect(PaymentMethodEnum::getEnumClass()::cases())->pluck('value')->implode(','),
-            'invoice_date' => 'required|date',
-            'invoice_due_date' => 'required|date|after_or_equal:invoice_date',
+            'payment_method_id' => 'nullable|integer|in:' . collect(PaymentMethodEnum::getEnumClass()::cases())->pluck('value')->implode(','),
+            'payment_term_id' => 'nullable|integer|exists:fin_payment_terms,id',
+            'invoice_date' => 'nullable|date',
+            // 'invoice_due_date' => 'required|date|after_or_equal:invoice_date',
+
+            'possible_payment_methods' => 'nullable|array',
+            'possible_payment_terms' => 'nullable|array',
 
             'customer_id' => 'prohibited',
             'invoice_type_id' => 'prohibited',
 
-            'invoiceDetails' => 'array',
+            'invoiceDetails' => 'nullable|array',
             /**
              * Send this field as null to create a new invoice details instead of updating it.
              *
@@ -57,8 +64,9 @@ class UpdateInvoiceDto extends ValidatedDTO
         return [
             'id' => new IntegerCast(),
             'payment_method_id' => new IntegerCast(),
+            'payment_term_id' => new IntegerCast(),
             'invoice_date' => new CarbonCast(),
-            'invoice_due_date' => new CarbonCast(),
+            // 'invoice_due_date' => new CarbonCast(),
             'invoiceDetails' => new ArrayCast(),
         ];
     }
@@ -66,7 +74,9 @@ class UpdateInvoiceDto extends ValidatedDTO
     public function defaults(): array
     {
         return [
-            'invoiceDetails' => [],
+            // 'invoiceDetails' => [],
+            // 'possible_payment_methods' => [],
+            // 'possible_payment_terms' => [],
         ];
     }
 }

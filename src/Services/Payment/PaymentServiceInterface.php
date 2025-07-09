@@ -44,6 +44,11 @@ interface PaymentServiceInterface
     public function createPaymentAndApplyToInvoice(CreateCustomerPaymentForInvoiceDto $dto): CustomerPayment;
 
     /**
+     * Very similar to createPaymentAndApplyToInvoice, but more specific for installment periods
+     */
+    public function createPaymentAndApplyToInvoiceInstallmentPeriod(int $installmentPeriodId): CustomerPayment;
+
+    /**
      * Apply existing payment to invoice
      *
      * @param CreateApplyForInvoiceDto $data

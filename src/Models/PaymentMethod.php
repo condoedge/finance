@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -30,5 +31,12 @@ class PaymentMethod extends Model
     public function getEnum(): PaymentMethodEnum
     {
         return PaymentMethodEnum::from($this->id);
+    }
+
+    public function scopeIsOnlinePayment($query)
+    {
+        return $query->whereIn('id', collect(PaymentMethodEnum::cases())->filter(function ($enum) {
+            return $enum->online();
+        })->pluck('value')->toArray());
     }
 }

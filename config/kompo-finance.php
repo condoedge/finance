@@ -4,6 +4,14 @@ use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 
 return [
+    'services' => [
+        'bna_payment_provider' => [
+            'api_url' => env('BNA_PAYMENT_API_URL', 'https://stage-api-service.bnasmartpayment.com'),
+            'api_key' => env('BNA_PAYMENT_API_KEY', ''),
+            'api_secret' => env('BNA_PAYMENT_API_SECRET', ''),
+        ],
+    ],
+
     'decimal-scale' => 5,
 
     'automatic-handle-of-unmanaged-decimals' => !env('SAFE_DECIMAL_DISABLE_HANDLER', env('APP_ENV') != 'production'),
@@ -34,12 +42,15 @@ return [
         \Condoedge\Finance\Models\CustomerPayment::class => [
             \Condoedge\Finance\Models\InvoiceApply::class,
         ],
+        \Condoedge\Finance\Models\PaymentInstallmentPeriod::class => [
+            \Condoedge\Finance\Models\Invoice::class,
+        ],
         \Condoedge\Finance\Models\GlAccount::class => [
             \Condoedge\Finance\Models\AccountSegmentAssignment::class,
             \Condoedge\Finance\Models\AccountSegment::class,
             \Condoedge\Finance\Models\SegmentValue::class,
         ],
-        // GL Module relationships
+        // // GL Module relationships
         \Condoedge\Finance\Models\GlTransactionHeader::class => [
             \Condoedge\Finance\Models\GlTransactionLine::class,
         ],
@@ -60,10 +71,10 @@ return [
     // But as default we use the logic behind this. If we don't set "config-currency" in the service provider, it will use the default config
     'currency_preformats' => [
         'en' => [
-            'format' => '#,###.00# $',
+            'format' => '#,###.00 $',
         ],
         'fr' => [
-            'format' => '#.###,00### $',
+            'format' => '#.###,00 $',
         ],
     ],
 

@@ -79,10 +79,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             return new IntegrityChecker();
         });
 
-        $this->app->bind(PaymentGatewayInterface::class, function ($app) {
-            return PaymentGatewayResolver::resolve();
-        });
-
         $this->app->bind('config-currency', function ($app) {
             return app()->getLocale() === 'en'
                 ? config('kompo-finance.currency_preformats.en')
@@ -237,9 +233,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         // Invoice Service (existing)
         $this->app->bind(InvoiceServiceInterface::class, InvoiceService::class);
 
-        // Payment Gateway Service (existing)
-        $this->app->singleton(PaymentGatewayService::class);
-
         // Customer Service
         $this->app->bind(
             \Condoedge\Finance\Services\Customer\CustomerServiceInterface::class,
@@ -271,9 +264,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         );
         $this->app->singleton(\Condoedge\Finance\Services\AccountSegmentService::class);
 
-        // Legacy GL Segment Service (for backward compatibility)
-        $this->app->singleton(\Condoedge\Finance\Services\GlSegmentService::class);
-
         // Fiscal Year Service
         $this->app->singleton(\Condoedge\Finance\Services\FiscalYearService::class);
 
@@ -293,6 +283,12 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->bind(
             \Condoedge\Finance\Services\Product\ProductServiceInterface::class,
             \Condoedge\Finance\Services\Product\ProductService::class
+        );
+
+        // Payment Term Service
+        $this->app->bind(
+            \Condoedge\Finance\Services\PaymentTerm\PaymentTermServiceInterface::class,
+            \Condoedge\Finance\Services\PaymentTerm\PaymentTermService::class
         );
     }
 

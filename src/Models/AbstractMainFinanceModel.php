@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Facades\IntegrityChecker;
 use Condoedge\Finance\Models\Traits\HasEventsOnDbInteraction;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
 use Condoedge\Finance\Models\Traits\HasSqlColumnCalculation;
@@ -68,5 +69,13 @@ abstract class AbstractMainFinanceModel extends Model
     public static function columnsIntegrityCalculations()
     {
         return [];
+    }
+
+    public function refresh()
+    {
+        IntegrityChecker::checkChildrenThenModel(static::class, [$this->id]);
+        IntegrityChecker::checkModelThenParents(static::class, [$this->id]);
+
+        return parent::refresh();
     }
 }

@@ -25,6 +25,7 @@ class InvoiceFactory extends Factory
             'customer_id' => Customer::factory(),
             'invoice_type_id' => collect(InvoiceTypeEnum::cases())->random()->value,
             'payment_method_id' => collect(PaymentMethodEnum::cases())->random()->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'account_receivable_id' => GlAccount::factory(),
         ];
     }

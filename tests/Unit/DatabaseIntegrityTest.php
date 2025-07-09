@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\GlAccountFactory;
+use Condoedge\Finance\Database\Factories\PaymentTermFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
@@ -714,8 +715,9 @@ class DatabaseIntegrityTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now()->format('Y-m-d'),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => !$approved,
             'invoiceDetails' => [
                 [
@@ -744,8 +746,9 @@ class DatabaseIntegrityTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now()->format('Y-m-d'),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => false,
             'invoiceDetails' => [
                 [

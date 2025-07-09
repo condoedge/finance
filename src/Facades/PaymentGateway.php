@@ -52,27 +52,11 @@ class PaymentGateway extends \Illuminate\Support\Facades\Facade
     }
 
     /**
-     * Stateless method: Get cash account for specific invoice
-     */
-    public static function getCashAccountForInvoice(Invoice $invoice)
-    {
-        return self::getPaymentGatewayService()->getCashAccountForInvoice($invoice);
-    }
-
-    /**
-     * Stateless method: Get cash account for specific payment type
-     */
-    public static function getCashAccountForPaymentType(PaymentMethodEnum $paymentType)
-    {
-        return self::getPaymentGatewayService()->getCashAccountForPaymentType($paymentType);
-    }
-
-    /**
      * Stateless method: Get gateway for invoice
      */
-    public static function getGatewayForInvoice(Invoice $invoice)
+    public static function getGatewayForInvoice(Invoice $invoice, array $context = [])
     {
-        return self::getPaymentGatewayService()->getGatewayForInvoice($invoice);
+        return self::getPaymentGatewayService()->getGatewayForInvoice($invoice, $context);
     }
 
     /**

@@ -2,7 +2,10 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Billing\BnaPaymentProvider;
+use Condoedge\Finance\Billing\Kompo\PaymentCreditCardForm;
 use Condoedge\Finance\Billing\TempPaymentGateway;
+use Faker\Provider\ar_EG\Payment;
 
 /**
  * Payment Type Enum
@@ -18,7 +21,6 @@ enum PaymentMethodEnum: int
     case CHECK = 2;
     case CREDIT_CARD = 3;
     case BANK_TRANSFER = 4;
-    case CREDIT_NOTE = 5;
 
     /**
      * Get human-readable label for the payment type
@@ -26,11 +28,10 @@ enum PaymentMethodEnum: int
     public function label(): string
     {
         return match($this) {
-            self::CASH => 'Cash',
-            self::CHECK => 'Check',
-            self::CREDIT_CARD => 'Credit Card',
-            self::BANK_TRANSFER => 'Bank Transfer',
-            self::CREDIT_NOTE => 'Credit Note',
+            self::CASH => __('translate.cash'),
+            self::CHECK => __('translate.check'),
+            self::CREDIT_CARD => __('translate.credit_card'),
+            self::BANK_TRANSFER => __('translate.bank_transfer'),
         };
     }
 
@@ -44,7 +45,6 @@ enum PaymentMethodEnum: int
             self::CHECK => 'CHECK',
             self::CREDIT_CARD => 'CC',
             self::BANK_TRANSFER => 'WIRE',
-            self::CREDIT_NOTE => 'CN',
         };
     }
 
@@ -60,14 +60,6 @@ enum PaymentMethodEnum: int
     }
 
     /**
-     * Check if this payment type can have negative amounts
-     */
-    public function allowsNegativeAmounts(): bool
-    {
-        return $this === self::CREDIT_NOTE;
-    }
-
-    /**
      * Get all payment types as array for validation
      */
     public static function getValidValues(): array
@@ -78,15 +70,34 @@ enum PaymentMethodEnum: int
     public function getPaymentGateway()
     {
         return match ($this) {
-            default => TempPaymentGateway::class,
+            self::CREDIT_CARD => BnaPaymentProvider::class,
+            default => null,
+        };
+    }
+
+    /**
+     * Get the account for this payment gateway
+     */
+    public function getReceivableAccount(): ?GlAccount
+    {
+        return match ($this) {
+            default => GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id), // TODO WE MUST SET A CORRECT VALUE HERE
         };
     }
 
     public function online()
     {
         return match ($this) {
-            self::CREDIT_CARD, self::BANK_TRANSFER => true,
+            self::CREDIT_CARD => true,
             default => false,
+        };
+    }
+
+    public function form($invoice)
+    {
+        return match ($this) {
+            self::CREDIT_CARD => new PaymentCreditCardForm($invoice->id),
+            default => null,
         };
     }
 }

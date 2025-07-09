@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\GlAccountFactory;
 use Condoedge\Finance\Database\Factories\InvoiceFactory;
+use Condoedge\Finance\Database\Factories\PaymentTermFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
@@ -45,12 +46,15 @@ class InvoicesTest extends TestCase
 
         $invoiceDate = now();
 
+        $paymentTerm = PaymentTermFactory::new()->create();
+
         $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => $paymentTerm->id,
             'invoice_date' => $invoiceDate,
-            'invoice_due_date' => $invoiceDate->copy()->addDays(30),
+            // 'invoice_due_date' => $invoiceDate->copy()->addDays(30),
             'is_draft' => true,
             'invoiceDetails' => [
                 [
@@ -71,8 +75,9 @@ class InvoicesTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => $paymentTerm->id,
             'invoice_date' => db_datetime_format($invoiceDate),
-            'invoice_due_date' => db_datetime_format($invoiceDate->copy()->addDays(30)),
+            // 'invoice_due_date' => db_datetime_format($invoiceDate->copy()->addDays(30)),
             'is_draft' => 1,
             'invoice_amount_before_taxes' => $expectedAmountBeforeTaxes->toFloat(),
             'invoice_status_id' => InvoiceStatusEnum::DRAFT->value,
@@ -153,7 +158,7 @@ class InvoicesTest extends TestCase
             'id' => $invoice->id,
             'payment_method_id' => $invoice->payment_method_id,
             'invoice_date' => $invoice->invoice_date,
-            'invoice_due_date' => $invoice->invoice_due_date,
+            // 'invoice_due_date' => $invoice->invoice_due_date,
             'is_draft' => true,
             'invoiceDetails' => [
                 [
@@ -176,7 +181,7 @@ class InvoicesTest extends TestCase
             'invoice_type_id' => $invoice->invoice_type_id,
             'payment_method_id' => $invoice->payment_method_id,
             'invoice_date' => db_datetime_format($invoice->invoice_date),
-            'invoice_due_date' => db_datetime_format($invoice->invoice_due_date),
+            // 'invoice_due_date' => db_datetime_format($invoice->invoice_due_date),
             'is_draft' => 1,
             'invoice_amount_before_taxes' => $expectedAmountBeforeTaxes->toFloat(),
             'invoice_status_id' => InvoiceStatusEnum::DRAFT->value,

@@ -41,9 +41,12 @@ class PaymentGatewayResolver
      *
      * Resolves payment gateway for specific invoice without using static state
      */
-    public static function resolveForInvoice(Invoice $invoice): PaymentGatewayInterface
+    public static function resolveForInvoice(Invoice $invoice, array $context = []): PaymentGatewayInterface
     {
-        return self::resolveForPaymentType($invoice->payment_method_id ?? PaymentMethodEnum::CASH);
+        return self::resolveWithContext($invoice->payment_method_id ?? PaymentMethodEnum::CREDIT_CARD, [
+            'invoice' => $invoice,
+            ...$context
+        ]);
     }
 
     /**

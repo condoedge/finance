@@ -27,14 +27,14 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
 class CreateInvoiceDto extends ValidatedDTO
 {
     public int $customer_id;
-    public int $invoice_type_id;
+    public ?int $invoice_type_id;
     public ?int $payment_method_id;
+    public ?int $payment_term_id;
 
     public ?array $possible_payment_methods;
-    public ?array $possible_payment_installments;
+    public ?array $possible_payment_terms;
 
     public Carbon $invoice_date;
-    public ?Carbon $invoice_due_date;
 
     public bool $is_draft;
 
@@ -49,8 +49,9 @@ class CreateInvoiceDto extends ValidatedDTO
             'customer_id' => 'required|integer|exists:fin_customers,id',
             'invoice_type_id' => 'nullable|integer|exists:fin_invoice_types,id',
             'payment_method_id' => 'nullable|integer|in:' . collect(PaymentMethodEnum::getEnumClass()::cases())->pluck('value')->implode(','),
+            'payment_term_id' => 'nullable|integer|exists:fin_payment_terms,id',
             'invoice_date' => 'required|date',
-            'invoice_due_date' => 'nullable|date|after_or_equal:invoice_date',
+            // 'invoice_due_date' => 'nullable|date|after_or_equal:invoice_date',
             'is_draft' => 'boolean',
 
             'invoiceDetails' => 'array',
@@ -73,8 +74,8 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoiceDetails.*.product_id' => 'nullable|integer|exists:fin_products,id',
             'invoiceDetails.*.create_product_on_save' => 'nullable|boolean',
 
-            'possible_payment_methods' => 'nullable|array',
-            'possible_payment_installments' => 'nullable|array',
+            'possible_payment_methods' => 'required_without:payment_method_id|array',
+            'possible_payment_terms' => 'required_without:payment_term_id|array',
 
             'invoiceable_type' => 'nullable|string',
             'invoiceable_id' => 'nullable|integer',
@@ -88,7 +89,7 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoice_type_id' => new IntegerCast(),
             'payment_method_id' => new IntegerCast(),
             'invoice_date' => new CarbonCast(),
-            'invoice_due_date' => new CarbonCast(),
+            // 'invoice_due_date' => new CarbonCast(),
             'invoiceDetails' => new ArrayCast(),
             'is_draft' => new BooleanCast(),
         ];
@@ -100,7 +101,7 @@ class CreateInvoiceDto extends ValidatedDTO
             'is_draft' => true,
             'invoiceDetails' => [],
             'possible_payment_methods' => [],
-            'possible_payment_installments' => [],
+            'possible_payment_terms' => [],
         ];
     }
 }

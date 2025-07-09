@@ -8,13 +8,14 @@ use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\PaymentInstallmentEnum;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class InvoiceForm extends Form
 {
     use \Condoedge\Finance\Kompo\MorphManyChargeablesSelect;
+    use \Condoedge\Finance\Kompo\PaymentTerms\TermSelectorTrait;
+
     public const ID = 'invoice-form';
     public $id = self::ID;
 
@@ -84,13 +85,16 @@ class InvoiceForm extends Form
             ),
 
             _Columns(
-                _Select('finance-payment-type')
-                    ->name('payment_method_id')
+                _MultiSelect('translate.finance-payment-types')
+                    ->name('possible_payment_methods')
                     ->options(PaymentMethodEnum::optionsWithLabels()),
-                _Select('finance-payment-installment')
-                    ->name('payment_installment_id')
-                    ->options(PaymentInstallmentEnum::optionsWithLabels()),
-                _Date('finance-due-date')->name('invoice_due_date')->default(date('Y-m-d')),
+
+                $this->getPaymentTermsSelector(),
+                
+                // _MultiSelect('translate.finance-payment-terms')
+                //     ->name('possible_payment_terms')
+                //     ->options(PaymentTerm::pluck('term_name', 'id')->all()),
+                // _Date('finance-due-date')->name('invoice_due_date')->default(date('Y-m-d')),
             ),
 
             _MultiForm()->noLabel()->name('invoiceDetails')
@@ -151,6 +155,11 @@ class InvoiceForm extends Form
     public function getTaxesInfoModal()
     {
         return new TaxesInfoModal();
+    }
+
+    protected function getDefaultPaymentTerms()
+    {
+        return $this->model->possible_payment_terms ?? [];
     }
 
     public function rules()

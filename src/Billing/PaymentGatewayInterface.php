@@ -2,15 +2,8 @@
 
 namespace Condoedge\Finance\Billing;
 
-use Condoedge\Finance\Models\GlAccount;
-
 interface PaymentGatewayInterface
 {
-    /**
-     * Get the cash account for this payment gateway
-     */
-    public function getCashAccount(): GlAccount;
-
     /**
      * Optional: Initialize gateway with context
      *
@@ -19,21 +12,7 @@ interface PaymentGatewayInterface
      */
     public function initializeContext(array $context = []): void;
 
-    // COUPONS
 
+    public function executeSale($request, $onSuccess = null);
 
-    // CHECKOUT SESSIONS
-
-
-    // DISPUTES
-
-    // REFUNDS
-    public function refundOrder();
-
-    // BANK ACCOUNTS
-
-    // SUBSCRIPTIONS
-
-    /* WEBHOOKS */
-    public function setRoutes();
 }

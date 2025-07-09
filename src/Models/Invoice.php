@@ -3,13 +3,17 @@
 namespace Condoedge\Finance\Models;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceGenerated;
 use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Kompo\Auth\Models\Teams\Team;
 
 /**
  * Class Invoice
@@ -25,19 +29,20 @@ use Illuminate\Support\Facades\DB;
  * @property \Condoedge\Finance\Casts\SafeDecimal $invoice_due_amount @CALCULATED BY calculate_invoice_due() - Remaining amount to be paid
  * @property \Condoedge\Finance\Casts\SafeDecimal $invoice_tax_amount @CALCULATED BY calculate_invoice_tax() - Total tax amount
  * @property InvoiceStatusEnum $invoice_status_id @CALCULATED BY calculate_invoice_status()
- * @property \DateTime $invoice_date
- * @property \DateTime $invoice_due_date
+ * @property Carbon $invoice_date
+ * @property Carbon $invoice_due_date
  * @property PaymentMethodEnum $payment_method_id
  * @property bool $is_draft Default: true
  * @property int|null $approved_by Foreign key to users table
- * @property \DateTime|null $approved_at
+ * @property Carbon|null $approved_at
  * @property int $historical_customer_id Foreign key to fin_historical_customers
  * @property int $customer_id Foreign key to fin_customers
  * @property string $invoiceable_type The type of the invoiceable model (it could have information about what the client is paying)
  * @property int $invoiceable_id The id of the invoiceable model (it could have information about what the client is paying)
- * @property PaymentInstallmentEnum $payment_installment The payment installment type (One-time, Monthly, etc.)
+ * @property int $payment_term_id The payment installment type (One-time, Monthly, etc.)
+ * @property PaymentTerm $paymentTerm The payment installment model associated with the invoice
  * @property PaymentMethodEnum $payment_method The payment method type (Cash, Credit Card, etc.)
- * @property int[] $possible_payment_installments An array with the ids of available installments in the current invoice
+ * @property int[] $possible_payment_terms An array with the ids of available installments in the current invoice
  * @property int[] $possible_payment_methods An array with the ids of available payment methods in the current invoice
  * @property int $account_receivable_id
  * @property-read string $customer_label The name of the customer
@@ -46,11 +51,18 @@ use Illuminate\Support\Facades\DB;
  * @property-read SafeDecimal $abs_invoice_total_amount The absolute value of the invoice amount
  * @property-read SafeDecimal $abs_invoice_due_amount The absolute value of the invoice due amount
  * @property-read string $payment_method_label The payment type label (Cash, Credit Card, etc.)
+ * @property-read InvoiceableInterface $invoiceable The invoiceable model associated with the invoice
+ * 
+ * Relationships:
+ * @property Customer $customer The customer associated with the invoice
+ * @property Collection<InvoiceDetail> $invoiceDetails The details of the invoice (items, services, etc.)
+ * @property PaymentTerm $paymentTerm The payment term associated with the invoice
+ * @property Collection<PaymentInstallmentPeriod> $installmentsPeriods The payment installment periods associated with the invoice
  */
 class Invoice extends AbstractMainFinanceModel
 {
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
-    use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
+    // use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
 
     protected $table = 'fin_invoices';
 
@@ -60,7 +72,6 @@ class Invoice extends AbstractMainFinanceModel
         'invoice_status_id' => InvoiceStatusEnum::class,
         'invoice_type_id' => InvoiceTypeEnum::class,
         'payment_method_id' => PaymentMethodEnum::class,
-        'payment_installment_id' => PaymentInstallmentEnum::class,
         'approved_at' => 'datetime',
         'invoice_total_amount' => SafeDecimalCast::class,
         'invoice_due_amount' => SafeDecimalCast::class,
@@ -69,13 +80,10 @@ class Invoice extends AbstractMainFinanceModel
         'invoice_amount_before_taxes' => SafeDecimalCast::class,
 
         'possible_payment_methods' => 'array',
-        'possible_payment_installments' => 'array',
-    ];
+        'possible_payment_terms' => 'array',
 
-    public function save(array $options = [])
-    {
-        return parent::save($options);
-    }
+        'sent_at' => 'datetime',
+    ];
 
     /**
      * Get the creation event class for this model.
@@ -91,6 +99,11 @@ class Invoice extends AbstractMainFinanceModel
     public function customer()
     {
         return $this->belongsTo(HistoricalCustomer::class, 'historical_customer_id');
+    }
+
+    public function team()
+    {
+        return $this->hasOneThrough(Team::class, HistoricalCustomer::class, 'id', 'id', 'historical_customer_id', 'team_id');
     }
 
     public function invoiceDetails()
@@ -126,6 +139,16 @@ class Invoice extends AbstractMainFinanceModel
     public function accountReceivable()
     {
         return $this->belongsTo(GlAccount::class, 'account_receivable_id');
+    }
+
+    public function paymentTerm()
+    {
+        return $this->belongsTo(PaymentTerm::class, 'payment_term_id');
+    }
+
+    public function installmentsPeriods()
+    {
+        return $this->hasMany(PaymentInstallmentPeriod::class, 'invoice_id');
     }
 
     /* ATTRIBUTES */
@@ -222,12 +245,51 @@ class Invoice extends AbstractMainFinanceModel
         });
     }
 
+    public function hasMissingInfoToApprove()
+    {
+        if (!$this->payment_method_id || !$this->payment_term_id) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function checkInvoiceable()
+    {
+        if ($this->invoiceable && !($this->invoiceable instanceof InvoiceableInterface)) {
+            Log::critical('Invoiceable model does not implement InvoiceableInterface' . ' for invoice ID: ' . $this->id);
+            return false;
+        }
+
+        return true;
+    }
+
+    public function onCompletePayment()
+    {
+        if (!$this->checkInvoiceable()) return;
+
+        $this->invoiceable?->onCompletePayment();
+    }
+
+    public function onPartialPayment()
+    {
+        if (!$this->checkInvoiceable()) return;
+
+        $this->invoiceable?->onPartialPayment();
+    }
+
     /* ACTIONS */
     public function markApproved()
     {
         InvoiceService::approveInvoice(new ApproveInvoiceDto([
             'invoice_id' => $this->id,
         ]));
+    }
+
+    public function markAsSent()
+    {
+        $this->sent_at = now();
+        $this->save();
     }
 
     /* ELEMENTS */
@@ -247,31 +309,6 @@ class Invoice extends AbstractMainFinanceModel
         return _Html('<b>'.__('finance-approved-by').'</b> '.$this->approvedBy->name);
     }
 
-    public function getScheduleElement($from = null)
-    {
-        $date = $from ?: now();
-        $installment = $this->payment_installment ?: PaymentInstallmentEnum::ONE_TIME;
-
-        $payments = collect([]);
-
-        for ($i = 0; $i <= $installment->getTimes() - 1; $i++) {
-            $payments->push((object) [
-                'date' => $i == 0 && !$from ? __('events.now') : $date->format('Y-m-d'),
-                'amount' => $this->invoice_total_amount / $installment->getTimes(),
-            ]);
-
-            $date = $installment->getNextDate($date);
-        }
-
-        return _Rows(
-            $payments->map(fn ($payment) => _FlexBetween(
-                _Html($payment->date),
-                _FinanceCurrency($payment->amount),
-            ))
-        )->class('gap-2');
-    }
-
-
     /** INTEGRITY */
     public static function columnsIntegrityCalculations()
     {
@@ -280,7 +317,7 @@ class Invoice extends AbstractMainFinanceModel
             'invoice_amount_before_taxes' => DB::raw('calculate_invoice_amount_before_taxes(fin_invoices.id)'),
             'invoice_tax_amount' => DB::raw('calculate_invoice_tax(fin_invoices.id)'),
             'invoice_reference' => DB::raw('get_invoice_reference(fin_invoices.id)'),
-            'invoice_status_id' => DB::raw("calculate_invoice_status(fin_invoices.id, ".InvoiceStatusEnum::PAID->value.", ".InvoiceStatusEnum::DRAFT->value.", ".InvoiceStatusEnum::PENDING->value.")"),
+            'invoice_status_id' => DB::raw("calculate_invoice_status(fin_invoices.id)"),
         ];
     }
 }

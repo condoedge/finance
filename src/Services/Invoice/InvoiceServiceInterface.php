@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Services\Invoice;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Illuminate\Support\Collection;
@@ -52,6 +53,8 @@ interface InvoiceServiceInterface
      * @throws \Exception When invoice not found or validation fails
      */
     public function updateInvoice(UpdateInvoiceDto $dto): Invoice;
+
+    public function payInvoice(PayInvoiceDto $dto): bool;
 
     /**
      * Approve a single invoice

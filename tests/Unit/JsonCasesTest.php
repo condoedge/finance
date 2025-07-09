@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\GlAccountFactory;
+use Condoedge\Finance\Database\Factories\PaymentTermFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
@@ -141,6 +142,7 @@ class JsonCasesTest extends TestCase
             'customer_id' => $this->setupValues['customer']->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => $transaction['date'],
             'invoiceDetails' => collect($transaction['lineItems'])->map(function ($line) {
                 return [
@@ -244,8 +246,9 @@ class JsonCasesTest extends TestCase
             'customer_id' => $this->setupValues['customer']->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => $transaction['date'],
-            'invoice_due_date' => $transaction['dueDate'],
+            // 'invoice_due_date' => $transaction['dueDate'],
             'invoiceDetails' => collect($transaction['lineItems'])->map(function ($line) {
                 return [
                     'name' => $line['description'],

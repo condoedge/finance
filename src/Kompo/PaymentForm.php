@@ -7,6 +7,7 @@ use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\MorphablesEnum;
+use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Condoedge\Finance\Services\Payment\PaymentServiceInterface;
 
 class PaymentForm extends Modal
@@ -21,16 +22,22 @@ class PaymentForm extends Modal
     protected $invoiceId;
     protected $invoice;
 
+    protected $installmentPeriodId;
+    protected $installmentPeriod;
+
     protected $goToApplyModelAfter = false;
 
     public function created()
     {
-        $this->customerId = $this->prop('customer_id');
         $this->refreshId = $this->prop('refresh_id');
+        $this->installmentPeriodId = $this->prop('period_id');
+        $this->installmentPeriod = PaymentInstallmentPeriod::find($this->installmentPeriodId);
 
-        $this->invoiceId = $this->prop('invoice_id');
+        $this->invoiceId = $this->prop('invoice_id') ?? $this->installmentPeriod?->invoice_id;
 
         $this->invoice = !$this->invoiceId ? null : InvoiceModel::findOrFail($this->invoiceId);
+
+        $this->customerId = $this->prop('customer_id') ?? $this->invoice?->customer_id;
 
         $this->goToApplyModelAfter = $this->prop('go_to_apply_model_after');
     }
@@ -67,12 +74,7 @@ class PaymentForm extends Modal
         $paymentType = $this->invoice?->invoice_type_id->signMultiplier() < 0 ? -1 : 1;
 
         return [
-            !$this->invoice ? null : _CardLevel5(
-                _FinanceCurrency($this->invoice->abs_invoice_due_amount)->class('font-bold text-3xl'),
-                _Html(__('finance-with-values-paying-invoice', [
-                    'invoice_reference' => $this->invoice->invoice_reference,
-                ]))->class('text-lg font-semibold'),
-            )->p4()->alignEnd(),
+            $this->payingSpecificModelEl(),
 
             ($this->invoiceId || !$this->goToApplyModelAfter) ? null :
                 _CardGray100P4(_Html('finance-going-to-apply-page-after-this-payment')),
@@ -89,7 +91,7 @@ class PaymentForm extends Modal
                     -1 => __('finance-to-customer'),
                 ]),
 
-            _InputDollar('finance-amount')->name('amount')->default($this->invoice?->abs_invoice_due_amount->toFloat())
+            _InputDollar('finance-amount')->name('amount')->default($this->getDefaultAmount())
                 ->placeholder('finance-amount'),
 
             _ErrorField()->name('amount_applied', false)->noInputWrapper()->class('!my-0'),
@@ -99,6 +101,43 @@ class PaymentForm extends Modal
                     ->when($this->goToApplyModelAfter, fn ($e) => $e->inModal()),
             )
         ];
+    }
+
+    protected function getDefaultAmount()
+    {
+        if ($this->installmentPeriod) {
+            return $this->installmentPeriod->due_amount->toFloat();
+        }
+
+        if ($this->invoice) {
+            return $this->invoice->abs_invoice_due_amount->toFloat();
+        }
+
+        return 0;
+    }
+
+    protected function payingSpecificModelEl()
+    {
+        if ($this->installmentPeriod) {
+            return _CardLevel5(
+                _FinanceCurrency($this->installmentPeriod->due_amount)->class('font-bold text-3xl'),
+                _Html(__('translate.with-values-finance-with-values-paying-period-number-of-invoice', [
+                    'invoice_reference' => $this->invoice->invoice_reference,
+                    'installment_number' => $this->installmentPeriod->installment_number,
+                ]))->class('text-lg font-semibold'),
+            )->p4()->alignEnd();
+        }
+
+        if ($this->invoice) {
+            return _CardLevel5(
+                _FinanceCurrency($this->invoice->abs_invoice_due_amount)->class('font-bold text-3xl'),
+                _Html(__('finance-with-values-paying-invoice', [
+                    'invoice_reference' => $this->invoice->invoice_reference,
+                ]))->class('text-lg font-semibold'),
+            )->p4()->alignEnd();
+        }
+
+        return null;
     }
 
     public function rules()

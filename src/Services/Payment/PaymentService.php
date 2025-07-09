@@ -13,6 +13,7 @@ use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceApply;
 use Condoedge\Finance\Models\MorphablesEnum;
+use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -61,6 +62,18 @@ class PaymentService implements PaymentServiceInterface
 
             return $payment->refresh();
         });
+    }
+
+    public function createPaymentAndApplyToInvoiceInstallmentPeriod(int $installmentPeriodId): CustomerPayment
+    {
+        $installmentPeriod = PaymentInstallmentPeriod::findOrFail($installmentPeriodId);
+
+        return static::createPaymentAndApplyToInvoice(new CreateCustomerPaymentForInvoiceDto([
+            'invoice_id' => $installmentPeriod->invoice_id,
+            'amount' => $installmentPeriod->due_amount ?? $installmentPeriod->amount,
+            'payment_date' => now(),
+            'customer_id' => $installmentPeriod->invoice->customer_id,
+        ]));
     }
 
     /**
@@ -143,6 +156,7 @@ class PaymentService implements PaymentServiceInterface
         $payment->customer_id = $dto->customer_id;
         $payment->payment_date = $dto->payment_date;
         $payment->amount = $dto->amount;
+        $payment->external_reference = $dto->external_reference;
         $payment->save();
 
         return $payment;

@@ -7,6 +7,7 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
+use Kompo\Auth\Models\Plugins\HasSecurity;
 
 class DatabaseQueryInterceptor
 {
@@ -46,6 +47,7 @@ class DatabaseQueryInterceptor
      */
     public function handleQueryExecuted(QueryExecuted $event): void
     {
+        HasSecurity::enterBypassContext();
         $sql = $event->sql;
         $bindings = $event->bindings;
 
@@ -78,6 +80,8 @@ class DatabaseQueryInterceptor
                 'bindings' => $bindings,
                 'trace' => $e->getTraceAsString()
             ]);
+        } finally {
+            HasSecurity::exitBypassContext();
         }
     }
 

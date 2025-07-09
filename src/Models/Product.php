@@ -234,13 +234,19 @@ class Product extends AbstractMainFinanceModel
         return ProductService::copyProductToInvoice($this->id, $invoice->id);
     }
 
-    /**
-     * @deprecated Use ProductService::createProduct() with template_id instead
-     * Maintained for backward compatibility
-     */
-    public function createProductCopy($productable)
+    public function createProductCopy($productable = null)
     {
-        return static::createProduct($productable, $this->product_type, $this->product_cost_abs->toFloat(), $this->product_name, $this->id, $this->product_description, $this->default_revenue_account_id);
+        return ProductService::createProduct(new CreateProductDto([
+            'productable_type' => $productable?->getMorphClass() ?? $this->productable_type,
+            'productable_id' => $productable?->getKey() ?? $this->productable_id,
+            'product_type' => $this->product_type->value,
+            'product_cost_abs' => $this->product_cost_abs->toFloat(),
+            'product_name' => $this->product_name,
+            'product_description' => $this->product_description,
+            'product_template_id' => $this->id,
+            'default_revenue_account_id' => $this->default_revenue_account_id,
+            'team_id' => currentTeamId(),
+        ]));
     }
 
     /**

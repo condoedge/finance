@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\GlAccountFactory;
+use Condoedge\Finance\Database\Factories\PaymentTermFactory;
 use Condoedge\Finance\Database\Factories\ProductFactory;
 use Condoedge\Finance\Database\Factories\TaxFactory;
 use Condoedge\Finance\Facades\InvoiceService;
@@ -119,8 +120,8 @@ class ProductTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now(),
-            'invoice_due_date' => now()->addDays(30),
             'is_draft' => true,
             'team_id' => currentTeamId(),
             'invoiceDetails' => [
@@ -171,8 +172,9 @@ class ProductTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now(),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => true,
             'invoiceDetails' => [
                 [
@@ -206,8 +208,9 @@ class ProductTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now(),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => true,
             'invoiceDetails' => [],
         ]));
@@ -240,8 +243,9 @@ class ProductTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now(),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => true,
             'invoiceDetails' => [
                 [
@@ -281,8 +285,9 @@ class ProductTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now(),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => true,
             'invoiceDetails' => [
                 [
@@ -362,8 +367,9 @@ class ProductTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now(),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => true,
             'invoiceDetails' => [],
         ]));

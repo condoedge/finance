@@ -4,7 +4,6 @@ namespace Condoedge\Finance\Services;
 
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
-use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 
@@ -17,29 +16,11 @@ use Condoedge\Finance\Models\PaymentMethodEnum;
 class PaymentGatewayService
 {
     /**
-     * Get cash account for a specific invoice
-     */
-    public function getCashAccountForInvoice(Invoice $invoice): GlAccount
-    {
-        $gateway = PaymentGatewayResolver::resolveForInvoice($invoice);
-        return $gateway->getCashAccount();
-    }
-
-    /**
-     * Get cash account for a specific payment type
-     */
-    public function getCashAccountForPaymentType(PaymentMethodEnum $paymentType): GlAccount
-    {
-        $gateway = PaymentGatewayResolver::resolveForPaymentType($paymentType);
-        return $gateway->getCashAccount();
-    }
-
-    /**
      * Get payment gateway for invoice
      */
-    public function getGatewayForInvoice(Invoice $invoice): PaymentGatewayInterface
+    public function getGatewayForInvoice(Invoice $invoice, array $context = []): PaymentGatewayInterface
     {
-        return PaymentGatewayResolver::resolveForInvoice($invoice);
+        return PaymentGatewayResolver::resolveForInvoice($invoice, $context);
     }
 
     /**
@@ -64,41 +45,5 @@ class PaymentGatewayService
     public function getAvailableGateways(): array
     {
         return PaymentGatewayResolver::getAvailableGateways();
-    }
-
-    /**
-     * Process refund for invoice
-     */
-    public function processRefund(Invoice $invoice): void
-    {
-        $gateway = $this->getGatewayForInvoice($invoice);
-        $gateway->refundOrder();
-    }
-
-    /**
-     * Setup routes for all gateways
-     */
-    public function setupAllRoutes(): void
-    {
-        $gateways = $this->getAvailableGateways();
-
-        foreach ($gateways as $gatewayInfo) {
-            $gateway = $this->getGatewayForPaymentType($gatewayInfo['payment_method']);
-            $gateway->setRoutes();
-        }
-    }
-
-    /**
-     * Validate payment type has working gateway
-     */
-    public function validatePaymentType(PaymentMethodEnum $paymentType): bool
-    {
-        try {
-            $gateway = $this->getGatewayForPaymentType($paymentType);
-            $account = $gateway->getCashAccount();
-            return $account !== null;
-        } catch (\Exception $e) {
-            return false;
-        }
     }
 }

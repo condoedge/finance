@@ -7,6 +7,7 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Rule\SafeDecimalRule;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
+use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
@@ -30,12 +31,15 @@ class CreateCustomerPaymentDto extends ValidatedDTO
 
     public SafeDecimal $amount;
 
+    public ?string $external_reference;
+
     public function casts(): array
     {
         return [
             'payment_date' => new CarbonCast(),
             'amount' => new SafeDecimalCast(),
             'customer_id' => new IntegerCast(),
+            'external_reference' => new StringCast(),
         ];
     }
 
@@ -46,6 +50,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
             'customer_id' => ['required', 'integer', 'exists:fin_customers,id'],
             'payment_date' => ['required', 'date'],
             'amount' => ['required', new SafeDecimalRule(true)],
+            'external_reference' => ['nullable', 'string'],
         ];
     }
 }

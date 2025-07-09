@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\GlAccountFactory;
+use Condoedge\Finance\Database\Factories\PaymentTermFactory;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
@@ -19,6 +20,7 @@ use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Exception;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Kompo\Auth\Database\Factories\UserFactory;
 use Tests\TestCase;
@@ -375,7 +377,7 @@ class CustomerPaymentApplicationsTest extends TestCase
         // Test that direct database manipulation would be prevented by triggers
         // (This would normally throw an exception due to database constraints)
         try {
-            \DB::table('fin_invoice_applies')->insert([
+            DB::table('fin_invoice_applies')->insert([
                 'invoice_id' => $invoice->id,
                 'applicable_id' => $payment->id,
                 'applicable_type' => MorphablesEnum::PAYMENT->value,
@@ -385,7 +387,7 @@ class CustomerPaymentApplicationsTest extends TestCase
                 'updated_at' => now(),
             ]);
             $this->fail('Expected database constraint violation');
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Expected - database triggers should prevent this
             $this->assertTrue(true);
         }
@@ -403,8 +405,9 @@ class CustomerPaymentApplicationsTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now(),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => false,
             'invoiceDetails' => [
                 [
@@ -430,8 +433,9 @@ class CustomerPaymentApplicationsTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('CREDIT')->value,
             'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
             'invoice_date' => now(),
-            'invoice_due_date' => now()->addDays(30),
+            // 'invoice_due_date' => now()->addDays(30),
             'is_draft' => false,
             'invoiceDetails' => [
                 [
