@@ -3,7 +3,9 @@
 namespace Condoedge\Finance\Models\Dto\Invoices;
 
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Models\Dto\Customers\CreateAddressDto;
 use Illuminate\Contracts\Validation\Validator;
+use WendellAdriel\ValidatedDTO\Casting\DTOCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
@@ -16,6 +18,7 @@ class ApproveInvoiceDto extends ValidatedDTO
 
     public ?int $payment_method_id;
     public ?int $payment_term_id;
+    public ?CreateAddressDto $address;
 
     public function rules(): array
     {
@@ -23,6 +26,7 @@ class ApproveInvoiceDto extends ValidatedDTO
             'invoice_id' => 'required|integer|exists:fin_invoices,id',
             'payment_method_id' => 'nullable|integer|exists:fin_payment_methods,id',
             'payment_term_id' => 'nullable|integer|exists:fin_payment_terms,id',
+            'address' => 'nullable|array',
         ];
     }
 
@@ -32,6 +36,7 @@ class ApproveInvoiceDto extends ValidatedDTO
             'invoice_id' => new IntegerCast(),
             'payment_method_id' => new IntegerCast(),
             'payment_term_id' => new IntegerCast(),
+            'address' => new DTOCast(CreateAddressDto::class),
         ];
     }
 
@@ -48,6 +53,7 @@ class ApproveInvoiceDto extends ValidatedDTO
         $invoiceId = $this->dtoData['invoice_id'] ?? null;
         $paymentTermId = $this->dtoData['payment_term_id'] ?? null;
         $paymentMethodId = $this->dtoData['payment_method_id'] ?? null;
+        $addressData = $this->dtoData['address'] ?? null;
         
         if ($invoiceId) {
             $invoice = InvoiceModel::find($invoiceId);
@@ -58,6 +64,10 @@ class ApproveInvoiceDto extends ValidatedDTO
 
             if (!$invoice->payment_term_id && !$paymentTermId) {
                 $validator->errors()->add('payment_term_id', __('translate.payment-term-required'));
+            }
+
+            if (!$invoice->address && !$addressData) {
+                $validator->errors()->add('address', __('translate.address-required'));
             }
         }
     }

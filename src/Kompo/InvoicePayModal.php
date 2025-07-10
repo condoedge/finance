@@ -31,6 +31,7 @@ class InvoicePayModal extends Form
             'invoice_id' => $this->model->id,
             'payment_method_id' => $this->model->payment_method_id ?? request('payment_method_id'),
             'payment_term_id' => $this->model->payment_term_id ?? request('payment_term_id'),
+            'address' => parsePlaceFromRequest('address1'),
         ]));
     }
 
@@ -61,6 +62,10 @@ class InvoicePayModal extends Form
                 _Panel(
                     $this->getPaymentMethodFields($this->model->payment_method_id?->value),
                 )->id('payment-method-fields'),
+
+                $this->model->address ? null :
+                    _CanadianPlace(),
+
             )->class('p-6'),
             _SubmitButton('finance.pay')
                 ->closeModal()

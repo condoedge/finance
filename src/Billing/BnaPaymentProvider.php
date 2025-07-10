@@ -2,10 +2,6 @@
 
 namespace Condoedge\Finance\Billing;
 
-use Condoedge\Finance\Billing\Kompo\PaymentCreditCardForm;
-use Condoedge\Finance\Facades\PaymentService;
-use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
-use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Support\Facades\Http;
 use Transliterator;
 
@@ -63,7 +59,7 @@ class BnaPaymentProvider extends AbstractPaymentProvider
             $finalItems[] = $od->toArray();
         }
         $this->paymentData['items'] = $finalItems;
-        $this->paymentData['subtotal'] = collect($finalItems)->sum(fn ($i) => $i['amount']);
+        $this->paymentData['subtotal'] = (string) collect($finalItems)->sum(fn ($i) => $i['amount']);
 
         $this->paymentData['paymentDetails'] = $this->preparePaymentDetailsInfo();
 
@@ -92,18 +88,22 @@ class BnaPaymentProvider extends AbstractPaymentProvider
             'email' => $this->invoice->customer->email,
             'firstName' => $separatedName[0] ?? '',
             'lastName' => $separatedName[1] ?? '',
+            'type' => 'Personal',
         ];
 
-        if ($this->invoice->customer->address) {
-            $customerAddress['postalCode'] = $this->invoice->customer->address->postal_code;
-            $customerAddress['streetNumber'] = $this->invoice->customer->address->street_number ?? '';
-            $customerAddress['streetName'] = $this->invoice->customer->address->address ?? '';
-            $customerAddress['city'] = $this->invoice->customer->address->city ?? '';
-            $customerAddress['province'] = $this->invoice->customer->address->state ?? '';
-            $customerAddress['country'] = $this->invoice->customer->address->country ?? '';
-
-            $customerInfo['address'] = $customerAddress;
+        if (!$this->invoice->address) {
+            abort(403, __('translate.validation-customer-address-must-be-complete'));
         }
+
+        $customerAddress = [];
+        $customerAddress['postalCode'] = $this->invoice->address->postal_code;
+        $customerAddress['streetNumber'] = $this->invoice->address->street_number ?? '';
+        $customerAddress['streetName'] = $this->parseAddressValue($this->invoice->address->address1 ?? '');
+        $customerAddress['city'] = $this->invoice->address->city ?? '';
+        // $customerAddress['province'] = 'CA-ON2';
+        $customerAddress['country'] = $this->parseCountry($this->invoice->address->country ?? '');
+
+        $customerInfo['address'] = $customerAddress;
 
         return $customerInfo;
     }
@@ -138,7 +138,6 @@ class BnaPaymentProvider extends AbstractPaymentProvider
 
     public function checkIfPaymentWasSuccessful()
     {
-        dd($this->getDataFromResponse('errorCode'));
         return !$this->getDataFromResponse('errorCode') && ($this->getDataFromResponse('status') === 'APPROVED');
     }
 
@@ -161,7 +160,21 @@ class BnaPaymentProvider extends AbstractPaymentProvider
     {
         $transliterator = Transliterator::createFromRules(':: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;', Transliterator::FORWARD);
 
-        return $transliterator->transliterate($val);
+        return str_replace('|', '', $transliterator->transliterate($val));
+    }
+
+    protected function parseCountry($country)
+    {
+        $mapping = [
+            'Canada' => 'CA',
+            'United States' => 'US',
+        ];
+
+        // Remove accents and special characters
+        $transliterator = Transliterator::createFromRules(':: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;', Transliterator::FORWARD);
+        $country = $transliterator->transliterate($country);
+
+        return $mapping[$country] ?? $country;
     }
 
     protected function getDataFromResponse($key, $data = null)

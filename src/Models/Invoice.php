@@ -247,7 +247,7 @@ class Invoice extends AbstractMainFinanceModel
 
     public function hasMissingInfoToApprove()
     {
-        if (!$this->payment_method_id || !$this->payment_term_id) {
+        if (!$this->payment_method_id || !$this->payment_term_id || !$this->address) {
             return true;
         }
 
@@ -276,6 +276,16 @@ class Invoice extends AbstractMainFinanceModel
         if (!$this->checkInvoiceable()) return;
 
         $this->invoiceable?->onPartialPayment();
+    }
+
+    public function setPrimaryBillingAddress($addressId)
+    {
+        return null;
+    }
+
+    public function setPrimaryShippingAddress($addressId)
+    {
+        return null;
     }
 
     /* ACTIONS */

@@ -15,6 +15,7 @@ class CreateAddressDto extends ValidatedDTO
     public string $state;
     public string $country;
     public string $address1;
+    public ?string $street_number;
 
     public function rules(): array
     {
@@ -24,6 +25,7 @@ class CreateAddressDto extends ValidatedDTO
             'country' => ['required', 'string'],
             'address1' => ['required', 'string'],
             'postal_code' => ['required', 'string'],
+            'street_number' => ['nullable', 'string'],
         ];
     }
 
@@ -35,6 +37,7 @@ class CreateAddressDto extends ValidatedDTO
             'country' => new StringCast(),
             'address1' => new StringCast(),
             'postal_code' => new StringCast(),
+            'street_number' => new StringCast(),
         ];
     }
 }

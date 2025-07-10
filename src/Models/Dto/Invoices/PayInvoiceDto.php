@@ -3,9 +3,11 @@
 namespace Condoedge\Finance\Models\Dto\Invoices;
 
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Models\Dto\Customers\CreateAddressDto;
 use Illuminate\Contracts\Validation\Validator;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
+use WendellAdriel\ValidatedDTO\Casting\DTOCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
@@ -23,6 +25,8 @@ class PayInvoiceDto extends ValidatedDTO
 
     public ?bool $pay_next_installment;
 
+    public ?CreateAddressDto $address;
+
     public function rules(): array
     {
         return [
@@ -32,6 +36,10 @@ class PayInvoiceDto extends ValidatedDTO
 
             'installment_ids' => 'nullable|array',
             'installment_ids.*' => 'integer|exists:fin_payment_installment_periods,id',
+
+            'pay_next_installment' => 'nullable|boolean',
+
+            'address' => 'nullable|array',
         ];
     }
 
@@ -43,6 +51,8 @@ class PayInvoiceDto extends ValidatedDTO
             'payment_term_id' => new IntegerCast(),
             'installment_ids' => new ArrayCast(),
             'pay_next_installment' => new BooleanCast(),
+
+            'address' => new DTOCast(CreateAddressDto::class),
         ];
     }
 

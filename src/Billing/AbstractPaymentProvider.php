@@ -115,7 +115,7 @@ abstract class AbstractPaymentProvider implements PaymentGatewayInterface
             return new \Condoedge\Finance\Models\Dto\Invoices\InvoicePayableLineDto([
                 'description' => $invoiceDetail->description,
                 'sku' => 'id.' . $invoiceDetail->id,
-                'price' => $invoiceDetail->unit_price->toFloat(),
+                'price' => $invoiceDetail->total_amount->divide($invoiceDetail->quantity)->toFloat(),
                 'quantity' => $invoiceDetail->quantity,
                 'amount' => $invoiceDetail->total_amount->toFloat(),
             ]);

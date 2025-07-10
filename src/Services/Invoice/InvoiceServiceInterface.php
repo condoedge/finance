@@ -54,6 +54,8 @@ interface InvoiceServiceInterface
      */
     public function updateInvoice(UpdateInvoiceDto $dto): Invoice;
 
+    public function setAddress(Invoice $invoice, array $addressData): void;
+
     public function payInvoice(PayInvoiceDto $dto): bool;
 
     /**

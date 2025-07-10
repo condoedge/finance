@@ -19,6 +19,7 @@ use Condoedge\Finance\Models\PaymentTerm;
 use Condoedge\Finance\Models\TaxGroup;
 use Condoedge\Finance\Services\PaymentGatewayService;
 use Condoedge\Utils\Facades\GlobalConfig;
+use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -101,46 +102,69 @@ class InvoiceService implements InvoiceServiceInterface
         });
     }
 
+    public function setAddress(Invoice $invoice, array $addressData): void
+    {        
+        if ($invoice->address && !$invoice->is_draft) {
+            throw new Exception('translate.cannot-update-address-on-non-draft-invoice');
+        }
+
+        $invoice->address()->delete(); // Remove existing address if any
+        Address::createMainForFromRequest($invoice, $addressData);
+
+        // This is the main customer of the historical customer
+        $customer = $invoice->customer->customer;
+        if (!$customer->address) {
+            Address::createMainForFromRequest($customer, $addressData);
+        }
+    }
+
     /**
      * Approve a single invoice
      */
     public function approveInvoice(ApproveInvoiceDto $dto): Invoice
     {
-        $invoice = Invoice::findOrFail($dto->invoice_id);
+        return DB::transaction(function () use ($dto) {
+            $invoice = Invoice::findOrFail($dto->invoice_id);
 
-        if ($invoice->is_draft) {
-            $this->updateInvoice(new UpdateInvoiceDto([
-                'id' => $invoice->id,
-                'payment_method_id' => $invoice->payment_method_id ?? $dto->payment_method_id,
-                'payment_term_id' => $invoice->payment_term_id ?? $dto->payment_term_id,
-            ]));
-        }
+            if ($invoice->is_draft) {
+                $this->updateInvoice(new UpdateInvoiceDto([
+                    'id' => $invoice->id,
+                    'payment_method_id' => $invoice->payment_method_id ?? $dto->payment_method_id,
+                    'payment_term_id' => $invoice->payment_term_id ?? $dto->payment_term_id,
+                ]));
+            }
 
-        // Apply approval
-        $this->applyApprovalToInvoice($invoice);
+            if($dto->address) $this->setAddress($invoice, $dto->address->toArray() ?? []);
 
-        return $invoice;
+            // Apply approval
+            $this->applyApprovalToInvoice($invoice);
+
+            return $invoice;
+        });
     }
 
     public function payInvoice(PayInvoiceDto $dto): bool
     {
-        $invoice = Invoice::findOrFail($dto->invoice_id);
+        return DB::transaction(function () use ($dto) {
+            $invoice = Invoice::findOrFail($dto->invoice_id);
 
-        if ($invoice->is_draft) {
-            $this->approveInvoice(new ApproveInvoiceDto([
-                'invoice_id' => $dto->invoice_id,
-                'payment_method_id' => $dto->payment_method_id,
-                'payment_term_id' => $dto->payment_term_id,
-            ]));
-        }
+            if ($invoice->is_draft) {
+                $this->approveInvoice(new ApproveInvoiceDto([
+                    'invoice_id' => $dto->invoice_id,
+                    'payment_method_id' => $dto->payment_method_id,
+                    'payment_term_id' => $dto->payment_term_id,
+                    'address' => $dto->address?->toArray() ?? null,
+                ]));
+            }
 
-        $paymentGateway = PaymentGateway::getGatewayForInvoice($invoice, [
-            'installment_ids' => count($dto->installment_ids ?? []) ? $dto->installment_ids : null,
-        ]);
+            $paymentGateway = PaymentGateway::getGatewayForInvoice($invoice, [
+                'installment_ids' => count($dto->installment_ids ?? []) ? $dto->installment_ids : null,
+            ]);
 
-        $isSuccessful = $paymentGateway->executeSale(request()->all());
+            $isSuccessful = $paymentGateway->executeSale(request()->all());
 
-        return $isSuccessful;
+            return $isSuccessful;
+        });
     }
 
     /**
