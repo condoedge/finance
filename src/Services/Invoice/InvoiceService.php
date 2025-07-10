@@ -153,7 +153,9 @@ class InvoiceService implements InvoiceServiceInterface
                 ]));
             }
 
-            if($dto->address) $this->setAddress($invoice, $dto->address->toArray() ?? []);
+            if ($dto->address) {
+                $this->setAddress($invoice, $dto->address->toArray() ?? []);
+            }
 
             // Apply approval
             $this->applyApprovalToInvoice($invoice);

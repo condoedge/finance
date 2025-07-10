@@ -54,7 +54,7 @@ class ApproveInvoiceDto extends ValidatedDTO
         $paymentTermId = $this->dtoData['payment_term_id'] ?? null;
         $paymentMethodId = $this->dtoData['payment_method_id'] ?? null;
         $addressData = $this->dtoData['address'] ?? null;
-        
+
         if ($invoiceId) {
             $invoice = InvoiceModel::find($invoiceId);
 
