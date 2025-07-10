@@ -26,15 +26,15 @@ class JsonCasesTest extends TestCase
 {
     protected $setupValues = [];
 
-    public function testCreateInvoice()
+    public function setUp(): void
     {
+        parent::setUp();
+
         /** @var \Kompo\Auth\Models\User $user */
         $user = UserFactory::new()->create()->first();
-
         if (!$user) {
             throw new Exception('Unknown error creating user');
         }
-
         $this->actingAs($user);
     }
 
