@@ -280,6 +280,8 @@ class JsonCasesTest extends TestCase
         ]));
 
         $invoice->markApproved();
+
+        return $invoice;
     }
 
     protected function createFromSetup($setup)
