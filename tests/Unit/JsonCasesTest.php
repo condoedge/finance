@@ -18,8 +18,8 @@ use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceDetailTax;
 use Condoedge\Finance\Models\MorphablesEnum;
-use Kompo\Auth\Database\Factories\UserFactory;
 use Exception;
+use Kompo\Auth\Database\Factories\UserFactory;
 use Tests\TestCase;
 
 class JsonCasesTest extends TestCase

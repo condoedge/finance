@@ -112,7 +112,7 @@ class InvoiceService implements InvoiceServiceInterface
     // We are already setting the customer address on insert using a trigger.
     // But if the customer doesn't have an address at that moment, we are setting it with this method after.
     public function setAddress(Invoice $invoice, array $addressData): void
-    {        
+    {
         if ($invoice->address && !$invoice->is_draft) {
             throw new Exception('translate.cannot-update-address-on-non-draft-invoice');
         }
