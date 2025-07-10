@@ -42,16 +42,6 @@ class InvoiceDetail extends AbstractMainFinanceModel
         return InvoiceDetailGenerated::class;
     }
 
-    public function save(array $options = [])
-    {
-        /**
-         * WE ARE USING A DB TRIGGER TO CREATE TAXES FOR EACH DETAIL.
-         *
-         * @see tr_invoice_details_before_insert (insert_invoice_details_v0001.sql)
-         */
-        return parent::save($options);
-    }
-
     /* RELATIONSHIPS */
     public function invoice()
     {

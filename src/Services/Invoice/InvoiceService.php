@@ -71,8 +71,6 @@ class InvoiceService implements InvoiceServiceInterface
                 PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
             }
 
-            $this->setAddress($invoice, null);
-
             // Refresh to get calculated fields
             $invoice->refresh();
 
@@ -111,30 +109,24 @@ class InvoiceService implements InvoiceServiceInterface
         });
     }
 
-    public function setAddress(Invoice $invoice, ?array $addressData): void
+    // We are already setting the customer address on insert using a trigger.
+    // But if the customer doesn't have an address at that moment, we are setting it with this method after.
+    public function setAddress(Invoice $invoice, array $addressData): void
     {        
         if ($invoice->address && !$invoice->is_draft) {
             throw new Exception('translate.cannot-update-address-on-non-draft-invoice');
         }
 
-        // This is the main customer of the historical customer
-        $customer = Customer::find($invoice->customer_id);
+        DB::transaction(function () use ($invoice, $addressData) {
+            // $invoice->address()->delete(); // Remove existing address if any
+            Address::createMainForFromRequest($invoice, $addressData);
 
-        if (!$addressData) {
-            // We already use a trigger to do this but if it didn't work we ensure it in this way
-            if (!$invoice->address && $customer->getFirstValidAddress()) {
-                Address::createMainForFromRequest($invoice, $customer->getFirstValidAddress()->toArray());
+            // This is the main customer of the historical customer
+            $customer = Customer::find($invoice->customer_id);
+            if (!$customer->address) {
+                Address::createMainForFromRequest($customer, $addressData);
             }
-
-            return;
-        }
-
-        $invoice->address()->delete(); // Remove existing address if any
-        Address::createMainForFromRequest($invoice, $addressData);
-
-        if (!$customer->address) {
-            Address::createMainForFromRequest($customer, $addressData);
-        }
+        });
     }
 
     /**
@@ -234,7 +226,7 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice->customer_id = $dto->customer_id;
         $invoice->invoice_date = $dto->invoice_date;
         $invoice->invoice_type_id = $dto->invoice_type_id;
-        // $invoice->is_draft = $dto->is_draft;
+        $invoice->is_draft = true; // Always it starts as draft
         $invoice->possible_payment_terms = $dto->possible_payment_terms ?? [];
         $invoice->possible_payment_methods = $dto->possible_payment_methods ?? [];
         $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods) == 1 ? $invoice->possible_payment_methods[0] : null);
@@ -334,7 +326,7 @@ class InvoiceService implements InvoiceServiceInterface
         }
 
         $invoice->is_draft = false;
-        $invoice->approved_by = auth()->user()->id;
+        $invoice->approved_by = auth()->user()?->id ?? 1;
         $invoice->approved_at = now();
         $invoice->save();
     }

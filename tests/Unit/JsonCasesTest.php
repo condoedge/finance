@@ -18,11 +18,25 @@ use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceDetailTax;
 use Condoedge\Finance\Models\MorphablesEnum;
+use Kompo\Auth\Database\Factories\UserFactory;
+use Exception;
 use Tests\TestCase;
 
 class JsonCasesTest extends TestCase
 {
     protected $setupValues = [];
+
+    public function testCreateInvoice()
+    {
+        /** @var \Kompo\Auth\Models\User $user */
+        $user = UserFactory::new()->create()->first();
+
+        if (!$user) {
+            throw new Exception('Unknown error creating user');
+        }
+
+        $this->actingAs($user);
+    }
 
     public function test_cases()
     {

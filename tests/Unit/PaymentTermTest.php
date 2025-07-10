@@ -351,7 +351,6 @@ class PaymentTermTest extends TestCase
             'payment_method_id' => PaymentMethodEnum::getEnumCase('BANK_TRANSFER')->value,
             'payment_term_id' => $installmentsPaymentTerm->id,
             'invoice_date' => now()->subDays(2),
-            'is_draft' => false,
             'invoiceDetails' => [
                 [
                     'name' => 'Test Item',

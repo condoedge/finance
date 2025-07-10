@@ -298,6 +298,8 @@ class Invoice extends AbstractMainFinanceModel
         InvoiceService::approveInvoice(new ApproveInvoiceDto([
             'invoice_id' => $this->id,
         ]));
+        
+        $this->refresh();
     }
 
     public function markAsSent()

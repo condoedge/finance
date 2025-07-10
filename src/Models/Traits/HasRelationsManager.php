@@ -3,30 +3,32 @@
 namespace Condoedge\Finance\Models\Traits;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 trait HasRelationsManager
 {
     public static function getRelationships($relatedClass = null)
     {
-        $instance = new static();
+        return Cache::rememberForever(static::class . 'relations' . $relatedClass, function () use ($relatedClass) {
+            $instance = new static();
 
-        // Get public methods declared without parameters and non inherited
-        $class = get_class($instance);
-        $allMethods = (new \ReflectionClass($class))->getMethods(\ReflectionMethod::IS_PUBLIC);
-        $methods = array_filter(
-            $allMethods,
-            function ($method) use ($class) {
-                return $method->class === $class
-                       && !$method->isStatic()                        // relationships are not static
-                       && !$method->getParameters()                  // relationships have no parameters
-                       && $method->getName() !== 'getRelationships'; // prevent infinite recursion
-            }
-        );
+            // Get public methods declared without parameters and non inherited
+            $class = get_class($instance);
+            $allMethods = (new \ReflectionClass($class))->getMethods(\ReflectionMethod::IS_PUBLIC);
+            $methods = array_filter(
+                $allMethods,
+                function ($method) use ($class) {
+                    return $method->class === $class
+                        && !$method->isStatic()                        // relationships are not static
+                        && !$method->getParameters()                  // relationships have no parameters
+                        && $method->getName() !== 'getRelationships'; // prevent infinite recursion
+                }
+            );
 
-        $relations = [];
-        DB::pretend(function () use ($instance, $methods, $relatedClass, &$relations) {
-
+            $relations = [];
+            
+            DB::beginTransaction();
             foreach ($methods as $method) {
                 try {
                     // Try to call the method to see if it is a relationship
@@ -46,8 +48,9 @@ trait HasRelationsManager
                     continue;
                 }
             }
-        });
+            DB::rollBack();
 
-        return $relations;
+            return $relations;
+        });
     }
 }
