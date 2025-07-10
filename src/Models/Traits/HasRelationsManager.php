@@ -27,7 +27,7 @@ trait HasRelationsManager
             );
 
             $relations = [];
-            
+
             DB::beginTransaction();
             foreach ($methods as $method) {
                 try {
