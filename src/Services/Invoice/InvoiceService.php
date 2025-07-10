@@ -66,7 +66,7 @@ class InvoiceService implements InvoiceServiceInterface
             if ($invoice->payment_method_id) {
                 $this->setupInvoiceAccount($invoice);
             }
-            
+
             if ($invoice->payment_term_id) {
                 PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
             }
@@ -112,7 +112,7 @@ class InvoiceService implements InvoiceServiceInterface
     }
 
     public function setAddress(Invoice $invoice, ?array $addressData): void
-    {        
+    {
         if ($invoice->address && !$invoice->is_draft) {
             throw new Exception('translate.cannot-update-address-on-non-draft-invoice');
         }
