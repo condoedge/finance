@@ -18,8 +18,8 @@ return new class () extends Migration {
             $table->tinyInteger('product_type');
             $table->string('product_name')->nullable();
             $table->string('product_description')->nullable();
-            $table->decimal('product_cost', 19, 5);
-            $table->decimal('product_cost_total', 19, 5)->nullable();
+            $table->decimal('product_cost', 19, config('kompo-finance.decimal-scale'));
+            $table->decimal('product_cost_total', 19, config('kompo-finance.decimal-scale'))->nullable();
             $table->foreignId('team_id')->nullable()->constrained();
             $table->foreignId('default_revenue_account_id')->constrained('fin_gl_accounts');
 

@@ -19,9 +19,9 @@ if (!function_exists('safe_decimal')) {
 }
 
 if (!function_exists('safeDecimal')) {
-    function safeDecimal($num): SafeDecimal
+    function safeDecimal($num, $precision = null): SafeDecimal
     {
-        return new SafeDecimal($num);
+        return new SafeDecimal($num, $precision);
     }
 }
 

@@ -31,6 +31,11 @@ class SetInvoicesFunctions extends Migration
         DB::unprepared(processDelimiters($sql));
 
         $sql = file_get_contents(__DIR__ . '/../sql/functions/calculate_payment_amount_left/calculate_payment_amount_left_v0001.sql');
+        $sql = str_replace(
+            'CREATE FUNCTION calculate_payment_amount_left(p_payment_id INT) RETURNS DECIMAL(19,5)',
+            'CREATE FUNCTION calculate_payment_amount_left(p_payment_id INT) RETURNS DECIMAL(19,' . config('kompo-finance.payment-related-decimal-scale') . ')',
+            $sql
+        );
         DB::unprepared("DROP FUNCTION IF EXISTS calculate_payment_amount_left");
         DB::unprepared(processDelimiters($sql));
 

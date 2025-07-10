@@ -1,7 +1,6 @@
 <?php
 
 use Condoedge\Finance\Models\CustomableTeam;
-use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 
 return [
     'services' => [
@@ -13,6 +12,15 @@ return [
     ],
 
     'decimal-scale' => 5,
+
+    /**
+     * This configuration is used to define the decimal scale for payment-related calculations.
+     * It is set to 2 by default, which is suitable for most financial transactions.
+     * This means that payment amounts will be rounded to two decimal places.
+     * 
+     * See https://github.com/condoedge/SISC/discussions/694
+     */
+    'payment-related-decimal-scale' => 5,
 
     'automatic-handle-of-unmanaged-decimals' => !env('SAFE_DECIMAL_DISABLE_HANDLER', env('APP_ENV') != 'production'),
 

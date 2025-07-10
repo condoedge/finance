@@ -13,8 +13,8 @@ class AddingTransactionFunctions extends Migration
     {
         Schema::table('fin_gl_transaction_headers', function ($table) {
             // Add new columns for totals
-            $table->decimal('total_debits', 19, 5)->default(0)->after('is_balanced');
-            $table->decimal('total_credits', 19, 5)->default(0)->after('total_debits');
+            $table->decimal('total_debits', 19, config('kompo-finance.decimal-scale'))->default(0)->after('is_balanced');
+            $table->decimal('total_credits', 19, config('kompo-finance.decimal-scale'))->default(0)->after('total_debits');
         });
 
         $functionsPath = __DIR__ . '/../sql/functions';

@@ -55,11 +55,20 @@ class BnaPaymentProvider extends AbstractPaymentProvider
 
         $this->paymentData['customerInfo'] = $this->prepareCustomerInfo();
 
-        foreach ($this->getPayableLines() as $od) {
-            $finalItems[] = $od->toArray();
-        }
-        $this->paymentData['items'] = $finalItems;
-        $this->paymentData['subtotal'] = (string) collect($finalItems)->sum(fn ($i) => $i['amount']);
+        $payableLines = $this->getPayableLines();
+
+        $this->paymentData['subtotal'] = (string) collect($payableLines)->sumDecimals('amount')->round(config('kompo-finance.payment-related-decimal-scale'));
+        $this->paymentData['items'] = collect($payableLines)->map(function ($od) {
+            return [
+                'description' => $od->description,
+                'sku' => $od->sku,
+                'price' => $od->price->floor(config('kompo-finance.payment-related-decimal-scale'))->toFloat(),
+                'quantity' => $od->quantity,
+                'amount' => $od->amount->floor(config('kompo-finance.payment-related-decimal-scale'))->toFloat(),
+            ];
+        })->toArray();
+
+        $this->createAdjustmentItemIfRequired();
 
         $this->paymentData['paymentDetails'] = $this->preparePaymentDetailsInfo();
 
@@ -68,6 +77,21 @@ class BnaPaymentProvider extends AbstractPaymentProvider
         \Log::warning('paymentData', $this->paymentData);
 
         return $this->postToApi($specificUrl, $this->paymentData);
+    }
+
+    protected function createAdjustmentItemIfRequired()
+    {
+        $itemsTotal = collect($this->paymentData['items'])->sum('amount');
+
+        if ($itemsTotal !== $this->paymentData['subtotal']) {
+            $this->paymentData['items'][] = [
+                'description' => __('translate.minor-adjustment'),
+                'sku' => 'adjustment',
+                'price' => round($this->paymentData['subtotal'] - $itemsTotal, 2),
+                'quantity' => 1,
+                'amount' => round($this->paymentData['subtotal'] - $itemsTotal, 2),
+            ];
+        }
     }
 
     protected function createCustomerApiRequest()
@@ -132,6 +156,10 @@ class BnaPaymentProvider extends AbstractPaymentProvider
         $metaDataInfo = [
             'invoice_id' => $this->invoice->id,
         ];
+
+        if ($installmentsIds = implode(',', $this->installment_ids ?? [])) {
+            $metaDataInfo['installment_ids'] = $installmentsIds;
+        } 
 
         return $metaDataInfo;
     }

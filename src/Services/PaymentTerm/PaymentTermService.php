@@ -52,7 +52,7 @@ class PaymentTermService implements PaymentTermServiceInterface
     {
         $invoice = InvoiceModel::findOrFail($dto->invoice_id);
         $installmentPeriods = [];
-        $price = $invoice->invoice_total_amount;
+        $price = safeDecimal($invoice->invoice_total_amount, config('kompo-finance.payment-related-decimal-scale', config('kompo-finance.decimal-scale', 5)));
 
         $dividedPrice = $price->preciseDivide($dto->periods);
         $roundedUp = $dividedPrice['first_division'];

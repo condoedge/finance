@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Billing;
 use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 abstract class AbstractPaymentProvider implements PaymentGatewayInterface
@@ -36,17 +37,19 @@ abstract class AbstractPaymentProvider implements PaymentGatewayInterface
 
     public function onSuccessTransaction($amount, $externalReference)
     {
-        $this->ensureInvoiceIsSet();
+        return DB::transaction(function () use ($amount, $externalReference) {
+            $this->ensureInvoiceIsSet();
 
-        $this->createPaymentRecordAssociated($amount, $externalReference);
+            $this->createPaymentRecordAssociated($amount, $externalReference);
 
-        if ($this->invoice->invoice_due_amount->equals(0)) {
-            $this->invoice->onCompletePayment();
-        } else {
-            $this->invoice->onPartialPayment();
-        }
+            if ($this->invoice->invoice_due_amount->equals(0)) {
+                $this->invoice->onCompletePayment();
+            } else {
+                $this->invoice->onPartialPayment();
+            }
 
-        return true;
+            return true;
+        });
     }
 
     public function createPaymentRecordAssociated($amount, $externalReference)

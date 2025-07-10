@@ -15,10 +15,10 @@ return new class () extends Migration {
     {
         Schema::table('fin_products', function (Blueprint $table) {
             // Add product cost always positive column
-            $table->decimal('product_cost_abs', 19, 5)
+            $table->decimal('product_cost_abs', 19, config('kompo-finance.decimal-scale'))
                 ->nullable();
 
-            $table->decimal('product_taxes_amount', 19, 5)
+            $table->decimal('product_taxes_amount', 19, config('kompo-finance.decimal-scale'))
                 ->nullable()
                 ->after('product_cost_abs')
                 ->comment('Total taxes amount for the product');

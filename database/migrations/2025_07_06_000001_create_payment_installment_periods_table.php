@@ -19,8 +19,8 @@ class CreatePaymentInstallmentPeriodsTable extends Migration
             $table->foreignId('invoice_id')
                 ->constrained('fin_invoices');
 
-            $table->decimal('due_amount', 19, 5);
-            $table->decimal('amount', 19, 5);
+            $table->decimal('due_amount', 19, config('kompo-finance.payment-related-decimal-scale'));
+            $table->decimal('amount', 19, config('kompo-finance.payment-related-decimal-scale'));
 
             $table->date('due_date')->nullable();
         });

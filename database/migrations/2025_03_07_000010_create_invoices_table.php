@@ -42,10 +42,10 @@ class CreateInvoicesTable extends Migration
             $table->timestamp('invoice_date');
             $table->timestamp('invoice_due_date')->nullable();
             $table->decimal('invoice_amount_before_taxes', 19, config('kompo-finance.decimal-scale'))->nullable();
-            $table->decimal('invoice_total_amount', 19, config('kompo-finance.decimal-scale'))->storedAs('invoice_tax_amount + invoice_amount_before_taxes');
+            $table->decimal('invoice_total_amount', 19, config('kompo-finance.payment-related-decimal-scale'))->storedAs('invoice_tax_amount + invoice_amount_before_taxes');
 
             // Redundant column to store the due amount
-            $table->decimal('invoice_due_amount', 19, config('kompo-finance.decimal-scale'))->nullable();
+            $table->decimal('invoice_due_amount', 19, config('kompo-finance.payment-related-decimal-scale'))->nullable();
 
             // Redundant column to store the tax amount
             $table->decimal('invoice_tax_amount', 19, config('kompo-finance.decimal-scale'))->nullable();

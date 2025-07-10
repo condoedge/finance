@@ -134,6 +134,17 @@ class SafeDecimal implements \Stringable, Arrayable
         return new self(bcmul($this->value, '-1', $this->scale), $this->scale);
     }
 
+    public function round($precision): SafeDecimal
+    {
+        return new self(round($this->toFloat(), $precision), $precision);
+    }
+
+    public function floor($precision): SafeDecimal
+    {
+        $multiplier = pow(10, $precision);
+        return new self(floor($this->toFloat() * $multiplier) / $multiplier, $precision);
+    }
+
     public function toFloat(): float
     {
         return (float) $this->value;

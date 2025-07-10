@@ -2,7 +2,8 @@
 
 namespace Condoedge\Finance\Models\Dto\Invoices;
 
-use WendellAdriel\ValidatedDTO\Casting\FloatCast;
+use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
@@ -14,9 +15,9 @@ class InvoicePayableLineDto extends ValidatedDTO
 
     public string $description;
     public string $sku;
-    public float $price;
+    public SafeDecimal $price;
     public int $quantity;
-    public float $amount;
+    public SafeDecimal $amount;
 
     public function rules(): array
     {
@@ -34,9 +35,9 @@ class InvoicePayableLineDto extends ValidatedDTO
         return [
             'description' => new StringCast(),
             'sku' => new StringCast(),
-            'price' => new FloatCast(),
+            'price' => new SafeDecimalCast(),
             'quantity' => new IntegerCast(),
-            'amount' => new FloatCast(),
+            'amount' => new SafeDecimalCast(),
         ];
     }
 }

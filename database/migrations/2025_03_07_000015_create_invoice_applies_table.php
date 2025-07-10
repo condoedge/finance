@@ -25,7 +25,7 @@ class CreateInvoiceAppliesTable extends Migration
             $table->index(['applicable_id', 'applicable_type'], 'fin_invoice_applicable_index');
 
             // $table->foreignId('payment_id')->constrained('fin_customer_payments');
-            $table->decimal('payment_applied_amount', 19, config('kompo-finance.decimal-scale'));
+            $table->decimal('payment_applied_amount', 19, config('kompo-finance.payment-related-decimal-scale'));
         });
     }
 
