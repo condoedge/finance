@@ -7,6 +7,7 @@ use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Facades\PaymentTermService;
+use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
@@ -65,9 +66,12 @@ class InvoiceService implements InvoiceServiceInterface
             if ($invoice->payment_method_id) {
                 $this->setupInvoiceAccount($invoice);
             }
+            
             if ($invoice->payment_term_id) {
                 PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
             }
+
+            $this->setAddress($invoice, null);
 
             // Refresh to get calculated fields
             $invoice->refresh();
@@ -107,17 +111,27 @@ class InvoiceService implements InvoiceServiceInterface
         });
     }
 
-    public function setAddress(Invoice $invoice, array $addressData): void
+    public function setAddress(Invoice $invoice, ?array $addressData): void
     {        
         if ($invoice->address && !$invoice->is_draft) {
             throw new Exception('translate.cannot-update-address-on-non-draft-invoice');
         }
 
+        // This is the main customer of the historical customer
+        $customer = Customer::find($invoice->customer_id);
+
+        if (!$addressData) {
+            // We already use a trigger to do this but if it didn't work we ensure it in this way
+            if (!$invoice->address && $customer->getFirstValidAddress()) {
+                Address::createMainForFromRequest($invoice, $customer->getFirstValidAddress()->toArray());
+            }
+
+            return;
+        }
+
         $invoice->address()->delete(); // Remove existing address if any
         Address::createMainForFromRequest($invoice, $addressData);
 
-        // This is the main customer of the historical customer
-        $customer = $invoice->customer->customer;
         if (!$customer->address) {
             Address::createMainForFromRequest($customer, $addressData);
         }

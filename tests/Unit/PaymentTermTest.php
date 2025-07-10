@@ -364,6 +364,7 @@ class PaymentTermTest extends TestCase
             ],
         ]));
 
+        $invoice->markApproved();
 
         $this->assertEquals(InvoiceStatusEnum::OVERDUE, $invoice->invoice_status_id);
 

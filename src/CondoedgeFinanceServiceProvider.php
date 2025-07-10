@@ -3,6 +3,7 @@
 namespace Condoedge\Finance;
 
 use Condoedge\Finance\Facades\CustomerService;
+use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\Product;
 use Condoedge\Finance\Observers\DatabaseIntegrityObserver;
@@ -191,7 +192,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
     protected function loadRelationsMorphMap()
     {
         Relation::morphMap(array_merge([
-            'product' => Product::class
+            'product' => Product::class,
+            'invoice' => Invoice::class,
         ], CustomerService::getValidCustomableModels()->all(), collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
             return [$case->value => $case->getMorphableClass()];
         })->all()));

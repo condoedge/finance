@@ -158,6 +158,8 @@ class JsonCasesTest extends TestCase
             })->toArray(),
         ]));
 
+        $credit->markApproved();
+
         if (count($transaction['applications'] ?? []) > 0) {
             PaymentService::applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
                 'apply_date' => $transaction['date'],
@@ -241,7 +243,7 @@ class JsonCasesTest extends TestCase
 
     protected function createInvoice($transaction)
     {
-        return InvoiceService::createInvoice(new CreateInvoiceDto([
+        $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
             'is_draft' => false,
             'customer_id' => $this->setupValues['customer']->id,
             'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
@@ -262,6 +264,8 @@ class JsonCasesTest extends TestCase
                 ];
             })->toArray(),
         ]));
+
+        $invoice->markApproved();
     }
 
     protected function createFromSetup($setup)
