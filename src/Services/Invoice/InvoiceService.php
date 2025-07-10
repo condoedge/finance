@@ -66,7 +66,7 @@ class InvoiceService implements InvoiceServiceInterface
             if ($invoice->payment_method_id) {
                 $this->setupInvoiceAccount($invoice);
             }
-            
+
             if ($invoice->payment_term_id) {
                 PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
             }
