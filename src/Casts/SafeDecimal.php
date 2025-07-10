@@ -88,8 +88,11 @@ class SafeDecimal implements \Stringable, Arrayable
     /**
      * If you're dividing a result that will give you a periodic decimal,
      * this method ensures the first division step is rounded up and the remaining ones will be rounded down.
+     *
      * @param mixed $other
+     *
      * @throws \DivisionByZeroError
+     *
      * @return array<string, SafeDecimal>
      */
     public function preciseDivide(mixed $other): array
@@ -100,7 +103,7 @@ class SafeDecimal implements \Stringable, Arrayable
         }
 
         $preciseDivision = bcdiv($this->value, $other->value, $this->scale + 1);
-        $roundedUp = ceil($preciseDivision * pow(10, $this->scale)) 
+        $roundedUp = ceil($preciseDivision * pow(10, $this->scale))
             / pow(10, $this->scale);
         $roundedDown = floor($preciseDivision * pow(10, $this->scale))
             / pow(10, $this->scale);

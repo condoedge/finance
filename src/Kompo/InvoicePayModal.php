@@ -4,11 +4,11 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
+use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
+use Condoedge\Finance\Models\PaymentMethod;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTerm;
 use Condoedge\Utils\Kompo\Common\Form;
-use Condoedge\Finance\Models\PaymentMethod;
-use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 
 class InvoicePayModal extends Form
 {

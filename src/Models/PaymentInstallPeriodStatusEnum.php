@@ -32,5 +32,5 @@ enum PaymentInstallPeriodStatusEnum: int
             ->class('text-sm font-semibold text-white')
             ->class($this->class());
     }
- 
+
 }

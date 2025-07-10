@@ -1,17 +1,15 @@
 <?php
+
 namespace Condoedge\Finance\Models;
 
 use Carbon\Carbon;
-use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Models\AbstractMainFinanceModel;
 use Kompo\Elements\BaseElement;
-use Kompo\Elements\Element;
 
 /**
  * PaymentTerm Model
  * This model represents a payment term in the finance system.
  * It includes properties for the term type, name, description, and settings.
- * 
+ *
  * @property int $id Unique identifier for the payment term
  * @property string $term_name Name of the payment term
  * @property string|null $term_description Description of the payment term

@@ -4,31 +4,20 @@ namespace Tests\Unit;
 
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Database\Factories\GlAccountFactory;
-use Condoedge\Finance\Database\Factories\ProductFactory;
-use Condoedge\Finance\Database\Factories\TaxFactory;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Facades\PaymentService as FacadesPaymentService;
 use Condoedge\Finance\Facades\PaymentTermService;
-use Condoedge\Finance\Facades\ProductService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\Dto\PaymentTerms\CreateOrUpdatePaymentTermDto;
-use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
-use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
-use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
 use Condoedge\Finance\Models\PaymentInstallPeriodStatusEnum;
 use Condoedge\Finance\Models\PaymentTermTypeEnum;
-use Condoedge\Finance\Models\Product;
-use Condoedge\Finance\Models\ProductTypeEnum;
-use Condoedge\Finance\Services\Payment\PaymentService;
 use Exception;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Kompo\Auth\Database\Factories\UserFactory;
 use Tests\TestCase;
 
@@ -195,7 +184,7 @@ class PaymentTermTest extends TestCase
         $this->assertNotNull($invoice->invoice_due_date);
         $this->assertEquals(now()->addMonths(2)->addDays(2)->setTime(0, 0, 0), $invoice->invoice_due_date); // The due of the invoice will be the last installment date
     }
-    
+
     // Test invoice creates the right number of installments depending on payment term type
     public function test_invoice_creates_correct_number_of_installments()
     {
@@ -231,11 +220,11 @@ class PaymentTermTest extends TestCase
         $this->assertCount(3, $invoice->installmentsPeriods);
 
         // Checking due dates of installments
-        $this->assertEquals(now()->subDays(2)->setTime(0,0,0), $invoice->installmentsPeriods[0]->due_date);
-        $this->assertEquals(now()->subDays(2)->addMonths(1)->setTime(0,0,0), $invoice->installmentsPeriods[1]->due_date);
-        $this->assertEquals(now()->subDays(2)->addMonths(2)->setTime(0,0,0), $invoice->installmentsPeriods[2]->due_date);
+        $this->assertEquals(now()->subDays(2)->setTime(0, 0, 0), $invoice->installmentsPeriods[0]->due_date);
+        $this->assertEquals(now()->subDays(2)->addMonths(1)->setTime(0, 0, 0), $invoice->installmentsPeriods[1]->due_date);
+        $this->assertEquals(now()->subDays(2)->addMonths(2)->setTime(0, 0, 0), $invoice->installmentsPeriods[2]->due_date);
 
-        // Check the amounts 
+        // Check the amounts
         $this->assertEqualsDecimals(1, $invoice->installmentsPeriods[0]->amount);
         $this->assertEqualsDecimals(1, $invoice->installmentsPeriods[1]->amount);
         $this->assertEqualsDecimals(1, $invoice->installmentsPeriods[2]->amount);

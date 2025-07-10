@@ -65,12 +65,12 @@ class InvoicePage extends Form
                         _Button('finance-approve-draft')
                         ->when(
                             $this->model->hasMissingInfoToApprove(),
-                            fn($e) =>
+                            fn ($e) =>
                             $e->selfGet('getMissingInfoToApproveModal')->inModal()
                         )
                         ->when(
                             !$this->model->hasMissingInfoToApprove(),
-                            fn($e) =>
+                            fn ($e) =>
                             $e->selfPost('approveInvoice', ['id' => $this->model->id])
                                 ->inAlert()->refresh()
                         ),

@@ -2,11 +2,9 @@
 
 namespace Condoedge\Finance\Kompo\PaymentTerms;
 
-use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Kompo\PaymentForm;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Condoedge\Utils\Kompo\Common\Table;
-use Condoedge\Utils\Kompo\Common\WhiteTable;
 
 class PaymentInstallmentPeriodsTable extends Table
 {
@@ -21,7 +19,7 @@ class PaymentInstallmentPeriodsTable extends Table
     public function query()
     {
         return PaymentInstallmentPeriod::query()
-            ->when($this->invoiceId, fn($q) => $q->where('invoice_id', $this->invoiceId))
+            ->when($this->invoiceId, fn ($q) => $q->where('invoice_id', $this->invoiceId))
             ->orderBy('installment_number');
     }
 

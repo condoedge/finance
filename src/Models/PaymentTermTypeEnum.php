@@ -3,7 +3,6 @@
 namespace Condoedge\Finance\Models;
 
 use Carbon\Carbon;
-use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\PaymentTermService;
 use Condoedge\Finance\Models\Dto\PaymentTerms\CreatePaymentInstallmentPeriodsDto;
 use Kompo\Elements\BaseElement;
@@ -125,7 +124,7 @@ enum PaymentTermTypeEnum: int
     protected function getPreviewInstallments($invoice, ?array $settings)
     {
         if (!$invoice->installmentsPeriods->isEmpty()) {
-            $installments = $invoice->installmentsPeriods->map(fn($ip) => [
+            $installments = $invoice->installmentsPeriods->map(fn ($ip) => [
                 'installment_number' => $ip->installment_number,
                 'amount' => $ip->amount,
                 'due_date' => $ip->due_date,
@@ -148,7 +147,7 @@ enum PaymentTermTypeEnum: int
                 _Html($period['installment_number'])->col('col-md-2'),
                 _FinanceCurrency($period['amount'])->col('col-md-3'),
                 _Html($period['due_date']->format('Y-m-d'))->col('col-md-3'),
-                isset($period['status']) ?  $period['status']->pill() : null
+                isset($period['status']) ? $period['status']->pill() : null
             )->class('pb-2 border-bottom border-gray-200');
         });
     }

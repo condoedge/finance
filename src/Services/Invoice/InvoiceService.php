@@ -13,17 +13,14 @@ use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
-use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentTerm;
 use Condoedge\Finance\Models\TaxGroup;
-use Condoedge\Finance\Services\PaymentGatewayService;
 use Condoedge\Utils\Facades\GlobalConfig;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Invoice Service Implementation
@@ -65,8 +62,12 @@ class InvoiceService implements InvoiceServiceInterface
             // Create invoice details
             $this->createInvoiceDetails($invoice, $dto->invoiceDetails);
 
-            if ($invoice->payment_method_id) $this->setupInvoiceAccount($invoice);
-            if ($invoice->payment_term_id) PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
+            if ($invoice->payment_method_id) {
+                $this->setupInvoiceAccount($invoice);
+            }
+            if ($invoice->payment_term_id) {
+                PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
+            }
 
             // Refresh to get calculated fields
             $invoice->refresh();
@@ -89,12 +90,16 @@ class InvoiceService implements InvoiceServiceInterface
             $this->updateInvoiceFields($invoice, $dto);
 
             // Handle invoice details updates/creation
-            if (isset($dto->invoiceDetails)) $this->updateInvoiceDetails($invoice, $dto->invoiceDetails);
+            if (isset($dto->invoiceDetails)) {
+                $this->updateInvoiceDetails($invoice, $dto->invoiceDetails);
+            }
 
             $originalPaymentTerm = PaymentTerm::find($oldPaymentTermId);
             PaymentTermService::manageNewPaymentTermIntoInvoice($invoice, $originalPaymentTerm?->term_type);
 
-            if ($invoice->payment_method_id) $this->setupInvoiceAccount($invoice);
+            if ($invoice->payment_method_id) {
+                $this->setupInvoiceAccount($invoice);
+            }
 
             $invoice->refresh();
 
