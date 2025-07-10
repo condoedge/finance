@@ -159,7 +159,7 @@ class BnaPaymentProvider extends AbstractPaymentProvider
 
         if ($installmentsIds = implode(',', $this->installment_ids ?? [])) {
             $metaDataInfo['installment_ids'] = $installmentsIds;
-        } 
+        }
 
         return $metaDataInfo;
     }

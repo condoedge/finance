@@ -108,7 +108,7 @@ class InvoiceService implements InvoiceServiceInterface
     }
 
     public function setAddress(Invoice $invoice, array $addressData): void
-    {        
+    {
         if ($invoice->address && !$invoice->is_draft) {
             throw new Exception('translate.cannot-update-address-on-non-draft-invoice');
         }
@@ -139,7 +139,9 @@ class InvoiceService implements InvoiceServiceInterface
                 ]));
             }
 
-            if($dto->address) $this->setAddress($invoice, $dto->address->toArray() ?? []);
+            if ($dto->address) {
+                $this->setAddress($invoice, $dto->address->toArray() ?? []);
+            }
 
             // Apply approval
             $this->applyApprovalToInvoice($invoice);
