@@ -169,7 +169,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
             $result = InvoiceService::payInvoice($dto);
             $this->fail('Expected exception for failed payment');
         } catch (\Exception $e) {
-            $this->assertStringContainsString('payment-failed', $e->getMessage());
+            $this->assertStringContainsString(__('error-payment-failed'), $e->getMessage());
         }
 
         // Verify invoice remains unpaid
