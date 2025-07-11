@@ -6,7 +6,7 @@ use Condoedge\Finance\Billing\AbstractPaymentProvider;
 
 /**
  * Mock Payment Provider for testing
- * 
+ *
  * This mock provider can simulate various payment scenarios including
  * successful payments, failures, and different response types.
  */
@@ -64,7 +64,7 @@ class MockPaymentProvider extends AbstractPaymentProvider
     protected function getDataFromResponse($key, $data = null)
     {
         $data = $data ?: $this->saleResponse ?: $this->responseData;
-        
+
         if (isset($data[$key])) {
             return $data[$key];
         }
@@ -78,7 +78,7 @@ class MockPaymentProvider extends AbstractPaymentProvider
                 return null;
             }
         }
-        
+
         return $data;
     }
 
@@ -88,10 +88,10 @@ class MockPaymentProvider extends AbstractPaymentProvider
     public function createSale($request, $onSuccess = null)
     {
         $this->ensureInvoiceIsSet();
-        
+
         $this->saleRequest = $request;
         $this->saleCreated = true;
-        
+
         // Default response based on shouldSucceed flag
         $defaultResponse = $this->shouldSucceed ? [
             'status' => 'APPROVED',
@@ -118,8 +118,8 @@ class MockPaymentProvider extends AbstractPaymentProvider
      */
     public function checkIfPaymentWasSuccessful()
     {
-        return $this->shouldSucceed && 
-               $this->getDataFromResponse('status') === 'APPROVED' && 
+        return $this->shouldSucceed &&
+               $this->getDataFromResponse('status') === 'APPROVED' &&
                !$this->getDataFromResponse('errorCode');
     }
 
@@ -152,7 +152,7 @@ class MockPaymentProvider extends AbstractPaymentProvider
                     'errorMessage' => 'Request timed out after 30 seconds',
                 ]);
                 break;
-                
+
             case 'fraud_detected':
                 $this->setShouldSucceed(false);
                 $this->setResponseData([
@@ -163,7 +163,7 @@ class MockPaymentProvider extends AbstractPaymentProvider
                     'fraudReasons' => ['unusual_location', 'high_amount', 'new_card'],
                 ]);
                 break;
-                
+
             case '3ds_required':
                 $this->setShouldSucceed(false);
                 $this->setResponseData([
@@ -174,7 +174,7 @@ class MockPaymentProvider extends AbstractPaymentProvider
                     'sessionId' => 'SES-' . uniqid(),
                 ]);
                 break;
-                
+
             case 'partial_approval':
                 $this->setShouldSucceed(true);
                 $this->setResponseData([
@@ -185,17 +185,17 @@ class MockPaymentProvider extends AbstractPaymentProvider
                     'partialApproval' => true,
                 ]);
                 break;
-                
+
             case 'expired_card':
                 $this->setShouldSucceed(false);
                 $this->setResponseData([
-                    'status' => 'DECLINED', 
+                    'status' => 'DECLINED',
                     'errorCode' => 'EXPIRED_CARD',
                     'errorMessage' => 'The card has expired',
                     'cardExpiry' => '12/23',
                 ]);
                 break;
-                
+
             default:
                 // Default successful scenario
                 $this->setShouldSucceed(true);

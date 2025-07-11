@@ -2,11 +2,10 @@
 
 namespace Tests\Unit\Services;
 
+use Condoedge\Finance\Billing\BnaPaymentProvider;
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentGatewayResolver;
-use Condoedge\Finance\Billing\BnaPaymentProvider;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
-use Condoedge\Finance\Database\Factories\InvoiceFactory;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Services\PaymentGatewayService;
@@ -33,7 +32,7 @@ class PaymentGatewayServiceTest extends TestCase
         $this->actingAs($user);
 
         $this->service = new PaymentGatewayService();
-        
+
         // Clear any static context
         PaymentGatewayResolver::clearContext();
     }
@@ -44,7 +43,7 @@ class PaymentGatewayServiceTest extends TestCase
     public function test_it_provides_stateless_gateway_access()
     {
         $customer = CustomerFactory::new()->create();
-        
+
         // Create two invoices with different payment methods
         $invoice1 = $this->createInvoiceWithPaymentMethod($customer->id, PaymentMethodEnum::CREDIT_CARD);
         $invoice2 = $this->createInvoiceWithPaymentMethod($customer->id, PaymentMethodEnum::CREDIT_CARD);
@@ -81,7 +80,7 @@ class PaymentGatewayServiceTest extends TestCase
     {
         $customer = CustomerFactory::new()->create();
         $invoice = $this->createInvoiceWithPaymentMethod($customer->id, PaymentMethodEnum::CREDIT_CARD);
-        
+
         $customContext = [
             'installment_ids' => [1, 2, 3],
             'custom_parameter' => 'test_value',
@@ -92,7 +91,7 @@ class PaymentGatewayServiceTest extends TestCase
 
         // Gateway should have received the invoice and custom context
         $this->assertInstanceOf(PaymentGatewayInterface::class, $gateway);
-        
+
         // The context should include both invoice and custom parameters
         // Note: We can't directly test the context was set without modifying the gateway
         // but we can verify the gateway was created successfully
@@ -133,7 +132,7 @@ class PaymentGatewayServiceTest extends TestCase
 
         $this->assertIsArray($gateways);
         $this->assertNotEmpty($gateways);
-        
+
         // Check structure
         foreach ($gateways as $key => $gatewayInfo) {
             $this->assertArrayHasKey('payment_method', $gatewayInfo);
@@ -192,7 +191,7 @@ class PaymentGatewayServiceTest extends TestCase
         // All should be same class type
         $this->assertEquals(get_class($gateway1), get_class($gateway2));
         $this->assertEquals(get_class($gateway2), get_class($gateway3));
-        
+
         // But different instances (stateless)
         $this->assertNotSame($gateway1, $gateway2);
         $this->assertNotSame($gateway2, $gateway3);
