@@ -9,16 +9,16 @@ use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
 use Condoedge\Finance\Models\InvoiceTypeEnum;
-use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Condoedge\Finance\Models\PaymentInstallPeriodStatusEnum;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTermTypeEnum;
 use Illuminate\Http\Request;
 use Tests\Mocks\MockPaymentProvider;
 
 /**
  * Test the new payInvoice methods and payment resolvers
- * 
+ *
  * This test class focuses on testing the new payment functionality
  * including the payInvoice method implementations and resolver patterns.
  */
@@ -27,7 +27,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         // Mock the request for payment data
         $this->mockRequest();
     }
@@ -38,7 +38,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     public function test_pay_invoice_method_processes_payment_successfully()
     {
         $invoice = $this->createTestInvoice(750, PaymentMethodEnum::CREDIT_CARD);
-        
+
         // Mock the payment gateway
         $mockGateway = new MockPaymentProvider();
         $mockGateway->initializeContext(['invoice' => $invoice]);
@@ -51,10 +51,10 @@ class PayInvoiceMethodsTest extends PaymentTestCase
         // Mock the PaymentGateway facade
         PaymentGateway::shouldReceive('getGatewayForInvoice')
             ->once()
-            ->withArgs(function($invoiceArg, $contextArg) use ($invoice) {
+            ->withArgs(function ($invoiceArg, $contextArg) use ($invoice) {
                 // Verify the invoice matches and context is an array
-                return $invoiceArg->id === $invoice->id && 
-                       is_array($contextArg) && 
+                return $invoiceArg->id === $invoice->id &&
+                       is_array($contextArg) &&
                        array_key_exists('installment_ids', $contextArg);
             })
             ->andReturn($mockGateway);
@@ -130,7 +130,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
         $result = InvoiceService::payInvoice($dto);
 
         $this->assertTrue($result);
-        
+
         // Verify partial payment
         $invoice->refresh();
         $this->assertEqualsDecimals(500, $invoice->invoice_due_amount);
@@ -143,7 +143,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     public function test_pay_invoice_handles_payment_failure()
     {
         $invoice = $this->createTestInvoice(500, PaymentMethodEnum::CREDIT_CARD);
-        
+
         // Mock failed payment
         $mockGateway = new MockPaymentProvider();
         $mockGateway->initializeContext(['invoice' => $invoice]);
@@ -253,12 +253,12 @@ class PayInvoiceMethodsTest extends PaymentTestCase
         $mockGateway->setShouldSucceed(true);
         $mockGateway->setResponseData(['amount' => 600]);
         $mockGateway->initializeContext(['invoice' => $invoice]);
-        
+
         PaymentGateway::shouldReceive('getGatewayForInvoice')
             ->once()
-            ->withArgs(function($invoiceArg, $contextArg) use ($invoice) {
+            ->withArgs(function ($invoiceArg, $contextArg) use ($invoice) {
                 // Verify the invoice matches and context is an array
-                return $invoiceArg->id === $invoice->id && 
+                return $invoiceArg->id === $invoice->id &&
                        is_array($contextArg);
             })
             ->andReturn($mockGateway);
@@ -312,7 +312,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     private function createInstallmentsForInvoice(Invoice $invoice, int $count, float $amountEach): array
     {
         $installments = [];
-        
+
         for ($i = 1; $i <= $count; $i++) {
             $installment = new PaymentInstallmentPeriod();
             $installment->invoice_id = $invoice->id;
@@ -323,7 +323,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
             $installment->save();
             $installments[] = $installment;
         }
-        
+
         return $installments;
     }
 }

@@ -2,10 +2,6 @@
 
 namespace Condoedge\Finance\Facades;
 
-use Condoedge\Finance\Billing\PaymentGatewayInterface;
-use Condoedge\Finance\Billing\PaymentGatewayResolver;
-use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Services\PaymentGatewayService;
 
 /**

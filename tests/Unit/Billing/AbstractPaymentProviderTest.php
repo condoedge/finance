@@ -10,17 +10,15 @@ use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceableInterface;
 use Condoedge\Finance\Models\InvoiceTypeEnum;
-use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Utils\Models\Model;
 use Exception;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Kompo\Auth\Database\Factories\UserFactory;
-use Tests\TestCase;
 use Tests\Mocks\MockPaymentProvider;
+use Tests\TestCase;
 
 /**
  * Mock Invoiceable Model for testing
@@ -249,7 +247,7 @@ class AbstractPaymentProviderTest extends TestCase
 
                 return $invoice;
             });
-            
+
         $invoice->setRelation('invoiceable', $mockInvoiceable);
 
         $this->provider->setShouldSucceed(true);

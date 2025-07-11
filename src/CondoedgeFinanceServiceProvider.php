@@ -2,8 +2,6 @@
 
 namespace Condoedge\Finance;
 
-use Condoedge\Finance\Billing\PaymentGatewayInterface;
-use Condoedge\Finance\Billing\PaymentGatewayResolver;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;

@@ -21,12 +21,13 @@ use Tests\TestCase;
 
 /**
  * Base test class for payment-related tests
- * 
+ *
  * Provides common helper methods and setup for payment testing
  */
 abstract class PaymentTestCase extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase;
+    use WithFaker;
 
     protected $user;
 
@@ -69,7 +70,9 @@ abstract class PaymentTestCase extends TestCase
             ],
         ]));
 
-        if(!$draft) $invoice->markApproved();
+        if (!$draft) {
+            $invoice->markApproved();
+        }
         return $invoice->fresh();
     }
 
@@ -193,17 +196,17 @@ abstract class PaymentTestCase extends TestCase
     {
         $query = CustomerPayment::where('customer_id', $expectedCustomerId)
             ->where('amount', $this->db_decimal_format($expectedAmount));
-            
+
         if ($externalReference) {
             $query->where('external_reference', $externalReference);
         }
 
         $payment = $query->first();
-        
+
         $this->assertNotNull($payment, 'Payment was not created');
         $this->assertEqualsDecimals($expectedAmount, $payment->amount);
         $this->assertEquals($expectedCustomerId, $payment->customer_id);
-        
+
         if ($externalReference) {
             $this->assertEquals($externalReference, $payment->external_reference);
         }
