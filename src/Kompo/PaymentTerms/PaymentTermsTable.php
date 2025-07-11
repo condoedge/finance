@@ -17,7 +17,7 @@ class PaymentTermsTable extends WhiteTable
     public function top()
     {
         return _Rows(
-            _Button('translate.add-payment-term')
+            _Button('finance-add-payment-term')
                 ->selfGet('getPaymentTermForm')->inModal()
         )->class('mb-4');
     }
@@ -25,8 +25,8 @@ class PaymentTermsTable extends WhiteTable
     public function headers()
     {
         return [
-            _Th('translate.term-name'),
-            _Th('translate.details'),
+            _Th('finance-term-name'),
+            _Th('finance-details'),
             _Th()->class('w-8')
         ];
     }
@@ -44,7 +44,7 @@ class PaymentTermsTable extends WhiteTable
                 )
             ),
             _TripleDotsDropdown(
-                _Link('translate.edit')->selfGet('getPaymentTermForm', ['id' => $term->id])->inModal(),
+                _Link('finance-edit')->selfGet('getPaymentTermForm', ['id' => $term->id])->inModal(),
             )
         );
     }

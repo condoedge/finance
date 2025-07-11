@@ -10,7 +10,7 @@ trait TermSelectorTrait
     protected function getPaymentTermsSelector()
     {
         return _Rows(
-            _Select('translate.finance-payment-terms')->name('payment_term_type')
+            _Select('finance-payment-terms')->name('payment_term_type')
             ->options(PaymentTermTypeEnum::optionsWithLabels())
             ->selfGet('getPaymentTerms')->inPanel('payment-terms-panel')
             ->class('mb-2'),
@@ -32,9 +32,9 @@ trait TermSelectorTrait
         }
 
         if ($paymentTermType == PaymentTermTypeEnum::INSTALLMENT) {
-            $element = _MultiSelect('translate.finance.payment-terms');
+            $element = _MultiSelect('finance-payment-terms');
         } else {
-            $element = _Select('translate.finance.payment-terms');
+            $element = _Select('finance-payment-terms');
         }
 
         return $element->name('possible_payment_terms')->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->all())

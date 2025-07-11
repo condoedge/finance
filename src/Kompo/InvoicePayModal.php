@@ -70,7 +70,7 @@ class InvoicePayModal extends Form
                 ->closeModal()
                 ->refresh('dashboard-view')
                 ->class('w-full')
-                ->alert('translate.paid-successfully'),
+                ->alert('finance-paid-successfully'),
         )->class('p-6');
     }
 

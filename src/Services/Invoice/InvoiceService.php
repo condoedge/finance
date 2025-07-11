@@ -114,7 +114,7 @@ class InvoiceService implements InvoiceServiceInterface
     public function setAddress(Invoice $invoice, array $addressData): void
     {
         if ($invoice->address && !$invoice->is_draft) {
-            throw new Exception('translate.cannot-update-address-on-non-draft-invoice');
+            throw new Exception('error-cannot-update-address-on-non-draft-invoice');
         }
 
         DB::transaction(function () use ($invoice, $addressData) {
@@ -280,7 +280,7 @@ class InvoiceService implements InvoiceServiceInterface
     protected function updateInvoiceFields(Invoice $invoice, UpdateInvoiceDto $dto): void
     {
         if (!$invoice->is_draft) {
-            throw new Exception('translate.cannot-update-non-draft-invoice');
+            throw new Exception('finance-cannot-update-non-draft-invoice');
         }
 
         $invoice->possible_payment_terms = $dto->possible_payment_terms ?? $invoice->possible_payment_terms ?? [];
@@ -322,7 +322,7 @@ class InvoiceService implements InvoiceServiceInterface
     protected function applyApprovalToInvoice(Invoice $invoice): void
     {
         if ($invoice->invoiceDetails()->count() == 0) {
-            throw new Exception('translate.invoice-must-have-at-least-one-detail');
+            throw new Exception('finance-invoice-must-have-at-least-one-detail');
         }
 
         $invoice->is_draft = false;

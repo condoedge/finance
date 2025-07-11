@@ -11,7 +11,7 @@ use Condoedge\Finance\Models\PaymentTerm;
 
 class SelectMissingInfoInvoice extends Modal
 {
-    protected $_Title = 'translate.select-missing-info-invoice';
+    protected $_Title = 'finance-select-missing-info-invoice';
 
     public $model = Invoice::class;
 
@@ -38,7 +38,7 @@ class SelectMissingInfoInvoice extends Modal
                 ->options(PaymentTerm::pluck('term_name', 'id')->toArray()),
             _CanadianPlace()
                 ->default($this->model->address),
-            _SubmitButton('translate.finance-save-and-approve')
+            _SubmitButton('finance-save-and-approve')
         );
     }
 }

@@ -26,10 +26,10 @@ class PaymentInstallmentPeriodsTable extends Table
     public function headers()
     {
         return [
-            _Th('translate.installment-number'),
-            _Th('translate.due-date'),
-            _Th('translate.amount-due-amount'),
-            _Th('translate.status'),
+            _Th('finance-installment-number'),
+            _Th('finance-due-date'),
+            _Th('finance-due-amount'),
+            _Th('finance-status'),
             _Th()->class('w-8'),
         ];
     }
@@ -45,7 +45,7 @@ class PaymentInstallmentPeriodsTable extends Table
             ),
             $installmentPeriod->status->pill(),
             _TripleDotsDropdown(
-                _DropdownLink('translate.pay-period')
+                _DropdownLink('finance-pay-period')
                     ->selfPost('getPaymentModal', ['period_id' => $installmentPeriod->id])->inModal(),
             ),
         );

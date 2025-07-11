@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<babeledit_project be_version="5.4.1" version="1.3">
+<babeledit_project be_version="5.5.0" version="1.3">
 	<!--
 
     BabelEdit project file
@@ -155,6 +155,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>error-cannot-update-address-on-non-draft-invoice</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>error-could-not-determine-fiscal-data</name>
 						<description/>
 						<comment/>
@@ -231,6 +246,36 @@
 					</concept_node>
 					<concept_node>
 						<name>error-line-must-have-either-debit-or-credit</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>error-payment-cannot-be-completed</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>error-payment-failed</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -1295,6 +1340,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-add-payment-term</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-add-taxes</name>
 						<description/>
 						<comment/>
@@ -1311,6 +1371,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-added-new-funds</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-address-required</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -3035,6 +3110,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-cannot-delete-product-in-use</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-cannot-enter-payment-with-zero</name>
 						<description/>
 						<comment/>
@@ -3051,6 +3141,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-cannot-overpay-using-advanced-payments</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-cannot-update-non-draft-invoice</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -3171,6 +3276,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-cardholder-name</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-cardholders-name</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -3485,6 +3605,36 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-cod</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-cod-preview</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-code-already-used</name>
 						<description/>
 						<comment/>
@@ -3516,6 +3666,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-common-contributions</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-complete-name</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -4235,6 +4400,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-credit-card-number</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-credit-card-offline</name>
 						<description/>
 						<comment/>
@@ -4430,6 +4610,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-cvc</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-date</name>
 						<description/>
 						<comment/>
@@ -4476,6 +4671,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-date-of-transfer</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-days</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -4760,6 +4970,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-details</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-difference</name>
 						<description/>
 						<comment/>
@@ -4821,6 +5046,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-Draft</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-due-amount</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -5376,6 +5616,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-expenses</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-expiration</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -6320,6 +6575,51 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-installment</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-installment-number</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-installment-period</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-institution</name>
 						<description/>
 						<comment/>
@@ -6411,6 +6711,51 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-interfund-transfer</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-interval</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-interval-type</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-invalid-settings</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -6576,6 +6921,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-invoice-log</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-invoice-must-have-at-least-one-detail</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -7370,6 +7730,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-minor-adjustment</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-modify-account-number</name>
 						<description/>
 						<comment/>
@@ -7460,6 +7835,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-months</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-my-bank</name>
 						<description/>
 						<comment/>
@@ -7491,6 +7881,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-name</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-name-on-card</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -7626,6 +8031,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-net-cash-from-activities</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-net-preview</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -8495,6 +8915,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-overdue</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-overdue-0-30</name>
 						<description/>
 						<comment/>
@@ -8615,6 +9050,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-paid-successfully</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-parking-fund</name>
 						<description/>
 						<comment/>
@@ -8630,7 +9080,7 @@
 						</translations>
 					</concept_node>
 					<concept_node>
-						<name>finance-Partial</name>
+						<name>finance-partial</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -8691,6 +9141,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-past-due-receivables</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-pay-period</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -8900,6 +9365,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-payment-method-required</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-payment-num</name>
 						<description/>
 						<comment/>
@@ -8930,6 +9410,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-payment-period-installments</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-payment-term</name>
 						<description/>
 						<comment/>
@@ -8945,7 +9440,82 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-payment-term-form</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-payment-term-required</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-payment-term-saved</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-payment-terms</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-payment-type</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-payment-types</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -9336,6 +9906,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-Prices</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-product-already-exists-for-invoice-detail</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -10160,6 +10745,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-save-and-approve</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-save-reload-transactions</name>
 						<description/>
 						<comment/>
@@ -10416,6 +11016,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-select-maintenance-contract</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-select-missing-info-invoice</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -11270,6 +11885,51 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-term-description</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-term-name</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-term-type</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-test-file-question</name>
 						<description/>
 						<comment/>
@@ -11436,6 +12096,36 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-time-period-text</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-to-be-selected</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-to-be-set</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -12441,6 +13131,36 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-with-values-paying-invoice</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-with-values-paying-period-number-of-invoice</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-with-values-settings-for</name>
 						<description/>
 						<comment/>
 						<translations>

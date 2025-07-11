@@ -121,7 +121,7 @@ class PaymentForm extends Modal
         if ($this->installmentPeriod) {
             return _CardLevel5(
                 _FinanceCurrency($this->installmentPeriod->due_amount)->class('font-bold text-3xl'),
-                _Html(__('translate.with-values-finance-with-values-paying-period-number-of-invoice', [
+                _Html(__('finance-with-values-paying-period-number-of-invoice', [
                     'invoice_reference' => $this->invoice->invoice_reference,
                     'installment_number' => $this->installmentPeriod->installment_number,
                 ]))->class('text-lg font-semibold'),

@@ -85,7 +85,7 @@ class BnaPaymentProvider extends AbstractPaymentProvider
 
         if ($itemsTotal !== $this->paymentData['subtotal']) {
             $this->paymentData['items'][] = [
-                'description' => __('translate.minor-adjustment'),
+                'description' => __('finance-minor-adjustment'),
                 'sku' => 'adjustment',
                 'price' => round($this->paymentData['subtotal'] - $itemsTotal, 2),
                 'quantity' => 1,
@@ -116,7 +116,7 @@ class BnaPaymentProvider extends AbstractPaymentProvider
         ];
 
         if (!$this->invoice->address) {
-            abort(403, __('translate.validation-customer-address-must-be-complete'));
+            abort(403, __('validation-customer-address-must-be-complete'));
         }
 
         $customerAddress = [];
