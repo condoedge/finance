@@ -147,7 +147,7 @@ class PaymentGatewayServiceTest extends TestCase
     public function test_it_handles_payment_types_without_gateways()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage(__('translate.payment-method-not-supported', ['method' => PaymentMethodEnum::CASH->label()]));
+        $this->expectExceptionMessage(__('error-payment-method-not-supported', ['method' => PaymentMethodEnum::CASH->label()]));
 
         // Cash doesn't have a gateway
         $gateway = $this->service->getGatewayForPaymentType(PaymentMethodEnum::CASH);

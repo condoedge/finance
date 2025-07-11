@@ -17,6 +17,7 @@
 	"error-line-must-have-either-debit-or-credit": "Line must have either debit or credit",
 	"error-payment-cannot-be-completed": "Payment cannot be completed",
 	"error-payment-failed": "Payment failed",
+	"error-payment-method-not-supported": "Payment method not supported",
 	"error-period-dates-overlap": "Period dates overlap",
 	"error-period-for-fiscal-year-already-exists": "Period for fiscal year :fiscal_year is already taken for team :team_id",
 	"error-reversal-of-transaction": "Reversal of transaction :transaction_id",

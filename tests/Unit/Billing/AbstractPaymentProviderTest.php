@@ -275,7 +275,7 @@ class AbstractPaymentProviderTest extends TestCase
             $this->fail('Expected exception was not thrown');
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
             $this->assertEquals(403, $e->getStatusCode());
-            $this->assertEquals(__('translate.payment-cannot-be-completed'), $e->getMessage());
+            $this->assertEquals(__('error-payment-cannot-be-completed'), $e->getMessage());
         }
     }
 
@@ -311,7 +311,7 @@ class AbstractPaymentProviderTest extends TestCase
 
         $this->assertCount(3, $payableLines);
         foreach ($payableLines as $index => $line) {
-            $this->assertStringContainsString('translate.installment-period', $line->description);
+            $this->assertStringContainsString(__('finance-installment-period', ['installment_number' => $index + 1]), $line->description);
             $this->assertEqualsDecimals(333.33, $line->amount);
         }
     }

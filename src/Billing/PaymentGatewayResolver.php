@@ -60,7 +60,7 @@ class PaymentGatewayResolver
         $gatewayClass = $paymentType->getPaymentGateway();
 
         if (!class_exists($gatewayClass)) {
-            throw new Exception(__('translate.payment-method-not-supported', ['method' => $paymentType->label()]));
+            throw new Exception(__('error-payment-method-not-supported', ['method' => $paymentType->label()]));
         }
 
         return new $gatewayClass();
