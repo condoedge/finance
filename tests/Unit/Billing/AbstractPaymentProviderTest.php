@@ -107,7 +107,7 @@ class AbstractPaymentProviderTest extends TestCase
             $this->fail('Expected exception was not thrown');
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
             $this->assertEquals(403, $e->getStatusCode());
-            $this->assertEquals(__('translate.payment-failed'), $e->getMessage());
+            $this->assertEquals(__('error-payment-failed'), $e->getMessage());
         }
     }
 
