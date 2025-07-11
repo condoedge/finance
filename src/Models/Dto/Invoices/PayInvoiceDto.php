@@ -27,6 +27,8 @@ class PayInvoiceDto extends ValidatedDTO
 
     public ?CreateAddressDto $address;
 
+    public ?array $request_data;
+
     public function rules(): array
     {
         return [
@@ -40,6 +42,8 @@ class PayInvoiceDto extends ValidatedDTO
             'pay_next_installment' => 'nullable|boolean',
 
             'address' => 'nullable|array',
+
+            'request_data' => 'nullable|array',
         ];
     }
 
@@ -53,6 +57,8 @@ class PayInvoiceDto extends ValidatedDTO
             'pay_next_installment' => new BooleanCast(),
 
             'address' => new DTOCast(CreateAddressDto::class),
+
+            'request_data' => new ArrayCast(),
         ];
     }
 
@@ -60,6 +66,7 @@ class PayInvoiceDto extends ValidatedDTO
     {
         return [
             'installment_ids' => null,
+            'request_data' => [],
         ];
     }
 

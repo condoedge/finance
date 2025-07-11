@@ -168,13 +168,15 @@ class InvoiceService implements InvoiceServiceInterface
                     'payment_term_id' => $dto->payment_term_id,
                     'address' => $dto->address?->toArray() ?? null,
                 ]));
+
+                $invoice->refresh();
             }
 
             $paymentGateway = PaymentGateway::getGatewayForInvoice($invoice, [
                 'installment_ids' => count($dto->installment_ids ?? []) ? $dto->installment_ids : null,
             ]);
 
-            $isSuccessful = $paymentGateway->executeSale(request()->all());
+            $isSuccessful = $paymentGateway->executeSale($dto->request_data);
 
             return $isSuccessful;
         });

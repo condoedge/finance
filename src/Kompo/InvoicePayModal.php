@@ -32,6 +32,7 @@ class InvoicePayModal extends Form
             'payment_method_id' => $this->model->payment_method_id ?? request('payment_method_id'),
             'payment_term_id' => $this->model->payment_term_id ?? request('payment_term_id'),
             'address' => parsePlaceFromRequest('address1'),
+            'request_data' => request()->all()
         ]));
     }
 

@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Billing;
 
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethodEnum;
+use Exception;
 use Illuminate\Support\Facades\Log;
 
 class PaymentGatewayResolver
@@ -59,7 +60,7 @@ class PaymentGatewayResolver
         $gatewayClass = $paymentType->getPaymentGateway();
 
         if (!class_exists($gatewayClass)) {
-            throw new \RuntimeException("Payment gateway class does not exist: {$gatewayClass}");
+            throw new Exception(__('translate.payment-method-not-supported', ['method' => $paymentType->label()]));
         }
 
         return new $gatewayClass();
