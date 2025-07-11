@@ -20,7 +20,7 @@ enum InvoiceStatusEnum: int
             self::PENDING => __('finance-pending'),
             self::PAID => __('finance-paid'),
             self::CANCELLED => __('finance-cancelled'),
-            self::OVERDUE => __('translate.finance-overdue'),
+            self::OVERDUE => __('finance-overdue'),
             self::PARTIAL => __('finance-partial'),
         };
     }

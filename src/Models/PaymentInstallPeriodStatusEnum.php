@@ -11,9 +11,9 @@ enum PaymentInstallPeriodStatusEnum: int
     public function label(): string
     {
         return match ($this) {
-            self::PENDING => __('translate.pending'),
-            self::PAID => __('translate.paid'),
-            self::OVERDUE => __('translate.overdue'),
+            self::PENDING => __('finance-pending'),
+            self::PAID => __('finance-paid'),
+            self::OVERDUE => __('finance-overdue'),
         };
     }
 

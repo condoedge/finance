@@ -31,7 +31,7 @@ abstract class AbstractPaymentProvider implements PaymentGatewayInterface
         } else {
             \Log::critical('ERROR!!', $this->saleResponse);
 
-            abort(403, __('translate.payment-failed'));
+            abort(403, __('error-payment-failed'));
         }
     }
 
@@ -86,7 +86,7 @@ abstract class AbstractPaymentProvider implements PaymentGatewayInterface
     {
         if (!$this->invoice) {
             Log::critical('BNA Payment Provider: Invoice is not set for payment data configuration.');
-            abort(403, __('translate.payment-cannot-be-completed'));
+            abort(403, __('error-payment-cannot-be-completed'));
         }
     }
 
@@ -102,7 +102,7 @@ abstract class AbstractPaymentProvider implements PaymentGatewayInterface
                 $installmentPeriod = PaymentInstallmentPeriod::findOrFail($installmentId);
 
                 return new \Condoedge\Finance\Models\Dto\Invoices\InvoicePayableLineDto([
-                    'description' => __('translate.installment-period', [
+                    'description' => __('finance-installment-period', [
                         'number' => $installmentPeriod->installment_number,
                     ]),
                     'sku' => 'pip.' . $installmentPeriod->id,

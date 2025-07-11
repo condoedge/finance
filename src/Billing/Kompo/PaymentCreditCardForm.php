@@ -15,11 +15,11 @@ class PaymentCreditCardForm extends Form
     public function render()
     {
         return _Rows(
-            _Input('finance.name-on-card')->name('complete_name')->class('mb-2')->placeholder('translate.complete-name'),
-            _CreditCardInput('translate.credit-card-number')->placeholder('4444 4213 1234 5678')->attr(['autocomplete' => "off"])->name('card_information')->class('mb-2'),
+            _Input('finance.name-on-card')->name('complete_name')->class('mb-2')->placeholder('finance-cardholders-name'),
+            _CreditCardInput('finance-credit-card-number')->placeholder('4444 4213 1234 5678')->attr(['autocomplete' => "off"])->name('card_information')->class('mb-2'),
             _FlexBetween(
-                _DateTextInput('translate.expiration')->name('expiration_date')->class('mb-2')->attr(['autocomplete' => "off"])->format('MM / YY')->validateJustFuture(),
-                _ValidatedInput('translate.cvc')->placeholder('CVC')->name('card_cvc')->class('mb-2')
+                _DateTextInput('finance-expiration')->name('expiration_date')->class('mb-2')->attr(['autocomplete' => "off"])->format('MM / YY')->validateJustFuture(),
+                _ValidatedInput('finance-cvc')->placeholder('CVC')->name('card_cvc')->class('mb-2')
                     ->attr(['autocomplete' => "off"])
                     ->allow('^[0-9]{0,3}$')
                     ->validate('^[0-9]{3}$'),

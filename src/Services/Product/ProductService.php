@@ -73,7 +73,7 @@ class ProductService implements ProductServiceInterface
 
             // Check if product already exists for this detail
             if ($invoiceDetail->product_id) {
-                throw new \Exception(__('translate.product-already-exists-for-invoice-detail'));
+                throw new \Exception(__('finance-product-already-exists-for-invoice-detail'));
             }
 
             // Get tax IDs from invoice detail taxes
@@ -137,7 +137,7 @@ class ProductService implements ProductServiceInterface
             // Check if product is being used in invoice details
             $invoiceDetailsCount = InvoiceDetail::where('product_id', $productId)->count();
             if ($invoiceDetailsCount > 0) {
-                throw new \Exception(__('translate.cannot-delete-product-in-use'));
+                throw new \Exception(__('finance-cannot-delete-product-in-use'));
             }
 
             return $product->forceDelete();

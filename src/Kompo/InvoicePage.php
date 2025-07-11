@@ -112,7 +112,7 @@ class InvoicePage extends Form
             )->class('mb-4 p-6 bg-white rounded-2xl'),
 
             _Rows(
-                _TitleMini('translate.payment-period-installments')->class('uppercase text-greenmain opacity-70'),
+                _TitleMini('finance-payment-period-installments')->class('uppercase text-greenmain opacity-70'),
                 _Rows(
                     new PaymentInstallmentPeriodsTable([
                         'invoice_id' => $this->model->id,

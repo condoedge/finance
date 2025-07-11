@@ -27,10 +27,10 @@ enum PaymentMethodEnum: int
     public function label(): string
     {
         return match($this) {
-            self::CASH => __('translate.cash'),
-            self::CHECK => __('translate.check'),
-            self::CREDIT_CARD => __('translate.credit_card'),
-            self::BANK_TRANSFER => __('translate.bank_transfer'),
+            self::CASH => __('finance-cash'),
+            self::CHECK => __('finance-check'),
+            self::CREDIT_CARD => __('finance-credit_card'),
+            self::BANK_TRANSFER => __('finance-bank_transfer'),
         };
     }
 

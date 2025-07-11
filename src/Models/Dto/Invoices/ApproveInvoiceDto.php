@@ -59,15 +59,15 @@ class ApproveInvoiceDto extends ValidatedDTO
             $invoice = InvoiceModel::find($invoiceId);
 
             if (!$invoice->payment_method_id && !$paymentMethodId) {
-                $validator->errors()->add('payment_method_id', __('translate.payment-method-required'));
+                $validator->errors()->add('payment_method_id', __('finance-payment-method-required'));
             }
 
             if (!$invoice->payment_term_id && !$paymentTermId) {
-                $validator->errors()->add('payment_term_id', __('translate.payment-term-required'));
+                $validator->errors()->add('payment_term_id', __('finance-payment-term-required'));
             }
 
             if (!$invoice->address && !$addressData) {
-                $validator->errors()->add('address', __('translate.address-required'));
+                $validator->errors()->add('address', __('finance-address-required'));
             }
         }
     }

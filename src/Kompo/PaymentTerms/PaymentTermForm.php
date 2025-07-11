@@ -10,7 +10,7 @@ use Condoedge\Finance\Models\PaymentTermTypeEnum;
 
 class PaymentTermForm extends Modal
 {
-    public $_Title = 'translate.payment-term-form';
+    public $_Title = 'finance-payment-term-form';
     public $model = PaymentTerm::class;
 
     public function handle()
@@ -29,17 +29,17 @@ class PaymentTermForm extends Modal
     public function body()
     {
         return _Rows(
-            _Input('translate.term-name')->name('term_name')->label('translate.term_name')->required(),
-            _Select('translate.term-type')->name('term_type')->label('translate.term_type')
+            _Input('finance-term-name')->name('term_name')->label('finance-term_name')->required(),
+            _Select('finance-term-type')->name('term_type')->label('finance-term_type')
                 ->selfGet('getSettingsFields')->inPanel('settings-fields-panel')
                 ->options(PaymentTermTypeEnum::optionsWithLabels())
                 ->required(),
             _Panel(
                 $this->getSettingsFields($this->model->term_type?->value)
             )->id('settings-fields-panel'),
-            _Textarea('translate.term-description')->name('term_description'),
+            _Textarea('finance-term-description')->name('term_description'),
             _SubmitButton('generic.save')->closeModal()->browse('payment-terms-table')
-                ->alert('translate.payment-term-saved'),
+                ->alert('finance-payment-term-saved'),
         );
     }
 
@@ -56,7 +56,7 @@ class PaymentTermForm extends Modal
         }
 
         return _CardGray100(
-            _Html(__('translate.with-values.settings-for', ['type' => $paymentTermType->label()]))->class('font-semibold mb-4 text-lg'),
+            _Html(__('finance-with-values-settings-for', ['type' => $paymentTermType->label()]))->class('font-semibold mb-4 text-lg'),
             _Rows(
                 $paymentTermType->settingsFields($this->model->settings ?? [])
             ),

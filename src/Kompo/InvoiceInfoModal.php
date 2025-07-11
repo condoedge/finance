@@ -59,11 +59,11 @@ class InvoiceInfoModal extends Form
                     _CardLevel4(
                         _FlexBetween(
                             _Html('finance.due-date'),
-                            _Html($this->model->invoice_due_date?->format('Y-m-d') ?: 'translate.to-be-set')->class('font-semibold'),
+                            _Html($this->model->invoice_due_date?->format('Y-m-d') ?: 'finance-to-be-set')->class('font-semibold'),
                         ),
                         _FlexBetween(
                             _Html('finance.term'),
-                            _Html($this->model->paymentTerm?->term_name ?: 'translate.to-be-selected')->class('font-semibold'),
+                            _Html($this->model->paymentTerm?->term_name ?: 'finance-to-be-selected')->class('font-semibold'),
                         )->class('mb-4'),
                         _FlexBetween(
                             _Html('finance.sub-total'),
@@ -100,11 +100,11 @@ class InvoiceInfoModal extends Form
                     _CardLevel4(
                         _LabelWithIcon(
                             SAX_ICON_CALENDAR,
-                            _Html($this->model->paymentTerm?->term_name ?: 'translate.to-be-selected')->class('font-semibold'),
+                            _Html($this->model->paymentTerm?->term_name ?: 'finance-to-be-selected')->class('font-semibold'),
                         ),
                         _LabelWithIcon(
                             'wallet',
-                            _Html($this->model->payment_method?->label() ?: 'translate.to-be-selected')->class('font-semibold'),
+                            _Html($this->model->payment_method?->label() ?: 'finance-to-be-selected')->class('font-semibold'),
                         )->class('mb-4'),
                         // $this->model->paymentTerm?->preview($this->model),
                     )->class('p-6 gap-1'),

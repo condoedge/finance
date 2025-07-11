@@ -18,9 +18,9 @@ enum PaymentTermTypeEnum: int
     public function label(): string
     {
         return match ($this) {
-            self::COD => __('translate.cod'),
-            self::NET => __('translate.net'),
-            self::INSTALLMENT => __('translate.installment'),
+            self::COD => __('finance-cod'),
+            self::NET => __('finance-net'),
+            self::INSTALLMENT => __('finance-installment'),
         };
     }
 
@@ -44,19 +44,19 @@ enum PaymentTermTypeEnum: int
         return match ($this) {
             self::COD => [],
             self::NET => [
-                _InputNumber('translate.days')->required()->name('settings_days', false)->default($setting['days'] ?? null),
+                _InputNumber('finance-days')->required()->name('settings_days', false)->default($setting['days'] ?? null),
             ],
             self::INSTALLMENT => [
-                'periods' => _InputNumber('translate.periods')->required()->name('settings_periods', false)->default($setting['periods'] ?? null),
-                'interval_type' => _ButtonGroup('translate.interval_type')
+                'periods' => _InputNumber('finance-periods')->required()->name('settings_periods', false)->default($setting['periods'] ?? null),
+                'interval_type' => _ButtonGroup('finance-interval-type')
                     ->name('settings_interval_type', false)
                     ->default($setting['interval_type'] ?? 'months')
                     ->options([
-                        'days' => __('translate.days'),
-                        'months' => __('translate.months'),
-                        // 'years' => __('translate.years'),
+                        'days' => __('finance-days'),
+                        'months' => __('finance-months'),
+                        // 'years' => __('finance-years'),
                     ]),
-                'interval' => _InputNumber('translate.interval')->name('settings_interval', false)->default($setting['interval'] ?? null),
+                'interval' => _InputNumber('finance-interval')->name('settings_interval', false)->default($setting['interval'] ?? null),
             ],
         };
     }
@@ -113,8 +113,8 @@ enum PaymentTermTypeEnum: int
         $amount = safeDecimal($invoice->invoice_total_amount);
 
         return match ($this) {
-            self::COD => _Html(__('translate.cod-preview', ['amount' => $amount->toFloat()])),
-            self::NET => _Html(__('translate.net-preview', ['amount' => $amount->toFloat(), 'due_date' => $this->calculateDueDate($invoice->invoice_date, $settings)])),
+            self::COD => _Html(__('finance-cod-preview', ['amount' => $amount->toFloat()])),
+            self::NET => _Html(__('finance-net-preview', ['amount' => $amount->toFloat(), 'due_date' => $this->calculateDueDate($invoice->invoice_date, $settings)])),
             self::INSTALLMENT => _CardWhite(
                 $this->getPreviewInstallments($invoice, $settings)
             )->p4(),

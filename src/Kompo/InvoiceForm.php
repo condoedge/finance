@@ -85,12 +85,12 @@ class InvoiceForm extends Form
             ),
 
             _Columns(
-                _MultiSelect('translate.finance-payment-types')
+                _MultiSelect('finance-payment-types')
                     ->name('possible_payment_methods')
                     ->options(PaymentMethodEnum::optionsWithLabels()),
                 $this->getPaymentTermsSelector(),
 
-                // _MultiSelect('translate.finance-payment-terms')
+                // _MultiSelect('finance-payment-terms')
                 //     ->name('possible_payment_terms')
                 //     ->options(PaymentTerm::pluck('term_name', 'id')->all()),
                 // _Date('finance-due-date')->name('invoice_due_date')->default(date('Y-m-d')),
