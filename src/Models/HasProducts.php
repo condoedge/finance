@@ -47,7 +47,7 @@ trait HasProducts
 
     public function getProfit()
     {
-        return $this->getAmount()->subtract($this->getCommisions());
+        return $this->getAmount()?->subtract($this->getCommisions()) ?? safeDecimal(0);
     }
 
     public function getParentCosts($withActual = false)

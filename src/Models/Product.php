@@ -153,7 +153,7 @@ class Product extends AbstractMainFinanceModel
 
     public function getCommissionAmount()
     {
-        return $this->product_type->isCommission() ? $this->product_cost : 0;
+        return safeDecimal($this->product_type->isCommission() ? $this->product_cost : 0);
     }
 
     /* ACTIONS */
