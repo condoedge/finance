@@ -85,7 +85,7 @@ class MockPaymentProvider extends AbstractPaymentProvider
     /**
      * Create a sale (simulate API call)
      */
-    public function createSale($request, $onSuccess = null)
+    public function createSale($request)
     {
         $this->ensureInvoiceIsSet();
 

@@ -3,6 +3,12 @@
 use Condoedge\Finance\Models\CustomableTeam;
 
 return [
+    'payment_providers' => [
+        BnaPaymentProvider::class,
+        // StripePaymentProvider::class,
+        // PaypalPaymentProvider::class,
+    ],
+
     'services' => [
         'bna_payment_provider' => [
             'api_url' => env('BNA_PAYMENT_API_URL', 'https://stage-api-service.bnasmartpayment.com'),

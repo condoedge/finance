@@ -10,7 +10,7 @@ trait TermSelectorTrait
     protected function getPaymentTermsSelector()
     {
         return _Rows(
-            _Select('finance-payment-terms')->name('payment_term_type')
+            _Select('finance-payment-terms')->name('payment_term_type', false)
             ->options(PaymentTermTypeEnum::optionsWithLabels())
             ->selfGet('getPaymentTerms')->inPanel('payment-terms-panel')
             ->class('mb-2'),

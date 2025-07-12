@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Billing;
 
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Support\Facades\Http;
 use Transliterator;
 
@@ -27,10 +28,41 @@ class BnaPaymentProvider extends AbstractPaymentProvider
         $this->credentials = base64_encode($this->accessKey.': '.$this->secretKey);
     }
 
-    public function createSale($request, $onSuccess = null)
+    public function createSale($request)
     {
         $this->ensureInvoiceIsSet();
 
+        $paymentMethod = $this->invoice->payment_method_id;
+
+        if ($paymentMethod == PaymentMethodEnum::CREDIT_CARD) {
+            $this->processCreditCardSale($request);
+            return;
+        }
+
+        if ($paymentMethod == PaymentMethodEnum::INTERAC) {
+            $this->processInteracSale($request);
+            return;
+        }
+    }
+
+    protected function processInteracSale($request)
+    {
+        $this->saleRequest = $request;
+
+        $response = $this->createPaymentApiRequest('e-transfer');
+
+        $this->saleResponse = json_decode($response->body(), true);
+
+        if (!$this->checkIfPaymentWasSuccessful()) {
+            Log::critical('ERROR!!', $this->saleResponse);
+            abort(403, __('error-payment-failed'));
+        }
+
+        $this->onSuccessTransaction($this->getDataFromResponse('amount'), $this->getDataFromResponse('referenceUUID'));
+    }
+
+    protected function processCreditCardSale($request)
+    {
         $this->saleRequest = $request;
 
         $response = $this->createPaymentApiRequest();
@@ -38,14 +70,14 @@ class BnaPaymentProvider extends AbstractPaymentProvider
         $this->saleResponse = json_decode($response->body(), true);
     }
 
-    protected function createPaymentApiRequest()
+    protected function createPaymentApiRequest($type = 'card')
     {
-        return $this->createSaleApiRequest();
+        return $this->createSaleApiRequest($type);
     }
 
-    protected function createSaleApiRequest()
+    protected function createSaleApiRequest($type = 'card')
     {
-        $specificUrl = $this->getApiUrl('/v1/transaction/card/sale');
+        $specificUrl = $this->getApiUrl('/v1/transaction/' . $type . '/sale');
 
         $this->paymentData = [
             'transactionTime' => carbon(now())->format('c'),

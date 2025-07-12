@@ -20,6 +20,7 @@ enum PaymentMethodEnum: int
     case CHECK = 2;
     case CREDIT_CARD = 3;
     case BANK_TRANSFER = 4;
+    case INTERAC = 5;
 
     /**
      * Get human-readable label for the payment type
@@ -29,8 +30,9 @@ enum PaymentMethodEnum: int
         return match($this) {
             self::CASH => __('finance-cash'),
             self::CHECK => __('finance-check'),
-            self::CREDIT_CARD => __('finance-credit_card'),
-            self::BANK_TRANSFER => __('finance-bank_transfer'),
+            self::CREDIT_CARD => __('finance-credit-card'),
+            self::BANK_TRANSFER => __('finance-bank-transfer'),
+            self::INTERAC => __('translate.finance-interac'),
         };
     }
 
@@ -44,6 +46,7 @@ enum PaymentMethodEnum: int
             self::CHECK => 'CHECK',
             self::CREDIT_CARD => 'CC',
             self::BANK_TRANSFER => 'WIRE',
+            self::INTERAC => 'INTERAC',
         };
     }
 
@@ -66,10 +69,10 @@ enum PaymentMethodEnum: int
         return array_column(self::cases(), 'value');
     }
 
-    public function getPaymentGateway()
+    public function getDefaultPaymentGateway()
     {
         return match ($this) {
-            self::CREDIT_CARD => BnaPaymentProvider::class,
+            self::CREDIT_CARD, self::INTERAC => BnaPaymentProvider::class,
             default => null,
         };
     }
@@ -87,7 +90,7 @@ enum PaymentMethodEnum: int
     public function online()
     {
         return match ($this) {
-            self::CREDIT_CARD => true,
+            self::CREDIT_CARD, self::INTERAC => true,
             default => false,
         };
     }

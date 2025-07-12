@@ -9,7 +9,7 @@ use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
-class InvoicePayableLineDto extends ValidatedDTO
+class PayableLineDto extends ValidatedDTO
 {
     use EmptyDefaults;
 
