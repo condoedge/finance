@@ -113,7 +113,7 @@ abstract class PaymentTestCase extends TestCase
             'customer_id' => $customerId,
             'amount' => $amount,
             'payment_date' => now()->format('Y-m-d'),
-            'external_reference' => $externalReference,
+            'external_transaction_ref' => $externalReference,
         ]));
     }
 
@@ -198,7 +198,7 @@ abstract class PaymentTestCase extends TestCase
             ->where('amount', $this->db_decimal_format($expectedAmount));
 
         if ($externalReference) {
-            $query->where('external_reference', $externalReference);
+            $query->where('external_transaction_ref', $externalReference);
         }
 
         $payment = $query->first();
@@ -208,7 +208,7 @@ abstract class PaymentTestCase extends TestCase
         $this->assertEquals($expectedCustomerId, $payment->customer_id);
 
         if ($externalReference) {
-            $this->assertEquals($externalReference, $payment->external_reference);
+            $this->assertEquals($externalReference, $payment->external_transaction_ref);
         }
 
         return $payment;

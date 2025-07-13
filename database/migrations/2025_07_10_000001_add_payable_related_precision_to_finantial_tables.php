@@ -48,10 +48,5 @@ return new class () extends Migration {
      */
     public function down(): void
     {
-        Schema::table('fin_products', function (Blueprint $table) {
-            // Remove product cost sign sensitive column
-            $table->dropColumn('product_cost_abs');
-            $table->dropColumn('product_taxes_amount');
-        });
     }
 };

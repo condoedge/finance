@@ -1,4 +1,5 @@
 <?php
+namespace Condoedge\Finance\Billing;
 
 interface PaymentGatewayResolverInterface
 {

@@ -2,12 +2,21 @@
 
 namespace Condoedge\Finance\Billing;
 
+use Condoedge\Finance\Billing\Kompo\PaymentCreditCardForm;
+use Condoedge\Finance\Facades\PaymentProcessor;
 use Condoedge\Finance\Models\PaymentMethodEnum;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Validator;
+use Kompo\Elements\BaseElement;
 use Transliterator;
 
-class BnaPaymentProvider extends AbstractPaymentProvider
+class BnaPaymentProvider implements PaymentGatewayInterface
 {
+    use EmptyWebhooks;
+
     protected $apiUrl;
 
     protected $accessKey;
@@ -17,6 +26,11 @@ class BnaPaymentProvider extends AbstractPaymentProvider
     protected $saleRequest;
     protected $paymentData;
     protected $saleResponse;
+
+    /**
+     * @var  PaymentContext
+     */
+    protected $paymentContext;
 
     public function __construct()
     {
@@ -28,46 +42,85 @@ class BnaPaymentProvider extends AbstractPaymentProvider
         $this->credentials = base64_encode($this->accessKey.': '.$this->secretKey);
     }
 
-    public function createSale($request)
+    public function getCode(): string
     {
-        $this->ensureInvoiceIsSet();
-
-        $paymentMethod = $this->invoice->payment_method_id;
-
-        if ($paymentMethod == PaymentMethodEnum::CREDIT_CARD) {
-            $this->processCreditCardSale($request);
-            return;
-        }
-
-        if ($paymentMethod == PaymentMethodEnum::INTERAC) {
-            $this->processInteracSale($request);
-            return;
-        }
+        return 'bna';
     }
 
-    protected function processInteracSale($request)
+    public function getSupportedPaymentMethods(): array
     {
-        $this->saleRequest = $request;
+        return [
+            PaymentMethodEnum::CREDIT_CARD,
+            PaymentMethodEnum::INTERAC,
+        ];
+    }
+
+    public function getPaymentForm(PaymentContext $context): ?BaseElement
+    {
+        return match($context->paymentMethod) {
+            PaymentMethodEnum::CREDIT_CARD => new PaymentCreditCardForm(),
+            PaymentMethodEnum::INTERAC => null,
+            default => throw new \Exception('Unsupported payment method: ' . $context->paymentMethod),
+        };
+    }
+
+    public function processPayment(PaymentContext $context): PaymentResult
+    {
+        $this->paymentContext = $context;
+
+        return match($context->paymentMethod) {
+            PaymentMethodEnum::CREDIT_CARD => $this->processCreditCardSale($context),
+            PaymentMethodEnum::INTERAC => $this->processInteracSale($context),
+            default => throw new \Exception('Unsupported payment method: ' . $context->paymentMethod),
+        };
+    }
+
+    protected function processInteracSale(PaymentContext $context): PaymentResult
+    {
+        $this->saleRequest = $context->paymentData;
 
         $response = $this->createPaymentApiRequest('e-transfer');
 
         $this->saleResponse = json_decode($response->body(), true);
 
-        if (!$this->checkIfPaymentWasSuccessful()) {
-            Log::critical('ERROR!!', $this->saleResponse);
-            abort(403, __('error-payment-failed'));
-        }
-
-        $this->onSuccessTransaction($this->getDataFromResponse('amount'), $this->getDataFromResponse('referenceUUID'));
+        return PaymentResult::pending(
+            $this->getDataFromResponse('referenceUUID'),
+            $this->getDataFromResponse('amount'),
+            metadata: $this->paymentContext->payable->getPaymentMetadata() + $this->paymentContext->metadata,
+            action: PaymentActionEnum::REDIRECT,
+            redirectUrl: $this->getDataFromResponse('interacUrl'),
+            paymentProviderCode: $this->getCode()
+        );
     }
 
-    protected function processCreditCardSale($request)
+    protected function processCreditCardSale(PaymentContext $context): PaymentResult
     {
-        $this->saleRequest = $request;
+        $this->saleRequest = $context->paymentData;
+
+        Validator::make($this->saleRequest, [
+            'complete_name' => 'required|string|max:255',
+            'card_information' => 'required|string|max:20',
+            'card_cvc' => 'required|string|max:4',
+            'expiration_date' => 'required|string|max:5',
+        ])->validate();
 
         $response = $this->createPaymentApiRequest();
 
         $this->saleResponse = json_decode($response->body(), true);
+
+        if ($this->checkIfPaymentWasSuccessful()) {
+            return PaymentResult::success(
+                transactionId: $this->getDataFromResponse('referenceUUID'),
+                amount: $this->getDataFromResponse('amount'),
+                paymentProviderCode: $this->getCode()
+            );
+        } else {
+            return PaymentResult::failed(
+                errorMessage: $this->getDataFromResponse('errorCode'),
+                transactionId: $this->getDataFromResponse('referenceUUID'),
+                paymentProviderCode: $this->getCode()
+            );
+        }
     }
 
     protected function createPaymentApiRequest($type = 'card')
@@ -87,7 +140,7 @@ class BnaPaymentProvider extends AbstractPaymentProvider
 
         $this->paymentData['customerInfo'] = $this->prepareCustomerInfo();
 
-        $payableLines = $this->getPayableLines();
+        $payableLines = $this->paymentContext->payable->getPayableLines();
 
         $this->paymentData['subtotal'] = (string) collect($payableLines)->sumDecimals('amount')->round(config('kompo-finance.payment-related-decimal-scale'));
         $this->paymentData['items'] = collect($payableLines)->map(function ($od) {
@@ -102,11 +155,13 @@ class BnaPaymentProvider extends AbstractPaymentProvider
 
         $this->createAdjustmentItemIfRequired();
 
-        $this->paymentData['paymentDetails'] = $this->preparePaymentDetailsInfo();
+        if ($type == 'card') {
+            $this->paymentData['paymentDetails'] = $this->preparePaymentDetailsInfo();
+        }
 
         $this->paymentData['metadata'] = $this->prepareMetaDataInfo();
 
-        \Log::warning('paymentData', $this->paymentData);
+        Log::warning('paymentData', $this->paymentData);
 
         return $this->postToApi($specificUrl, $this->paymentData);
     }
@@ -135,29 +190,67 @@ class BnaPaymentProvider extends AbstractPaymentProvider
         return $this->postToApi($specificUrl, $customerInfo);
     }
 
+    public function registerWebhookRoutes(Router $router): void
+    {
+        $router->post('payment-webhook', function (Request $request) {
+            if ($request->input('referenceUUID') && $request->input('status') === 'APPROVED') {
+                $metadata = $request->input('metadata', []);
+                $payableId = $metadata['payable_id'] ?? null;
+                $payableType = $metadata['payable_type'] ?? null;
+
+                if (!$payableId || !$payableType) {
+                    Log::error('Missing payable information in webhook', ['metadata' => $metadata]);
+                    return response()->json(['error' => 'Missing payable information'], 400);
+                }
+
+                $payable = app($payableType)::find($payableId);
+
+                $paymentMethod = PaymentMethodEnum::from($metadata['payment_method_id']);
+
+                PaymentProcessor::managePaymentResult(
+                    PaymentResult::success(
+                        transactionId: $request->input('referenceUUID'),
+                        amount: $request->input('amount'),
+                        paymentProviderCode: $this->getCode(),
+                        metadata: $metadata,
+                    ),
+                    new PaymentContext(
+                        payable: $payable,
+                        paymentMethod: $paymentMethod,
+                        metadata: $metadata,
+                    )
+                );
+            }
+        })->name('finance.webhooks.bna.payment');
+    }
+
     protected function prepareCustomerInfo()
     {
-        $completeName = $this->getDataFromRequest('complete_name');
+        $completeName = $this->getDataFromRequest('complete_name') ?? $this->paymentContext->payable->getCustomerName() ?? 'Unknown Customer';
         $separatedName = explode(' ', $completeName, 2);
 
+        $payable = $this->paymentContext->payable;
+
         $customerInfo = [
-            'email' => $this->invoice->customer->email,
+            'email' => $payable->getEmail() ?? 'unknown@gmail.com',
             'firstName' => $separatedName[0] ?? '',
             'lastName' => $separatedName[1] ?? '',
             'type' => 'Personal',
         ];
 
-        if (!$this->invoice->address) {
+        if (!$payable->getAddress()) {
             abort(403, __('validation-customer-address-must-be-complete'));
         }
 
+        $address = $payable->getAddress();
+
         $customerAddress = [];
-        $customerAddress['postalCode'] = $this->invoice->address->postal_code;
-        $customerAddress['streetNumber'] = $this->invoice->address->street_number ?? '';
-        $customerAddress['streetName'] = $this->parseAddressValue($this->invoice->address->address1 ?? '');
-        $customerAddress['city'] = $this->invoice->address->city ?? '';
+        $customerAddress['postalCode'] = $address->postal_code;
+        if ($address->street_number) $customerAddress['streetNumber'] = $address->street_number;
+        if ($address->address1) $customerAddress['streetName'] = $this->parseAddressValue($address->address1 ?? '');
+        if ($address->city) $customerAddress['city'] = $address->city;
         // $customerAddress['province'] = 'CA-ON2';
-        $customerAddress['country'] = $this->parseCountry($this->invoice->address->country ?? '');
+        if ($address->country) $customerAddress['country'] = $this->parseCountry($address->country ?? '');
 
         $customerInfo['address'] = $customerAddress;
 
@@ -185,15 +278,7 @@ class BnaPaymentProvider extends AbstractPaymentProvider
 
     protected function prepareMetaDataInfo()
     {
-        $metaDataInfo = [
-            'invoice_id' => $this->invoice->id,
-        ];
-
-        if ($installmentsIds = implode(',', $this->installment_ids ?? [])) {
-            $metaDataInfo['installment_ids'] = $installmentsIds;
-        }
-
-        return $metaDataInfo;
+        return $this->paymentContext->toProviderMetadata();
     }
 
     public function checkIfPaymentWasSuccessful()
@@ -244,8 +329,8 @@ class BnaPaymentProvider extends AbstractPaymentProvider
 
         if (count($keyArr) > 1) {
             if (!array_key_exists($keyArr[0], $data)) {
-                \Log::warning('ISSUE WITH MISSING key '.$keyArr[0]);
-                \Log::warning($data);
+                Log::warning('ISSUE WITH MISSING key '.$keyArr[0]);
+                Log::warning($data);
             }
             $data = $data[$keyArr[0]];
             return $this->getDataFromResponse($keyArr[1], $data);

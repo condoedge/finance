@@ -4,13 +4,17 @@ namespace Condoedge\Finance\Models;
 
 use App\Models\User;
 use Carbon\Carbon;
+use Condoedge\Finance\Billing\FinancialPayableInterface;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceGenerated;
 use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Facades\InvoiceService;
+use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Kompo\Auth\Models\Teams\Team;
@@ -59,9 +63,10 @@ use Kompo\Auth\Models\Teams\Team;
  * @property PaymentTerm $paymentTerm The payment term associated with the invoice
  * @property Collection<PaymentInstallmentPeriod> $installmentsPeriods The payment installment periods associated with the invoice
  */
-class Invoice extends AbstractMainFinanceModel
+class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterface
 {
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
+    use \Condoedge\Finance\Billing\PayableTrait;
     // use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
 
     protected $table = 'fin_invoices';
@@ -185,7 +190,7 @@ class Invoice extends AbstractMainFinanceModel
     /* SCOPES */
     public function scopeForTeam($query, $teamId)
     {
-        return $query->whereHas('customer', fn ($q) => $q->forTeam($teamId));
+        return $query->whereHas('customer', fn($q) => $q->forTeam($teamId));
     }
 
     public function scopeForCustomer($query, $customerId)
@@ -235,7 +240,7 @@ class Invoice extends AbstractMainFinanceModel
     public function getTaxesGrouped()
     {
         return $this->invoiceDetailsTaxes()->groupBy('tax_id')->groupBy('invoice_id')
-                ->selectRaw('SUM(fin_invoice_detail_taxes.tax_amount) as tax_amount, tax_id')->with('tax')->get();
+            ->selectRaw('SUM(fin_invoice_detail_taxes.tax_amount) as tax_amount, tax_id')->with('tax')->get();
     }
 
     public function getVisualTaxesGrouped()
@@ -266,20 +271,38 @@ class Invoice extends AbstractMainFinanceModel
 
     public function onCompletePayment()
     {
-        if (!$this->checkInvoiceable()) {
+        if ($this->complete_payment_managed_at) {
             return;
         }
 
-        $this->invoiceable?->onCompletePayment();
+        DB::transaction(function () {
+            $this->complete_payment_managed_at = now();
+            $this->saveQuietly();
+
+            if (!$this->checkInvoiceable()) {
+                return;
+            }
+
+            $this->invoiceable?->onCompletePayment();
+        });
     }
 
     public function onPartialPayment()
     {
-        if (!$this->checkInvoiceable()) {
+        if ($this->partial_payment_managed_at) {
             return;
         }
 
-        $this->invoiceable?->onPartialPayment();
+        DB::transaction(function () {
+            $this->partial_payment_managed_at = now();
+            $this->saveQuietly();
+
+            if (!$this->checkInvoiceable()) {
+                return;
+            }
+
+            $this->invoiceable?->onPartialPayment();
+        });
     }
 
     public function setPrimaryBillingAddress($addressId)
@@ -322,7 +345,74 @@ class Invoice extends AbstractMainFinanceModel
 
     public function approvedByLabel()
     {
-        return _Html('<b>'.__('finance-approved-by').'</b> '.$this->approvedBy->name);
+        return _Html('<b>' . __('finance-approved-by') . '</b> ' . $this->approvedBy->name);
+    }
+
+    // PAYMENT PROCESSORS
+    public function getCustomer(): Customer|HistoricalCustomer|null
+    {
+        return $this->customer;
+    }
+
+    public function onPaymentFailed(array $failureData): void
+    {
+        Log::error('Payment failed for invoice', [
+            'invoice_id' => $this->id,
+            'error' => $failureData['error'] ?? 'Unknown error',
+            'transaction_id' => $failureData['transaction_id'] ?? null,
+        ]);
+    }
+
+    public function onPaymentSuccess(CustomerPayment $payment): void
+    {
+        Log::info('Payment succeeded for invoice', [
+            'invoice_id' => $this->id,
+            'payment_id' => $payment->id,
+        ]);
+
+        PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
+            'invoice_id' => $this->id,
+            'amount_applied' => $payment->amount,
+            'apply_date' => now(),
+            'applicable_type' => MorphablesEnum::PAYMENT->value,
+            'applicable' => (object) [
+                'id' => $payment->id,
+                'customer_id' => $this->customer_id,
+            ],
+        ]));
+    }
+
+    public function getPayableAmount(): SafeDecimal 
+    {
+        return $this->invoice_due_amount;
+    }
+
+    public function getPayableLines(): SupportCollection
+    {
+        return $this->invoiceDetails->map(function ($invoiceDetail) {
+            return new \Condoedge\Finance\Models\Dto\Invoices\PayableLineDto([
+                'description' => $invoiceDetail->name,
+                'sku' => 'id.' . $invoiceDetail->id,
+                'price' => $invoiceDetail->total_amount->divide($invoiceDetail->quantity)->toFloat(),
+                'quantity' => $invoiceDetail->quantity,
+                'amount' => $invoiceDetail->total_amount->toFloat(),
+            ]);
+        });
+    }
+
+    public function getPaymentDescription(): string 
+    {
+        return __('invoice.payment.description', ['invoice_id' => $this->id]);
+    }
+
+    public function getTeamId(): int 
+    {
+        return $this->customer?->team_id ?? 0;
+    }
+
+    public function getCustomerName(): ?string
+    {
+        return $this->customer?->name;
     }
 
     /** INTEGRITY */

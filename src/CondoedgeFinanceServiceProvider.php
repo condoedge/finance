@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance;
 
+use Condoedge\Finance\Billing\PaymentProviderRegistry;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;
@@ -221,6 +222,11 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 ->monthlyOn(\Carbon\Carbon::now()->endOfMonth()->day, '23:30')
                 ->withoutOverlapping()
                 ->appendOutputTo(storage_path('logs/fiscal-periods.log'));
+
+            $schedule->command('finance:ensure-invoice-events-processed')
+                ->hourly()
+                ->withoutOverlapping()
+                ->appendOutputTo(storage_path('logs/invoice-actions.log'));
         });
     }
 
@@ -289,6 +295,20 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             \Condoedge\Finance\Services\PaymentTerm\PaymentTermServiceInterface::class,
             \Condoedge\Finance\Services\PaymentTerm\PaymentTermService::class
         );
+
+        // PAYMENT PROCESSORS
+        $this->app->bind(
+            \Condoedge\Finance\Billing\PaymentProcessorInterface::class,
+            \Condoedge\Finance\Billing\PaymentProcessor::class
+        );
+
+        // Register the Payment Gateway Resolver
+        $this->app->bind(
+            \Condoedge\Finance\Billing\PaymentGatewayResolverInterface::class,
+            \Condoedge\Finance\Billing\DefaultPaymentGatewayResolver::class
+        );
+
+        $this->app->singleton(PaymentProviderRegistry::class);
     }
 
     /**
@@ -301,5 +321,17 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $interceptor = $this->app->make(DatabaseQueryInterceptor::class);
             $interceptor->enable();
         }
+    }
+
+    private function registerPaymentWebhookRoutes()
+    {
+        Route::middleware(['api'])
+            ->group(function ($router) {
+                $registry = app(PaymentProviderRegistry::class);
+                
+                foreach ($registry->all() as $provider) {
+                    $provider->registerWebhookRoutes($router);
+                }
+            });
     }
 }

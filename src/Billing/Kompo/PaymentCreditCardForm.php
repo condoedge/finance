@@ -3,13 +3,10 @@
 namespace Condoedge\Finance\Billing\Kompo;
 
 use Carbon\Carbon;
-use Condoedge\Finance\Models\Invoice;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class PaymentCreditCardForm extends Form
 {
-    public $model = Invoice::class;
-
     public $class = 'p-0';
 
     public function render()

@@ -2,9 +2,12 @@
 
 namespace Condoedge\Finance\Kompo;
 
+use Condoedge\Finance\Billing\PaymentContext;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
+use Condoedge\Finance\Facades\PaymentProcessor;
 use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
+use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethod;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTerm;
@@ -15,18 +18,21 @@ class InvoicePayModal extends Form
     public $class = 'overflow-y-auto mini-scroll max-w-2xl min-w-[400px]';
     public $style = 'max-height: 95vh';
 
+    /**
+     * @var Invoice
+     */
     public $model = InvoiceModel::class;
 
     protected $team;
 
     public function created()
     {
-        $this->team = $this->model->team;
+        $this->team = $this->model->customer->team;
     }
 
     public function handle()
     {
-        InvoiceService::payInvoice(new PayInvoiceDto([
+        $result = InvoiceService::payInvoice(new PayInvoiceDto([
             'pay_next_installment' => true, // If there is a payment installment, it will pay just it, if not it will pay the whole invoice
             'invoice_id' => $this->model->id,
             'payment_method_id' => $this->model->payment_method_id ?? request('payment_method_id'),
@@ -34,6 +40,18 @@ class InvoicePayModal extends Form
             'address' => parsePlaceFromRequest('address1'),
             'request_data' => request()->all()
         ]));
+
+        if ($result->isPending) {
+            return $result->executeActionIntoKompoPanel();
+        }
+
+        if ($result->success) {
+            return $this->successElsEvents();
+        }
+
+        if (!$result->success) {
+            abort(400, __('translate.payment-failed'));
+        }
     }
 
     public function render()
@@ -52,7 +70,7 @@ class InvoicePayModal extends Form
                     )->id('payment-schedule'),
                 ),
             )->class('p-6 mb-6'),
-            _ButtonGroup('finance.pay-with')->name('payment_method_id')
+            $this->model->payment_method_id ? _Html($this->model->payment_method_id->label()) : _ButtonGroup('finance.pay-with')->name('payment_method_id')
                 ->options($this->getPaymentMethods())
                 ->selfGet('getPaymentMethodFields')->inPanel('payment-method-fields')
                 ->containerClass('flex flex-col gap-2')
@@ -67,11 +85,10 @@ class InvoicePayModal extends Form
                     _CanadianPlace(),
             )->class('p-6'),
             _SubmitButton('finance.pay')
-                ->closeModal()
-                ->closeModal()
-                ->refresh('dashboard-view')
-                ->class('w-full')
-                ->alert('finance-paid-successfully'),
+                ->inPanel('after-pay-invoice')
+                ->class('w-full'),
+
+            _Panel()->id('after-pay-invoice'),
         )->class('p-6');
     }
 
@@ -83,9 +100,10 @@ class InvoicePayModal extends Form
 
         $paymentMethod = PaymentMethodEnum::from($paymentMethodId);
 
-        return _Rows(
-            $paymentMethod->form($this->model),
-        );
+        return PaymentProcessor::getPaymentForm(new PaymentContext(
+            payable: $this->model,
+            paymentMethod: $paymentMethod,
+        ));
     }
 
     public function getPaymentSchedule($paymentTermId = null)
@@ -111,11 +129,27 @@ class InvoicePayModal extends Form
         return PaymentTerm::whereIn('id', $this->model->possible_payment_terms ?? [])->pluck('term_name', 'id');
     }
 
+    protected function successElsEvents()
+    {
+        return _Rows(
+            _Hidden()->onLoad(fn($e) => $e->run('() => {
+                        $("#pay-invoice-success").click();
+                    }')),
+            _Button()->id('pay-invoice-success')
+                ->class('hidden')
+                ->closeModal()
+                ->closeModal()
+                ->refresh('dashboard-view')
+
+                ->alert('finance-paid-successfully')
+        );
+    }
+
     public function rules()
     {
         return [
-            'payment_method_id' => 'required|exists:fin_payment_methods,id',
-            'payment_term_id' => 'nullable|exists:fin_payment_terms,id',
+            // 'payment_method_id' => 'required|exists:fin_payment_methods,id',
+            // 'payment_term_id' => 'nullable|exists:fin_payment_terms,id',
         ];
     }
 }

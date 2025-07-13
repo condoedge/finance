@@ -2,10 +2,13 @@
 
 namespace Condoedge\Finance\Services\Invoice;
 
+use Condoedge\Finance\Billing\PaymentContext;
+use Condoedge\Finance\Billing\PaymentResult;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Facades\PaymentGateway;
+use Condoedge\Finance\Facades\PaymentProcessor;
 use Condoedge\Finance\Facades\PaymentTermService;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
@@ -156,7 +159,7 @@ class InvoiceService implements InvoiceServiceInterface
         });
     }
 
-    public function payInvoice(PayInvoiceDto $dto): bool
+    public function payInvoice(PayInvoiceDto $dto): PaymentResult
     {
         return DB::transaction(function () use ($dto) {
             $invoice = Invoice::findOrFail($dto->invoice_id);
@@ -172,13 +175,9 @@ class InvoiceService implements InvoiceServiceInterface
                 $invoice->refresh();
             }
 
-            $paymentGateway = PaymentGateway::getGatewayForInvoice($invoice, [
-                'installment_ids' => count($dto->installment_ids ?? []) ? $dto->installment_ids : null,
-            ]);
+            $result = PaymentProcessor::processPayment(new PaymentContext(payable: $invoice, paymentMethod: $invoice->payment_method_id, paymentData: request()->all()));
 
-            $isSuccessful = $paymentGateway->executeSale($dto->request_data);
-
-            return $isSuccessful;
+            return $result;
         });
     }
 

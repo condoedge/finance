@@ -156,7 +156,7 @@ class PaymentService implements PaymentServiceInterface
         $payment->customer_id = $dto->customer_id;
         $payment->payment_date = $dto->payment_date;
         $payment->amount = $dto->amount;
-        $payment->external_reference = $dto->external_reference;
+        $payment->payment_trace_id = $dto->payment_trace_id;
         $payment->save();
 
         return $payment;
@@ -174,6 +174,14 @@ class PaymentService implements PaymentServiceInterface
         $invoicePayment->applicable_id = $data->applicable->id;
         $invoicePayment->applicable_type = $data->applicable_type;
         $invoicePayment->save();
+
+        $invoice = Invoice::findOrFail($data->invoice_id);
+
+        if ($invoice->invoice_due_amount->equals(0)) {
+            $invoice->onCompletePayment();
+        } else {
+            $invoice->onPartialPayment();
+        }
 
         return $invoicePayment->refresh();
     }

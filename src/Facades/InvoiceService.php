@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Condoedge\Finance\Models\Invoice upsertInvoice(\Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto|\Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice createInvoice(\Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice updateInvoice(\Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto $dto)
- * @method static bool payInvoice(\Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto $dto)
+ * @method static \Condoedge\Finance\Billing\PaymentResult payInvoice(\Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice approveInvoice(\Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto $dto)
  * @method static \Illuminate\Support\Collection approveMany(\Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto $dto)
  * @method static \Illuminate\Support\Collection getDefaultTaxesIds(\Condoedge\Finance\Models\Invoice $invoice)

@@ -1,6 +1,7 @@
 <?php
+namespace Condoedge\Finance\Billing;
 
-
+use Illuminate\Http\Client\Request;
 use Illuminate\Routing\Router;
 use Kompo\Elements\BaseElement;
 
@@ -24,7 +25,7 @@ interface PaymentGatewayInterface
      */
     public function processPayment(PaymentContext $context): PaymentResult;
 
-    public function getPaymentForm(PaymentContext $context): BaseElement;
+    public function getPaymentForm(PaymentContext $context): ?BaseElement;
     
     
     /**
@@ -38,14 +39,4 @@ interface PaymentGatewayInterface
      * Register webhook routes
      */
     public function registerWebhookRoutes(Router $router): void;
-    
-    /**
-     * Process webhook - returns payment data if successful
-     */
-    public function processWebhook(Request $request);
-    
-    /**
-     * Verify webhook authenticity
-     */
-    public function verifyWebhook(Request $request): bool;
 }

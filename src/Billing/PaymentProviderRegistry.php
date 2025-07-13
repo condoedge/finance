@@ -1,7 +1,12 @@
 <?php
+namespace Condoedge\Finance\Billing;
 
 class PaymentProviderRegistry
 {
+    /**
+     * Registered payment providers
+     * @var array<PaymentGatewayInterface>
+     */
     private array $providers = [];
     
     public function __construct()
@@ -26,6 +31,9 @@ class PaymentProviderRegistry
         return $this->providers[$code];
     }
     
+    /**
+     * @return array<PaymentGatewayInterface>
+     */
     public function all(): array
     {
         return $this->providers;

@@ -1,9 +1,9 @@
 <?php
+namespace Condoedge\Finance\Billing;
 
 use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Models\Customer;
-use Condoedge\Finance\Models\CustomerPayment;
-use Illuminate\Database\Eloquent\Collection;
+use Condoedge\Utils\Models\ContactInfo\Maps\Address;
+use Illuminate\Support\Collection;
 
 interface PayableInterface {
     public function getPayableId(): int;
@@ -19,11 +19,9 @@ interface PayableInterface {
 
 
     public function getPaymentMetadata(): array;
-}
 
-interface FinantialPayableInterface extends PayableInterface
-{
-    public function getCustomer(): ?Customer;
-    public function onPaymentSuccess(CustomerPayment $payment): void;
-    public function onPaymentFailed(array $failureData): void;
+    public function getAddress(): ?Address;
+    public function getEmail(): ?string;
+
+    public function getCustomerName(): ?string;
 }

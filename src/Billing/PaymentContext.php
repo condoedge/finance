@@ -1,4 +1,5 @@
 <?php
+namespace Condoedge\Finance\Billing;
 
 use Condoedge\Finance\Models\PaymentMethodEnum;
 
@@ -20,6 +21,7 @@ class PaymentContext
                 'payable_type' => $this->payable->getPayableType(),
                 'payable_id' => $this->payable->getPayableId(),
                 'team_id' => $this->payable->getTeamId(),
+                'payment_method_id' => $this->paymentMethod->value,
             ],
             $this->payable->getPaymentMetadata(),
             $this->metadata

@@ -1,12 +1,19 @@
 <?php
 
+use Condoedge\Finance\Billing\BnaPaymentProvider;
 use Condoedge\Finance\Models\CustomableTeam;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 
 return [
     'payment_providers' => [
         BnaPaymentProvider::class,
         // StripePaymentProvider::class,
         // PaypalPaymentProvider::class,
+    ],
+
+    'payment_method_providers' => [
+        PaymentMethodEnum::CREDIT_CARD => BnaPaymentProvider::class,
+        PaymentMethodEnum::INTERAC => BnaPaymentProvider::class,
     ],
 
     'services' => [

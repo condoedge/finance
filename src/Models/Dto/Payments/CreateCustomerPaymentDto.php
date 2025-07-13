@@ -31,7 +31,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
 
     public SafeDecimal $amount;
 
-    public ?string $external_reference;
+    public int $payment_trace_id;
 
     public function casts(): array
     {
@@ -39,7 +39,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
             'payment_date' => new CarbonCast(),
             'amount' => new SafeDecimalCast(),
             'customer_id' => new IntegerCast(),
-            'external_reference' => new StringCast(),
+            'payment_trace_id' => new IntegerCast(),
         ];
     }
 
@@ -50,7 +50,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
             'customer_id' => ['required', 'integer', 'exists:fin_customers,id'],
             'payment_date' => ['required', 'date'],
             'amount' => ['required', new SafeDecimalRule(true)],
-            'external_reference' => ['nullable', 'string'],
+            'payment_trace_id' => ['required', 'integer', 'exists:fin_payment_traces,id'],
         ];
     }
 }

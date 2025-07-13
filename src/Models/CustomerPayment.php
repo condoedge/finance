@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  * @property \DateTime $payment_date The date of the payment
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount The total amount of the payment
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount_left @CALCULATED BY calculate_payment_amount_left() - Amount left to be applied to invoices
- * @property ?string $external_reference
+ * @property int $payment_trace_id Foreign key to fin_payment_traces
  *
  **/
 class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToInvoiceContract

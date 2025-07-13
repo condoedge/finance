@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Services\Invoice;
 
+use Condoedge\Finance\Billing\PaymentResult;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
@@ -56,7 +57,7 @@ interface InvoiceServiceInterface
 
     public function setAddress(Invoice $invoice, array $addressData): void;
 
-    public function payInvoice(PayInvoiceDto $dto): bool;
+    public function payInvoice(PayInvoiceDto $dto): PaymentResult;
 
     /**
      * Approve a single invoice

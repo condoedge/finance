@@ -128,7 +128,7 @@ class AbstractPaymentProviderTest extends TestCase
         // Check payment was created
         $this->assertDatabaseHas('fin_customer_payments', [
             'amount' => db_decimal_format(300),
-            'external_reference' => 'EXT-12345',
+            'external_transaction_ref' => 'EXT-12345',
         ]);
 
         // Check payment was applied to invoice
@@ -351,7 +351,7 @@ class AbstractPaymentProviderTest extends TestCase
         $this->provider->executeSale($request);
 
         $this->assertDatabaseHas('fin_customer_payments', [
-            'external_reference' => $externalRef,
+            'external_transaction_ref' => $externalRef,
             'amount' => db_decimal_format(150),
         ]);
     }

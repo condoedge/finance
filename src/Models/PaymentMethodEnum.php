@@ -71,10 +71,7 @@ enum PaymentMethodEnum: int
 
     public function getDefaultPaymentGateway()
     {
-        return match ($this) {
-            self::CREDIT_CARD, self::INTERAC => BnaPaymentProvider::class,
-            default => null,
-        };
+        return config('kompo-finance.payment_method_providers')[$this->value] ?? null;
     }
 
     /**

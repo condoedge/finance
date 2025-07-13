@@ -1,4 +1,5 @@
 <?php
+namespace Condoedge\Finance\Billing;
 
 
 class DefaultPaymentGatewayResolver implements PaymentGatewayResolverInterface
