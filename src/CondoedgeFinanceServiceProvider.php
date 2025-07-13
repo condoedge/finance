@@ -56,6 +56,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->loadRelationsMorphMap();
 
         $this->setCronExecutions();
+
+        $this->registerPaymentWebhookRoutes();
     }
 
     /**
@@ -88,6 +90,11 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/kompo-finance.php' => config_path('kompo-finance.php'),
         ], 'finance-config');
+
+        // Publish images
+        $this->publishes([
+            __DIR__.'/../resources/images' => public_path('images/vendor/kompo-finance'),
+        ], 'finance-assets');
     }
 
     protected function registerFacades()
@@ -206,6 +213,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $this->commands([
                 \Condoedge\Finance\Command\EnsureIntegrityCommand::class,
                 \Condoedge\Finance\Command\PreCreateFiscalPeriodsCommand::class,
+                \Condoedge\Finance\Command\CleanupWebhookEventsCommand::class,
+                \Condoedge\Finance\Command\TestPaymentProvidersCommand::class,
             ]);
         }
     }
@@ -227,6 +236,11 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 ->hourly()
                 ->withoutOverlapping()
                 ->appendOutputTo(storage_path('logs/invoice-actions.log'));
+
+            // Cleanup old webhook events monthly
+            $schedule->command('finance:cleanup-webhook-events --days=90')
+                ->monthly()
+                ->at('02:00');
         });
     }
 
@@ -323,15 +337,21 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         }
     }
 
-    private function registerPaymentWebhookRoutes()
+    /**
+     * Register payment webhook routes
+     */
+    private function registerPaymentWebhookRoutes(): void
     {
-        Route::middleware(['api'])
-            ->group(function ($router) {
-                $registry = app(PaymentProviderRegistry::class);
-                
-                foreach ($registry->all() as $provider) {
-                    $provider->registerWebhookRoutes($router);
-                }
-            });
+        $this->app->booted(function () {
+            Route::middleware(['api'])
+                ->prefix('api/webhooks')
+                ->group(function ($router) {
+                    $registry = app(PaymentProviderRegistry::class);
+                    
+                    foreach ($registry->all() as $provider) {
+                        $provider->registerWebhookRoutes($router);
+                    }
+                });
+        });
     }
 }

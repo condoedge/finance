@@ -18,6 +18,7 @@ use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Condoedge\Finance\Models\PaymentTerm;
 use Condoedge\Finance\Models\TaxGroup;
 use Condoedge\Utils\Facades\GlobalConfig;
@@ -175,7 +176,9 @@ class InvoiceService implements InvoiceServiceInterface
                 $invoice->refresh();
             }
 
-            $result = PaymentProcessor::processPayment(new PaymentContext(payable: $invoice, paymentMethod: $invoice->payment_method_id, paymentData: request()->all()));
+            $paymentInstallment = $dto->installment_id ? PaymentInstallmentPeriod::find($dto->installment_id) : null;
+
+            $result = PaymentProcessor::processPayment(new PaymentContext(payable: $paymentInstallment ?? $invoice, paymentMethod: $invoice->payment_method_id, paymentData: request()->all()));
 
             return $result;
         });

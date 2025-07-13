@@ -70,7 +70,7 @@ class InvoicePayModal extends Form
                     )->id('payment-schedule'),
                 ),
             )->class('p-6 mb-6'),
-            $this->model->payment_method_id ? _Html($this->model->payment_method_id->label()) : _ButtonGroup('finance.pay-with')->name('payment_method_id')
+            $this->model->payment_method_id ? null : _ButtonGroup('finance.pay-with')->name('payment_method_id')
                 ->options($this->getPaymentMethods())
                 ->selfGet('getPaymentMethodFields')->inPanel('payment-method-fields')
                 ->containerClass('flex flex-col gap-2')
@@ -85,6 +85,7 @@ class InvoicePayModal extends Form
                     _CanadianPlace(),
             )->class('p-6'),
             _SubmitButton('finance.pay')
+                ->id('pay-button')
                 ->inPanel('after-pay-invoice')
                 ->class('w-full'),
 
@@ -103,7 +104,7 @@ class InvoicePayModal extends Form
         return PaymentProcessor::getPaymentForm(new PaymentContext(
             payable: $this->model,
             paymentMethod: $paymentMethod,
-        ));
+        )) ?? _Html($paymentMethod->label())->class('text-center text-gray-800');
     }
 
     public function getPaymentSchedule($paymentTermId = null)

@@ -12,7 +12,7 @@ trait PayableTrait
     
     public function getPayableType(): string
     {
-        return static::class;
+        return $this->getMorphClass();
     }
 
     public function getAddress(): ?Address

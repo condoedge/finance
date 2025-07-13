@@ -20,6 +20,9 @@ class CreatePaymentTracesTable extends Migration
 
             $table->string('external_transaction_ref')->nullable();
             $table->string('payment_provider_code')->nullable();
+            $table->foreignId('payment_method_id')->nullable()
+                ->constrained('fin_payment_methods')
+                ->nullOnDelete();
         });
     }
 

@@ -21,7 +21,7 @@ class PayInvoiceDto extends ValidatedDTO
     public ?int $payment_method_id;
     public ?int $payment_term_id;
 
-    public ?array $installment_ids;
+    public ?array $installment_id;
 
     public ?bool $pay_next_installment;
 
@@ -36,8 +36,7 @@ class PayInvoiceDto extends ValidatedDTO
             'payment_method_id' => 'nullable|integer|exists:fin_payment_methods,id',
             'payment_term_id' => 'nullable|integer|exists:fin_payment_terms,id',
 
-            'installment_ids' => 'nullable|array',
-            'installment_ids.*' => 'integer|exists:fin_payment_installment_periods,id',
+            'installment_id' => 'nullable|integer|exists:fin_payment_installment_periods,id',
 
             'pay_next_installment' => 'nullable|boolean',
 
@@ -53,7 +52,7 @@ class PayInvoiceDto extends ValidatedDTO
             'invoice_id' => new IntegerCast(),
             'payment_method_id' => new IntegerCast(),
             'payment_term_id' => new IntegerCast(),
-            'installment_ids' => new ArrayCast(),
+            'installment_id' => new IntegerCast(),
             'pay_next_installment' => new BooleanCast(),
 
             'address' => new DTOCast(CreateAddressDto::class),
@@ -65,7 +64,7 @@ class PayInvoiceDto extends ValidatedDTO
     public function defaults(): array
     {
         return [
-            'installment_ids' => null,
+            'installment_id' => null,
             'request_data' => [],
         ];
     }
@@ -78,10 +77,7 @@ class PayInvoiceDto extends ValidatedDTO
         if ($invoiceId && $payNextInstallment) {
             $invoice = InvoiceModel::find($invoiceId);
 
-            $this->dtoData['installment_ids'] = array_filter(array_merge(
-                $this->dtoData['installment_ids'] ?? [],
-                [$invoice->installmentsPeriods()->where('due_amount', '>', 0)->first()?->id]
-            ));
+            $this->dtoData['installment_id'] = $invoice->installmentsPeriods()->where('due_amount', '>', 0)->first()?->id;
         }
     }
 }

@@ -2,8 +2,11 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Billing\PayableInterface;
+use Condoedge\Finance\Billing\PayableTrait;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,9 +22,13 @@ use Illuminate\Support\Facades\DB;
  * @property \Illuminate\Support\Carbon $due_date The due date for this installment period.
  * @property int $installment_number The installment number (1-based) for this payment plan.
  * @property PaymentInstallPeriodStatusEnum $status The status of this installment period.
+ * 
+ * @property-read Invoice $invoice
  */
-class PaymentInstallmentPeriod extends AbstractMainFinanceModel
+class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements PayableInterface
 {
+    use PayableTrait;
+
     protected $table = 'fin_payment_installment_periods';
 
     protected $fillable = [
@@ -41,6 +48,13 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel
         'status' => PaymentInstallPeriodStatusEnum::class,
     ];
 
+    // RELATIONS
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id');
+    }
+
+    // ACTIONS
     public static function columnsIntegrityCalculations()
     {
         $statusesIds = PaymentInstallPeriodStatusEnum::PENDING->value . ','
@@ -51,5 +65,60 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel
             'due_amount' => DB::raw('calculate_installment_period_due_amount(fin_payment_installment_periods.id)'),
             'status' => DB::raw("calculate_installment_period_status(fin_payment_installment_periods.id, $statusesIds)"),
         ];
+    }
+
+    // PAYMENT INTERFACE METHODS
+    public function getCustomer(): Customer|HistoricalCustomer|null
+    {
+        return $this->invoice->getCustomer();
+    }
+
+    public function onPaymentFailed(array $failureData): void
+    {
+        $this->invoice->onPaymentFailed($failureData);
+    }
+
+    public function onPaymentSuccess(CustomerPayment $payment): void
+    {
+        $this->invoice->onPaymentSuccess($payment);
+    }
+
+    public function getPayableAmount(): SafeDecimal 
+    {
+        return $this->due_amount;
+    }
+
+    public function getPayableLines(): Collection
+    {
+        return collect([
+            new \Condoedge\Finance\Models\Dto\Invoices\PayableLineDto([
+                'description' => __('translate.with-values.payment-installment-for-invoice', [
+                    'invoice_reference' => $this->invoice->invoice_reference,
+                    'installment_number' => $this->installment_number,
+                ]),
+                'sku' => 'installment-period-' . $this->id,
+                'price' => $this->due_amount->round(2)->toFloat(),
+                'quantity' => 1,
+                'amount' => $this->due_amount->round(2)->toFloat(),
+            ])
+        ]);
+    }
+
+    public function getPaymentDescription(): string 
+    {
+        return __('translate.with-values.payment-installment-for-invoice', [
+            'invoice_reference' => $this->invoice->invoice_reference,
+            'installment_number' => $this->installment_number,
+        ]);
+    }
+
+    public function getTeamId(): int 
+    {
+        return $this->invoice->getTeamId();
+    }
+
+    public function getCustomerName(): ?string
+    {
+        return $this->invoice->getCustomerName();
     }
 }

@@ -54,6 +54,7 @@ class InvoiceInfoModal extends Form
                     )
                 )->class('text-level1'),
             )->class('gap-3 mb-6'),
+            $this->latestPaymentTries(),
             _Tabs(
                 _Tab(
                     _CardLevel4(
@@ -112,6 +113,29 @@ class InvoiceInfoModal extends Form
             )->class('mb-4'),
             _Button('finance.pay-invoice')->selfGet('getInvoicePayModal')->inModal()->class('mb-4'),
         )->class('p-6');
+    }
+
+    public function latestPaymentTries()
+    {
+        $paymentTraces = $this->model->paymentTraces()->take(3)->get();
+
+        if ($paymentTraces->isEmpty()) {
+            return null;
+        }
+
+        return _CardLevel5(
+            _Html('finance.latest-payment-tries')->class('text-lg font-semibold mb-3'),
+            _Rows($paymentTraces->map(function ($trace) {
+                return _Rows(
+                    _FlexBetween(
+                        _Html($trace->payment_method_id?->label())->class('font-semibold'),
+                        $trace->status->pill(),
+                    )->class('gap-2'),
+
+                    _Html($trace->created_at->format('Y-m-d H:i:s')),
+                )->class('mb-2');
+            }))->class('ml-4'),
+        )->class('p-4 bg-gray-100 rounded-lg');
     }
 
     public function getInvoicePayModal()

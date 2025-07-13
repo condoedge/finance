@@ -1,19 +1,20 @@
 <?php
 
 use Condoedge\Finance\Billing\BnaPaymentProvider;
+use Condoedge\Finance\Billing\StripePaymentProvider;
 use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 
 return [
     'payment_providers' => [
         BnaPaymentProvider::class,
-        // StripePaymentProvider::class,
-        // PaypalPaymentProvider::class,
+        StripePaymentProvider::class,
     ],
 
     'payment_method_providers' => [
-        PaymentMethodEnum::CREDIT_CARD => BnaPaymentProvider::class,
-        PaymentMethodEnum::INTERAC => BnaPaymentProvider::class,
+        PaymentMethodEnum::CREDIT_CARD->value => StripePaymentProvider::class,
+        PaymentMethodEnum::INTERAC->value => BnaPaymentProvider::class,
+        PaymentMethodEnum::BANK_TRANSFER->value => StripePaymentProvider::class,
     ],
 
     'services' => [
@@ -21,6 +22,11 @@ return [
             'api_url' => env('BNA_PAYMENT_API_URL', 'https://stage-api-service.bnasmartpayment.com'),
             'api_key' => env('BNA_PAYMENT_API_KEY', ''),
             'api_secret' => env('BNA_PAYMENT_API_SECRET', ''),
+        ],
+        'stripe' => [
+            'api_key' => env('STRIPE_KEY', ''),
+            'secret_key' => env('STRIPE_SECRET', ''),
+            'webhook_secret' => env('STRIPE_WEBHOOK_SECRET', ''),
         ],
     ],
 
