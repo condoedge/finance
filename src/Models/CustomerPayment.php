@@ -32,6 +32,12 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
         'amount_left' => SafeDecimalCast::class,
     ];
 
+    // RELATIONS
+    public function paymentTrace()
+    {
+        return $this->belongsTo(PaymentTrace::class);
+    }
+
     // ACTIONS
 
     // SCOPES

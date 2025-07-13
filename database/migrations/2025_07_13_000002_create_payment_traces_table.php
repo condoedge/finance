@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateFiscalYearSetupTable extends Migration
+class CreatePaymentTracesTable extends Migration
 {
     /**
      * Run the migrations.
