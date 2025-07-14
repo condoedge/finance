@@ -23,7 +23,7 @@ use Stripe\StripeClient;
 class StripePaymentProvider implements PaymentGatewayInterface
 {
     use \Condoedge\Finance\Billing\Traits\RegistersWebhooks;
-    
+
     protected StripeClient $stripe;
     protected string $webhookSecret;
 
