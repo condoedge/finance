@@ -39,6 +39,8 @@ class SelectMissingInfoInvoice extends Modal
             _CanadianPlace()
                 ->default($this->model->address),
             _SubmitButton('finance-save-and-approve')
+                ->closeModal()
+                ->alert('translate.invoice-approved'),
         );
     }
 }
