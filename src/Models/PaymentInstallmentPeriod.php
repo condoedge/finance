@@ -3,7 +3,6 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
-use Condoedge\Finance\Billing\PayableInterface;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Illuminate\Support\Collection;
