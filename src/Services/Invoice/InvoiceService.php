@@ -100,7 +100,7 @@ class InvoiceService implements InvoiceServiceInterface
             }
 
             $originalPaymentTerm = PaymentTerm::find($oldPaymentTermId);
-            if ($invoice->paymentTerm->id != $originalPaymentTerm->id) {
+            if ($invoice->paymentTerm?->id != $originalPaymentTerm?->id) {
                 PaymentTermService::manageNewPaymentTermIntoInvoice($invoice, $originalPaymentTerm?->term_type);
             }
 
