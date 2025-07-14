@@ -124,7 +124,7 @@ class BnaPaymentProvider implements PaymentGatewayInterface
         }
 
         return PaymentResult::failed(
-            errorMessage: $this->getResponseData('errorMessage') ?? __('translate.payment-declined'),
+            errorMessage: $this->getResponseData('errorMessage') ?? __('error-payment-declined'),
             transactionId: $this->getResponseData('referenceUUID'),
             paymentProviderCode: $this->getCode()
         );
@@ -156,7 +156,7 @@ class BnaPaymentProvider implements PaymentGatewayInterface
 
         if (!$interacUrl) {
             return PaymentResult::failed(
-                errorMessage: __('translate.finance-interac-url-not-found'),
+                errorMessage: __('error-finance-interac-url-not-found'),
                 transactionId: $this->getResponseData('referenceUUID'),
                 paymentProviderCode: $this->getCode()
             );
@@ -216,7 +216,7 @@ class BnaPaymentProvider implements PaymentGatewayInterface
         $address = $payable->getAddress();
 
         if (!$address) {
-            throw new \InvalidArgumentException(__('translate.finance-missing-address'));
+            throw new \InvalidArgumentException(__('error-finance-missing-address'));
         }
 
         // Get customer name

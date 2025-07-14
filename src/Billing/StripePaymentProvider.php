@@ -410,7 +410,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
                 // Payment failed
                 $error = $paymentIntent->last_payment_error;
                 return PaymentResult::failed(
-                    errorMessage: $error?->message ?? __('translate.finance-payment-failed'),
+                    errorMessage: $error?->message ?? __('error-finance-payment-failed'),
                     transactionId: $paymentIntent->id,
                     paymentProviderCode: $this->getCode()
                 );
@@ -435,13 +435,13 @@ class StripePaymentProvider implements PaymentGatewayInterface
     {
         // Common Stripe error codes with user-friendly messages
         $errorMessages = [
-            'card_declined' => __('translate.finance-card-declined'),
-            'expired_card' => __('translate.finance-card-expired'),
-            'incorrect_cvc' => __('translate.finance-incorrect-cvc'),
-            'processing_error' => __('translate.finance-processing-error'),
-            'incorrect_number' => __('translate.finance-incorrect-card-number'),
-            'insufficient_funds' => __('translate.finance-insufficient-funds'),
-            'invalid_account' => __('translate.finance-invalid-bank-account'),
+            'card_declined' => __('finance-card-declined'),
+            'expired_card' => __('finance-card-expired'),
+            'incorrect_cvc' => __('finance-incorrect-cvc'),
+            'processing_error' => __('finance-processing-error'),
+            'incorrect_number' => __('finance-incorrect-card-number'),
+            'insufficient_funds' => __('finance-insufficient-funds'),
+            'invalid_account' => __('finance-invalid-bank-account'),
         ];
 
         $code = $e->getStripeCode();
@@ -451,7 +451,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
         }
 
         // Fallback to Stripe's message or generic error
-        return $e->getMessage() ?: __('translate.finance-payment-failed');
+        return $e->getMessage() ?: __('finance-payment-failed');
     }
 
     /**

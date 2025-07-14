@@ -50,7 +50,7 @@ class InvoicePayModal extends Form
         }
 
         if (!$result->success) {
-            abort(400, __('translate.payment-failed'));
+            abort(400, __('error-payment-failed'));
         }
     }
 

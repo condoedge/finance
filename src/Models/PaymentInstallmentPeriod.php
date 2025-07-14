@@ -91,7 +91,7 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements Payab
     {
         return collect([
             new \Condoedge\Finance\Models\Dto\Invoices\PayableLineDto([
-                'description' => __('translate.with-values.payment-installment-for-invoice', [
+                'description' => __('finance-with-values-payment-installment-for-invoice', [
                     'invoice_reference' => $this->invoice->invoice_reference,
                     'installment_number' => $this->installment_number,
                 ]),
@@ -105,7 +105,7 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements Payab
 
     public function getPaymentDescription(): string
     {
-        return __('translate.with-values.payment-installment-for-invoice', [
+        return __('finance-with-values-payment-installment-for-invoice', [
             'invoice_reference' => $this->invoice->invoice_reference,
             'installment_number' => $this->installment_number,
         ]);
