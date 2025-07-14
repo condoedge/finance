@@ -1,4 +1,5 @@
 <?php
+
 namespace Condoedge\Finance\Billing\Core;
 
 use Condoedge\Finance\Billing\Contracts\PayableInterface;
@@ -13,8 +14,9 @@ class PaymentContext
         public readonly ?string $returnUrl = null,
         public readonly ?string $cancelUrl = null,
         public readonly array $metadata = [],
-    ) {}
-    
+    ) {
+    }
+
     public function toProviderMetadata(): array
     {
         return array_merge(

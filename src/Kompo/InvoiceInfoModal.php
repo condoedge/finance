@@ -131,7 +131,6 @@ class InvoiceInfoModal extends Form
                         _Html($trace->payment_method_id?->label())->class('font-semibold'),
                         $trace->status->pill(),
                     )->class('gap-2'),
-
                     _Html($trace->created_at->format('Y-m-d H:i:s')),
                 )->class('mb-2');
             }))->class('ml-4'),

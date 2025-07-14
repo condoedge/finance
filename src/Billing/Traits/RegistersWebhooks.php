@@ -3,8 +3,8 @@
 namespace Condoedge\Finance\Billing\Traits;
 
 use Condoedge\Finance\Billing\Core\WebhookProcessor;
-use Illuminate\Routing\Router;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Router;
 
 trait RegistersWebhooks
 {
@@ -20,12 +20,12 @@ trait RegistersWebhooks
             return $processor->handle($request);
         })->name("finance.webhooks.{$providerCode}.payment")->middleware($this->getWebhookMiddleware());
     }
-    
+
     /**
      * Get webhook processor instance
      */
     abstract protected function getWebhookProcessor(): WebhookProcessor;
-    
+
     /**
      * Get middleware for webhook routes
      */

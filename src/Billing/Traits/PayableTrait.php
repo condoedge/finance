@@ -11,7 +11,7 @@ trait PayableTrait
     {
         return $this->id;
     }
-    
+
     public function getPayableType(): string
     {
         return $this->getMorphClass();
@@ -31,7 +31,7 @@ trait PayableTrait
         return '';
     }
 
-    public function getPaymentMetadata(): array 
+    public function getPaymentMetadata(): array
     {
         return [
             'payable_id' => $this->getPayableId(),

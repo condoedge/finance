@@ -26,12 +26,12 @@ class StripePaymentProvider implements PaymentGatewayInterface
     
     protected StripeClient $stripe;
     protected string $webhookSecret;
-    
+
     /**
      * Current payment context
      */
     protected ?PaymentContext $paymentContext = null;
-    
+
     public function __construct()
     {
         $this->webhookSecret = config('kompo-finance.services.stripe.webhook_secret');
@@ -47,12 +47,12 @@ class StripePaymentProvider implements PaymentGatewayInterface
             'api_key' => $apiKey,
         ]);
     }
-    
+
     public function getCode(): string
     {
         return 'stripe';
     }
-    
+
     public function getSupportedPaymentMethods(): array
     {
         return [
@@ -60,7 +60,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
             PaymentMethodEnum::BANK_TRANSFER,
         ];
     }
-    
+
     public function getPaymentForm(PaymentContext $context): ?BaseElement
     {
         return match($context->paymentMethod) {
@@ -71,7 +71,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
             ),
         };
     }
-    
+
     public function processPayment(PaymentContext $context): PaymentResult
     {
         $this->paymentContext = $context;
@@ -108,11 +108,11 @@ class StripePaymentProvider implements PaymentGatewayInterface
                     'payment_method' => $context->paymentMethod->value,
                 ]
             ]);
-            
+
             throw $e;
         }
     }
-    
+
     /**
      * Process credit card payment using Payment Intents
      */
@@ -120,7 +120,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
     {
         // Validate input
         $this->validateCreditCardInput($context->paymentData);
-        
+
         // Create payment intent
         $paymentIntent = $this->createPaymentIntent($context);
 
@@ -130,7 +130,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
         // Handle the result based on status
         return $this->handlePaymentIntentResult($confirmedIntent);
     }
-    
+
     /**
      * Process bank payment (Canadian debit)
      */
@@ -138,7 +138,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
     {
         // Validate bank account input
         $this->validateCanadianBankInput($context->paymentData);
-        
+
         // Create payment intent for Canadian debit
         $paymentIntent = $this->createPaymentIntent($context, [
             'payment_method_types' => ['acss_debit'],
@@ -162,7 +162,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
         // Handle the result
         return $this->handlePaymentIntentResult($confirmedIntent);
     }
-    
+
     /**
      * Create payment intent
      */
@@ -170,7 +170,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
     {
         $amount = $context->payable->getPayableAmount();
         $amountInCents = (int) ($amount->toFloat() * 100);
-        
+
         $params = array_merge([
             'amount' => $amountInCents,
             'currency' => 'cad',
@@ -179,17 +179,17 @@ class StripePaymentProvider implements PaymentGatewayInterface
             'description' => Str::limit($context->payable->getPaymentDescription(), 500),
             'statement_descriptor' => $this->getStatementDescriptor(),
         ], $additionalParams);
-        
+
         // Add customer email if available
         if ($email = $context->payable->getEmail()) {
             $params['receipt_email'] = $email;
         }
-        
+
         // Add return URL if provided
         if ($context->returnUrl) {
             $params['return_url'] = $context->returnUrl;
         }
-        
+
         try {
             return $this->stripe->paymentIntents->create($params);
         } catch (ApiErrorException $e) {
@@ -200,22 +200,22 @@ class StripePaymentProvider implements PaymentGatewayInterface
             throw $e;
         }
     }
-    
+
     /**
      * Create card payment method
      */
     protected function createCardPaymentMethod(PaymentContext $context): PaymentMethod
     {
         $data = $context->paymentData;
-        
+
         // Parse expiration date
         $expiry = carbon($data['expiration_date'] ?? '', 'd/m/Y');
-        
+
         // Ensure 4-digit year
         if ($expiry->year < 100) {
             $expiry->year += 2000;
         }
-        
+
         $params = [
             'type' => 'card',
             'card' => [
@@ -225,10 +225,10 @@ class StripePaymentProvider implements PaymentGatewayInterface
                 'cvc' => $data['card_cvc'],
             ],
         ];
-        
+
         // Add billing details
         $this->addBillingDetails($params, $context, $data['complete_name']);
-        
+
         try {
             return $this->stripe->paymentMethods->create($params);
         } catch (ApiErrorException $e) {
@@ -239,14 +239,14 @@ class StripePaymentProvider implements PaymentGatewayInterface
             throw $e;
         }
     }
-    
+
     /**
      * Create ACSS debit payment method
      */
     protected function createAcssPaymentMethod(PaymentContext $context): PaymentMethod
     {
         $data = $context->paymentData;
-        
+
         $params = [
             'type' => 'acss_debit',
             'acss_debit' => [
@@ -255,11 +255,11 @@ class StripePaymentProvider implements PaymentGatewayInterface
                 'transit_number' => $data['transit_number'],
             ],
         ];
-        
+
         // Add billing details
         $accountHolderName = $data['account_holder_name'] ?? $context->payable->getCustomerName();
         $this->addBillingDetails($params, $context, $accountHolderName);
-        
+
         try {
             return $this->stripe->paymentMethods->create($params);
         } catch (ApiErrorException $e) {
@@ -269,7 +269,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
             throw $e;
         }
     }
-    
+
     /**
      * Add billing details to payment method params
      */
@@ -278,17 +278,17 @@ class StripePaymentProvider implements PaymentGatewayInterface
         if (!$name && !$context->payable->getEmail()) {
             return;
         }
-        
+
         $params['billing_details'] = [];
-        
+
         if ($name) {
             $params['billing_details']['name'] = $name;
         }
-        
+
         if ($email = $context->payable->getEmail()) {
             $params['billing_details']['email'] = $email;
         }
-        
+
         if ($address = $context->payable->getAddress()) {
             $params['billing_details']['address'] = [
                 'line1' => trim($address->street_number . ' ' . $address->address1),
@@ -296,17 +296,17 @@ class StripePaymentProvider implements PaymentGatewayInterface
                 'postal_code' => $address->postal_code,
                 'country' => normalizeCountryCode($address->country),
             ];
-            
+
             if ($address->address2) {
                 $params['billing_details']['address']['line2'] = $address->address2;
             }
-            
+
             if ($address->state) {
                 $params['billing_details']['address']['state'] = $address->state;
             }
         }
     }
-    
+
     /**
      * Confirm payment intent
      */
@@ -324,7 +324,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
                 ],
             ],
         ];
-        
+
         // Add return URL for 3D Secure or other redirects
         if ($this->paymentContext->returnUrl) {
             $params['return_url'] = $this->paymentContext->returnUrl;
@@ -332,7 +332,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
             // Fallback to webhook URL
             $params['return_url'] = route('finance.webhooks.stripe.payment');
         }
-        
+
         try {
             return $this->stripe->paymentIntents->confirm($paymentIntent->id, $params);
         } catch (ApiErrorException $e) {
@@ -343,7 +343,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
             throw $e;
         }
     }
-    
+
     /**
      * Handle payment intent result
      */
@@ -357,7 +357,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
                     paymentProviderCode: $this->getCode(),
                     metadata: $paymentIntent->metadata->toArray()
                 );
-                
+
             case PaymentIntent::STATUS_REQUIRES_ACTION:
                 // Handle 3D Secure or other authentication required
                 $nextAction = $paymentIntent->next_action;
@@ -383,7 +383,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
             case PaymentIntent::STATUS_REQUIRES_CONFIRMATION:
                 // 3D Secure or other authentication required
                 $redirectUrl = $paymentIntent->next_action?->redirect_to_url?->url;
-                
+
                 return PaymentResult::pending(
                     transactionId: $paymentIntent->id,
                     amount: $paymentIntent->amount / 100,
@@ -395,7 +395,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
                     action: $redirectUrl ? PaymentActionEnum::REDIRECT : null,
                     redirectUrl: $redirectUrl
                 );
-                
+
             case PaymentIntent::STATUS_PROCESSING:
                 // Payment is being processed
                 return PaymentResult::pending(
@@ -407,18 +407,18 @@ class StripePaymentProvider implements PaymentGatewayInterface
                         $this->paymentContext->metadata
                     )
                 );
-                
+
             default:
                 // Payment failed
                 $error = $paymentIntent->last_payment_error;
                 return PaymentResult::failed(
-                    errorMessage: $error?->message ?? __('translate.finance-payment-failed'),
+                    errorMessage: $error?->message ?? __('error-finance-payment-failed'),
                     transactionId: $paymentIntent->id,
                     paymentProviderCode: $this->getCode()
                 );
         }
     }
-    
+
     /**
      * Get statement descriptor
      */
@@ -429,7 +429,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
         $descriptor = preg_replace('/[^a-zA-Z0-9 ]/', '', $descriptor);
         return Str::limit($descriptor, 22);
     }
-    
+
     /**
      * Get readable error message from Stripe exception
      */
@@ -437,25 +437,25 @@ class StripePaymentProvider implements PaymentGatewayInterface
     {
         // Common Stripe error codes with user-friendly messages
         $errorMessages = [
-            'card_declined' => __('translate.finance-card-declined'),
-            'expired_card' => __('translate.finance-card-expired'),
-            'incorrect_cvc' => __('translate.finance-incorrect-cvc'),
-            'processing_error' => __('translate.finance-processing-error'),
-            'incorrect_number' => __('translate.finance-incorrect-card-number'),
-            'insufficient_funds' => __('translate.finance-insufficient-funds'),
-            'invalid_account' => __('translate.finance-invalid-bank-account'),
+            'card_declined' => __('finance-card-declined'),
+            'expired_card' => __('finance-card-expired'),
+            'incorrect_cvc' => __('finance-incorrect-cvc'),
+            'processing_error' => __('finance-processing-error'),
+            'incorrect_number' => __('finance-incorrect-card-number'),
+            'insufficient_funds' => __('finance-insufficient-funds'),
+            'invalid_account' => __('finance-invalid-bank-account'),
         ];
-        
+
         $code = $e->getStripeCode();
-        
+
         if (isset($errorMessages[$code])) {
             return $errorMessages[$code];
         }
-        
+
         // Fallback to Stripe's message or generic error
-        return $e->getMessage() ?: __('translate.finance-payment-failed');
+        return $e->getMessage() ?: __('finance-payment-failed');
     }
-    
+
     /**
      * Validate credit card input
      */
@@ -470,7 +470,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
             throw ValidationException::withMessages($validator->errors()->toArray());
         }
     }
-    
+
     /**
      * Validate Canadian bank account input
      */
@@ -483,14 +483,14 @@ class StripePaymentProvider implements PaymentGatewayInterface
             'account_number' => 'required|digits_between:7,12',
             'authorize_debit' => 'required|accepted',
         ]);
-        
+
         if ($validator->fails()) {
             throw new \InvalidArgumentException(
                 'Invalid bank account data: ' . $validator->errors()->first()
             );
         }
     }
-    
+
     /**
      * Get webhook processor
      */

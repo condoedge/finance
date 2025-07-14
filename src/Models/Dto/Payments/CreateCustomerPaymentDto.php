@@ -7,7 +7,6 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Rule\SafeDecimalRule;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
-use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 

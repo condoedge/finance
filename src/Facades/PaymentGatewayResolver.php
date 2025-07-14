@@ -3,7 +3,6 @@
 namespace Condoedge\Finance\Facades;
 
 use Condoedge\Finance\Billing\PaymentGatewayResolverInterface;
-use Condoedge\Finance\Services\PaymentGatewayService;
 
 /**
  * Payment Gateway Facade

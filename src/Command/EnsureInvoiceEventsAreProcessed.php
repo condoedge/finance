@@ -21,9 +21,9 @@ class EnsureInvoiceEventsAreProcessed extends Command
             ->chunk(100, function ($invoices) {
                 foreach ($invoices as $invoice) {
                     $this->info("Processing invoice ID: {$invoice->id}");
-                    
+
                     $invoice->onCompletePayment();
-                    
+
                     $this->info("Invoice ID: {$invoice->id} processed successfully.");
                 }
             });
@@ -33,9 +33,9 @@ class EnsureInvoiceEventsAreProcessed extends Command
             ->chunk(100, function ($invoices) {
                 foreach ($invoices as $invoice) {
                     $this->info("Processing invoice ID: {$invoice->id}");
-                    
+
                     $invoice->onPartialPayment();
-                    
+
                     $this->info("Invoice ID: {$invoice->id} processed successfully.");
                 }
             });

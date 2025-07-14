@@ -50,7 +50,7 @@ class InvoicePayModal extends Form
         }
 
         if (!$result->success) {
-            abort(400, __('translate.payment-failed'));
+            abort(400, __('error-payment-failed'));
         }
     }
 
@@ -88,7 +88,6 @@ class InvoicePayModal extends Form
                 ->id('pay-button')
                 ->inPanel('after-pay-invoice')
                 ->class('w-full'),
-
             _Panel()->id('after-pay-invoice'),
         )->class('p-6');
     }
@@ -133,7 +132,7 @@ class InvoicePayModal extends Form
     protected function successElsEvents()
     {
         return _Rows(
-            _Hidden()->onLoad(fn($e) => $e->run('() => {
+            _Hidden()->onLoad(fn ($e) => $e->run('() => {
                         $("#pay-invoice-success").click();
                     }')),
             _Button()->id('pay-invoice-success')

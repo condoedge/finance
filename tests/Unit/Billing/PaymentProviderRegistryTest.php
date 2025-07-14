@@ -4,8 +4,8 @@ namespace Condoedge\Finance\Tests\Unit\Billing;
 
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentProviderRegistry;
-use Tests\Mocks\MockPaymentGateway;
 use Mockery;
+use Tests\Mocks\MockPaymentGateway;
 use Tests\TestCase;
 
 class PaymentProviderRegistryTest extends TestCase

@@ -1,4 +1,5 @@
 <?php
+
 namespace Condoedge\Finance\Billing\Core;
 
 class PaymentResult
@@ -13,7 +14,8 @@ class PaymentResult
         public readonly ?PaymentActionEnum $action = null,
         public readonly ?string $redirectUrl = null, // URL to redirect for pending payments
         public readonly ?bool $isPending = false, // Indicates if the payment is pending
-    ) {}
+    ) {
+    }
 
     public static function success(string $transactionId, float $amount, string $paymentProviderCode = '', array $metadata = []): self
     {

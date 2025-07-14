@@ -6,7 +6,8 @@ use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Support\Collection;
 
-interface PayableInterface {
+interface PayableInterface
+{
     public function getPayableId(): int;
     public function getPayableType(): string;
     public function getTeamId(): int;

@@ -14,19 +14,15 @@ use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\CustomerPayment;
-use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTrace;
 use Condoedge\Finance\Models\PaymentTraceStatusEnum;
-use Tests\Mocks\MockPaymentGateway;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Kompo\Auth\Database\Factories\UserFactory;
 use Mockery;
+use Tests\Mocks\MockPaymentGateway;
 use Tests\Unit\Billing\PaymentTestCase;
 
 /**
@@ -41,7 +37,8 @@ class MockPayable implements PayableInterface, FinancialPayableInterface
         private float $amount,
         private Customer $customer,
         private array $metadata = []
-    ) {}
+    ) {
+    }
 
     public function getPayableId(): int
     {

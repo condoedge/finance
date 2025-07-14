@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-enum PaymentTraceStatusEnum: int 
+enum PaymentTraceStatusEnum: int
 {
     use \Kompo\Models\Traits\EnumKompo;
 
@@ -14,10 +14,10 @@ enum PaymentTraceStatusEnum: int
     public function label(): string
     {
         return match($this) {
-            self::INITIATED => __('translate.finance-payment-initiated'),
-            self::PROCESSING => __('translate.finance-payment-processing'),
-            self::COMPLETED => __('translate.finance-payment-completed'),
-            self::FAILED => __('translate.finance-payment-failed'),
+            self::INITIATED => __('finance-payment-initiated'),
+            self::PROCESSING => __('finance-payment-processing'),
+            self::COMPLETED => __('finance-payment-completed'),
+            self::FAILED => __('finance-payment-failed-pill'),
         };
     }
 

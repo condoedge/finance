@@ -12,7 +12,6 @@ use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Tests\Mocks\MockPaymentGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Collection;
 use Mockery;
 use Tests\TestCase;
 
@@ -51,14 +50,14 @@ class PaymentGatewayResolverTest extends TestCase
         parent::tearDown();
     }
 
-        public function test_it_resolves_correct_gateway_for_payment_method()
+    public function test_it_resolves_correct_gateway_for_payment_method()
     {
         // Create mock payable
         $payable = $this->createMockPayable();
 
         // Mock the payment method to return our mock gateway
         $originalGateway = PaymentMethodEnum::CREDIT_CARD->getDefaultPaymentGateway();
-        
+
         // We need to mock the config to return our mock gateway class
         config(['kompo-finance.payment_method_providers' => [
             PaymentMethodEnum::CREDIT_CARD->value => MockPaymentGateway::class,
@@ -82,7 +81,7 @@ class PaymentGatewayResolverTest extends TestCase
         ]]);
     }
 
-        public function test_it_returns_available_gateways_for_payment_method()
+    public function test_it_returns_available_gateways_for_payment_method()
     {
         // Arrange
         $payable = $this->createMockPayable();
@@ -97,17 +96,17 @@ class PaymentGatewayResolverTest extends TestCase
         // Assert
         $this->assertIsArray($availableGateways);
         $this->assertCount(2, $availableGateways); // mock and stripe both support credit card
-        
-        $codes = array_map(fn($gateway) => $gateway->getCode(), $availableGateways);
+
+        $codes = array_map(fn ($gateway) => $gateway->getCode(), $availableGateways);
         $this->assertContains('mock_gateway', $codes);
         $this->assertContains('stripe', $codes);
     }
 
-        public function test_it_returns_empty_array_for_unsupported_payment_method()
+    public function test_it_returns_empty_array_for_unsupported_payment_method()
     {
         // Arrange
         $payable = $this->createMockPayable();
-        
+
         // Use a payment method not supported by any gateway
         $context = new PaymentContext(
             payable: $payable,
@@ -122,11 +121,11 @@ class PaymentGatewayResolverTest extends TestCase
         $this->assertEmpty($availableGateways);
     }
 
-        public function test_it_throws_exception_when_no_default_gateway_configured()
+    public function test_it_throws_exception_when_no_default_gateway_configured()
     {
         // Arrange
         $payable = $this->createMockPayable();
-        
+
         // Clear the config for this payment method
         config(['kompo-finance.payment_method_providers' => [
             PaymentMethodEnum::INTERAC->value => null,
@@ -142,11 +141,11 @@ class PaymentGatewayResolverTest extends TestCase
         $this->resolver->resolve($context);
     }
 
-        public function test_it_resolves_different_gateways_for_different_payment_methods()
+    public function test_it_resolves_different_gateways_for_different_payment_methods()
     {
         // Arrange
         $payable = $this->createMockPayable();
-        
+
         // Configure different gateways for different payment methods
         config(['kompo-finance.payment_method_providers' => [
             PaymentMethodEnum::CREDIT_CARD->value => MockPaymentGateway::class,
@@ -172,7 +171,7 @@ class PaymentGatewayResolverTest extends TestCase
         $this->assertNotSame($creditCardGateway, $bankTransferGateway);
     }
 
-        public function test_it_filters_available_gateways_correctly()
+    public function test_it_filters_available_gateways_correctly()
     {
         // Arrange
         // Add a gateway that only supports bank transfers
@@ -180,7 +179,7 @@ class PaymentGatewayResolverTest extends TestCase
         $bankOnlyGateway->shouldReceive('getCode')->andReturn('bank_only');
         $bankOnlyGateway->shouldReceive('getSupportedPaymentMethods')
             ->andReturn([PaymentMethodEnum::BANK_TRANSFER]);
-        
+
         $this->registry->register($bankOnlyGateway);
 
         $payable = $this->createMockPayable();
@@ -200,8 +199,8 @@ class PaymentGatewayResolverTest extends TestCase
         $bankTransferGateways = $this->resolver->getAvailableGateways($bankTransferContext);
 
         // Assert
-        $creditCardCodes = array_map(fn($g) => $g->getCode(), $creditCardGateways);
-        $bankTransferCodes = array_map(fn($g) => $g->getCode(), $bankTransferGateways);
+        $creditCardCodes = array_map(fn ($g) => $g->getCode(), $creditCardGateways);
+        $bankTransferCodes = array_map(fn ($g) => $g->getCode(), $bankTransferGateways);
 
         $this->assertContains('mock_gateway', $creditCardCodes);
         $this->assertContains('stripe', $creditCardCodes);
@@ -212,7 +211,7 @@ class PaymentGatewayResolverTest extends TestCase
         $this->assertContains('bank_only', $bankTransferCodes);
     }
 
-        public function test_it_maintains_singleton_instances_from_registry()
+    public function test_it_maintains_singleton_instances_from_registry()
     {
         // Arrange
         config(['kompo-finance.payment_method_providers' => [

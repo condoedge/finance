@@ -1,4 +1,5 @@
 <?php
+
 namespace Condoedge\Finance\Billing\Core\Resolver;
 
 use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
@@ -10,8 +11,9 @@ class DefaultPaymentGatewayResolver implements PaymentGatewayResolverInterface
 {
     public function __construct(
         private PaymentProviderRegistry $registry
-    ) {}
-    
+    ) {
+    }
+
     public function resolve(PaymentContext $context): PaymentGatewayInterface
     {
         // Current logic from PaymentMethodEnum
@@ -21,17 +23,17 @@ class DefaultPaymentGatewayResolver implements PaymentGatewayResolverInterface
 
         return $this->registry->get($provider->getCode());
     }
-    
+
     public function getAvailableGateways(PaymentContext $context): array
     {
         $available = [];
-        
+
         foreach ($this->registry->all() as $provider) {
-            if (in_array($context->paymentMethod, $provider->getSupportedPaymentMethods())) {
+            if (in_array($context->paymentMethod, $provider->getSupportedPaymentMethods(), true)) {
                 $available[] = $provider;
             }
         }
-        
+
         return $available;
     }
 }

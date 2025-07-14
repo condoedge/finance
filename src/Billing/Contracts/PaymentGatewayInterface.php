@@ -1,4 +1,5 @@
 <?php
+
 namespace Condoedge\Finance\Billing\Contracts;
 
 use Condoedge\Finance\Billing\Core\PaymentContext;
@@ -22,13 +23,14 @@ interface PaymentGatewayInterface
      * Execute payment
      *
      * @param PaymentContext $context
+     *
      * @return mixed
      */
     public function processPayment(PaymentContext $context): PaymentResult;
 
     public function getPaymentForm(PaymentContext $context): ?BaseElement;
-    
-    
+
+
     /**
      * Get supported payment methods
      */

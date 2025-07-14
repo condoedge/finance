@@ -8,7 +8,6 @@ use Condoedge\Finance\Models\HistoricalCustomer;
 
 interface FinancialPayableInterface extends PayableInterface
 {
-
     /**
      * @return Customer|HistoricalCustomer|null
      */

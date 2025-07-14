@@ -12,7 +12,7 @@ class PaymentCreditCardForm extends Form
     public function render()
     {
         return _Rows(
-            _Input('translate.finance.name-on-card')->name('complete_name')->class('mb-2')->placeholder('finance-cardholders-name'),
+            _Input('finance.name-on-card')->name('complete_name')->class('mb-2')->placeholder('finance-cardholders-name'),
             _CreditCardInput('finance-credit-card-number')->placeholder('4444 4213 1234 5678')->attr(['autocomplete' => "off"])->name('card_information')->class('mb-2'),
             _FlexBetween(
                 _DateTextInput('finance-expiration')->name('expiration_date')->class('mb-2')->attr(['autocomplete' => "off"])->format('MM / YY')->validateJustFuture(),

@@ -12,9 +12,9 @@ use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Kompo\Elements\BaseElement;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Kompo\Elements\BaseElement;
 
 class BnaPaymentProvider implements PaymentGatewayInterface
 {
@@ -23,12 +23,12 @@ class BnaPaymentProvider implements PaymentGatewayInterface
     protected string $apiUrl;
     protected string $accessKey;
     protected string $secretKey;
-    
+
     /**
      * Current payment context
      */
     protected ?PaymentContext $paymentContext = null;
-    
+
     /**
      * API response data
      */
@@ -86,11 +86,11 @@ class BnaPaymentProvider implements PaymentGatewayInterface
                     'payment_method' => $context->paymentMethod->value,
                 ]
             ]);
-            
+
             throw $e;
         }
     }
-    
+
     /**
      * Process credit card payment
      */
@@ -98,24 +98,24 @@ class BnaPaymentProvider implements PaymentGatewayInterface
     {
         // Validate input
         $this->validateCreditCardInput($context->paymentData);
-        
+
         // Make API request
         $response = $this->createSaleRequest('card', $context);
-        
+
         if (!$response->successful()) {
             Log::error('BNA API request failed', [
                 'status' => $response->status(),
                 'body' => $response->body()
             ]);
-            
+
             return PaymentResult::failed(
                 errorMessage: 'Payment provider error: ' . $response->status(),
                 paymentProviderCode: $this->getCode()
             );
         }
-        
+
         $this->apiResponse = $response->json();
-        
+
         // Check payment status
         if ($this->isPaymentSuccessful()) {
             return PaymentResult::success(
@@ -124,14 +124,14 @@ class BnaPaymentProvider implements PaymentGatewayInterface
                 paymentProviderCode: $this->getCode()
             );
         }
-        
+
         return PaymentResult::failed(
-            errorMessage: $this->getResponseData('errorMessage') ?? __('translate.payment-declined'),
+            errorMessage: $this->getResponseData('errorMessage') ?? __('error-payment-declined'),
             transactionId: $this->getResponseData('referenceUUID'),
             paymentProviderCode: $this->getCode()
         );
     }
-    
+
     /**
      * Process Interac payment
      */
@@ -145,20 +145,20 @@ class BnaPaymentProvider implements PaymentGatewayInterface
                 'status' => $response->status(),
                 'body' => $response->body()
             ]);
-            
+
             return PaymentResult::failed(
                 errorMessage: 'Payment provider error: ' . $response->status(),
                 paymentProviderCode: $this->getCode()
             );
         }
-        
+
         $this->apiResponse = $response->json();
 
         $interacUrl = $this->getResponseData('interacUrl');
 
         if (!$interacUrl) {
             return PaymentResult::failed(
-                errorMessage: __('translate.finance-interac-url-not-found'),
+                errorMessage: __('error-finance-interac-url-not-found'),
                 transactionId: $this->getResponseData('referenceUUID'),
                 paymentProviderCode: $this->getCode()
             );
@@ -172,14 +172,14 @@ class BnaPaymentProvider implements PaymentGatewayInterface
             redirectUrl: $interacUrl
         );
     }
-    
+
     /**
      * Create sale API request
      */
     protected function createSaleRequest(string $type, PaymentContext $context)
     {
         $endpoint = "/v1/transaction/{$type}/sale";
-        
+
         $requestData = [
             'transactionTime' => now()->toIso8601String(),
             'applyFee' => false,
@@ -187,28 +187,28 @@ class BnaPaymentProvider implements PaymentGatewayInterface
             'customerInfo' => $this->prepareCustomerInfo($context),
             'metadata' => $context->toProviderMetadata(),
         ];
-        
+
         // Add line items
         $lineItems = $this->prepareLineItems($context);
         $requestData['items'] = $lineItems['items'];
         $requestData['subtotal'] = $lineItems['subtotal'];
-        
+
         // Add payment details for card payments
         if ($type === 'card') {
             $requestData['paymentDetails'] = $this->preparePaymentDetails($context);
         }
-        
+
         Log::info('BNA API request', [
             'endpoint' => $endpoint,
             'type' => $type,
             'subtotal' => $requestData['subtotal']
         ]);
-        
+
         return Http::withBasicAuth($this->accessKey, $this->secretKey)
             ->timeout(30)
             ->post($this->apiUrl . $endpoint, $requestData);
     }
-    
+
     /**
      * Prepare customer info for API
      */
@@ -216,18 +216,18 @@ class BnaPaymentProvider implements PaymentGatewayInterface
     {
         $payable = $context->payable;
         $address = $payable->getAddress();
-        
+
         if (!$address) {
-            throw new \InvalidArgumentException(__('translate.finance-missing-address'));
+            throw new \InvalidArgumentException(__('error-finance-missing-address'));
         }
-        
+
         // Get customer name
-        $customerName = $context->paymentData['complete_name'] 
-            ?? $payable->getCustomerName() 
+        $customerName = $context->paymentData['complete_name']
+            ?? $payable->getCustomerName()
             ?? 'Unknown Customer';
-            
+
         $nameParts = $this->parseCustomerName($customerName);
-        
+
         return [
             'email' => $payable->getEmail() ?? 'unknown@example.com',
             'firstName' => $nameParts['first'],
@@ -242,7 +242,7 @@ class BnaPaymentProvider implements PaymentGatewayInterface
             ])
         ];
     }
-    
+
     /**
      * Prepare line items
      */
@@ -250,10 +250,10 @@ class BnaPaymentProvider implements PaymentGatewayInterface
     {
         $payableLines = $context->payable->getPayableLines();
         $decimalScale = config('kompo-finance.payment-related-decimal-scale', 2);
-        
+
         $items = [];
         $itemsTotal = 0;
-        
+
         foreach ($payableLines as $line) {
             $amount = $line->amount->floor($decimalScale)->toFloat();
             $items[] = [
@@ -265,7 +265,7 @@ class BnaPaymentProvider implements PaymentGatewayInterface
             ];
             $itemsTotal += $amount;
         }
-        
+
         $subtotal = collect($payableLines)
             ->sumDecimals('amount')
             ->round($decimalScale)
@@ -295,17 +295,17 @@ class BnaPaymentProvider implements PaymentGatewayInterface
 
         return $items;
     }
-    
+
     /**
      * Prepare payment details for credit card
      */
     protected function preparePaymentDetails(PaymentContext $context): array
     {
         $data = $context->paymentData;
-        
+
         // Parse expiration date (MM/YY format)
         $expiry = carbon($data['expiration_date'] ?? '', 'd/m/Y');
-        
+
         $month = $expiry->format('m');
         $year = $expiry->format('y');
 
@@ -318,7 +318,7 @@ class BnaPaymentProvider implements PaymentGatewayInterface
             'expiryYear' => $year,
         ];
     }
-    
+
     /**
      * Validate credit card input
      */
@@ -330,12 +330,12 @@ class BnaPaymentProvider implements PaymentGatewayInterface
             'card_cvc' => 'required|string|digits_between:3,4',
             'expiration_date' => ['required', 'string', 'date'],
         ]);
-        
+
         if ($validator->fails()) {
             throw ValidationException::withMessages($validator->errors()->toArray());
         }
     }
-    
+
     /**
      * Check if payment was successful
      */
@@ -343,10 +343,10 @@ class BnaPaymentProvider implements PaymentGatewayInterface
     {
         $status = $this->getResponseData('status');
         $errorCode = $this->getResponseData('errorCode');
-        
+
         return $status === 'APPROVED' && empty($errorCode);
     }
-    
+
     /**
      * Get data from API response
      */
@@ -355,34 +355,34 @@ class BnaPaymentProvider implements PaymentGatewayInterface
         if (!$this->apiResponse) {
             return $default;
         }
-        
+
         // Support nested keys with dot notation
         $keys = explode('.', $key);
         $data = $this->apiResponse;
-        
+
         foreach ($keys as $segment) {
             if (!is_array($data) || !array_key_exists($segment, $data)) {
                 return $default;
             }
             $data = $data[$segment];
         }
-        
+
         return $data;
     }
-    
+
     /**
      * Parse customer name into first/last
      */
     protected function parseCustomerName(string $fullName): array
     {
         $parts = explode(' ', trim($fullName), 2);
-        
+
         return [
             'first' => $parts[0] ?? 'Unknown',
             'last' => $parts[1] ?? 'Customer',
         ];
     }
-    
+
     /**
      * Get webhook processor
      */

@@ -15,9 +15,9 @@ if (!function_exists('sanitizeString')) {
             ':: NFD; :: [:Nonspacing Mark:] Remove; :: NFC;',
             Transliterator::FORWARD
         );
-        
+
         $value = $transliterator->transliterate($value);
-        
+
         // Remove pipe characters and trim
         return trim(str_replace('|', '', $value));
     }

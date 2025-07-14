@@ -22,7 +22,6 @@ use Illuminate\Support\Facades\DB;
  * @property \Illuminate\Support\Carbon $due_date The due date for this installment period.
  * @property int $installment_number The installment number (1-based) for this payment plan.
  * @property PaymentInstallPeriodStatusEnum $status The status of this installment period.
- * 
  * @property-read Invoice $invoice
  */
 class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements PayableInterface
@@ -83,7 +82,7 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements Payab
         $this->invoice->onPaymentSuccess($payment);
     }
 
-    public function getPayableAmount(): SafeDecimal 
+    public function getPayableAmount(): SafeDecimal
     {
         return $this->due_amount;
     }
@@ -92,7 +91,7 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements Payab
     {
         return collect([
             new \Condoedge\Finance\Models\Dto\Invoices\PayableLineDto([
-                'description' => __('translate.with-values.payment-installment-for-invoice', [
+                'description' => __('finance-with-values-payment-installment-for-invoice', [
                     'invoice_reference' => $this->invoice->invoice_reference,
                     'installment_number' => $this->installment_number,
                 ]),
@@ -104,15 +103,15 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements Payab
         ]);
     }
 
-    public function getPaymentDescription(): string 
+    public function getPaymentDescription(): string
     {
-        return __('translate.with-values.payment-installment-for-invoice', [
+        return __('finance-with-values-payment-installment-for-invoice', [
             'invoice_reference' => $this->invoice->invoice_reference,
             'installment_number' => $this->installment_number,
         ]);
     }
 
-    public function getTeamId(): int 
+    public function getTeamId(): int
     {
         return $this->invoice->getTeamId();
     }

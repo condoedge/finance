@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Billing\BnaPaymentProvider;
 use Condoedge\Finance\Billing\Kompo\PaymentCreditCardForm;
 use Faker\Provider\ar_EG\Payment;
 
@@ -32,7 +31,7 @@ enum PaymentMethodEnum: int
             self::CHECK => __('finance-check'),
             self::CREDIT_CARD => __('finance-credit-card'),
             self::BANK_TRANSFER => __('finance-bank-transfer'),
-            self::INTERAC => __('translate.finance-interac'),
+            self::INTERAC => __('finance-interac'),
         };
     }
 
