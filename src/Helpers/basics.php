@@ -1,8 +1,12 @@
 <?php
 
 if (!function_exists('integerArray')) {
-    function integerArray(array $array): array
+    function integerArray(?array $array): array
     {
+        if (is_null($array) || !is_array($array)) {
+            return [];
+        }
+
         return array_map('intval', $array);
     }
 }
