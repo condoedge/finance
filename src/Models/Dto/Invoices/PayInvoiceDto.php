@@ -21,7 +21,7 @@ class PayInvoiceDto extends ValidatedDTO
     public ?int $payment_method_id;
     public ?int $payment_term_id;
 
-    public ?array $installment_id;
+    public ?int $installment_id;
 
     public ?bool $pay_next_installment;
 
@@ -67,17 +67,5 @@ class PayInvoiceDto extends ValidatedDTO
             'installment_id' => null,
             'request_data' => [],
         ];
-    }
-
-    public function after(Validator $validator): void
-    {
-        $invoiceId = $this->dtoData['invoice_id'] ?? null;
-        $payNextInstallment = $this->dtoData['pay_next_installment'] ?? false;
-
-        if ($invoiceId && $payNextInstallment) {
-            $invoice = InvoiceModel::find($invoiceId);
-
-            $this->dtoData['installment_id'] = $invoice->installmentsPeriods()->where('due_amount', '>', 0)->first()?->id;
-        }
     }
 }

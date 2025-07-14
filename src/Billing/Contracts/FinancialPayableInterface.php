@@ -8,10 +8,7 @@ use Condoedge\Finance\Models\HistoricalCustomer;
 
 interface FinancialPayableInterface extends PayableInterface
 {
-    /**
-     * @return Customer|HistoricalCustomer|null
-     */
-    public function getCustomer(): mixed;
+    public function getCustomer(): ?Customer;
     public function onPaymentSuccess(CustomerPayment $payment): void;
     public function onPaymentFailed(array $failureData): void;
 }

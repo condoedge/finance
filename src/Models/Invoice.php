@@ -195,7 +195,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     /* SCOPES */
     public function scopeForTeam($query, $teamId)
     {
-        return $query->whereHas('customer', fn ($q) => $q->forTeam($teamId));
+        return $query->whereHas('customer', fn($q) => $q->forTeam($teamId));
     }
 
     public function scopeForCustomer($query, $customerId)
@@ -274,6 +274,44 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         return true;
     }
 
+    public function getNextInstallmentPeriod()
+    {
+        return $this->installmentsPeriods()->where('due_amount', '>', 0)->first();
+    }
+
+    /* ACTIONS */
+    public function markApproved()
+    {
+        InvoiceService::approveInvoice(new ApproveInvoiceDto([
+            'invoice_id' => $this->id,
+        ]));
+
+        $this->refresh();
+    }
+
+    public function markAsSent()
+    {
+        $this->sent_at = now();
+        $this->save();
+    }
+
+    /* ELEMENTS */
+    public function approvalEls()
+    {
+        return _Flex2(
+            $this->approvedByLabel()->icon('icon-check'),
+            $this->approved_at ? _Flex2(
+                _Html('finance-on-le')->class('font-bold'),
+                _HtmlDate($this->approved_at),
+            ) : null
+        );
+    }
+
+    public function approvedByLabel()
+    {
+        return _Html('<b>' . __('finance-approved-by') . '</b> ' . $this->approvedBy->name);
+    }
+
     public function onCompletePayment()
     {
         if ($this->complete_payment_managed_at) {
@@ -320,43 +358,11 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         return null;
     }
 
-    /* ACTIONS */
-    public function markApproved()
-    {
-        InvoiceService::approveInvoice(new ApproveInvoiceDto([
-            'invoice_id' => $this->id,
-        ]));
-
-        $this->refresh();
-    }
-
-    public function markAsSent()
-    {
-        $this->sent_at = now();
-        $this->save();
-    }
-
-    /* ELEMENTS */
-    public function approvalEls()
-    {
-        return _Flex2(
-            $this->approvedByLabel()->icon('icon-check'),
-            $this->approved_at ? _Flex2(
-                _Html('finance-on-le')->class('font-bold'),
-                _HtmlDate($this->approved_at),
-            ) : null
-        );
-    }
-
-    public function approvedByLabel()
-    {
-        return _Html('<b>' . __('finance-approved-by') . '</b> ' . $this->approvedBy->name);
-    }
-
     // PAYMENT PROCESSORS
-    public function getCustomer(): Customer|HistoricalCustomer|null
+    public function getCustomer(): ?Customer
     {
-        return $this->customer;
+        // The main customer instead of historical
+        return Customer::findOrFail($this->customer_id);
     }
 
     public function onPaymentFailed(array $failureData): void

@@ -67,9 +67,9 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements Finan
     }
 
     // PAYMENT INTERFACE METHODS
-    public function getCustomer(): Customer|HistoricalCustomer|null
+    public function getCustomer(): ?Customer
     {
-        return $this->invoice->getCustomer();
+        return Customer::findOrFail($this->invoice->customer_id);
     }
 
     public function onPaymentFailed(array $failureData): void

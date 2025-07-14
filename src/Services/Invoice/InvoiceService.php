@@ -100,7 +100,9 @@ class InvoiceService implements InvoiceServiceInterface
             }
 
             $originalPaymentTerm = PaymentTerm::find($oldPaymentTermId);
-            PaymentTermService::manageNewPaymentTermIntoInvoice($invoice, $originalPaymentTerm?->term_type);
+            if ($invoice->paymentTerm->id != $originalPaymentTerm->id) {
+                PaymentTermService::manageNewPaymentTermIntoInvoice($invoice, $originalPaymentTerm?->term_type);
+            }
 
             if ($invoice->payment_method_id) {
                 $this->setupInvoiceAccount($invoice);
@@ -175,7 +177,13 @@ class InvoiceService implements InvoiceServiceInterface
                 $invoice->refresh();
             }
 
-            $paymentInstallment = $dto->installment_id ? PaymentInstallmentPeriod::find($dto->installment_id) : null;
+            if ($dto->pay_next_installment) {
+                $nextInstallment = $invoice->getNextInstallmentPeriod();
+
+                $dto->installment_id = $nextInstallment?->id;
+            }
+
+            $paymentInstallment = $dto->installment_id ? PaymentInstallmentPeriod::findOrFail($dto->installment_id) : null;
 
             $result = PaymentProcessor::processPayment(new PaymentContext(payable: $paymentInstallment ?? $invoice, paymentMethod: $invoice->payment_method_id, paymentData: request()->all()));
 

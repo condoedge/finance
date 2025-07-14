@@ -139,7 +139,7 @@ enum PaymentTermTypeEnum: int
                     'invoice_id' => $invoice->id,
                     'dry_run' => true, // Use dry_run to avoid actual DB insertion
                 ])
-            ));
+            ))->map(fn($i) => (new PaymentInstallmentPeriod)->forceFill($i));
         }
 
         return $installments->map(function ($period) {
