@@ -4,7 +4,6 @@ namespace Condoedge\Finance\Billing\Contracts;
 
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\CustomerPayment;
-use Condoedge\Finance\Models\HistoricalCustomer;
 
 interface FinancialPayableInterface extends PayableInterface
 {
