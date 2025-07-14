@@ -1,8 +1,7 @@
 <?php
 
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Traits;
 
-use Illuminate\Http\Client\Request;
 use Illuminate\Routing\Router;
 
 trait EmptyWebhooks

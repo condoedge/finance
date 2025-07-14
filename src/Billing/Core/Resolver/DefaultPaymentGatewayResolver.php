@@ -1,6 +1,10 @@
 <?php
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Core\Resolver;
 
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface;
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentProviderRegistry;
 
 class DefaultPaymentGatewayResolver implements PaymentGatewayResolverInterface
 {

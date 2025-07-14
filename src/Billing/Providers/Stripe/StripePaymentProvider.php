@@ -1,13 +1,14 @@
 <?php
 
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Providers\Stripe;
 
-use Condoedge\Finance\Billing\Kompo\PaymentCreditCardForm;
-use Condoedge\Finance\Billing\Kompo\PaymentCanadianBankForm;
-use Condoedge\Finance\Billing\Kompo\StripeCreditCardForm;
-use Condoedge\Finance\Billing\Webhooks\RegistersWebhooks;
-use Condoedge\Finance\Billing\Webhooks\StripeWebhookProcessor;
-use Condoedge\Finance\Billing\Webhooks\WebhookProcessor;
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Core\PaymentActionEnum;
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentResult;
+use Condoedge\Finance\Billing\Core\WebhookProcessor;
+use Condoedge\Finance\Billing\Providers\Stripe\Form\PaymentCanadianBankForm;
+use Condoedge\Finance\Billing\Providers\Stripe\Form\StripeCreditCardForm;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -21,7 +22,7 @@ use Stripe\StripeClient;
 
 class StripePaymentProvider implements PaymentGatewayInterface
 {
-    use RegistersWebhooks;
+    use \Condoedge\Finance\Billing\Traits\RegistersWebhooks;
     
     protected StripeClient $stripe;
     protected string $webhookSecret;

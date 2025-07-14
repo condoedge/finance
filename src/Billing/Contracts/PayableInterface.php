@@ -1,5 +1,6 @@
 <?php
-namespace Condoedge\Finance\Billing;
+
+namespace Condoedge\Finance\Billing\Contracts;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
@@ -12,7 +13,7 @@ interface PayableInterface {
     public function getPayableAmount(): SafeDecimal;
 
     /**
-     * @return Collection<PayableLineDto>
+     * @return Collection<\Condoedge\Finance\Models\Dto\Invoices\PayableLineDto>
      */
     public function getPayableLines(): Collection;
     public function getPaymentDescription(): string;

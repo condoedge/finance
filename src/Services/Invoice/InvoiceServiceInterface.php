@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Services\Invoice;
 
-use Condoedge\Finance\Billing\PaymentResult;
+use Condoedge\Finance\Billing\Core\PaymentResult;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;

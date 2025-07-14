@@ -1,9 +1,9 @@
 <?php
 
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Exceptions;
 
-use Condoedge\Finance\Billing\PaymentContext;
-use Condoedge\Finance\Billing\PaymentResult;
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentResult;
 use Exception;
 use Illuminate\Validation\ValidationException;
 

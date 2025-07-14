@@ -2,12 +2,11 @@
 
 namespace Condoedge\Finance\Services\Invoice;
 
-use Condoedge\Finance\Billing\PaymentContext;
-use Condoedge\Finance\Billing\PaymentResult;
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentResult;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
-use Condoedge\Finance\Facades\PaymentGateway;
 use Condoedge\Finance\Facades\PaymentProcessor;
 use Condoedge\Finance\Facades\PaymentTermService;
 use Condoedge\Finance\Models\Customer;

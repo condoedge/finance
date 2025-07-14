@@ -1,7 +1,8 @@
 <?php
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Contracts;
 
-use Illuminate\Http\Client\Request;
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentResult;
 use Illuminate\Routing\Router;
 use Kompo\Elements\BaseElement;
 

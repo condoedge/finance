@@ -1,7 +1,10 @@
 <?php
 
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Core;
 
+use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
+use Condoedge\Finance\Billing\Contracts\PaymentProcessorInterface;
+use Condoedge\Finance\Billing\Exceptions\PaymentProcessingException;
 use Condoedge\Finance\Facades\PaymentGatewayResolver;
 use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;

@@ -1,5 +1,7 @@
 <?php
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Core;
+
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
 
 class PaymentProviderRegistry
 {

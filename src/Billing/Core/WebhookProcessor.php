@@ -1,9 +1,7 @@
 <?php
 
-namespace Condoedge\Finance\Billing\Webhooks;
+namespace Condoedge\Finance\Billing\Core;
 
-use Condoedge\Finance\Billing\PaymentContext;
-use Condoedge\Finance\Billing\PaymentResult;
 use Condoedge\Finance\Facades\PaymentProcessor;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTrace;

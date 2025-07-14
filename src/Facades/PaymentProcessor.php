@@ -8,7 +8,7 @@ use Condoedge\Finance\Billing\PaymentProcessorInterface;
  * Payment Gateway Facade
  *
  *
- * @mixin \Condoedge\Finance\Billing\PaymentProcessorInterface
+ * @mixin \Condoedge\Finance\Billing\Contracts\PaymentProcessorInterface
  */
 class PaymentProcessor extends \Illuminate\Support\Facades\Facade
 {

@@ -1,7 +1,8 @@
 <?php
 
-namespace Condoedge\Finance\Billing\Webhooks;
+namespace Condoedge\Finance\Billing\Providers\Bna;
 
+use Condoedge\Finance\Billing\Core\WebhookProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -24,18 +25,8 @@ class BnaWebhookProcessor extends WebhookProcessor
     
     protected function verifySignature(Request $request): bool
     {
-        // For now skipping signature verification
+        // For now they don't provide a signature verification method
         return true;
-        $signature = $request->header('X-BNA-Signature');
-        if (!$signature) {
-            Log::warning('BNA webhook missing signature header');
-            return false;
-        }
-        
-        $payload = $request->getContent();
-        $expectedSignature = hash_hmac('sha256', $payload, $this->secretKey);
-        
-        return hash_equals($expectedSignature, $signature);
     }
     
     protected function processWebhookEvent(Request $request)

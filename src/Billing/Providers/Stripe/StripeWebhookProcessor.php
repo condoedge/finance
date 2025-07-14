@@ -1,7 +1,8 @@
 <?php
 
-namespace Condoedge\Finance\Billing\Webhooks;
+namespace Condoedge\Finance\Billing\Providers\Stripe;
 
+use Condoedge\Finance\Billing\Core\WebhookProcessor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 

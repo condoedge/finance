@@ -1,11 +1,13 @@
 <?php
 
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Providers\Bna;
 
-use Condoedge\Finance\Billing\Kompo\PaymentCreditCardForm;
-use Condoedge\Finance\Billing\Webhooks\BnaWebhookProcessor;
-use Condoedge\Finance\Billing\Webhooks\RegistersWebhooks;
-use Condoedge\Finance\Billing\Webhooks\WebhookProcessor;
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Core\PaymentActionEnum;
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentResult;
+use Condoedge\Finance\Billing\Core\WebhookProcessor;
+use Condoedge\Finance\Billing\Providers\Bna\Form\PaymentCreditCardForm;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -13,11 +15,10 @@ use Illuminate\Support\Facades\Validator;
 use Kompo\Elements\BaseElement;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Transliterator;
 
 class BnaPaymentProvider implements PaymentGatewayInterface
 {
-    use RegistersWebhooks;
+    use \Condoedge\Finance\Billing\Traits\RegistersWebhooks;
 
     protected string $apiUrl;
     protected string $accessKey;

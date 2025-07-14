@@ -1,7 +1,8 @@
 <?php
 
-namespace Condoedge\Finance\Billing\Webhooks;
+namespace Condoedge\Finance\Billing\Traits;
 
+use Condoedge\Finance\Billing\Core\WebhookProcessor;
 use Illuminate\Routing\Router;
 use Illuminate\Http\Request;
 

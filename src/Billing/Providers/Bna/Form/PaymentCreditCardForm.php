@@ -1,6 +1,6 @@
 <?php
 
-namespace Condoedge\Finance\Billing\Kompo;
+namespace Condoedge\Finance\Billing\Providers\Bna\Form;
 
 use Carbon\Carbon;
 use Condoedge\Utils\Kompo\Common\Form;

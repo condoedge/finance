@@ -1,6 +1,8 @@
 <?php
-namespace Condoedge\Finance\Billing;
 
+namespace Condoedge\Finance\Billing\Traits;
+
+use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 
 trait PayableTrait

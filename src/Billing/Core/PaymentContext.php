@@ -1,6 +1,7 @@
 <?php
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Core;
 
+use Condoedge\Finance\Billing\Contracts\PayableInterface;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 
 class PaymentContext

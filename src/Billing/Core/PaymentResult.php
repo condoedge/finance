@@ -1,5 +1,5 @@
 <?php
-namespace Condoedge\Finance\Billing;
+namespace Condoedge\Finance\Billing\Core;
 
 class PaymentResult
 {
