@@ -346,7 +346,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 ->prefix('api/webhooks')
                 ->group(function ($router) {
                     $registry = app(PaymentProviderRegistry::class);
-                    
+
                     foreach ($registry->all() as $provider) {
                         $provider->registerWebhookRoutes($router);
                     }

@@ -47,7 +47,7 @@ class StripePaymentProviderTest extends TestCase
 
         // Create provider with mocked client
         $this->provider = new StripePaymentProvider();
-        
+
         // Use reflection to inject the mock client
         $reflection = new \ReflectionClass($this->provider);
         $property = $reflection->getProperty('stripe');
@@ -61,12 +61,12 @@ class StripePaymentProviderTest extends TestCase
         parent::tearDown();
     }
 
-        public function test_it_returns_correct_code()
+    public function test_it_returns_correct_code()
     {
         $this->assertEquals('stripe', $this->provider->getCode());
     }
 
-        public function test_it_supports_correct_payment_methods()
+    public function test_it_supports_correct_payment_methods()
     {
         $supportedMethods = $this->provider->getSupportedPaymentMethods();
 
@@ -75,7 +75,7 @@ class StripePaymentProviderTest extends TestCase
         $this->assertNotContains(PaymentMethodEnum::CASH, $supportedMethods);
     }
 
-        public function test_it_processes_successful_credit_card_payment()
+    public function test_it_processes_successful_credit_card_payment()
     {
         // Arrange
         $payable = $this->createMockPayable(150.00);
@@ -121,7 +121,7 @@ class StripePaymentProviderTest extends TestCase
         $this->assertEquals('stripe', $result->paymentProviderCode);
     }
 
-        public function test_it_handles_3ds_authentication_required()
+    public function test_it_handles_3ds_authentication_required()
     {
         // Arrange
         $payable = $this->createMockPayable(200.00);
@@ -165,7 +165,7 @@ class StripePaymentProviderTest extends TestCase
         $this->assertEquals(PaymentActionEnum::REDIRECT, $result->action);
     }
 
-        public function test_it_handles_failed_payment()
+    public function test_it_handles_failed_payment()
     {
         // Arrange
         $payable = $this->createMockPayable(100.00);
@@ -208,7 +208,7 @@ class StripePaymentProviderTest extends TestCase
         $this->assertEquals('pi_failed_test', $result->transactionId);
     }
 
-        public function test_it_validates_credit_card_input()
+    public function test_it_validates_credit_card_input()
     {
         // Arrange
         $payable = $this->createMockPayable(100.00);
@@ -227,7 +227,7 @@ class StripePaymentProviderTest extends TestCase
         $this->provider->processPayment($context);
     }
 
-        public function test_it_processes_bank_transfer_payment()
+    public function test_it_processes_bank_transfer_payment()
     {
         // Arrange
         $payable = $this->createMockPayable(500.00);
@@ -283,7 +283,7 @@ class StripePaymentProviderTest extends TestCase
         $this->assertEquals(500.00, $result->amount);
     }
 
-        public function test_it_includes_billing_details_when_available()
+    public function test_it_includes_billing_details_when_available()
     {
         // Arrange
         $payable = $this->createMockPayableWithAddress();
@@ -318,7 +318,7 @@ class StripePaymentProviderTest extends TestCase
         $this->assertTrue($result->isSuccessful());
     }
 
-        public function test_it_handles_stripe_api_errors()
+    public function test_it_handles_stripe_api_errors()
     {
         // Arrange
         $payable = $this->createMockPayable(100.00);
@@ -349,7 +349,7 @@ class StripePaymentProviderTest extends TestCase
         $this->assertEquals('stripe', $result->paymentProviderCode);
     }
 
-        public function test_it_handles_verify_with_microdeposits()
+    public function test_it_handles_verify_with_microdeposits()
     {
         // Arrange
         $payable = $this->createMockPayable(100.00);
@@ -366,7 +366,7 @@ class StripePaymentProviderTest extends TestCase
         );
 
         $mockPaymentMethod = new PaymentMethod('pm_acss_test');
-        
+
         $mockPaymentIntent = $this->createMockPaymentIntent(
             'pi_microdeposits',
             10000,
@@ -403,11 +403,11 @@ class StripePaymentProviderTest extends TestCase
         $this->assertEquals(PaymentActionEnum::REDIRECT, $result->action);
     }
 
-        public function test_it_gets_correct_payment_form()
+    public function test_it_gets_correct_payment_form()
     {
         // Arrange
         $payable = $this->createMockPayable(100.00);
-        
+
         // Test credit card form
         $creditCardContext = new PaymentContext(
             payable: $payable,
@@ -451,7 +451,7 @@ class StripePaymentProviderTest extends TestCase
     private function createMockPayableWithAddress(): PayableInterface
     {
         $payable = $this->createMockPayable(100.00);
-        
+
         $address = new Address([
             'street_number' => '123',
             'address1' => 'Main Street',
@@ -461,9 +461,9 @@ class StripePaymentProviderTest extends TestCase
             'postal_code' => 'M5V 3A8',
             'country' => 'CA',
         ]);
-        
+
         $payable->shouldReceive('getAddress')->andReturn($address);
-        
+
         return $payable;
     }
 
@@ -479,15 +479,15 @@ class StripePaymentProviderTest extends TestCase
         $intent->amount = $amountInCents;
         $intent->status = $status;
         $intent->metadata = collect(['test' => true]);
-        
+
         if ($nextAction) {
             $intent->next_action = (object) $nextAction;
         }
-        
+
         if ($lastPaymentError) {
             $intent->last_payment_error = (object) $lastPaymentError;
         }
-        
+
         return $intent;
     }
 }

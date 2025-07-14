@@ -23,11 +23,11 @@ abstract class WebhookProcessor
     public function handle(Request $request)
     {
         $webhookId = $this->extractWebhookId($request);
-        
+
         // Check for duplicate processing using cache lock
         $lockKey = "webhook:processing:{$this->getProviderCode()}:{$webhookId}";
         $lock = Cache::lock($lockKey, 30); // 30 second lock
-        
+
         if (!$lock->get()) {
             Log::info('Webhook already being processed', [
                 'provider' => $this->getProviderCode(),
@@ -35,7 +35,7 @@ abstract class WebhookProcessor
             ]);
             return response()->json(['message' => 'Already processing'], 200);
         }
-        
+
         try {
             // Verify webhook signature
             if (!$this->verifySignature($request)) {
@@ -45,7 +45,7 @@ abstract class WebhookProcessor
                 ]);
                 return response()->json(['error' => 'Invalid signature'], 401);
             }
-            
+
             // Check if already processed
             if ($this->isAlreadyProcessed($webhookId)) {
                 Log::info('Webhook already processed', [
@@ -54,18 +54,18 @@ abstract class WebhookProcessor
                 ]);
                 return response()->json(['message' => 'Already processed'], 200);
             }
-            
+
             // Process the webhook
             $result = DB::transaction(function () use ($request, $webhookId) {
                 // Record the webhook
                 $this->recordWebhook($webhookId, $request->all());
-                
+
                 // Process based on event type
                 return $this->processWebhookEvent($request);
             });
-            
+
             return $result;
-            
+
         } catch (\Exception $e) {
             Log::error('Webhook processing failed', [
                 'provider' => $this->getProviderCode(),
@@ -73,20 +73,20 @@ abstract class WebhookProcessor
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             // Return success to prevent retries for non-recoverable errors
             if ($this->isNonRecoverableError($e)) {
                 return response()->json(['message' => 'Acknowledged'], 200);
             }
-            
+
             // Return error for recoverable errors to trigger retry
             return response()->json(['error' => 'Processing failed'], 500);
-            
+
         } finally {
             $lock->release();
         }
     }
-    
+
     /**
      * Process payment success webhook
      */
@@ -100,17 +100,17 @@ abstract class WebhookProcessor
         $payableId = $metadata['payable_id'] ?? null;
         $payableType = $metadata['payable_type'] ?? null;
         $paymentMethodId = $metadata['payment_method_id'] ?? null;
-        
+
         if (!$payableId || !$payableType || !$paymentMethodId) {
             throw new \InvalidArgumentException('Missing required payment metadata');
         }
-        
+
         // Load the payable
         $payable = $this->loadPayable($payableType, $payableId);
         if (!$payable) {
             throw new \RuntimeException("Payable not found: {$payableType}#{$payableId}");
         }
-        
+
         // Create payment result
         $paymentResult = PaymentResult::success(
             transactionId: $transactionId,
@@ -118,18 +118,18 @@ abstract class WebhookProcessor
             paymentProviderCode: $this->getProviderCode(),
             metadata: array_merge($metadata, $additionalData)
         );
-        
+
         // Create payment context
         $paymentContext = new PaymentContext(
             payable: $payable,
             paymentMethod: PaymentMethodEnum::from($paymentMethodId),
             metadata: $metadata
         );
-        
+
         // Process the payment
         return PaymentProcessor::managePaymentResult($paymentResult, $paymentContext);
     }
-    
+
     /**
      * Process payment failure webhook
      */
@@ -144,11 +144,11 @@ abstract class WebhookProcessor
         if ($trace) {
             $trace->update(['status' => PaymentTraceStatusEnum::FAILED->value]);
         }
-        
+
         // Extract payable information
         $payableId = $metadata['payable_id'] ?? null;
         $payableType = $metadata['payable_type'] ?? null;
-        
+
         if ($payableId && $payableType) {
             $payable = $this->loadPayable($payableType, $payableId);
             if ($payable && method_exists($payable, 'onPaymentFailed')) {
@@ -159,52 +159,52 @@ abstract class WebhookProcessor
                 ]);
             }
         }
-        
+
         return response()->json(['message' => 'Failure processed'], 200);
     }
-    
+
     /**
      * Check if webhook was already processed
      */
     protected function isAlreadyProcessed(string $webhookId): bool
     {
         $cacheKey = "webhook:processed:{$this->getProviderCode()}:{$webhookId}";
-        
+
         // Check cache first (faster)
         if (Cache::has($cacheKey)) {
             return true;
         }
-        
+
         // Check database
         $exists = WebhookEvent::where('provider_code', $this->getProviderCode())
             ->where('webhook_id', $webhookId)
             ->exists();
-            
+
         if ($exists) {
             // Cache for 24 hours to speed up future checks
             Cache::put($cacheKey, true, 86400);
         }
-        
+
         return $exists;
     }
-    
+
     /**
      * Record webhook in database
      */
     protected function recordWebhook(string $webhookId, array $payload): void
     {
-        $webhookEvent = new WebhookEvent;
+        $webhookEvent = new WebhookEvent();
         $webhookEvent->provider_code = $this->getProviderCode();
         $webhookEvent->webhook_id = $webhookId;
         $webhookEvent->payload = $payload;
         $webhookEvent->processed_at = now();
         $webhookEvent->save();
-        
+
         // Cache for 24 hours
         $cacheKey = "webhook:processed:{$this->getProviderCode()}:{$webhookId}";
         Cache::put($cacheKey, true, 86400);
     }
-    
+
     /**
      * Load payable model
      */
@@ -214,10 +214,10 @@ abstract class WebhookProcessor
             Log::error('Invalid payable type', ['type' => $payableType]);
             return null;
         }
-        
+
         return app($payableType)->find($payableId);
     }
-    
+
     /**
      * Determine if error is non-recoverable
      */
@@ -227,22 +227,22 @@ abstract class WebhookProcessor
         return $e instanceof \InvalidArgumentException ||
                $e instanceof \RuntimeException && Str::contains($e->getMessage(), 'not found');
     }
-    
+
     /**
      * Get provider code
      */
     abstract protected function getProviderCode(): string;
-    
+
     /**
      * Extract webhook ID from request
      */
     abstract protected function extractWebhookId(Request $request): string;
-    
+
     /**
      * Verify webhook signature
      */
     abstract protected function verifySignature(Request $request): bool;
-    
+
     /**
      * Process the webhook event based on type
      */

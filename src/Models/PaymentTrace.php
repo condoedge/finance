@@ -24,7 +24,7 @@ class PaymentTrace extends Model
         'status' => PaymentTraceStatusEnum::class,
         'payment_method_id' => PaymentMethodEnum::class,
     ];
-    
+
     // RELATIONS
     public function payable()
     {

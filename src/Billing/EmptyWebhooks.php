@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Billing;
 
-use Illuminate\Http\Client\Request;
 use Illuminate\Routing\Router;
 
 trait EmptyWebhooks

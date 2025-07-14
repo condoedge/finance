@@ -9,29 +9,19 @@ use Condoedge\Finance\Billing\PaymentProcessor;
 use Condoedge\Finance\Billing\PaymentProviderRegistry;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
-use Condoedge\Finance\Database\Factories\GlAccountFactory;
-use Condoedge\Finance\Database\Factories\InvoiceFactory;
-use Condoedge\Finance\Database\Factories\PaymentTermFactory;
-use Condoedge\Finance\Facades\InvoiceService;
-use Condoedge\Finance\Facades\PaymentGatewayResolver;
 use Condoedge\Finance\Facades\PaymentProcessor as PaymentProcessorFacade;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\CustomerPayment;
-use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\HistoricalCustomer;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\InvoiceTypeEnum;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTrace;
 use Condoedge\Finance\Models\PaymentTraceStatusEnum;
-use Tests\Mocks\MockPaymentGateway;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
 use Kompo\Auth\Database\Factories\UserFactory;
+use Tests\Mocks\MockPaymentGateway;
 use Tests\Unit\Billing\PaymentTestCase;
 
 /**
@@ -40,7 +30,6 @@ use Tests\Unit\Billing\PaymentTestCase;
  */
 class PaymentIntegrationTest extends PaymentTestCase
 {
-
     private PaymentProcessor $processor;
     private PaymentProviderRegistry $registry;
     private DefaultPaymentGatewayResolver $resolver;
@@ -90,7 +79,7 @@ class PaymentIntegrationTest extends PaymentTestCase
         $invoice = $this->createTestInvoice(250.00);
 
         // Make invoice implement FinancialPayableInterface
-        $invoice = new class($invoice) extends Invoice implements FinancialPayableInterface {
+        $invoice = new class ($invoice) extends Invoice implements FinancialPayableInterface {
             private Invoice $invoice;
             public array $events = [];
 
@@ -262,7 +251,7 @@ class PaymentIntegrationTest extends PaymentTestCase
     {
         // Create payable
         $customer = CustomerFactory::new()->create();
-        $invoice = $this->createTestInvoice( 100.00);
+        $invoice = $this->createTestInvoice(100.00);
 
         // Configure mock for network timeout
         $this->mockGateway->simulateScenario('network_timeout');
@@ -384,11 +373,12 @@ class PaymentIntegrationTest extends PaymentTestCase
         $customer = CustomerFactory::new()->create();
         $invoice = $this->createTestInvoice(150.00);
 
-        $failingPayable = new class($invoice, $customer) implements FinancialPayableInterface {
+        $failingPayable = new class ($invoice, $customer) implements FinancialPayableInterface {
             public function __construct(
                 private Invoice $invoice,
                 private Customer $customer
-            ) {}
+            ) {
+            }
 
             public function getPayableId(): int
             {
@@ -440,7 +430,9 @@ class PaymentIntegrationTest extends PaymentTestCase
                 throw new \RuntimeException('Simulated post-processing failure');
             }
 
-            public function onPaymentFailed(array $errorData): void {}
+            public function onPaymentFailed(array $errorData): void
+            {
+            }
         };
 
         $this->mockGateway->setShouldSucceed(true);
@@ -472,8 +464,10 @@ class PaymentIntegrationTest extends PaymentTestCase
 
     private function wrapInvoiceAsPayable(Invoice $invoice): FinancialPayableInterface
     {
-        return new class($invoice) implements FinancialPayableInterface {
-            public function __construct(private Invoice $invoice) {}
+        return new class ($invoice) implements FinancialPayableInterface {
+            public function __construct(private Invoice $invoice)
+            {
+            }
 
             public function getPayableId(): int
             {
@@ -519,8 +513,12 @@ class PaymentIntegrationTest extends PaymentTestCase
             {
                 return $this->invoice->customer;
             }
-            public function onPaymentSuccess(CustomerPayment $payment): void {}
-            public function onPaymentFailed(array $errorData): void {}
+            public function onPaymentSuccess(CustomerPayment $payment): void
+            {
+            }
+            public function onPaymentFailed(array $errorData): void
+            {
+            }
         };
     }
 }

@@ -1,7 +1,7 @@
 <?php
+
 namespace Condoedge\Finance\Billing;
 
-use Illuminate\Http\Client\Request;
 use Illuminate\Routing\Router;
 use Kompo\Elements\BaseElement;
 
@@ -21,13 +21,14 @@ interface PaymentGatewayInterface
      * Execute payment
      *
      * @param PaymentContext $context
+     *
      * @return mixed
      */
     public function processPayment(PaymentContext $context): PaymentResult;
 
     public function getPaymentForm(PaymentContext $context): ?BaseElement;
-    
-    
+
+
     /**
      * Get supported payment methods
      */

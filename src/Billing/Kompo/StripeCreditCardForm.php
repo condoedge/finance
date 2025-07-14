@@ -11,7 +11,7 @@ class StripeCreditCardForm extends Form
         $stripeJs = file_get_contents(__DIR__ . '/../../../resources/js/stripe.js');
         $stripeJs = str_replace('{{STRIPE_PUBLIC_KEY}}', config('kompo-finance.services.stripe.api_key'), $stripeJs);
 
-        $this->onLoad(fn($e) => $e->run('() => {
+        $this->onLoad(fn ($e) => $e->run('() => {
             ' . $stripeJs . '
             
             activateStripe();

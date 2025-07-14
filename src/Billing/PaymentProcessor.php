@@ -65,7 +65,7 @@ class PaymentProcessor implements PaymentProcessorInterface
     {
         return DB::transaction(function () use ($context) {
             $result = null;
-            
+
             try {
                 $gateway = PaymentGatewayResolver::resolve($context);
                 $result = $gateway->processPayment($context);

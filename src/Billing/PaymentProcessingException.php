@@ -2,12 +2,11 @@
 
 namespace Condoedge\Finance\Billing;
 
-use Condoedge\Finance\Billing\PaymentContext;
-use Condoedge\Finance\Billing\PaymentResult;
 use Exception;
 use Illuminate\Validation\ValidationException;
 
-class PaymentProcessingException extends Exception {
+class PaymentProcessingException extends Exception
+{
     public function __construct(
         public readonly PaymentContext $context,
         public readonly ?PaymentResult $result,
@@ -17,7 +16,7 @@ class PaymentProcessingException extends Exception {
         if ($previous instanceof ValidationException) {
             throw $previous; // Re-throw the validation exception to be handled by the caller
         }
-        
+
         parent::__construct($message, 0, $previous);
     }
 }

@@ -14,13 +14,11 @@ class PaymentCanadianBankForm extends Form
             _Alert('translate.finance-bank-account-authorization-notice')
                 ->icon('information-circle')
                 ->class('mb-4'),
-                
             _Input('translate.finance-account-holder-name')
                 ->name('account_holder_name')
                 ->placeholder('John Doe')
                 ->rules('required|string|min:2')
                 ->class('mb-2'),
-                
             _ValidatedInput('translate.finance-transit-number')
                 ->name('transit_number')
                 ->placeholder('12345')
@@ -28,7 +26,6 @@ class PaymentCanadianBankForm extends Form
                 ->validate('^[0-9]{5}$')
                 ->class('mb-2')
                 ->hint('translate.finance-transit-number-hint'),
-                
             _ValidatedInput('translate.finance-institution-number')
                 ->name('institution_number')
                 ->placeholder('001')
@@ -36,7 +33,6 @@ class PaymentCanadianBankForm extends Form
                 ->validate('^[0-9]{3}$')
                 ->class('mb-2')
                 ->hint('translate.finance-institution-number-hint'),
-                
             _ValidatedInput('translate.finance-account-number')
                 ->name('account_number')
                 ->placeholder('1234567890')
@@ -44,7 +40,6 @@ class PaymentCanadianBankForm extends Form
                 ->validate('^[0-9]{7,12}$')
                 ->class('mb-2')
                 ->hint('translate.finance-account-number-hint'),
-                
             _Checkbox('translate.finance-authorize-debit')
                 ->name('authorize_debit')
                 ->rules('required|accepted')
@@ -52,7 +47,7 @@ class PaymentCanadianBankForm extends Form
                 ->label('translate.finance-i-authorize-debit-from-account')
         );
     }
-    
+
     public function rules()
     {
         return [

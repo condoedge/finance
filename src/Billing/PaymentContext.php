@@ -1,4 +1,5 @@
 <?php
+
 namespace Condoedge\Finance\Billing;
 
 use Condoedge\Finance\Models\PaymentMethodEnum;
@@ -12,8 +13,9 @@ class PaymentContext
         public readonly ?string $returnUrl = null,
         public readonly ?string $cancelUrl = null,
         public readonly array $metadata = [],
-    ) {}
-    
+    ) {
+    }
+
     public function toProviderMetadata(): array
     {
         return array_merge(

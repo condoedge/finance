@@ -23,5 +23,5 @@ class WebhookEvent extends Model
     public function setPayloadAttribute($value)
     {
         $this->attributes['payload'] = json_encode($value);
-    }    
+    }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace Condoedge\Finance\Billing;
 
 enum PaymentActionEnum: string
@@ -18,7 +19,7 @@ enum PaymentActionEnum: string
     {
         return match ($this) {
             self::REDIRECT => _Rows(
-                _Hidden()->onLoad(fn($e) => $e->run('() => {
+                _Hidden()->onLoad(fn ($e) => $e->run('() => {
                     utils.setLoadingScreen();
 
                     window.location.href = "' . $result->redirectUrl . '";

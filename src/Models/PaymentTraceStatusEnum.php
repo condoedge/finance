@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-enum PaymentTraceStatusEnum: int 
+enum PaymentTraceStatusEnum: int
 {
     use \Kompo\Models\Traits\EnumKompo;
 

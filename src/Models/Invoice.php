@@ -195,7 +195,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     /* SCOPES */
     public function scopeForTeam($query, $teamId)
     {
-        return $query->whereHas('customer', fn($q) => $q->forTeam($teamId));
+        return $query->whereHas('customer', fn ($q) => $q->forTeam($teamId));
     }
 
     public function scopeForCustomer($query, $customerId)
@@ -387,7 +387,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         ]));
     }
 
-    public function getPayableAmount(): SafeDecimal 
+    public function getPayableAmount(): SafeDecimal
     {
         return $this->invoice_due_amount;
     }
@@ -405,12 +405,12 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         });
     }
 
-    public function getPaymentDescription(): string 
+    public function getPaymentDescription(): string
     {
         return __('invoice.payment.description', ['invoice_id' => $this->id]);
     }
 
-    public function getTeamId(): int 
+    public function getTeamId(): int
     {
         return $this->customer?->team_id ?? 0;
     }
