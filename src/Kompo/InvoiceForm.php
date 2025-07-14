@@ -66,7 +66,7 @@ class InvoiceForm extends Form
             )->class('mb-6'),
 
             _Columns(
-                $this->model->id ? null : _Select('finance-invoice-type')
+                $this->model->id ? null : _Select('finance-transaction-type')
                     ->name('invoice_type_id')
                     ->options(InvoiceTypeEnum::optionsWithLabels()),
                 $this->model->id ? null : _Flex(
