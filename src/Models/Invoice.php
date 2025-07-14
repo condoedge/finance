@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Models;
 
 use App\Models\User;
 use Carbon\Carbon;
-use Condoedge\Finance\Billing\FinancialPayableInterface;
+use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceGenerated;
@@ -66,7 +66,7 @@ use Kompo\Auth\Models\Teams\Team;
 class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterface
 {
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
-    use \Condoedge\Finance\Billing\PayableTrait;
+    use \Condoedge\Finance\Billing\Traits\PayableTrait;
     // use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
 
     protected $table = 'fin_invoices';

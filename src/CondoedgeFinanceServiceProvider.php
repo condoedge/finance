@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance;
 
-use Condoedge\Finance\Billing\PaymentProviderRegistry;
+use Condoedge\Finance\Billing\Core\PaymentProviderRegistry;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;
@@ -311,14 +311,14 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
 
         // PAYMENT PROCESSORS
         $this->app->bind(
-            \Condoedge\Finance\Billing\PaymentProcessorInterface::class,
-            \Condoedge\Finance\Billing\PaymentProcessor::class
+            \Condoedge\Finance\Billing\Contracts\PaymentProcessorInterface::class,
+            \Condoedge\Finance\Billing\Core\PaymentProcessor::class
         );
 
         // Register the Payment Gateway Resolver
         $this->app->bind(
-            \Condoedge\Finance\Billing\PaymentGatewayResolverInterface::class,
-            \Condoedge\Finance\Billing\DefaultPaymentGatewayResolver::class
+            \Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface::class,
+            \Condoedge\Finance\Billing\Core\Resolver\DefaultPaymentGatewayResolver::class
         );
 
         $this->app->singleton(PaymentProviderRegistry::class);

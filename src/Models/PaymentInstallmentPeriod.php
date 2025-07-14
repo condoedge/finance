@@ -2,8 +2,8 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
 use Condoedge\Finance\Billing\PayableInterface;
-use Condoedge\Finance\Billing\PayableTrait;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Illuminate\Support\Collection;
@@ -24,9 +24,9 @@ use Illuminate\Support\Facades\DB;
  * @property PaymentInstallPeriodStatusEnum $status The status of this installment period.
  * @property-read Invoice $invoice
  */
-class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements PayableInterface
+class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements FinancialPayableInterface
 {
-    use PayableTrait;
+    use \Condoedge\Finance\Billing\Traits\PayableTrait;
 
     protected $table = 'fin_payment_installment_periods';
 

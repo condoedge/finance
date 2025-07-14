@@ -1,7 +1,7 @@
 <?php
 
-use Condoedge\Finance\Billing\BnaPaymentProvider;
-use Condoedge\Finance\Billing\StripePaymentProvider;
+use Condoedge\Finance\Billing\Providers\Bna\BnaPaymentProvider;
+use Condoedge\Finance\Billing\Providers\Stripe\StripePaymentProvider;
 use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 

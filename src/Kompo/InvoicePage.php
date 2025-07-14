@@ -6,10 +6,14 @@ use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Kompo\PaymentTerms\PaymentInstallmentPeriodsTable;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
+use Condoedge\Finance\Models\Invoice;
 use Kompo\Form;
 
 class InvoicePage extends Form
 {
+    /**
+     * @var Invoice
+     */
     public $model = InvoiceModel::class;
 
     protected $bigClass = 'text-xl font-medium text-level1';
@@ -111,7 +115,7 @@ class InvoicePage extends Form
                 )
             )->class('mb-4 p-6 bg-white rounded-2xl'),
 
-            _Rows(
+            !$this->model->installmentsPeriods->count() ? null : _Rows(
                 _TitleMini('finance-payment-period-installments')->class('uppercase text-greenmain opacity-70'),
                 _Rows(
                     new PaymentInstallmentPeriodsTable([
@@ -154,25 +158,15 @@ class InvoicePage extends Form
 
     public function getApplyPaymentToInvoiceModal()
     {
-        return new PaymentForm([
+        return new PaymentForm(null, [
             'customer_id' => $this->model->customer_id,
             'invoice_id' => $this->model->id,
         ]);
     }
 
-    public function getSendingModal()
-    {
-        return new ContributionSendingSingleModal($this->model->id);
-    }
-
     public function getMissingInfoToApproveModal()
     {
         return new SelectMissingInfoInvoice($this->model->id);
-    }
-
-    public function getLateInterestModal()
-    {
-        return new LateInterestModal($this->model->id);
     }
 
     public function getPaymentEntryForm()

@@ -2,13 +2,13 @@
 
 namespace Condoedge\Finance\Facades;
 
-use Condoedge\Finance\Billing\PaymentGatewayResolverInterface;
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface;
 
 /**
  * Payment Gateway Facade
  *
  *
- * @mixin \Condoedge\Finance\Billing\PaymentGatewayResolverInterface
+ * @mixin \Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface
  */
 class PaymentGatewayResolver extends \Illuminate\Support\Facades\Facade
 {

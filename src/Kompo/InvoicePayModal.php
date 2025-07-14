@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Billing\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\PaymentProcessor;
@@ -140,7 +140,7 @@ class InvoicePayModal extends Form
                 ->closeModal()
                 ->closeModal()
                 ->refresh('dashboard-view')
-
+                ->run('() => {utils.removeLoadingScreen()}')
                 ->alert('finance-paid-successfully')
         );
     }
