@@ -33,11 +33,18 @@ class StripePaymentProvider implements PaymentGatewayInterface
     
     public function __construct()
     {
-        $this->stripe = new StripeClient([
-            'api_key' => config('kompo-finance.services.stripe.secret_key'),
-        ]);
-        
         $this->webhookSecret = config('kompo-finance.services.stripe.webhook_secret');
+
+        $apiKey = config('kompo-finance.services.stripe.secret_key');
+
+        if (!$apiKey) {
+            Log::critical('Stripe API key is not configured.');
+            return;
+        }
+
+        $this->stripe = new StripeClient([
+            'api_key' => $apiKey,
+        ]);
     }
     
     public function getCode(): string

@@ -206,7 +206,7 @@ class StripeWebhookProcessor extends WebhookProcessor
         
         $this->processPaymentFailure(
             $transactionId,
-            'Payment was canceled',
+            __('translate.payment-canceled'),
             $metadata,
             [
                 'stripe_status' => 'canceled',
