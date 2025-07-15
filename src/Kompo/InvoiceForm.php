@@ -44,7 +44,7 @@ class InvoiceForm extends Form
         $this->refreshId = $this->prop('refresh_id');
 
         // In modals is not loading the js method so we need to run it manually
-        $this->onLoad(fn($e) => $e->run('() => {
+        $this->onLoad(fn ($e) => $e->run('() => {
             '.financeScriptFile() . '
         }'));
     }
@@ -149,8 +149,8 @@ class InvoiceForm extends Form
                     )->class('relative p-6 bg-white rounded-2xl'),
                     _FlexEnd(
                         _SubmitButton('finance-save')
-                            ->when($this->modalDesign, fn($e) => $e->closeModal())
-                            ->when($this->refreshId, fn($e) => $e->refresh($this->refreshId)),
+                            ->when($this->modalDesign, fn ($e) => $e->closeModal())
+                            ->when($this->refreshId, fn ($e) => $e->refresh($this->refreshId)),
                     ),
                 )->class('w-96'),
             ),
