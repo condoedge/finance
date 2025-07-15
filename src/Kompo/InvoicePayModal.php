@@ -32,14 +32,19 @@ class InvoicePayModal extends Form
 
     public function handle()
     {
-        $result = InvoiceService::payInvoice(new PayInvoiceDto([
-            'pay_next_installment' => true, // If there is a payment installment, it will pay just it, if not it will pay the whole invoice
-            'invoice_id' => $this->model->id,
-            'payment_method_id' => $this->model->payment_method_id ?? request('payment_method_id'),
-            'payment_term_id' => $this->model->payment_term_id ?? request('payment_term_id'),
-            'address' => parsePlaceFromRequest('address1'),
-            'request_data' => request()->all()
-        ]));
+        try {
+            $result = InvoiceService::payInvoice(new PayInvoiceDto([
+                'pay_next_installment' => true, // If there is a payment installment, it will pay just it, if not it will pay the whole invoice
+                'invoice_id' => $this->model->id,
+                'payment_method_id' => $this->model->payment_method_id ?? request('payment_method_id'),
+                'payment_term_id' => $this->model->payment_term_id ?? request('payment_term_id'),
+                'address' => parsePlaceFromRequest('address1'),
+                'request_data' => request()->all()
+            ]));
+        } catch (\Exception $e) {
+            abort(400, __('error-payment-failed'));
+        }
+
 
         if ($result->isPending) {
             return $result->executeActionIntoKompoPanel();
