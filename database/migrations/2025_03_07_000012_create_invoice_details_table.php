@@ -19,7 +19,7 @@ class CreateInvoiceDetailsTable extends Migration
             $table->foreignId('product_id')->nullable()->constrained('fin_products');
             $table->unsignedInteger('quantity');
             $table->string('name');
-            $table->string('description');
+            $table->string('description')->nullable();
             $table->decimal('unit_price', 19, config('kompo-finance.decimal-scale'));
             $table->decimal('extended_price', 19, config('kompo-finance.decimal-scale'))->storedAs('quantity * unit_price');
 
