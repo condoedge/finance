@@ -9,9 +9,13 @@ trait TermSelectorTrait
 {
     protected function getPaymentTermsSelector($selectPaymentTermId = null)
     {
+        $paymentTermTypes = PaymentTerm::distinct()->pluck('term_type');
+
         return _Rows(
             _Select('finance-payment-terms')->name('payment_term_type', false)
-            ->options(PaymentTermTypeEnum::optionsWithLabels())
+            ->options(collect(PaymentTermTypeEnum::cases())->filter(fn($enum) => $paymentTermTypes->contains($enum))
+                ->mapWithKeys(fn($enum) => [$enum->value => $enum->label()])->all()
+            )
             ->default($selectPaymentTermId)
             ->selfGet('getPaymentTerms')->inPanel('payment-terms-panel')
             ->class('mb-2'),

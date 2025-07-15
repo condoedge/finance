@@ -279,9 +279,9 @@ class InvoiceService implements InvoiceServiceInterface
     protected function createInvoiceDetails(Invoice $invoice, array $detailsData): void
     {
         foreach ($detailsData as $detail) {
-            InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail($detail + [
+            InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail(array_merge($detail, [
                 'invoice_id' => $invoice->id,
-            ]));
+            ])));
         }
     }
 

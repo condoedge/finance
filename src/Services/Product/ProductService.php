@@ -107,7 +107,7 @@ class ProductService implements ProductServiceInterface
     {
         $product = Product::findOrFail($productId);
 
-        return [
+        return array_filter([
             'invoiceable_type' => 'product',
             'invoiceable_id' => $product->id,
             'name' => $product->product_name,
@@ -118,7 +118,7 @@ class ProductService implements ProductServiceInterface
             'taxesIds' => $product->taxes_ids ?: [],
             'invoice_id' => $invoice ? $invoice->id : null,
             'product_id' => $product->id,
-        ];
+        ]);
     }
 
     /**
