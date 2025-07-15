@@ -18,7 +18,7 @@ class CreateOrUpdateInvoiceDetail extends ValidatedDTO
     public ?int $id;
     public int $invoice_id;
     public string $name;
-    public string $description;
+    public ?string $description;
     public int $quantity;
     public SafeDecimal $unit_price;
 
