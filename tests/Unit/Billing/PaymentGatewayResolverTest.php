@@ -2,12 +2,12 @@
 
 namespace Condoedge\Finance\Tests\Unit\Billing;
 
-use Condoedge\Finance\Billing\DefaultPaymentGatewayResolver;
-use Condoedge\Finance\Billing\PayableInterface;
-use Condoedge\Finance\Billing\PaymentContext;
-use Condoedge\Finance\Billing\PaymentGatewayInterface;
-use Condoedge\Finance\Billing\PaymentProviderRegistry;
-use Condoedge\Finance\Billing\StripePaymentProvider;
+use Condoedge\Finance\Billing\Core\Resolver\DefaultPaymentGatewayResolver;
+use Condoedge\Finance\Billing\Contracts\PayableInterface;
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Core\PaymentProviderRegistry;
+use Condoedge\Finance\Billing\Providers\Stripe\StripePaymentProvider;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Tests\Mocks\MockPaymentGateway;

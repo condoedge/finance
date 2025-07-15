@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Billing;
 
-use Condoedge\Finance\Billing\PayableInterface;
-use Condoedge\Finance\Billing\PaymentContext;
+use Condoedge\Finance\Billing\Contracts\PayableInterface;
+use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Mockery;

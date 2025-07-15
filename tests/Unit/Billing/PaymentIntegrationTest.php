@@ -2,11 +2,11 @@
 
 namespace Condoedge\Finance\Tests\Unit\Billing;
 
-use Condoedge\Finance\Billing\DefaultPaymentGatewayResolver;
-use Condoedge\Finance\Billing\FinancialPayableInterface;
-use Condoedge\Finance\Billing\PaymentContext;
-use Condoedge\Finance\Billing\PaymentProcessor;
-use Condoedge\Finance\Billing\PaymentProviderRegistry;
+use Condoedge\Finance\Billing\Core\Resolver\DefaultPaymentGatewayResolver;
+use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentProcessor;
+use Condoedge\Finance\Billing\Core\PaymentProviderRegistry;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Facades\PaymentProcessor as PaymentProcessorFacade;

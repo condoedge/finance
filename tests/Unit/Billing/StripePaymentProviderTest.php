@@ -2,9 +2,9 @@
 
 namespace Condoedge\Finance\Tests\Unit\Billing;
 
-use Condoedge\Finance\Billing\PayableInterface;
+use Condoedge\Finance\Billing\Contracts\PayableInterface;
 use Condoedge\Finance\Billing\PaymentActionEnum;
-use Condoedge\Finance\Billing\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Billing\PaymentResult;
 use Condoedge\Finance\Billing\StripePaymentProvider;
 use Condoedge\Finance\Casts\SafeDecimal;

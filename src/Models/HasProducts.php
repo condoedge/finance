@@ -2,6 +2,8 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Casts\SafeDecimal;
+
 trait HasProducts
 {
     public function products()
@@ -20,7 +22,7 @@ trait HasProducts
         return $this->products()->countInTotal()->get();
     }
 
-    public function createOrUpdateCost($type, $amount, $name = '')
+    public function createOrUpdateCost(ProductTypeEnum $type, SafeDecimal $amount, string $name = '')
     {
         return Product::createOrUpdateCost($this, $type, $amount, $name);
     }

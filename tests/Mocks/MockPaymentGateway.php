@@ -2,7 +2,7 @@
 
 namespace Tests\Mocks;
 
-use Condoedge\Finance\Billing\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Billing\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\PaymentResult;
 use Condoedge\Finance\Models\PaymentMethodEnum;

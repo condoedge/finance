@@ -32,8 +32,8 @@ class UpdateInvoiceDto extends ValidatedDTO
             'invoice_date' => 'nullable|date',
             // 'invoice_due_date' => 'required|date|after_or_equal:invoice_date',
 
-            'possible_payment_methods' => 'required_without:payment_method_id|array',
-            'possible_payment_terms' => 'required_without:payment_term_id|array',
+            'possible_payment_methods' => 'nullable|array',
+            'possible_payment_terms' => 'nullable|array',
 
             'customer_id' => 'prohibited',
             'invoice_type_id' => 'prohibited',
