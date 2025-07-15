@@ -42,7 +42,15 @@ class PaymentProcessor implements PaymentProcessorInterface
                     'payment_trace_id' => $paymentTrace->id,
                 ]));
 
-                $payable->onPaymentSuccess($payment);
+                try {
+                    $payable->onPaymentSuccess($payment);
+                } catch (\Exception $e) {
+                    Log::critical('Error executing onPaymentSuccess', [
+                        'error' => $e->getMessage(),
+                        'payable_type' => get_class($payable),
+                        'payable_id' => $payable->getPayableId(),
+                    ]);
+                }
             } else {
                 $this->managePaymentTrace($context, $result, PaymentTraceStatusEnum::FAILED);
 
