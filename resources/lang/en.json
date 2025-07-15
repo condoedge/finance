@@ -654,6 +654,7 @@
 	"finance-payment-number": "Payment number",
 	"finance-payment-period-installments": "Payment period installments",
 	"finance-payment-processing": "Processing",
+	"finance-payment-processing-failed": "Payment processing failed",
 	"finance-payment-term": "Payment term",
 	"finance-payment-term-form": "Payment term management",
 	"finance-payment-term-required": "Payment term required",
@@ -927,6 +928,7 @@
 	"validation-custom-finance-invoice-draft": "Draft",
 	"validation-customable-address-required": "Address required",
 	"validation-customer-address-must-be-complete": "Address must be complete",
+	"validation-payment-term-required": "Payment term required",
 	"validation-with-values-transaction-must-balance": "Transaction must balance<br>Credit: :credit<br>Debit: :debit",
 	"with-values-you-have-values-with-the-wrong-length-in": "Wrong length values in this segment: :segment"
 }
