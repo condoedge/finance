@@ -74,8 +74,8 @@ class EnsureInvoiceEventsAreProcessed extends Command
                 }
             });
         });
-            
-            
+
+
         $this->info('Integrity check completed successfully!');
     }
 }

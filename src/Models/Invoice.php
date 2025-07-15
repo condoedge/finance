@@ -350,7 +350,6 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     /**
      * In some payments terms net x we need to execute a function before the first payment or when the invoice is considered as initial paid.
-     * @return void
      */
     public function onConsideredAsInitialPaid()
     {
