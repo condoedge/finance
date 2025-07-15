@@ -27,11 +27,11 @@ enum PaymentMethodEnum: int
     public function label(): string
     {
         return match($this) {
-            self::CASH => __('finance-cash'),
-            self::CHECK => __('finance-check'),
             self::CREDIT_CARD => __('finance-credit-card'),
             self::BANK_TRANSFER => __('finance-bank-transfer'),
             self::INTERAC => __('finance-interac'),
+            self::CASH => __('finance-cash'),
+            self::CHECK => __('finance-check'),
         };
     }
 
@@ -41,11 +41,11 @@ enum PaymentMethodEnum: int
     public function code(): string
     {
         return match($this) {
-            self::CASH => 'CASH',
-            self::CHECK => 'CHECK',
             self::CREDIT_CARD => 'CC',
             self::BANK_TRANSFER => 'WIRE',
             self::INTERAC => 'INTERAC',
+            self::CASH => 'CASH',
+            self::CHECK => 'CHECK',
         };
     }
 
