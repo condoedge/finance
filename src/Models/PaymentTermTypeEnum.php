@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Models;
 use Carbon\Carbon;
 use Condoedge\Finance\Facades\PaymentTermService;
 use Condoedge\Finance\Models\Dto\PaymentTerms\CreatePaymentInstallmentPeriodsDto;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Kompo\Elements\BaseElement;
 
 enum PaymentTermTypeEnum: int
@@ -124,7 +125,7 @@ enum PaymentTermTypeEnum: int
     protected function getPreviewInstallments($invoice, ?array $settings)
     {
         if (!$invoice->installmentsPeriods->isEmpty()) {
-            $installments = $invoice->installmentsPeriods->map(fn ($ip) => [
+            $installments = $invoice->installmentsPeriods->map(fn($ip) => [
                 'installment_number' => $ip->installment_number,
                 'amount' => $ip->amount,
                 'due_date' => $ip->due_date,
@@ -139,7 +140,7 @@ enum PaymentTermTypeEnum: int
                     'invoice_id' => $invoice->id,
                     'dry_run' => true, // Use dry_run to avoid actual DB insertion
                 ])
-            ))->map(fn ($i) => (new PaymentInstallmentPeriod())->forceFill($i));
+            ))->map(fn($i) => (new PaymentInstallmentPeriod())->forceFill($i));
         }
 
         return $installments->map(function ($period) {
@@ -153,7 +154,7 @@ enum PaymentTermTypeEnum: int
     }
 
     public function consideredAsInitialPaid(Invoice $invoice): bool
-    {   
+    {
         return match ($this) {
             self::COD => false,
             self::NET => true,
@@ -161,14 +162,15 @@ enum PaymentTermTypeEnum: int
         };
     }
 
-    public function consideredAsInitialPaidScope(Builder $query): Builder
+    public function consideredAsInitialPaidScope(EloquentBuilder $query): EloquentBuilder
     {
         return match ($this) {
             self::COD => $query->whereRaw('1 = 0'), // No COD invoices can be considered as initially paid
             self::NET => $query,
             self::INSTALLMENT => $query->whereHas('installmentsPeriods', function ($q) {
                 $q->where('installment_number', 1)
-                  ->where('status', PaymentInstallPeriodStatusEnum::PAID);
+                    ->where('status', PaymentInstallPeriodStatusEnum::PAID);
             }),
         };
+    }
 }
