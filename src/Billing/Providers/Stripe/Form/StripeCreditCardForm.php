@@ -23,7 +23,7 @@ class StripeCreditCardForm extends Form
         return _Rows(
             _FlexBetween(
                 _Html('finance-stripe-secure-tag')->icon(_Sax('lock-1', 16))->class('text-xs flex font-medium'),
-                _Img('images/vendor/kompo-finance/powered-by-stripe.svg')->class('w-24'),
+                _Img(asset('images/vendor/kompo-finance/powered-by-stripe.svg'))->class('w-24'),
             )->class('mb-4'),
             _Input()->name('complete_name')->class('mb-4')->placeholder('finance-cardholders-name'),
             _Html()->class('vlInputWrapper p-4')->id('card-element'),
