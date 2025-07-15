@@ -46,6 +46,10 @@ class PaymentTermService implements PaymentTermServiceInterface
         $invoice->save();
 
         $paymentTerm->term_type->manageNewPaymentTermIntoInvoice($invoice, $paymentTerm->settings);
+
+        if ($paymentTerm->consideredAsInitialPaid($invoice)) {
+            $invoice->onConsideredAsInitialPaid();
+        }
     }
 
     public function createPaymentInstallmentPeriods(CreatePaymentInstallmentPeriodsDto $dto)

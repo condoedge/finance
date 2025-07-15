@@ -53,4 +53,9 @@ class PaymentTerm extends AbstractMainFinanceModel
     {
         return true;
     }
+
+    public function consideredAsInitialPaid(Invoice $invoice): bool
+    {
+        return $this->term_type->consideredAsInitialPaid($invoice);
+    }
 }

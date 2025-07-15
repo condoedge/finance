@@ -151,4 +151,24 @@ enum PaymentTermTypeEnum: int
             )->class('pb-2 border-bottom border-gray-200');
         });
     }
+
+    public function consideredAsInitialPaid(Invoice $invoice): bool
+    {   
+        return match ($this) {
+            self::COD => false,
+            self::NET => true,
+            self::INSTALLMENT => $invoice->installmentsPeriods()->orderBy('installment_number')->first()?->status == PaymentInstallPeriodStatusEnum::PAID,
+        };
+    }
+
+    public function consideredAsInitialPaidScope(Builder $query): Builder
+    {
+        return match ($this) {
+            self::COD => $query->whereRaw('1 = 0'), // No COD invoices can be considered as initially paid
+            self::NET => $query,
+            self::INSTALLMENT => $query->whereHas('installmentsPeriods', function ($q) {
+                $q->where('installment_number', 1)
+                  ->where('status', PaymentInstallPeriodStatusEnum::PAID);
+            }),
+        };
 }

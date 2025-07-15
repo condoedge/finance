@@ -13,4 +13,8 @@ interface InvoiceableInterface
      * Called when the invoice is partially paid.
      */
     public function onPartialPayment(): void;
+
+    public function onConsideredAsInitialPaid(): void;
+
+    public function onOverdue(): void;
 }

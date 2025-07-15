@@ -348,6 +348,46 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         });
     }
 
+    /**
+     * In some payments terms net x we need to execute a function before the first payment or when the invoice is considered as initial paid.
+     * @return void
+     */
+    public function onConsideredAsInitialPaid()
+    {
+        if ($this->considered_as_initial_paid_at) {
+            return;
+        }
+
+        DB::transaction(function () {
+            $this->considered_as_initial_paid_at = now();
+            $this->saveQuietly();
+
+            if (!$this->checkInvoiceable()) {
+                return;
+            }
+
+            $this->invoiceable?->onConsideredAsInitialPaid();
+        });
+    }
+
+    public function onOverdue()
+    {
+        if ($this->overdue_managed_at) {
+            return;
+        }
+
+        DB::transaction(function () {
+            $this->overdue_managed_at = now();
+            $this->saveQuietly();
+
+            if (!$this->checkInvoiceable()) {
+                return;
+            }
+
+            $this->invoiceable?->onOverdue();
+        });
+    }
+
     public function setPrimaryBillingAddress($addressId)
     {
         return null;
