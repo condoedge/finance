@@ -143,7 +143,7 @@ class InvoicePayModal extends Form
                 ->refresh('dashboard-view')
                 ->run('() => {utils.removeLoadingScreen()}')
                 ->alert('finance-paid-successfully')
-                ->onError(fn ($e) => $e->run('() => {utils.removeLoadingScreen()}')->closeModal())
+                ->onError(fn ($e) => $e->inAlert()->run('() => {utils.removeLoadingScreen()}')->closeModal())
         );
     }
 

@@ -59,7 +59,7 @@ class PaymentProcessor implements PaymentProcessorInterface
 
             return $result;
         } catch (\Exception $e) {
-            Log::error('Payment processing failed', ['error' => $e->getMessage()]);
+            Log::error('Payment processing failed', ['error' => $e->getMessage(), 'trace' => $e->getTrace()]);
             throw new PaymentProcessingException($context, $result, __('error-payment-processing-failed'), $e);
         }
     }
