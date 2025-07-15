@@ -15,8 +15,8 @@ use Condoedge\Utils\Kompo\Common\Form;
 
 class InvoicePayModal extends Form
 {
-    public $class = 'overflow-y-auto mini-scroll max-w-2xl min-w-[400px]';
-    public $style = 'max-height: 95vh';
+    public $class = 'overflow-y-auto mini-scroll max-w-lg';
+    public $style = 'max-height: 95vh; height: 95vh; width: 98vw;';
 
     /**
      * @var Invoice
