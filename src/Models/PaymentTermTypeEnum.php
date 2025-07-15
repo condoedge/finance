@@ -125,7 +125,7 @@ enum PaymentTermTypeEnum: int
     protected function getPreviewInstallments($invoice, ?array $settings)
     {
         if (!$invoice->installmentsPeriods->isEmpty()) {
-            $installments = $invoice->installmentsPeriods->map(fn($ip) => [
+            $installments = $invoice->installmentsPeriods->map(fn ($ip) => [
                 'installment_number' => $ip->installment_number,
                 'amount' => $ip->amount,
                 'due_date' => $ip->due_date,
@@ -140,7 +140,7 @@ enum PaymentTermTypeEnum: int
                     'invoice_id' => $invoice->id,
                     'dry_run' => true, // Use dry_run to avoid actual DB insertion
                 ])
-            ))->map(fn($i) => (new PaymentInstallmentPeriod())->forceFill($i));
+            ))->map(fn ($i) => (new PaymentInstallmentPeriod())->forceFill($i));
         }
 
         return $installments->map(function ($period) {
