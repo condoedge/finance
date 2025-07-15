@@ -125,7 +125,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
         $paymentIntent = $this->createPaymentIntent($context);
 
         // Confirm the payment intent
-        $confirmedIntent = $this->confirmPaymentIntent($paymentIntent, $context->paymentData['payment_method_id']);
+        $confirmedIntent = $this->confirmPaymentIntent($paymentIntent, $context->paymentData['stripe_payment_method_id']);
 
         // Handle the result based on status
         return $this->handlePaymentIntentResult($confirmedIntent);
@@ -463,7 +463,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
     {
         $validator = Validator::make($data, [
             'complete_name' => 'required|string|min:3|max:255',
-            'payment_method_id' => 'required|string',
+            'stripe_payment_method_id' => 'required|string',
         ]);
 
         if ($validator->fails()) {

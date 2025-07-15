@@ -27,7 +27,7 @@ class StripeCreditCardForm extends Form
             )->class('mb-4'),
             _Input()->name('complete_name')->class('mb-4')->placeholder('finance-cardholders-name'),
             _Html()->class('vlInputWrapper p-4')->id('card-element'),
-            _Hidden('payment_method_id', false)->id('payment_method_id'),
+            _Hidden('stripe_payment_method_id', false)->id('stripe_payment_method_id'),
         );
     }
 }

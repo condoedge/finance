@@ -85,6 +85,7 @@ class InvoicePayModal extends Form
                     _CanadianPlace(),
             )->class('p-6'),
             _SubmitButton('finance.pay')
+                ->onError(fn($e) => $e->run('() => {utils.removeLoadingScreen()}')->closeModal())
                 ->id('pay-button')
                 ->inPanel('after-pay-invoice')
                 ->class('w-full'),
