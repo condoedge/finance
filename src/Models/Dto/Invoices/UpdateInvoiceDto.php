@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Models\Dto\Invoices;
 
 use Carbon\Carbon;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
+use Illuminate\Contracts\Validation\Validator;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -31,8 +32,8 @@ class UpdateInvoiceDto extends ValidatedDTO
             'invoice_date' => 'nullable|date',
             // 'invoice_due_date' => 'required|date|after_or_equal:invoice_date',
 
-            'possible_payment_methods' => 'nullable|array',
-            'possible_payment_terms' => 'nullable|array',
+            'possible_payment_methods' => 'required_without:payment_method_id|array',
+            'possible_payment_terms' => 'required_without:payment_term_id|array',
 
             'customer_id' => 'prohibited',
             'invoice_type_id' => 'prohibited',
@@ -78,5 +79,12 @@ class UpdateInvoiceDto extends ValidatedDTO
             // 'possible_payment_methods' => [],
             // 'possible_payment_terms' => [],
         ];
+    }
+
+    public function after(Validator $validator): void
+    {
+        if ($validator->errors()->has('payment_term_id') || $validator->errors()->has('possible_payment_terms')) {
+            $validator->errors()->add('payment_term_type', __('translate.payment-term-required'));
+        }
     }
 }
