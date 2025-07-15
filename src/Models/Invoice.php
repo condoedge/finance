@@ -195,7 +195,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     /* SCOPES */
     public function scopeForTeam($query, $teamId)
     {
-        return $query->whereHas('customer', fn($q) => $q->forTeam($teamId));
+        return $query->whereHas('customer', fn ($q) => $q->forTeam($teamId));
     }
 
     public function scopeForCustomer($query, $customerId)

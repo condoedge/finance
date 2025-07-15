@@ -8,7 +8,6 @@ use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
 use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Utils\Facades\GlobalConfig;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
