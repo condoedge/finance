@@ -85,7 +85,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
                 ),
             };
         } catch (ApiErrorException $e) {
-            Log::error('Stripe API error', [
+            Log::warning('Stripe API error', [
                 'error' => $e->getMessage(),
                 'code' => $e->getStripeCode(),
                 'context' => [
