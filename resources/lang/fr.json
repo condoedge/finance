@@ -654,6 +654,7 @@
 	"finance-payment-number": "Numéro de paiement",
 	"finance-payment-period-installments": "Paiements échelonnés",
 	"finance-payment-processing": "En traitement",
+	"finance-payment-processing-failed": "Le traitement du paiement a échoué",
 	"finance-payment-term": "Terme de paiement",
 	"finance-payment-term-form": "Gestion des termes de paiement",
 	"finance-payment-term-required": "Terme de paiement requis",
@@ -927,6 +928,7 @@
 	"validation-custom-finance-invoice-draft": "Brouillon",
 	"validation-customable-address-required": "Adresse requise",
 	"validation-customer-address-must-be-complete": "L'adresse doit être complète",
+	"validation-payment-term-required": "Terme de paiement requis",
 	"validation-with-values-transaction-must-balance": "La transaction doit être balancée<br>Crédit : :credit<br>Débit : :debit",
 	"with-values-you-have-values-with-the-wrong-length-in": "Valeurs de longueur incorrectes dans ce segment : :segment"
 }

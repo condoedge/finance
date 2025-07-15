@@ -84,7 +84,7 @@ class UpdateInvoiceDto extends ValidatedDTO
     public function after(Validator $validator): void
     {
         if ($validator->errors()->has('payment_term_id') || $validator->errors()->has('possible_payment_terms')) {
-            $validator->errors()->add('payment_term_type', __('translate.payment-term-required'));
+            $validator->errors()->add('payment_term_type', __('validation-payment-term-required'));
         }
     }
 }

@@ -40,7 +40,7 @@ class SelectMissingInfoInvoice extends Modal
                 ->default($this->model->address),
             _SubmitButton('finance-save-and-approve')
                 ->closeModal()
-                ->alert('translate.invoice-approved'),
+                ->alert('finance-invoice-approved'),
         );
     }
 }

@@ -45,7 +45,7 @@ class PaymentTermsTable extends WhiteTable
             ),
             _TripleDotsDropdown(
                 _Link('finance-edit')->selfGet('getPaymentTermForm', ['id' => $term->id])->inModal(),
-                _DeleteLink('translate.finance-delete')->byKey($term)->class('text-red-600 hover:text-red-800'),
+                _DeleteLink('finance-delete')->byKey($term)->class('text-red-600 hover:text-red-800'),
             )
         );
     }
