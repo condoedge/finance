@@ -35,11 +35,22 @@ class PaymentTerm extends AbstractMainFinanceModel
         return $this->term_type->preview($invoice, $this->settings);
     }
 
+    // SCOPES
+    public function scopeCod($query)
+    {
+        return $query->where('term_type', PaymentTermTypeEnum::COD);
+    }
+
     // ACTIONS
     public function calculateDueDate(string|Carbon $invoiceDate): \DateTime
     {
         $settings = $this->settings ?? [];
 
         return $this->term_type->calculateDueDate(carbon($invoiceDate), $settings);
+    }
+
+    public function deletable()
+    {
+        return true;
     }
 }

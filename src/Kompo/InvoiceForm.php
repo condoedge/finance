@@ -27,21 +27,42 @@ class InvoiceForm extends Form
     protected $customerTypePanelId = 'customer-type-panel';
 
     protected $team;
+    protected $modalDesign;
+    protected $refreshId;
 
     public function created()
     {
         $this->team = currentTeam();
+
+        $this->modalDesign = $this->prop('modal_design');
+
+        if ($this->modalDesign) {
+            $this->class('p-8 overflow-y-auto mini-scroll');
+            $this->style('max-height: 90vh;');
+        }
+
+        $this->refreshId = $this->prop('refresh_id');
+
+        // In modals is not loading the js method so we need to run it manually
+        $this->onLoad(fn($e) => $e->run('() => {
+            '.financeScriptFile() . '
+        }'));
     }
 
     public function handle(InvoiceServiceInterface $invoiceService)
     {
         $invoiceData = parseDataWithMultiForm('invoiceDetails');
+        $invoiceData = $this->parsePossiblePaymentMethods($invoiceData);
 
         $dtoInvoiceData = $this->model->id ?
             new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]) :
             new CreateInvoiceDto($invoiceData);
 
         $this->model($invoiceService->upsertInvoice($dtoInvoiceData));
+
+        if ($this->modalDesign) {
+            return null;
+        }
 
         return $this->response();
     }
@@ -55,15 +76,15 @@ class InvoiceForm extends Form
     {
         return [
             _FlexBetween(
-                _Breadcrumbs(
+                $this->modalDesign ? _Html('finance-edit')->class('text-2xl font-semibold') : _Breadcrumbs(
                     _BackLink('finance-all-receivables')->href('invoices.list'),
                     _Html('finance-edit'),
                 ),
-                _FlexEnd4(
+                $this->modalDesign ? null : _FlexEnd4(
                     $this->model->id ? _DeleteLink('finance-delete')->outlined()->byKey($this->model)->redirect('invoices.table') : null,
                     _SubmitButton('finance-save'),
                 )
-            )->class('mb-6'),
+            )->class('mb-6 gap-8'),
 
             _Columns(
                 $this->model->id ? null : _Select('finance-invoice-type')
@@ -88,12 +109,7 @@ class InvoiceForm extends Form
                 _MultiSelect('finance-payment-types')
                     ->name('possible_payment_methods')
                     ->options(PaymentMethodEnum::optionsWithLabels()),
-                $this->getPaymentTermsSelector(),
-
-                // _MultiSelect('finance-payment-terms')
-                //     ->name('possible_payment_terms')
-                //     ->options(PaymentTerm::pluck('term_name', 'id')->all()),
-                // _Date('finance-due-date')->name('invoice_due_date')->default(date('Y-m-d')),
+                $this->getPaymentTermsSelector($this->model->paymentTerm?->term_type),
             ),
 
             _MultiForm()->noLabel()->name('invoiceDetails')
@@ -132,11 +148,28 @@ class InvoiceForm extends Form
                         _TaxesInfoLink()->class('left-4 bottom-6'),
                     )->class('relative p-6 bg-white rounded-2xl'),
                     _FlexEnd(
-                        _SubmitButton('finance-save'),
+                        _SubmitButton('finance-save')
+                            ->when($this->modalDesign, fn($e) => $e->closeModal())
+                            ->when($this->refreshId, fn($e) => $e->refresh($this->refreshId)),
                     ),
                 )->class('w-96'),
             ),
         ];
+    }
+
+    protected function parsePossiblePaymentMethods($requestData = null)
+    {
+        $requestData = $requestData ?: request()->all();
+
+        if (!isset($requestData['possible_payment_terms'])) {
+            return $requestData;
+        }
+
+        $requestData['possible_payment_terms'] = !is_array($requestData['possible_payment_terms']) ?
+            [$requestData['possible_payment_terms']] :
+            $requestData['possible_payment_terms'];
+
+        return $requestData;
     }
 
     public function js()

@@ -62,8 +62,9 @@ class InvoiceDetailForm extends Form
                 )->class('gap-3'),
                 _FlexBetween(
                     _Flex(
-                        _TaxesSelect($this->invoice, 'taxesIds')
-                            ->class('w-60 !mb-0 mt-2'),
+                        _TaxesSelect($this->model, 'taxesIds')
+                            ->class('w-60 !mb-0 mt-2')
+                            ->run('calculateTotals'),
                         _FlexEnd(
                             _TaxesInfoLink()->class('left-0 top-1 ml-1'),
                             _Rows(

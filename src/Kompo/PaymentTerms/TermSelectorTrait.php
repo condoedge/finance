@@ -7,14 +7,17 @@ use Condoedge\Finance\Models\PaymentTermTypeEnum;
 
 trait TermSelectorTrait
 {
-    protected function getPaymentTermsSelector()
+    protected function getPaymentTermsSelector($selectPaymentTermId = null)
     {
         return _Rows(
             _Select('finance-payment-terms')->name('payment_term_type', false)
             ->options(PaymentTermTypeEnum::optionsWithLabels())
+            ->default($selectPaymentTermId)
             ->selfGet('getPaymentTerms')->inPanel('payment-terms-panel')
             ->class('mb-2'),
-            _Panel()->id('payment-terms-panel')
+            _Panel(
+                $this->getPaymentTerms($selectPaymentTermId)
+            )->id('payment-terms-panel')
         );
     }
 
@@ -24,7 +27,7 @@ trait TermSelectorTrait
             return null;
         }
 
-        $paymentTermType = PaymentTermTypeEnum::tryFrom($paymentTermType);
+        $paymentTermType = is_numeric($paymentTermType) ? PaymentTermTypeEnum::tryFrom($paymentTermType) : $paymentTermType;
         $element = null;
 
         if ($paymentTermType == PaymentTermTypeEnum::COD) {

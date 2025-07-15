@@ -31,7 +31,7 @@ function calculateTotals(){
     $('#tax-summary').html('');
 
     Object.entries(taxes).forEach(function([taxId, amount]){
-        taxElement = $('#tax-summary').find('[data-id='+taxId+']');
+        let taxElement = $('#tax-summary').find('[data-id='+taxId+']');
 
         if (!taxElement.first().length) {
             const template = $('#template_currency_format_cols').clone();
@@ -186,3 +186,5 @@ function checkAllCheckboxes(){
     	})
     }, 50)
 }
+
+window.calculateTotals = calculateTotals

@@ -60,15 +60,17 @@ if (!function_exists('_AccountsSelect')) {
 }
 
 if (!function_exists('_TaxesSelect')) {
-    function _TaxesSelect($invoice = null, $name = 'taxes_ids')
+    function _TaxesSelect($invoiceDetail = null, $name = 'taxes_ids')
     {
-        $taxesOptions = TaxModel::active()->get()->pluck('complete_label_html', 'id')->union($invoice?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
+        $invoice = $invoiceDetail?->invoice;
+
+        $taxesOptions = TaxModel::active()->get()->pluck('complete_label_html', 'id')->union($invoiceDetail?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
             fn ($it) => [$it->tax->id => $it->complete_label_html]
         ));
 
         return	_MultiSelect()->placeholder('taxes')
             ->name($name)
-            ->default($invoice?->id ? $invoice->invoiceTaxes()->pluck('tax_id') : InvoiceService::getDefaultTaxesIds($invoice))
+            ->default($invoiceDetail?->id ? $invoiceDetail->invoiceTaxes()->pluck('tax_id') : InvoiceService::getDefaultTaxesIds($invoice))
             ->options($taxesOptions);
     }
 }
