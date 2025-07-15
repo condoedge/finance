@@ -195,7 +195,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     /* SCOPES */
     public function scopeForTeam($query, $teamId)
     {
-        return $query->whereHas('customer', fn ($q) => $q->forTeam($teamId));
+        return $query->whereHas('customer', fn($q) => $q->forTeam($teamId));
     }
 
     public function scopeForCustomer($query, $customerId)
@@ -317,17 +317,23 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         if ($this->complete_payment_managed_at) {
             return;
         }
+        try {
+            DB::transaction(function () {
 
-        DB::transaction(function () {
-            $this->complete_payment_managed_at = now();
-            $this->saveQuietly();
+                $this->complete_payment_managed_at = now();
+                $this->saveQuietly();
 
-            if (!$this->checkInvoiceable()) {
-                return;
-            }
+                if (!$this->checkInvoiceable()) {
+                    return;
+                }
 
-            $this->invoiceable?->onCompletePayment();
-        });
+                $this->invoiceable?->onCompletePayment();
+            });
+        } catch (\Exception $e) {
+            Log::error('Error managing complete payment for invoice ID: ' . $this->id, [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function onPartialPayment()
@@ -335,17 +341,22 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         if ($this->partial_payment_managed_at) {
             return;
         }
+        try {
+            DB::transaction(function () {
+                $this->partial_payment_managed_at = now();
+                $this->saveQuietly();
 
-        DB::transaction(function () {
-            $this->partial_payment_managed_at = now();
-            $this->saveQuietly();
+                if (!$this->checkInvoiceable()) {
+                    return;
+                }
 
-            if (!$this->checkInvoiceable()) {
-                return;
-            }
-
-            $this->invoiceable?->onPartialPayment();
-        });
+                $this->invoiceable?->onPartialPayment();
+            });
+        } catch (\Exception $e) {
+            Log::error('Error managing partial payment for invoice ID: ' . $this->id, [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -357,16 +368,23 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
             return;
         }
 
-        DB::transaction(function () {
-            $this->considered_as_initial_paid_at = now();
-            $this->saveQuietly();
+        try {
+            DB::transaction(function () {
 
-            if (!$this->checkInvoiceable()) {
-                return;
-            }
+                $this->considered_as_initial_paid_at = now();
+                $this->saveQuietly();
 
-            $this->invoiceable?->onConsideredAsInitialPaid();
-        });
+                if (!$this->checkInvoiceable()) {
+                    return;
+                }
+
+                $this->invoiceable?->onConsideredAsInitialPaid();
+            });
+        } catch (\Exception $e) {
+            Log::error('Error managing initial paid state for invoice ID: ' . $this->id, [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function onOverdue()
@@ -375,16 +393,22 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
             return;
         }
 
-        DB::transaction(function () {
-            $this->overdue_managed_at = now();
-            $this->saveQuietly();
+        try {
+            DB::transaction(function () {
+                $this->overdue_managed_at = now();
+                $this->saveQuietly();
 
-            if (!$this->checkInvoiceable()) {
-                return;
-            }
+                if (!$this->checkInvoiceable()) {
+                    return;
+                }
 
-            $this->invoiceable?->onOverdue();
-        });
+                $this->invoiceable?->onOverdue();
+            });
+        } catch (\Exception $e) {
+            Log::error('Error managing overdue state for invoice ID: ' . $this->id, [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function setPrimaryBillingAddress($addressId)
