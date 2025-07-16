@@ -20,7 +20,8 @@ trait MorphManyChargeablesSelect
     {
         $products = ProductModel::search($search)
             ->forTeam()
-            ->pluck('product_name', 'id');
+            ->pluck('product_name', 'id')
+            ->unique();
 
         return collect([
             -2 => _Html('finance-create-an-unique-item-sale')->class('text-greenmain font-medium text-opacity-75'),
