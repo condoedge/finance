@@ -2,9 +2,9 @@
 
 namespace Tests\Mocks;
 
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\Core\PaymentContext;
-use Condoedge\Finance\Billing\PaymentGatewayInterface;
-use Condoedge\Finance\Billing\PaymentResult;
+use Condoedge\Finance\Billing\Core\PaymentResult;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Routing\Router;
 use Kompo\Elements\BaseElement;
@@ -40,7 +40,7 @@ class MockPaymentGateway implements PaymentGatewayInterface
                 transactionId: $this->responseData['transactionId'] ?? 'MOCK-PENDING-' . uniqid(),
                 amount: $context->payable->getPayableAmount()->toFloat(),
                 paymentProviderCode: $this->getCode(),
-                metadata: array_merge($context->metadata, $this->responseData['metadata'] ?? []),
+                metadata: $context->toProviderMetadata(),
                 redirectUrl: $this->redirectUrl
             );
         }
@@ -57,7 +57,7 @@ class MockPaymentGateway implements PaymentGatewayInterface
             transactionId: $this->responseData['transactionId'] ?? 'MOCK-SUCCESS-' . uniqid(),
             amount: $this->responseData['amount'] ?? $context->payable->getPayableAmount()->toFloat(),
             paymentProviderCode: $this->getCode(),
-            metadata: array_merge($context->metadata, $this->responseData['metadata'] ?? [])
+            metadata: $context->toProviderMetadata(),
         );
     }
 

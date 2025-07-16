@@ -10,9 +10,10 @@ use Condoedge\Finance\Billing\Core\Resolver\DefaultPaymentGatewayResolver;
 use Condoedge\Finance\Billing\Providers\Stripe\StripePaymentProvider;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Models\PaymentMethodEnum;
-use Condoedge\Finance\Tests\Mocks\MockPaymentGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Mockery\Mock;
+use Tests\Mocks\MockPaymentGateway;
 use Tests\TestCase;
 
 class PaymentGatewayResolverTest extends TestCase
@@ -36,9 +37,12 @@ class PaymentGatewayResolverTest extends TestCase
             ->andReturn([PaymentMethodEnum::CREDIT_CARD, PaymentMethodEnum::BANK_TRANSFER]);
 
         // Create registry and register gateways
+        config(['kompo-finance.payment_providers' => [
+            MockPaymentGateway::class,
+            StripePaymentProvider::class,
+        ]]);
+
         $this->registry = new PaymentProviderRegistry();
-        $this->registry->register($this->mockGateway);
-        $this->registry->register($this->stripeGateway);
 
         // Create resolver
         $this->resolver = new DefaultPaymentGatewayResolver($this->registry);
@@ -95,7 +99,7 @@ class PaymentGatewayResolverTest extends TestCase
 
         // Assert
         $this->assertIsArray($availableGateways);
-        $this->assertCount(2, $availableGateways); // mock and stripe both support credit card
+        $this->assertCount(2, $availableGateways); // only mock supports credit card
 
         $codes = array_map(fn ($gateway) => $gateway->getCode(), $availableGateways);
         $this->assertContains('mock_gateway', $codes);

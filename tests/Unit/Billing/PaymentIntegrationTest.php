@@ -12,7 +12,6 @@ use Condoedge\Finance\Database\Factories\CustomerFactory;
 use Condoedge\Finance\Facades\PaymentProcessor as PaymentProcessorFacade;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\CustomerPayment;
-use Condoedge\Finance\Models\HistoricalCustomer;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTrace;
@@ -148,7 +147,7 @@ class PaymentIntegrationTest extends PaymentTestCase
                 return $this->invoice->customer->name ?? 'Test Customer';
             }
 
-            public function getCustomer(): Customer|HistoricalCustomer
+            public function getCustomer(): Customer
             {
                 return $this->invoice->customer;
             }
@@ -420,7 +419,7 @@ class PaymentIntegrationTest extends PaymentTestCase
             {
                 return 'Test';
             }
-            public function getCustomer(): Customer|HistoricalCustomer
+            public function getCustomer(): Customer
             {
                 return $this->customer;
             }
@@ -509,7 +508,7 @@ class PaymentIntegrationTest extends PaymentTestCase
             {
                 return 'Test Customer';
             }
-            public function getCustomer(): Customer|HistoricalCustomer
+            public function getCustomer(): Customer
             {
                 return $this->invoice->customer;
             }
