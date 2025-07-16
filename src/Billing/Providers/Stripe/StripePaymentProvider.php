@@ -157,7 +157,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
         $paymentMethod = $this->createAcssPaymentMethod($context);
 
         // Confirm the payment intent
-        $confirmedIntent = $this->confirmPaymentIntent($paymentIntent, $paymentMethod);
+        $confirmedIntent = $this->confirmPaymentIntent($paymentIntent, $paymentMethod->id);
 
         // Handle the result
         return $this->handlePaymentIntentResult($confirmedIntent);
@@ -361,15 +361,20 @@ class StripePaymentProvider implements PaymentGatewayInterface
             case PaymentIntent::STATUS_REQUIRES_ACTION:
                 // Handle 3D Secure or other authentication required
                 $nextAction = $paymentIntent->next_action;
-                $type = $nextAction->type;
+                $type = $nextAction ? $nextAction->type : null;
                 $redirectUrl = null;
 
                 switch ($type) {
                     case 'verify_with_microdeposits':
-                        $redirectUrl = $nextAction->verify_with_microdeposits->hosted_verification_url;
+                        $redirectUrl = $nextAction->verify_with_microdeposits->hosted_verification_url ?? null;
+                        break;
+                    case 'redirect_to_url':
+                        $redirectUrl = $nextAction->redirect_to_url->url ?? null;
                         break;
                     default:
-                        Log::warning('Unknown next action type', ['type' => $type]);
+                        if ($type) {
+                            Log::warning('Unknown next action type', ['type' => $type]);
+                        }
                         $redirectUrl = null;
                 }
 

@@ -47,7 +47,7 @@ class UpdateInvoiceDto extends ValidatedDTO
              * @example null
              */
             'invoiceDetails.*.id' => 'nullable|integer|exists:fin_invoice_details,id',
-            'invoiceDetails.*.description' => 'required|string|max:255',
+            'invoiceDetails.*.description' => 'nullable|string|max:255',
             'invoiceDetails.*.quantity' => 'required|integer|min:1',
             'invoiceDetails.*.unit_price' => 'required|numeric|min:0',
             'invoiceDetails.*.revenue_account_id' => 'required_without:invoiceDetails.*.revenue_natural_account_id|integer|exists:fin_gl_accounts,id',

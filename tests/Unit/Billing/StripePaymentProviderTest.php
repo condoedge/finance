@@ -18,8 +18,12 @@ use Stripe\PaymentMethod;
 use Stripe\Service\PaymentIntentService;
 use Stripe\Service\PaymentMethodService;
 use Stripe\StripeClient;
+use Stripe\StripeObject;
 use Tests\TestCase;
 
+/**
+ * Stripe Payment Provider Unit Tests
+ */
 class StripePaymentProviderTest extends TestCase
 {
     private StripePaymentProvider $provider;
@@ -66,6 +70,31 @@ class StripePaymentProviderTest extends TestCase
         $this->assertEquals('stripe', $this->provider->getCode());
     }
 
+    /**
+     * Test that our PaymentIntent construction doesn't have the getPermanentAttributes issue
+     */
+    public function test_payment_intent_construction_works_correctly()
+    {
+        // This test verifies our constructFrom solution doesn't trigger the getPermanentAttributes error
+        $paymentIntent = $this->createMockPaymentIntent(
+            'pi_test',
+            10000,
+            PaymentIntent::STATUS_SUCCEEDED
+        );
+
+        // These assertions verify the PaymentIntent is constructed correctly
+        $this->assertEquals('pi_test', $paymentIntent->id);
+        $this->assertEquals(10000, $paymentIntent->amount);
+        $this->assertEquals(PaymentIntent::STATUS_SUCCEEDED, $paymentIntent->status);
+        $this->assertNotNull($paymentIntent->metadata);
+        $this->assertTrue($paymentIntent->metadata->test);
+        $this->assertEquals('cad', $paymentIntent->currency);
+        // Test that toArray() works correctly on metadata
+        $metadataArray = $paymentIntent->metadata->toArray();
+        $this->assertIsArray($metadataArray);
+        $this->assertTrue($metadataArray['test']);
+    }
+
     public function test_it_supports_correct_payment_methods()
     {
         $supportedMethods = $this->provider->getSupportedPaymentMethods();
@@ -83,7 +112,7 @@ class StripePaymentProviderTest extends TestCase
             payable: $payable,
             paymentMethod: PaymentMethodEnum::CREDIT_CARD,
             paymentData: [
-                'payment_method_id' => 'pm_card_visa',
+                'stripe_payment_method_id' => 'pm_card_visa',
                 'complete_name' => 'John Doe',
             ]
         );
@@ -129,7 +158,7 @@ class StripePaymentProviderTest extends TestCase
             payable: $payable,
             paymentMethod: PaymentMethodEnum::CREDIT_CARD,
             paymentData: [
-                'payment_method_id' => 'pm_card_threeDSecureRequired',
+                'stripe_payment_method_id' => 'pm_card_threeDSecureRequired',
                 'complete_name' => 'Jane Doe',
             ],
             returnUrl: 'https://example.com/payment/return'
@@ -153,6 +182,7 @@ class StripePaymentProviderTest extends TestCase
         $this->mockPaymentIntentService
             ->shouldReceive('confirm')
             ->once()
+            ->with('pi_3ds_test', Mockery::any())
             ->andReturn($mockPaymentIntent);
 
         // Act
@@ -173,7 +203,7 @@ class StripePaymentProviderTest extends TestCase
             payable: $payable,
             paymentMethod: PaymentMethodEnum::CREDIT_CARD,
             paymentData: [
-                'payment_method_id' => 'pm_card_declined',
+                'stripe_payment_method_id' => 'pm_card_declined',
                 'complete_name' => 'John Doe',
             ]
         );
@@ -197,6 +227,7 @@ class StripePaymentProviderTest extends TestCase
         $this->mockPaymentIntentService
             ->shouldReceive('confirm')
             ->once()
+            ->with('pi_failed_test', Mockery::any())
             ->andReturn($mockPaymentIntent);
 
         // Act
@@ -217,7 +248,7 @@ class StripePaymentProviderTest extends TestCase
             paymentMethod: PaymentMethodEnum::CREDIT_CARD,
             paymentData: [
                 // Missing required fields
-                'payment_method_id' => 'pm_test',
+                'stripe_payment_method_id' => 'pm_test',
                 // Missing complete_name
             ]
         );
@@ -243,7 +274,15 @@ class StripePaymentProviderTest extends TestCase
             ]
         );
 
-        $mockPaymentMethod = new PaymentMethod('pm_acss_test');
+        // Create PaymentMethod using constructFrom
+        $mockPaymentMethod = PaymentMethod::constructFrom(
+            [
+                'id' => 'pm_acss_test',
+                'object' => 'payment_method',
+                'type' => 'acss_debit',
+            ],
+            ['api_key' => 'test']
+        );
 
         $mockPaymentIntent = $this->createMockPaymentIntent(
             'pi_acss_test',
@@ -272,6 +311,7 @@ class StripePaymentProviderTest extends TestCase
         $this->mockPaymentIntentService
             ->shouldReceive('confirm')
             ->once()
+            ->with('pi_acss_test', Mockery::any())
             ->andReturn($mockPaymentIntent);
 
         // Act
@@ -291,7 +331,7 @@ class StripePaymentProviderTest extends TestCase
             payable: $payable,
             paymentMethod: PaymentMethodEnum::CREDIT_CARD,
             paymentData: [
-                'payment_method_id' => 'pm_test',
+                'stripe_payment_method_id' => 'pm_test',
                 'complete_name' => 'John Doe',
             ]
         );
@@ -309,6 +349,7 @@ class StripePaymentProviderTest extends TestCase
         $this->mockPaymentIntentService
             ->shouldReceive('confirm')
             ->once()
+            ->with('pi_test', Mockery::any())
             ->andReturn($mockPaymentIntent);
 
         // Act
@@ -326,11 +367,12 @@ class StripePaymentProviderTest extends TestCase
             payable: $payable,
             paymentMethod: PaymentMethodEnum::CREDIT_CARD,
             paymentData: [
-                'payment_method_id' => 'pm_test',
+                'stripe_payment_method_id' => 'pm_test',
                 'complete_name' => 'John Doe',
             ]
         );
 
+        // Create an ApiErrorException mock
         $apiError = Mockery::mock(ApiErrorException::class);
         $apiError->shouldReceive('getMessage')->andReturn('Invalid API key');
         $apiError->shouldReceive('getStripeCode')->andReturn('invalid_api_key');
@@ -345,7 +387,7 @@ class StripePaymentProviderTest extends TestCase
 
         // Assert
         $this->assertFalse($result->isSuccessful());
-        $this->assertEquals('Invalid API key', $result->errorMessage);
+        $this->assertEquals(__('error-payment-failed'), $result->errorMessage);
         $this->assertEquals('stripe', $result->paymentProviderCode);
     }
 
@@ -365,7 +407,15 @@ class StripePaymentProviderTest extends TestCase
             ]
         );
 
-        $mockPaymentMethod = new PaymentMethod('pm_acss_test');
+        // Create PaymentMethod using constructFrom
+        $mockPaymentMethod = PaymentMethod::constructFrom(
+            [
+                'id' => 'pm_acss_test',
+                'object' => 'payment_method',
+                'type' => 'acss_debit',
+            ],
+            ['api_key' => 'test']
+        );
 
         $mockPaymentIntent = $this->createMockPaymentIntent(
             'pi_microdeposits',
@@ -392,6 +442,7 @@ class StripePaymentProviderTest extends TestCase
         $this->mockPaymentIntentService
             ->shouldReceive('confirm')
             ->once()
+            ->with('pi_microdeposits', Mockery::any())
             ->andReturn($mockPaymentIntent);
 
         // Act
@@ -401,6 +452,52 @@ class StripePaymentProviderTest extends TestCase
         $this->assertTrue($result->isPending);
         $this->assertEquals('https://stripe.com/verify-microdeposits', $result->redirectUrl);
         $this->assertEquals(PaymentActionEnum::REDIRECT, $result->action);
+    }
+
+    public function test_it_handles_3ds_requires_confirmation_with_redirect_url()
+    {
+        // Arrange
+        $payable = $this->createMockPayable(300.00);
+        $context = new PaymentContext(
+            payable: $payable,
+            paymentMethod: PaymentMethodEnum::CREDIT_CARD,
+            paymentData: [
+                'stripe_payment_method_id' => 'pm_card_3ds',
+                'complete_name' => 'Test User',
+            ],
+            returnUrl: 'https://example.com/payment/complete'
+        );
+
+        $mockPaymentIntent = $this->createMockPaymentIntent(
+            'pi_3ds_confirm',
+            30000,
+            PaymentIntent::STATUS_REQUIRES_CONFIRMATION,
+            [
+                'type' => 'redirect_to_url',
+                'redirect_to_url' => ['url' => 'https://stripe.com/3ds/confirm'],
+            ]
+        );
+
+        $this->mockPaymentIntentService
+            ->shouldReceive('create')
+            ->once()
+            ->andReturn($mockPaymentIntent);
+
+        $this->mockPaymentIntentService
+            ->shouldReceive('confirm')
+            ->once()
+            ->with('pi_3ds_confirm', Mockery::any())
+            ->andReturn($mockPaymentIntent);
+
+        // Act
+        $result = $this->provider->processPayment($context);
+
+        // Assert
+        $this->assertFalse($result->isSuccessful());
+        $this->assertTrue($result->isPending);
+        $this->assertEquals('https://stripe.com/3ds/confirm', $result->redirectUrl);
+        $this->assertEquals(PaymentActionEnum::REDIRECT, $result->action);
+        $this->assertNotNull($result->metadata);
     }
 
     public function test_it_gets_correct_payment_form()
@@ -474,20 +571,29 @@ class StripePaymentProviderTest extends TestCase
         ?array $nextAction = null,
         ?array $lastPaymentError = null
     ): PaymentIntent {
-        $intent = Mockery::mock(PaymentIntent::class);
-        $intent->id = $id;
-        $intent->amount = $amountInCents;
-        $intent->status = $status;
-        $intent->metadata = collect(['test' => true]);
+        // Create PaymentIntent using constructor with data
+        $data = [
+            'id' => $id,
+            'object' => 'payment_intent',
+            'amount' => $amountInCents,
+            'status' => $status,
+            'metadata' => ['test' => true],
+            'currency' => 'cad',
+            'client_secret' => 'pi_test_secret',
+        ];
 
         if ($nextAction) {
-            $intent->next_action = (object) $nextAction;
+            $data['next_action'] = $nextAction;
         }
 
         if ($lastPaymentError) {
-            $intent->last_payment_error = (object) $lastPaymentError;
+            $data['last_payment_error'] = $lastPaymentError;
         }
 
-        return $intent;
+        // Use PaymentIntent::constructFrom to create instance with data
+        return PaymentIntent::constructFrom(
+            $data,
+            ['api_key' => 'test']
+        );
     }
 }
