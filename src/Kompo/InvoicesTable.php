@@ -18,20 +18,35 @@ class InvoicesTable extends WhiteTable
 
     public $perPage = 50;
 
+    protected $viewAsManager = true;
+
     public function created()
     {
         $this->teamId = currentTeamId();
 
-        Element::macro('gotoInvoice', function ($invoiceId) {
+        $viewAsManager = $this->viewAsManager;
+
+        Element::macro('gotoInvoice', function ($invoiceId) use ($viewAsManager) {
+            if (!$viewAsManager) {
+                return $this->selfGet('getInvoiceInfoModal', [
+                    'invoice_id' => $invoiceId,
+                ])->inModal();
+            }
+
             return $this->href('invoices.show', [
                 'id' => $invoiceId,
             ]);
         });
     }
 
+    protected function baseQuery()
+    {
+        return InvoiceModel::forTeam($this->teamId);
+    }
+
     public function query()
     {
-        $query = InvoiceModel::forTeam($this->teamId);
+        $query = $this->baseQuery();
 
         if (request('month_year')) {
             $query = $query->whereRaw('LEFT(invoice_date, 7) = ?', [request('month_year')]);
@@ -45,7 +60,7 @@ class InvoicesTable extends WhiteTable
         return _Rows(
             _FlexBetween(
                 _TitleMain('finance-receivables')->class('mb-4'),
-                _FlexEnd4(
+                !$this->viewAsManager ? null : _FlexEnd4(
                     _Dropdown('finance-actions')->togglerClass('vlBtn')->rIcon('icon-down')
                         ->content(
                             _DropdownLink('finance-new-transaction')
@@ -57,8 +72,8 @@ class InvoicesTable extends WhiteTable
                         ->class('relative z-10')
                 )->class('mb-4')
             )->class('flex-wrap'),
-            _FlexBetween(
-                _Dropdown('finance-grouped-action')->rIcon('icon-down')
+            _Flex(
+                !$this->viewAsManager ? null : _Dropdown('finance-grouped-action')->rIcon('icon-down')
                     ->togglerClass('vlBtn')->class('relative z-10 mb-4')
                     ->submenu(
                         // _DropdownLink('finance-record-payment')
@@ -69,15 +84,15 @@ class InvoicesTable extends WhiteTable
                             ->config(['withCheckedItemIds' => true])
                             ->browse(),
                     ),
-                _Flex(
+                _FlexEnd(
                     _Columns(
-                        _Select()->placeholder('finance-client')->name('customer_id')
+                        !$this->viewAsManager ? null : _Select()->placeholder('finance-client')->name('customer_id')
                             ->options(CustomerModel::forTeam($this->teamId)->pluck('name', 'id'))
                             ->filter(),
                         _Select()->placeholder('finance-filter-by-month')
                             ->name('month_year', false)
                             ->options(
-                                InvoiceModel::forTeam($this->teamId)
+                                $this->baseQuery()
                                     ->selectRaw("DATE_FORMAT(invoice_date, '%Y-%m') as value, DATE_FORMAT(invoice_date, '%M %Y') as label")->distinct()
                                     ->orderByDesc('value')
                                     ->pluck('label', 'value')
@@ -89,7 +104,7 @@ class InvoicesTable extends WhiteTable
                     ),
                     _ExcelExportButton(),
                 )->class('gap-4'),
-            )->alignCenter()
+            )->alignCenter()->class($this->viewAsManager ? '!justify-between' : '!justify-end w-full')
         );
     }
 
@@ -100,7 +115,7 @@ class InvoicesTable extends WhiteTable
             _Th('finance-date')->sort('invoice_date')->class('w-1/6'),
             _Th('finance-invoice-number')->sort('invoice_number')->class('w-1/6'),
             _Th('finance-type')->class('w-1/12'),
-            _Th('finance-client')->sort('customer_id')->class('w-1/4'),
+            !$this->viewAsManager ? null : _Th('finance-client')->sort('customer_id')->class('w-1/4'),
             _Th('finance-status')->sort('status')->class('w-1/6'),
             _Th('finance-amount-due')->class('text-right')->class('w-1/6'),
             _Th()->class('w-1/12'),
@@ -122,7 +137,7 @@ class InvoicesTable extends WhiteTable
                 _Html($invoice->invoice_reference)->class('group-hover:underline'),
             )->gotoInvoice($invoice->id),
             _Html($invoice->payment_method_label),
-            _Html($invoice->customer_label),
+            !$this->viewAsManager ? null : _Html($invoice->customer_label),
             $invoice->invoice_status_id->pill(),
             _Rows(
                 _FinanceCurrency($invoice->abs_invoice_due_amount),
@@ -170,18 +185,8 @@ class InvoicesTable extends WhiteTable
         ]));
     }
 
-    public function getPaymentPrepayInvoiceModal()
+    public function getInvoiceInfoModal($invoiceId)
     {
-        return new PaymentPrepayInvoiceModal();
-    }
-
-    public function getPaymentAllAccomptesModal()
-    {
-        return new PaymentAcompteAddForm();
-    }
-
-    public function getContributionSendingModal()
-    {
-        return new ContributionSendingModal();
+        return new InvoiceInfoModal($invoiceId);
     }
 }

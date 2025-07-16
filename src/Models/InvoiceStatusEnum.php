@@ -59,8 +59,18 @@ enum InvoiceStatusEnum: int
     public function canBePaid(): bool
     {
         return match ($this) {
-            self::PENDING, self::OVERDUE, self::PARTIAL => true,
+            self::PENDING, self::OVERDUE, self::PARTIAL, self::DRAFT => true,
             default => false,
         };
+    }
+
+    public static function allToBePaid(): array
+    {
+        return [
+            self::DRAFT,
+            self::OVERDUE,
+            self::PARTIAL,
+            self::PENDING,
+        ];
     }
 }
