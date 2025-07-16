@@ -66,7 +66,6 @@ class InvoiceDetailForm extends Form
                             ->class('w-60 !mb-0 mt-2')
                             ->run('calculateTotals'),
                         _FlexEnd(
-                            _TaxesInfoLink()->class('left-0 top-1 ml-1'),
                             _Rows(
                                 $this->model->invoiceTaxes()->get()->map(
                                     fn ($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate))

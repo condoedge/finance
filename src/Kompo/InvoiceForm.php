@@ -145,7 +145,6 @@ class InvoiceForm extends Form
                             )->values(),
                         )->id('tax-summary'),
                         _TotalFinanceCurrencyCols(__('finance-total'), 'finance-total', $this->model->invoice_total_amount)->class('!font-bold text-xl'),
-                        _TaxesInfoLink()->class('left-4 bottom-6'),
                     )->class('relative p-6 bg-white rounded-2xl'),
                     _FlexEnd(
                         _SubmitButton('finance-save')
@@ -182,11 +181,6 @@ class InvoiceForm extends Form
         return new CustomerForm(null, [
             'refresh_id' => 'select-customer',
         ]);
-    }
-
-    public function getTaxesInfoModal()
-    {
-        return new TaxesInfoModal();
     }
 
     protected function getDefaultPaymentTerms()
