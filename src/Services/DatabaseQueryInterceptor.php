@@ -47,7 +47,6 @@ class DatabaseQueryInterceptor
      */
     public function handleQueryExecuted(QueryExecuted $event): void
     {
-        HasSecurity::enterBypassContext();
         $sql = $event->sql;
         $bindings = $event->bindings;
 
@@ -71,6 +70,7 @@ class DatabaseQueryInterceptor
             $affectedIds = static::extractAffectedIds($sql, $bindings, $table, $operation);
 
             if (!empty($affectedIds)) {
+                HasSecurity::enterBypassContext();
                 // Trigger integrity checking
                 $this->observer->handleDatabaseChange($table, $operation, $affectedIds);
             }
