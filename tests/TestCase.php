@@ -8,7 +8,6 @@ use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Utils\CondoedgeUtilsServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Kompo\Auth\KompoAuthServiceProvider;
 use Kompo\KompoServiceProvider;
 

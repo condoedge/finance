@@ -18,7 +18,6 @@ use Stripe\PaymentMethod;
 use Stripe\Service\PaymentIntentService;
 use Stripe\Service\PaymentMethodService;
 use Stripe\StripeClient;
-use Stripe\StripeObject;
 use Tests\TestCase;
 
 /**
