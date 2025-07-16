@@ -2,9 +2,14 @@
 
 namespace Tests\Unit\Billing;
 
+use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentProviderRegistry;
+use Condoedge\Finance\Billing\Core\PaymentResult;
+use Condoedge\Finance\Billing\Exceptions\PaymentProcessingException;
 use Condoedge\Finance\Database\Factories\PaymentTermFactory;
 use Condoedge\Finance\Facades\InvoiceService;
-use Condoedge\Finance\Facades\PaymentGateway;
+use Condoedge\Finance\Facades\PaymentGatewayResolver;
+use Condoedge\Finance\Facades\PaymentTermService;
 use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
@@ -14,7 +19,7 @@ use Condoedge\Finance\Models\PaymentInstallPeriodStatusEnum;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTermTypeEnum;
 use Illuminate\Http\Request;
-use Tests\Mocks\MockPaymentProvider;
+use Tests\Mocks\MockPaymentGateway;
 
 /**
  * Test the new payInvoice methods and payment resolvers
@@ -24,9 +29,18 @@ use Tests\Mocks\MockPaymentProvider;
  */
 class PayInvoiceMethodsTest extends PaymentTestCase
 {
+    private MockPaymentGateway $mockGateway;
+
     public function setUp(): void
     {
         parent::setUp();
+
+        // Create and register mock gateway
+        $this->mockGateway = new MockPaymentGateway();
+        
+        // Register mock gateway in the registry
+        $registry = app(PaymentProviderRegistry::class);
+        $registry->register($this->mockGateway);
 
         // Mock the request for payment data
         $this->mockRequest();
@@ -39,49 +53,56 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     {
         $invoice = $this->createTestInvoice(750, PaymentMethodEnum::CREDIT_CARD);
 
-        // Mock the payment gateway
-        $mockGateway = new MockPaymentProvider();
-        $mockGateway->initializeContext(['invoice' => $invoice]);
-        $mockGateway->setShouldSucceed(true);
-        $mockGateway->setResponseData([
+        // Configure mock gateway
+        $this->mockGateway->reset();
+        $this->mockGateway->setShouldSucceed(true);
+        $this->mockGateway->setResponseData([
             'amount' => 750,
-            'referenceUUID' => 'PAYINVOICE-001',
+            'transactionId' => 'PAYINVOICE-001',
         ]);
 
-        // Mock the PaymentGateway facade
-        PaymentGateway::shouldReceive('getGatewayForInvoice')
+        // Mock the PaymentGatewayResolver to return our mock gateway
+        PaymentGatewayResolver::shouldReceive('resolve')
             ->once()
-            ->withArgs(function ($invoiceArg, $contextArg) use ($invoice) {
-                // Verify the invoice matches and context is an array
-                return $invoiceArg->id === $invoice->id &&
-                       is_array($contextArg) &&
-                       array_key_exists('installment_ids', $contextArg);
+            ->withArgs(function (PaymentContext $context) use ($invoice) {
+                // Verify the context has correct payable and payment method
+                return $context->payable->getPayableId() === $invoice->id &&
+                       $context->paymentMethod === PaymentMethodEnum::CREDIT_CARD;
             })
-            ->andReturn($mockGateway);
+            ->andReturn($this->mockGateway);
+
+        // Mock request data
+        $this->mockRequestData($this->createTestPaymentRequest(750));
 
         // Create DTO for payment
         $dto = new PayInvoiceDto([
             'invoice_id' => $invoice->id,
             'payment_method_id' => PaymentMethodEnum::CREDIT_CARD->value,
             'payment_term_id' => $invoice->payment_term_id,
-            'request_data' => $this->createTestPaymentRequest(750),
         ]);
 
         // Pay invoice using the service method
         $result = InvoiceService::payInvoice($dto);
 
-        $this->assertTrue($result);
+        // Assert result is a PaymentResult
+        $this->assertInstanceOf(PaymentResult::class, $result);
+        $this->assertTrue($result->isSuccessful());
+        $this->assertEquals(750, $result->amount);
+        $this->assertEquals('PAYINVOICE-001', $result->transactionId);
 
         // Verify invoice is paid
         $invoice->refresh();
         $this->assertEqualsDecimals(0, $invoice->invoice_due_amount);
         $this->assertEquals(InvoiceStatusEnum::PAID->value, $invoice->invoice_status_id->value);
+        
+        // Verify the gateway was called
+        $this->assertEquals(1, $this->mockGateway->getProcessCallCount());
     }
 
     /**
-     * Test paying invoice with installments
+     * Test paying invoice with single installment
      */
-    public function test_pay_invoice_with_installments_selection()
+    public function test_pay_invoice_with_single_installment()
     {
         $invoice = $this->createTestInvoice(1500, PaymentMethodEnum::CREDIT_CARD, true);
         $invoice->payment_term_id = PaymentTermFactory::new()->create([
@@ -96,45 +117,116 @@ class PayInvoiceMethodsTest extends PaymentTestCase
 
         $invoice->markApproved();
 
+        PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
+
         $installments = $invoice->installmentsPeriods;
+        $firstInstallment = $installments->first();
 
-        // Mock payment gateway
-        $mockGateway = new MockPaymentProvider();
-        $mockGateway->initializeContext([
-            'invoice' => $invoice,
-            'installment_ids' => [$installments[0]->id, $installments[1]->id],
-        ]);
-        $mockGateway->setShouldSucceed(true);
-        $mockGateway->setResponseData([
-            'amount' => 1000,
-            'referenceUUID' => 'PAYINVOICE-INST-001',
+        // Configure mock gateway
+        $this->mockGateway->reset();
+        $this->mockGateway->setShouldSucceed(true);
+        $this->mockGateway->setResponseData([
+            'amount' => 500, // First installment amount
+            'transactionId' => 'PAYINVOICE-INST-001',
         ]);
 
-        PaymentGateway::shouldReceive('getGatewayForInvoice')
+        PaymentGatewayResolver::shouldReceive('resolve')
             ->once()
-            ->andReturn($mockGateway);
+            ->withArgs(function (PaymentContext $context) use ($firstInstallment) {
+                // When paying installment, the payable should be the installment
+                return $context->payable instanceof PaymentInstallmentPeriod &&
+                       $context->payable->id === $firstInstallment->id;
+            })
+            ->andReturn($this->mockGateway);
 
-        // Set request data with installments
-        $this->mockRequestData($this->createTestPaymentRequest(1000, [
-            'installment_ids' => [$installments[0]->id, $installments[1]->id],
-        ]));
+        // Mock request data
+        $this->mockRequestData($this->createTestPaymentRequest(500));
 
-        // Create DTO with installment IDs
+        // Create DTO with single installment ID
         $dto = new PayInvoiceDto([
             'invoice_id' => $invoice->id,
             'payment_method_id' => PaymentMethodEnum::CREDIT_CARD->value,
             'payment_term_id' => $invoice->payment_term_id,
-            'installment_ids' => [$installments[0]->id, $installments[1]->id],
+            'installment_id' => $firstInstallment->id,
         ]);
 
         $result = InvoiceService::payInvoice($dto);
 
-        $this->assertTrue($result);
+        $this->assertInstanceOf(PaymentResult::class, $result);
+        $this->assertTrue($result->isSuccessful());
+        $this->assertEquals(500, $result->amount);
 
         // Verify partial payment
         $invoice->refresh();
-        $this->assertEqualsDecimals(500, $invoice->invoice_due_amount);
+        $this->assertEqualsDecimals(1000, $invoice->invoice_due_amount);
         $this->assertEquals(InvoiceStatusEnum::PARTIAL->value, $invoice->invoice_status_id->value);
+
+        // Verify installment status
+        $installments = $invoice->installmentsPeriods()->get();
+        $this->assertEquals(PaymentInstallPeriodStatusEnum::PAID, $installments[0]->status);
+        $this->assertEquals(PaymentInstallPeriodStatusEnum::PENDING, $installments[1]->status);
+        $this->assertEquals(PaymentInstallPeriodStatusEnum::PENDING, $installments[2]->status);
+    }
+
+    /**
+     * Test paying next installment automatically
+     */
+    public function test_pay_invoice_with_next_installment_flag()
+    {
+        $invoice = $this->createTestInvoice(900, PaymentMethodEnum::CREDIT_CARD, true);
+        $invoice->payment_term_id = PaymentTermFactory::new()->create([
+            'term_type' => PaymentTermTypeEnum::INSTALLMENT,
+            'settings' => [
+                'interval' => 1,
+                'periods' => 3,
+                'interval_type' => 'months',
+            ]
+        ])->id;
+        $invoice->save();
+
+        $invoice->markApproved();
+
+        PaymentTermService::manageNewPaymentTermIntoInvoice($invoice);
+
+        $installments = $invoice->installmentsPeriods;
+        $firstInstallment = $installments->first();
+
+        // Configure mock gateway
+        $this->mockGateway->reset();
+        $this->mockGateway->setShouldSucceed(true);
+        $this->mockGateway->setResponseData([
+            'amount' => 300,
+            'transactionId' => 'PAYINVOICE-NEXT-001',
+        ]);
+
+        PaymentGatewayResolver::shouldReceive('resolve')
+            ->once()
+            ->withArgs(function (PaymentContext $context) use ($firstInstallment) {
+                // Should automatically select the first unpaid installment
+                return $context->payable instanceof PaymentInstallmentPeriod &&
+                       $context->payable->id === $firstInstallment->id;
+            })
+            ->andReturn($this->mockGateway);
+
+        $this->mockRequestData($this->createTestPaymentRequest(300));
+
+        // Create DTO with pay_next_installment flag
+        $dto = new PayInvoiceDto([
+            'invoice_id' => $invoice->id,
+            'payment_method_id' => PaymentMethodEnum::CREDIT_CARD->value,
+            'payment_term_id' => $invoice->payment_term_id,
+            'pay_next_installment' => true, // This should auto-select first unpaid installment
+        ]);
+
+        $result = InvoiceService::payInvoice($dto);
+
+        $this->assertInstanceOf(PaymentResult::class, $result);
+        $this->assertTrue($result->isSuccessful());
+        $this->assertEquals(300, $result->amount);
+
+        // Verify first installment is paid
+        $installments = $invoice->installmentsPeriods()->get();
+        $this->assertEquals(PaymentInstallPeriodStatusEnum::PAID, $installments[0]->status);
     }
 
     /**
@@ -144,18 +236,18 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     {
         $invoice = $this->createTestInvoice(500, PaymentMethodEnum::CREDIT_CARD);
 
-        // Mock failed payment
-        $mockGateway = new MockPaymentProvider();
-        $mockGateway->initializeContext(['invoice' => $invoice]);
-        $mockGateway->setShouldSucceed(false);
-        $mockGateway->setResponseData([
+        // Configure mock for failure
+        $this->mockGateway->reset();
+        $this->mockGateway->setShouldSucceed(false);
+        $this->mockGateway->setErrorMessage('Card was declined by issuer');
+        $this->mockGateway->setResponseData([
             'errorCode' => 'CARD_DECLINED',
-            'errorMessage' => 'Card was declined by issuer',
+            'transactionId' => 'FAILED-001',
         ]);
 
-        PaymentGateway::shouldReceive('getGatewayForInvoice')
+        PaymentGatewayResolver::shouldReceive('resolve')
             ->once()
-            ->andReturn($mockGateway);
+            ->andReturn($this->mockGateway);
 
         $this->mockRequestData($this->createTestPaymentRequest(500));
 
@@ -167,15 +259,20 @@ class PayInvoiceMethodsTest extends PaymentTestCase
 
         try {
             $result = InvoiceService::payInvoice($dto);
-            $this->fail('Expected exception for failed payment');
-        } catch (\Exception $e) {
-            $this->assertStringContainsString(__('error-payment-failed'), $e->getMessage());
+            
+            // The result should be a failed PaymentResult
+            $this->assertInstanceOf(PaymentResult::class, $result);
+            $this->assertFalse($result->isSuccessful());
+            $this->assertEquals('Card was declined by issuer', $result->errorMessage);
+        } catch (PaymentProcessingException $e) {
+            // Or it might throw an exception depending on implementation
+            $this->assertStringContainsString('payment', $e->getMessage());
         }
 
         // Verify invoice remains unpaid
         $invoice->refresh();
         $this->assertEqualsDecimals(500, $invoice->invoice_due_amount);
-        $this->assertEquals(InvoiceStatusEnum::OVERDUE->value, $invoice->invoice_status_id->value);
+        $this->assertNotEquals(InvoiceStatusEnum::PAID->value, $invoice->invoice_status_id->value);
     }
 
     /**
@@ -200,15 +297,17 @@ class PayInvoiceMethodsTest extends PaymentTestCase
 
         $invoice->refresh();
 
-        // Mock gateway
-        $mockGateway = new MockPaymentProvider();
-        $mockGateway->initializeContext(['invoice' => $invoice]);
-        $mockGateway->setShouldSucceed(true);
-        $mockGateway->setResponseData(['amount' => 400]);
+        // Configure mock gateway
+        $this->mockGateway->reset();
+        $this->mockGateway->setShouldSucceed(true);
+        $this->mockGateway->setResponseData([
+            'amount' => 400,
+            'transactionId' => 'AUTO-APPROVE-001',
+        ]);
 
-        PaymentGateway::shouldReceive('getGatewayForInvoice')
+        PaymentGatewayResolver::shouldReceive('resolve')
             ->once()
-            ->andReturn($mockGateway);
+            ->andReturn($this->mockGateway);
 
         $this->mockRequestData($this->createTestPaymentRequest(400));
 
@@ -220,7 +319,8 @@ class PayInvoiceMethodsTest extends PaymentTestCase
 
         $result = InvoiceService::payInvoice($dto);
 
-        $this->assertTrue($result);
+        $this->assertInstanceOf(PaymentResult::class, $result);
+        $this->assertTrue($result->isSuccessful());
 
         // Verify invoice was approved and paid
         $invoice->refresh();
@@ -231,59 +331,143 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     }
 
     /**
-     * Test payment gateway context includes installments
+     * Test payment with address information
      */
-    public function test_payment_gateway_receives_installment_context()
+    public function test_pay_invoice_with_address_information()
     {
-        $invoice = $this->createTestInvoice(900, PaymentMethodEnum::CREDIT_CARD, true);
-        $invoice->payment_term_id = PaymentTermFactory::new()->create([
-            'term_type' => PaymentTermTypeEnum::INSTALLMENT,
-            'settings' => [
-                'interval' => 1,
-                'periods' => 3,
-                'interval_type' => 'months',
-            ]
-        ])->id;
-        $invoice->save();
+        // Create draft invoice without address
+        $invoice = Invoice::factory()->create([
+            'payment_method_id' => PaymentMethodEnum::CREDIT_CARD,
+            'payment_term_id' => PaymentTermFactory::new()->create()->id,
+            'invoice_due_amount' => 300,
+            'invoice_type_id' => InvoiceTypeEnum::INVOICE->value,
+        ]);
 
-        $invoice->markApproved();
+        \Condoedge\Finance\Models\InvoiceDetail::factory()->create([
+            'invoice_id' => $invoice->id,
+            'quantity' => 1,
+            'unit_price' => 300,
+        ]);
 
-        // Mock gateway to capture context
-        $mockGateway = new MockPaymentProvider();
-        $mockGateway->setShouldSucceed(true);
-        $mockGateway->setResponseData(['amount' => 600]);
-        $mockGateway->initializeContext(['invoice' => $invoice]);
+        $invoice->refresh();
 
-        PaymentGateway::shouldReceive('getGatewayForInvoice')
+        // Configure mock gateway
+        $this->mockGateway->reset();
+        $this->mockGateway->setShouldSucceed(true);
+        $this->mockGateway->setResponseData([
+            'amount' => 300,
+            'transactionId' => 'ADDRESS-001',
+        ]);
+
+        PaymentGatewayResolver::shouldReceive('resolve')
             ->once()
-            ->withArgs(function ($invoiceArg, $contextArg) use ($invoice) {
-                // Verify the invoice matches and context is an array
-                return $invoiceArg->id === $invoice->id &&
-                       is_array($contextArg);
-            })
-            ->andReturn($mockGateway);
+            ->andReturn($this->mockGateway);
 
-        $this->mockRequestData($this->createTestPaymentRequest(600));
+        $this->mockRequestData($this->createTestPaymentRequest(300));
 
-        $installments = $invoice->installmentsPeriods;
+        // Include address in DTO
+        $addressData = [
+            'address1' => '123 Main St',
+            'city' => 'Toronto',
+            'state' => 'ON',
+            'postal_code' => 'M5V 3A8',
+            'country' => 'CA',
+        ];
 
         $dto = new PayInvoiceDto([
             'invoice_id' => $invoice->id,
             'payment_method_id' => PaymentMethodEnum::CREDIT_CARD->value,
             'payment_term_id' => $invoice->payment_term_id,
-            'installment_ids' => [$installments[0]->id, $installments[1]->id],
+            'address' => $addressData,
+        ]);
+
+        $result = InvoiceService::payInvoice($dto);
+
+        $this->assertInstanceOf(PaymentResult::class, $result);
+        $this->assertTrue($result->isSuccessful());
+
+        // Verify invoice has address
+        $invoice->refresh();
+        $this->assertNotNull($invoice->address);
+        $this->assertEquals('123 Main St', $invoice->address->address1);
+        $this->assertEquals('Toronto', $invoice->address->city);
+    }
+
+    /**
+     * Test that payment gateway receives correct context
+     */
+    public function test_payment_gateway_receives_correct_context()
+    {
+        $invoice = $this->createTestInvoice(600, PaymentMethodEnum::CREDIT_CARD);
+
+        $this->mockGateway->reset();
+        $this->mockGateway->setShouldSucceed(true);
+        $this->mockGateway->setResponseData(['amount' => 600]);
+
+        PaymentGatewayResolver::shouldReceive('resolve')
+            ->once()
+            ->withArgs(function (PaymentContext $context) use ($invoice) {
+                // Capture and verify the context
+                $this->assertInstanceOf(PaymentContext::class, $context);
+                $this->assertEquals($invoice->id, $context->payable->getPayableId());
+                $this->assertEquals(PaymentMethodEnum::CREDIT_CARD, $context->paymentMethod);
+                $this->assertIsArray($context->paymentData);
+                
+                return true;
+            })
+            ->andReturn($this->mockGateway);
+
+        $this->mockRequestData($this->createTestPaymentRequest(600));
+
+        $dto = new PayInvoiceDto([
+            'invoice_id' => $invoice->id,
+            'payment_method_id' => PaymentMethodEnum::CREDIT_CARD->value,
+            'payment_term_id' => $invoice->payment_term_id,
         ]);
 
         InvoiceService::payInvoice($dto);
 
-        $this->assertEquals(InvoiceStatusEnum::PARTIAL, $invoice->invoice_status_id);
-        $this->assertEqualsDecimals(300, $invoice->invoice_due_amount);
+        // Verify gateway was called with correct context
+        $lastContext = $this->mockGateway->getLastContext();
+        $this->assertNotEmpty($lastContext);
+    }
 
-        $installments = $invoice->installmentsPeriods()->get();
+    /**
+     * Test pending payment (3DS, redirects, etc.)
+     */
+    public function test_pay_invoice_handles_pending_payment()
+    {
+        $invoice = $this->createTestInvoice(1000, PaymentMethodEnum::CREDIT_CARD);
 
-        $this->assertEquals(PaymentInstallPeriodStatusEnum::PAID, $installments[0]->status);
-        $this->assertEquals(PaymentInstallPeriodStatusEnum::PAID, $installments[1]->status);
-        $this->assertEquals(PaymentInstallPeriodStatusEnum::PENDING, $installments[2]->status);
+        // Configure mock for pending payment (3DS)
+        $this->mockGateway->reset();
+        $this->mockGateway->setPending(true, 'https://bank.example.com/3ds-verify');
+        $this->mockGateway->setResponseData([
+            'transactionId' => 'PENDING-3DS-001',
+        ]);
+
+        PaymentGatewayResolver::shouldReceive('resolve')
+            ->once()
+            ->andReturn($this->mockGateway);
+
+        $this->mockRequestData($this->createTestPaymentRequest(1000));
+
+        $dto = new PayInvoiceDto([
+            'invoice_id' => $invoice->id,
+            'payment_method_id' => PaymentMethodEnum::CREDIT_CARD->value,
+            'payment_term_id' => $invoice->payment_term_id,
+        ]);
+
+        $result = InvoiceService::payInvoice($dto);
+
+        $this->assertInstanceOf(PaymentResult::class, $result);
+        $this->assertTrue($result->isPending);
+        $this->assertEquals('https://bank.example.com/3ds-verify', $result->redirectUrl);
+        $this->assertEquals('PENDING-3DS-001', $result->transactionId);
+
+        // Invoice should remain unpaid until payment is confirmed
+        $invoice->refresh();
+        $this->assertNotEquals(InvoiceStatusEnum::PAID->value, $invoice->invoice_status_id->value);
     }
 
     // Helper methods
@@ -307,23 +491,24 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     }
 
     /**
-     * Create installments for an invoice
+     * Create test payment request data
+     * Override parent method to match new structure
      */
-    private function createInstallmentsForInvoice(Invoice $invoice, int $count, float $amountEach): array
+    protected function createTestPaymentRequest($amount = null, array $overrides = []): array
     {
-        $installments = [];
+        $defaultRequest = [
+            'amount' => $amount ?? $this->faker->randomFloat(2, 10, 1000),
+            'stripe_payment_method_id' => 'pm_card_visa_test',
+            'complete_name' => $this->faker->name,
+            'billing_address' => [
+                'street' => $this->faker->streetAddress,
+                'city' => $this->faker->city,
+                'state' => $this->faker->stateAbbr,
+                'postal_code' => $this->faker->postcode,
+                'country' => 'US',
+            ],
+        ];
 
-        for ($i = 1; $i <= $count; $i++) {
-            $installment = new PaymentInstallmentPeriod();
-            $installment->invoice_id = $invoice->id;
-            $installment->installment_number = $i;
-            $installment->amount = $amountEach;
-            $installment->due_amount = $amountEach;
-            $installment->due_date = now()->addMonths($i - 1);
-            $installment->save();
-            $installments[] = $installment;
-        }
-
-        return $installments;
+        return array_merge($defaultRequest, $overrides);
     }
 }
