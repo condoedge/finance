@@ -46,13 +46,13 @@ abstract class PaymentTestCase extends TestCase
     /**
      * Create a test invoice with specified amount
      */
-    protected function createTestInvoice($amount, ?PaymentMethodEnum $paymentMethod = null, $draft = false): Invoice
+    protected function createTestInvoice($amount, ?PaymentMethodEnum $paymentMethod = null, $draft = false, $customerId = null): Invoice
     {
         $paymentMethod = $paymentMethod ?? PaymentMethodEnum::CREDIT_CARD;
         $customer = CustomerFactory::new()->create();
 
         $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
-            'customer_id' => $customer->id,
+            'customer_id' => $customerId ?? $customer->id,
             'invoice_type_id' => InvoiceTypeEnum::INVOICE->value,
             'payment_method_id' => $paymentMethod->value,
             'payment_term_id' => PaymentTermFactory::new()->create()->id,
