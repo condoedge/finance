@@ -37,7 +37,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
 
         // Create and register mock gateway
         $this->mockGateway = new MockPaymentGateway();
-        
+
         // Register mock gateway in the registry
         $registry = app(PaymentProviderRegistry::class);
         $registry->register($this->mockGateway);
@@ -94,7 +94,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
         $invoice->refresh();
         $this->assertEqualsDecimals(0, $invoice->invoice_due_amount);
         $this->assertEquals(InvoiceStatusEnum::PAID->value, $invoice->invoice_status_id->value);
-        
+
         // Verify the gateway was called
         $this->assertEquals(1, $this->mockGateway->getProcessCallCount());
     }
@@ -259,7 +259,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
 
         try {
             $result = InvoiceService::payInvoice($dto);
-            
+
             // The result should be a failed PaymentResult
             $this->assertInstanceOf(PaymentResult::class, $result);
             $this->assertFalse($result->isSuccessful());
@@ -412,7 +412,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
                 $this->assertEquals($invoice->id, $context->payable->getPayableId());
                 $this->assertEquals(PaymentMethodEnum::CREDIT_CARD, $context->paymentMethod);
                 $this->assertIsArray($context->paymentData);
-                
+
                 return true;
             })
             ->andReturn($this->mockGateway);
