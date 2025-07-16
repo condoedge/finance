@@ -20,6 +20,7 @@ trait MorphManyChargeablesSelect
     {
         $products = ProductModel::search($search)
             ->forTeam()
+            ->isTemplate()
             ->pluck('product_name', 'id')
             ->unique();
 
