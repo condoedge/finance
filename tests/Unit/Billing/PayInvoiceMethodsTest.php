@@ -365,6 +365,10 @@ class PayInvoiceMethodsTest extends PaymentTestCase
 
         $this->mockRequestData($this->createTestPaymentRequest(300));
 
+        // Removing first the current address if exists
+        $invoice->address?->delete();
+        $invoice->customer->address?->delete();
+
         // Include address in DTO
         $addressData = [
             'address1' => '123 Main St',
