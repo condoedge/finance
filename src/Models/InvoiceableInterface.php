@@ -17,4 +17,6 @@ interface InvoiceableInterface
     public function onConsideredAsInitialPaid(): void;
 
     public function onOverdue(): void;
+
+    public function getDisplayForInvoiceAttribute(): string;
 }
