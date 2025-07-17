@@ -4,7 +4,6 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use Condoedge\Finance\Models\Customer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\DB;
 use Kompo\Auth\Facades\UserModel;
@@ -12,7 +11,7 @@ use Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
 /**
  *  * Represents an expense report in the finance module.
- * 
+ *
  * @property int $id
  * @property int $user_id
  * @property int $customer_id

@@ -22,19 +22,14 @@ class ExpenseForm extends Modal
         return _Rows(
             _Date('translate.expense-date')->name('expense_date')
                 ->class('mb-4'),
-
             _InputDollar('translate.expense-amount-before-taxes')->name('expense_amount_before_taxes')
                 ->class('mb-4'),
-
             _InputDollar('translate.total-expense-amount')->name('total_expense_amount')
                 ->class('mb-4'),
-
             _Select('translate.expense-type')->name('expense_type')
                 ->options(ExpenseReportTypeEnum::optionsWithLabels())
                 ->class('mb-4'),
-
             _Textarea('translate.expense-description')->name('expense_description'),
-
             _SubmitButton('translate.save-expense')
                 ->class('mt-4')
                 ->closeModal()

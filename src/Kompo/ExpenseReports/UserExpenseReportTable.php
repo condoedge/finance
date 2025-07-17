@@ -19,7 +19,6 @@ class UserExpenseReportTable extends WhiteTable
                     ->selfGet('getExpenseReportForm')
                     ->inModal(),
             )->class('mb-6'),
-
             _Flex(
                 _InputSearch()->name('expense_title')
                     ->placeholder('translate.search-expense-reports')->filter(),

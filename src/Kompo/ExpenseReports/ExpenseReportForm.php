@@ -33,30 +33,23 @@ class ExpenseReportForm extends Modal
     {
         return _Rows(
             new ExpenseReportTotal($this->model->id),
-
             _Input('translate.expense-title')->name('expense_title')
                 ->class('mb-4'),
-
             _Select('translate.team')->name('team_id')
                 ->searchOptions(2, 'searchTeams'),
-
             _Textarea('translate.expense-description')->name('expense_description')
                 ->class('mb-4'),
-
             _Rows(
                 _Html('translate.expenses')->class('text-lg mb-2'),
 
                 _Rows(new ExpensesQuery([
                     'expense_report_id' => $this->model->id,
                 ]))->class('text-center'),
-
                 _ButtonOutlined('translate.add-expense')
                     ->selfGet('getExpenseForm')
                     ->inModal()
                     ->class('mt-2 mb-4'),
             ),
-
-
             _SubmitButton('translate.save-expense-report')
                 ->class('mt-4')
                 ->closeModal()
