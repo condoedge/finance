@@ -16,7 +16,6 @@ use Kompo\Auth\Models\Teams\BelongsToTeamTrait;
  * @property int $user_id
  * @property int $customer_id
  * @property int $team_id
- * 
  * @property bool $is_draft
  * @property string $expense_title
  * @property string $expense_description

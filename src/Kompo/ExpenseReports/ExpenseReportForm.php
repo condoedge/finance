@@ -41,7 +41,6 @@ class ExpenseReportForm extends Modal
                 ->class('mb-4'),
             _Rows(
                 _Html('translate.expenses')->class('text-lg mb-2'),
-
                 _Rows(new ExpensesQuery([
                     'expense_report_id' => $this->model->id,
                 ]))->class('text-center'),

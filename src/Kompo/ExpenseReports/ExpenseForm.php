@@ -43,7 +43,7 @@ class ExpenseForm extends Modal
             'expense_date' => 'required|date',
             'expense_amount_before_taxes' => 'required|numeric|min:0',
             'total_expense_amount' => 'required|numeric|min:0|gte:expense_amount_before_taxes',
-            'expense_type' => 'required|in:' . implode(',', array_map(fn($case) => $case->value, ExpenseReportTypeEnum::cases())),
+            'expense_type' => 'required|in:' . implode(',', array_map(fn ($case) => $case->value, ExpenseReportTypeEnum::cases())),
             'expense_description' => 'nullable|string|max:1000',
         ];
     }

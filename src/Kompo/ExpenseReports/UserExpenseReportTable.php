@@ -65,7 +65,7 @@ class UserExpenseReportTable extends WhiteTable
             ),
         )->when(
             auth()->user()->hasPermission('manage_own_expense_report'),
-            fn($row) =>
+            fn ($row) =>
             $row->selfGet('getExpenseReportForm', $expenseReport->id)
                 ->inModal()
         );
