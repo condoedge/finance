@@ -87,7 +87,7 @@ class CustomerForm extends Modal
         }
 
         return _Rows(
-            _ImprovedSelect($customableClass::getVisualName())->name('from_id')
+            _Select($customableClass::getVisualName())->name('from_id')
                 ->selfPost('ensureAddress')->withAllFormValues()->inPanel('address-panel')
                 ->searchOptions(3, 'searchCustomables')
                 ->ajaxPayload([
