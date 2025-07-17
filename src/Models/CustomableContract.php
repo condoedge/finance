@@ -11,7 +11,7 @@ interface CustomableContract
     public function updateFromCustomer($customer);
 
     public static function getVisualName();
-    public static function getOptionsForCustomerForm();
+    public static function getOptionsForCustomerForm($search = null);
 
     // Addresses
     public function getFirstValidAddress();

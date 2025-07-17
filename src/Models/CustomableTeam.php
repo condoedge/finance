@@ -34,8 +34,14 @@ class CustomableTeam extends Model implements CustomableContract
         return 'finance-team2';
     }
 
-    public static function getOptionsForCustomerForm()
+    public static function getOptionsForCustomerForm($search = null)
     {
-        return static::pluck('team_name', 'id');
+        $query = static::query();
+
+        if ($search) {
+            $query->where('team_name', 'like', wildcardSpace($search));
+        }
+
+        return $query->pluck('team_name', 'id');
     }
 }

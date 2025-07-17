@@ -87,11 +87,22 @@ class CustomerForm extends Modal
         }
 
         return _Rows(
-            _Select($customableClass::getVisualName())->name('from_id')
+            _ImprovedSelect($customableClass::getVisualName())->name('from_id')
                 ->selfPost('ensureAddress')->withAllFormValues()->inPanel('address-panel')
-                ->options($customableClass::getOptionsForCustomerForm()),
+                ->searchOptions(3, 'searchCustomables')
+                ->ajaxPayload([
+                    'from_model' => request('from_model'),
+                ]),
             _Panel()->id('address-panel'),
         );
+    }
+
+    public function searchCustomables()
+    {
+        $customableClass = Relation::morphMap()[request('from_model')];
+        $searchTerm = request('search');
+
+        return $customableClass::getOptionsForCustomerForm($searchTerm);
     }
 
     public function ensureAddress()
