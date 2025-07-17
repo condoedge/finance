@@ -8,7 +8,7 @@ use Condoedge\Utils\Kompo\Common\WhiteTable;
 class UserExpenseReportTable extends WhiteTable
 {
     public $id = 'user-expense-report-table';
-    
+
     public function top()
     {
         return _Rows(
@@ -18,7 +18,6 @@ class UserExpenseReportTable extends WhiteTable
                     ->selfGet('getExpenseReportForm')
                     ->inModal(),
             )->class('mb-6'),
-
             _Flex(
                 _InputSearch()->name('expense_title')
                 ->placeholder('translate.search-expense-reports')->filter(),

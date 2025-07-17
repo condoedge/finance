@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Models;
 enum ExpenseReportStatusEnum: int
 {
     use \Kompo\Models\Traits\EnumKompo;
-    
+
     case PENDING = 1;
     case APPROVED = 2;
     case REJECTED = 3;

@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Command;
 
-use \Illuminate\Console\Command;
+use Illuminate\Console\Command;
 
 class CleanupExpenseReportDraftsCommand extends Command
 {

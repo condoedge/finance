@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Models;
 enum ExpenseReportTypeEnum: int
 {
     use \Kompo\Models\Traits\EnumKompo;
-    
+
     case GENERAL = 1;
     case TRAVEL = 2;
     case MEAL = 3;
