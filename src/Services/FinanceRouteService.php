@@ -82,6 +82,13 @@ class FinanceRouteService
         });
     }
 
+    public static function expenseReportRoutes(): void
+    {
+        Route::prefix('finance/expense-reports')->name('finance.expense-reports.')->group(function () {
+            Route::get('/', \Condoedge\Finance\Kompo\ExpenseReports\UserExpenseReportTable::class)->name('list');
+        });
+    }
+
     /**
      * Register all routes at once
      */
@@ -93,5 +100,6 @@ class FinanceRouteService
         static::paymentsRoutes();
         static::glTransactionRoutes();
         static::fiscalSetupRoutes();
+        static::expenseReportRoutes();
     }
 }

@@ -6,7 +6,6 @@ interface CustomableContract
 {
     public function upsertCustomerFromThisModel();
     public function fillCustomerFromThisModel($customer);
-    public function setCustomerId($customerId);
 
     public function updateFromCustomer($customer);
 

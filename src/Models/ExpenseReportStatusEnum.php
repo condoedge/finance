@@ -1,0 +1,38 @@
+<?php
+
+namespace Condoedge\Finance\Models;
+
+enum ExpenseReportStatusEnum: int
+{
+    use \Kompo\Models\Traits\EnumKompo;
+    
+    case PENDING = 1;
+    case APPROVED = 2;
+    case REJECTED = 3;
+    case PAID = 4;
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::PENDING => __('translate.pending'),
+            self::APPROVED => __('translate.approved'),
+            self::REJECTED => __('translate.rejected'),
+            self::PAID => __('translate.paid'),
+        };
+    }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::PENDING => 'bg-warning',
+            self::APPROVED => 'bg-positive',
+            self::REJECTED => 'bg-danger',
+            self::PAID => 'bg-info',
+        };
+    }
+
+    public function pill()
+    {
+        return _Pill($this->label())->class('text-white')->class($this->color());
+    }
+}
