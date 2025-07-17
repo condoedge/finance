@@ -111,7 +111,7 @@ class InvoiceInfoModal extends Form
                     )->class('p-6 gap-1'),
                 )->label('finance.payments'),
             )->class('mb-4'),
-            !$this->model->status->canBePaid() ? null :
+            !$this->model->invoice_status_id?->canBePaid() ? null :
                 _Button('finance.pay-invoice')->selfGet('getInvoicePayModal')->inModal()->class('mb-4'),
         )->class('p-6');
     }

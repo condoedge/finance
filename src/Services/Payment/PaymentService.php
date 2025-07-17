@@ -177,6 +177,10 @@ class PaymentService implements PaymentServiceInterface
 
         $invoice = Invoice::findOrFail($data->invoice_id);
 
+        if ($invoice->paymentTerm->consideredAsInitialPaid($invoice)) {
+            $invoice->onConsideredAsInitialPaid();
+        }
+
         if ($invoice->invoice_due_amount->equals(0)) {
             $invoice->onCompletePayment();
         } else {

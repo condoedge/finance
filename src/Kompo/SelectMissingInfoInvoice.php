@@ -36,7 +36,7 @@ class SelectMissingInfoInvoice extends Modal
                 ->default($this->model->payment_term_id)
                 ->name('payment_term_id')
                 ->options(PaymentTerm::pluck('term_name', 'id')->toArray()),
-            _CanadianPlace()
+            $this->model->address ? null : _CanadianPlace()
                 ->default($this->model->address),
             _SubmitButton('finance-save-and-approve')
                 ->closeModal()
