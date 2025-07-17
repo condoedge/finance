@@ -31,7 +31,7 @@ class CustomableTeam extends Model implements CustomableContract
 
     public static function getVisualName()
     {
-        return 'finance-team2';
+        return __('finance-team2');
     }
 
     public static function getOptionsForCustomerForm($search = null)
