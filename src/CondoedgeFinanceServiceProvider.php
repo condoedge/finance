@@ -241,6 +241,12 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $schedule->command('finance:cleanup-webhook-events --days=90')
                 ->monthly()
                 ->at('02:00');
+
+            $schedule->command('cleanup:expense-report-drafts')
+                ->daily()
+                ->at('03:00')
+                ->withoutOverlapping()
+                ->appendOutputTo(storage_path('logs/expense-report-cleanup.log'));
         });
     }
 

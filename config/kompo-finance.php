@@ -83,6 +83,10 @@ return [
         ],
         \Condoedge\Finance\Models\Product::class => [
         ],
+
+        \Condoedge\Finance\Models\ExpenseReport::class => [
+            \Condoedge\Finance\Models\Expense::class,
+        ],
     ],
 
     'invoice_applicable_types' => [

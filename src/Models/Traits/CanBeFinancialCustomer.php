@@ -11,15 +11,27 @@ trait CanBeFinancialCustomer
     public static function bootCanBeFinancialCustomer()
     {
         static::updated(function ($model) {
-            if ($model->customer_id) {
-                $model->upsertCustomerFromThisModel();
+            if ($model->hasCustomer()) {
+                $model->updateCustomersFields();
             }
         });
     }
 
-    public function customer()
+    public function customers()
     {
-        return $this->belongsTo(CustomerModel::getClass(), 'customer_id');
+        return $this->hasMany(CustomerModel::getClass(), 'customable_id', 'id')
+            ->where('customable_type', $this->getMorphClass());
+    }
+
+    public function hasCustomer()
+    {
+        return \Cache::remember(
+            'has_customer_' . $this->getMorphClass() . '_' . $this->id,
+            60 * 60 * 24,
+            function () {
+                return $this->customers()->exists();
+            }
+        );
     }
 
     public function createInvoiceForThisModel()
@@ -31,13 +43,25 @@ trait CanBeFinancialCustomer
         ]));
     }
 
+    public function updateCustomersFields()
+    {
+        $this->customers()->each(function ($customer) {
+            $this->fillCustomerFromThisModel($customer);
+            $customer->default_billing_address_id = $this->getFirstValidAddress()?->id;
+            $customer->save();
+        });
+    }
+
     public function upsertCustomerFromThisModel($teamId = null)
     {
-        $customer = $this->customer()->first();
+        $teamId = $teamId ?? $this->team_id ?? currentTeamId();
+        $customer = $this->customers()
+            ->where('team_id', $teamId)
+            ->first();
 
         if (!$customer) {
             $customer = CustomerModel::newModelInstance();
-            $customer->team_id = $teamId ?? $this->team_id ?? currentTeamId();
+            $customer->team_id = $teamId;
         }
 
         $this->fillCustomerFromThisModel($customer);
@@ -49,17 +73,7 @@ trait CanBeFinancialCustomer
             $customer->save();
         }
 
-        if ($this->customer_id != $customer->id) {
-            $this->setCustomerId($customer->id);
-        }
-
         return $customer;
-    }
-
-    public function setCustomerId($customerId)
-    {
-        $this->customer_id = $customerId;
-        $this->save();
     }
 
     abstract public function fillCustomerFromThisModel($customer);
