@@ -8,7 +8,7 @@ use Kompo\Auth\Facades\TeamModel;
 
 class ExpenseReportForm extends Modal
 {
-    protected $_Title = 'translate.create-expense-report';
+    protected $_Title = 'finance-create-expense-report';
 
     public $model = ExpenseReport::class;
 
@@ -22,7 +22,7 @@ class ExpenseReportForm extends Modal
     public function beforeSave()
     {
         if (!$this->model->expenses()->count()) {
-            abort(403, __('translate.expense-report-must-have-at-least-one-expense'));
+            abort(403, __('error-expense-report-must-have-at-least-one-expense'));
         }
 
         $this->model->is_draft = false;
@@ -33,23 +33,23 @@ class ExpenseReportForm extends Modal
     {
         return _Rows(
             new ExpenseReportTotal($this->model->id),
-            _Input('translate.expense-title')->name('expense_title')
+            _Input('finance-expense-title')->name('expense_title')
                 ->class('mb-4'),
-            _Select('translate.team')->name('team_id')
+            _Select('finance-team')->name('team_id')
                 ->searchOptions(2, 'searchTeams'),
-            _Textarea('translate.expense-description')->name('expense_description')
+            _Textarea('finance-expense-description')->name('expense_description')
                 ->class('mb-4'),
             _Rows(
-                _Html('translate.expenses')->class('text-lg mb-2'),
+                _Html('finance-expenses')->class('text-lg mb-2'),
                 _Rows(new ExpensesQuery([
                     'expense_report_id' => $this->model->id,
                 ]))->class('text-center'),
-                _ButtonOutlined('translate.add-expense')
+                _ButtonOutlined('finance-add-expense')
                     ->selfGet('getExpenseForm')
                     ->inModal()
                     ->class('mt-2 mb-4'),
             ),
-            _SubmitButton('translate.save-expense-report')
+            _SubmitButton('finance-save-expense-report')
                 ->class('mt-4')
                 ->closeModal()
                 ->refresh(['user-expense-report-table']),

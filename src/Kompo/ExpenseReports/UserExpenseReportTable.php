@@ -13,15 +13,15 @@ class UserExpenseReportTable extends WhiteTable
     {
         return _Rows(
             _FlexBetween(
-                _Html('translate.my-expense-reports')->class('font-semibold text-2xl'),
-                _Button('translate.create-expense-report')
+                _Html('finance-my-expense-reports')->class('font-semibold text-2xl'),
+                _Button('finance-create-expense-report')
                     ->checkAuthWrite('manage_own_expense_report')
                     ->selfGet('getExpenseReportForm')
                     ->inModal(),
             )->class('mb-6'),
             _Flex(
                 _InputSearch()->name('expense_title')
-                    ->placeholder('translate.search-expense-reports')->filter(),
+                    ->placeholder('finance-search-expense-reports')->filter(),
             )->class('gap-6')
         );
     }
@@ -40,11 +40,11 @@ class UserExpenseReportTable extends WhiteTable
     {
         return [
             _CheckAllItems(),
-            _Th('translate.date'),
-            _Th('translate.expense-title'),
-            _Th('translate.linked-to-this-team'),
-            _Th('translate.status'),
-            _Th('translate.total-amount')->sort('total_amount'),
+            _Th('finance-date'),
+            _Th('finance-expense-title'),
+            _Th('finance-linked-to-this-team'),
+            _Th('finance-status'),
+            _Th('finance-total-amount')->sort('total_amount'),
             _Th(),
         ];
     }
@@ -59,7 +59,7 @@ class UserExpenseReportTable extends WhiteTable
             $expenseReport->expense_status->pill(),
             _FinanceCurrency($expenseReport->total_amount),
             _TripleDotsDropdown(
-                _DeleteLink('translate.delete-expense-report')->class('text-red-500 hover:text-red-700')
+                _DeleteLink('finance-delete-expense-report')->class('text-red-500 hover:text-red-700')
                     ->checkAuthWrite('manage_own_expense_report')
                     ->byKey($expenseReport),
             ),

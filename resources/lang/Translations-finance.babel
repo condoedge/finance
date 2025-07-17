@@ -200,6 +200,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>error-expense-report-must-have-at-least-one-expense</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>error-finance-interac-url-not-found</name>
 						<description/>
 						<comment/>
@@ -1075,6 +1090,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-activity</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-actual</name>
 						<description/>
 						<comment/>
@@ -1106,6 +1136,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-add-advance-payment</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-add-an-expense</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -1256,6 +1301,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-add-entry</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-add-expense</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -2365,6 +2425,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-approved</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-Approved</name>
 						<description/>
 						<comment/>
@@ -3236,6 +3311,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-calculated-since</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-camp-expense</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -4390,6 +4480,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-create-expense-report</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-create-invoice</name>
 						<description/>
 						<comment/>
@@ -5140,6 +5245,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-delete-expense-report</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-delete-with-all-its-bills</name>
 						<description/>
 						<comment/>
@@ -5680,6 +5800,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-equipment</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-equity</name>
 						<description/>
 						<comment/>
@@ -5816,6 +5951,81 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-expense-account</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-expense-amount-before-taxes</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-expense-date</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-expense-description</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-expense-title</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-expense-type</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -6266,6 +6476,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-funds</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-general</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -7795,6 +8020,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-linked-to-this-team</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-maintenance-fund</name>
 						<description/>
 						<comment/>
@@ -8065,6 +8305,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-meal</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-minor-adjustment</name>
 						<description/>
 						<comment/>
@@ -8186,6 +8441,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-my-bank</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-my-expense-reports</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -8711,6 +8981,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-no-email-sent-no-email</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-no-expenses-found</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -10840,6 +11125,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-rejected</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-related-account</name>
 						<description/>
 						<comment/>
@@ -11215,6 +11515,36 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-save-expense</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-save-expense-report</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-save-reload-transactions</name>
 						<description/>
 						<comment/>
@@ -11261,6 +11591,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-saved</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-search-expense-reports</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -12340,6 +12685,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-team-expense</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-team2</name>
 						<description/>
 						<comment/>
@@ -12805,6 +13165,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-total-expense-amount</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-total-liabilities</name>
 						<description/>
 						<comment/>
@@ -12926,6 +13301,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-TPS-number</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-training</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -13106,6 +13496,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-transit-ph</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-travel</name>
 						<description/>
 						<comment/>
 						<translations>

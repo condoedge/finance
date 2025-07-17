@@ -18,7 +18,7 @@ class ExpenseReportTotal extends Form
         }
 
         return _FlexBetween(
-            _Html('translate.total')->class('font-semibold text-2xl uppercase'),
+            _Html('finance-total')->class('font-semibold text-2xl uppercase'),
             _FinanceCurrency($this->model->total_amount)
                 ->class('text-2xl font-bold')
         )->class('mb-4');

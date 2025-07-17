@@ -8,7 +8,7 @@ use Condoedge\Finance\Models\ExpenseReportTypeEnum;
 
 class ExpenseForm extends Modal
 {
-    protected $_Title = 'translate.add-an-expense';
+    protected $_Title = 'finance-add-an-expense';
 
     public $model = Expense::class;
 
@@ -20,17 +20,17 @@ class ExpenseForm extends Modal
     public function body()
     {
         return _Rows(
-            _Date('translate.expense-date')->name('expense_date')
+            _Date('finance-expense-date')->name('expense_date')
                 ->class('mb-4'),
-            _InputDollar('translate.expense-amount-before-taxes')->name('expense_amount_before_taxes')
+            _InputDollar('finance-expense-amount-before-taxes')->name('expense_amount_before_taxes')
                 ->class('mb-4'),
-            _InputDollar('translate.total-expense-amount')->name('total_expense_amount')
+            _InputDollar('finance-total-expense-amount')->name('total_expense_amount')
                 ->class('mb-4'),
-            _Select('translate.expense-type')->name('expense_type')
+            _Select('finance-expense-type')->name('expense_type')
                 ->options(ExpenseReportTypeEnum::optionsWithLabels())
                 ->class('mb-4'),
-            _Textarea('translate.expense-description')->name('expense_description'),
-            _SubmitButton('translate.save-expense')
+            _Textarea('finance-expense-description')->name('expense_description'),
+            _SubmitButton('finance-save-expense')
                 ->class('mt-4')
                 ->closeModal()
                 ->refresh(['expenses-query', 'expense-report-total']),

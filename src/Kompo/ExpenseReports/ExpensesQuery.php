@@ -9,7 +9,7 @@ class ExpensesQuery extends Query
 {
     public $id = 'expenses-query';
 
-    public $noItemsFound = 'translate.no-expenses-found';
+    public $noItemsFound = 'finance-no-expenses-found';
     protected $expenseReportId;
 
     public function created()
