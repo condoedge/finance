@@ -8,20 +8,21 @@ use Condoedge\Utils\Kompo\Common\WhiteTable;
 class UserExpenseReportTable extends WhiteTable
 {
     public $id = 'user-expense-report-table';
-    
+
     public function top()
     {
         return _Rows(
             _FlexBetween(
                 _Html('translate.my-expense-reports')->class('font-semibold text-2xl'),
                 _Button('translate.create-expense-report')
+                    ->checkAuthWrite('manage_own_expense_report')
                     ->selfGet('getExpenseReportForm')
                     ->inModal(),
             )->class('mb-6'),
 
             _Flex(
                 _InputSearch()->name('expense_title')
-                ->placeholder('translate.search-expense-reports')->filter(),
+                    ->placeholder('translate.search-expense-reports')->filter(),
             )->class('gap-6')
         );
     }
@@ -58,12 +59,21 @@ class UserExpenseReportTable extends WhiteTable
             _Html($expenseReport->team->team_name),
             $expenseReport->expense_status->pill(),
             _FinanceCurrency($expenseReport->total_amount),
-            _TripleDotsDropdown(),
+            _TripleDotsDropdown(
+                _DeleteLink('translate.delete-expense-report')->class('text-red-500 hover:text-red-700')
+                    ->checkAuthWrite('manage_own_expense_report')
+                    ->byKey($expenseReport),
+            ),
+        )->when(
+            auth()->user()->hasPermission('manage_own_expense_report'),
+            fn($row) =>
+            $row->selfGet('getExpenseReportForm', $expenseReport->id)
+                ->inModal()
         );
     }
 
-    public function getExpenseReportForm()
+    public function getExpenseReportForm($expenseReportId = null)
     {
-        return new ExpenseReportForm();
+        return new ExpenseReportForm($expenseReportId);
     }
 }

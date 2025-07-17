@@ -16,6 +16,11 @@ use Kompo\Auth\Models\Teams\BelongsToTeamTrait;
  * @property int $id
  * @property int $user_id
  * @property int $customer_id
+ * @property int $team_id
+ * 
+ * @property bool $is_draft
+ * @property string $expense_title
+ * @property string $expense_description
  * @property ExpenseReportStatusEnum $expense_status
  * @property SafeDecimal $amount_before_taxes @CALCULATED by `calculate_expense_report_amount_before_taxes`
  * @property SafeDecimal $total_amount @CALCULATED by `calculate_total_expense_report_amount`
@@ -41,6 +46,11 @@ class ExpenseReport extends AbstractMainFinanceModel
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class, 'expense_report_id');
     }
 
     public static function columnsIntegrityCalculations()

@@ -15,21 +15,18 @@ class ExpenseReportForm extends Modal
     public function created()
     {
         if (!$this->model->id) {
-            $expenseReport = new ExpenseReport();
-            $expenseReport->expense_title = 'das';
-            $expenseReport->user_id = auth()->id();
-            $expenseReport->customer_id = auth()->user()->getCurrentCustomer()->id;
-            $expenseReport->team_id = currentTeamId() ?? null;
-            $expenseReport->is_draft = true; // Assuming you want to create a draft
-            $expenseReport->save();
-
-            $this->model($expenseReport);
+            $this->model($this->createDraftExpenseReport());
         }
     }
 
     public function beforeSave()
     {
+        if (!$this->model->expenses()->count()) {
+            abort(403, __('translate.expense-report-must-have-at-least-one-expense'));
+        }
+
         $this->model->is_draft = false;
+        $this->model->customer_id = auth()->user()->getCurrentCustomer(request('team_id'))->id;
     }
 
     public function body()
@@ -47,7 +44,7 @@ class ExpenseReportForm extends Modal
                 ->class('mb-4'),
 
             _Rows(
-                _Html('translate.expenses')->class('text-lg'),
+                _Html('translate.expenses')->class('text-lg mb-2'),
 
                 _Rows(new ExpensesQuery([
                     'expense_report_id' => $this->model->id,
@@ -77,8 +74,36 @@ class ExpenseReportForm extends Modal
 
     public function getExpenseForm()
     {
-        return new ExpenseForm([
+        return new ExpenseForm(null, [
             'expense_report_id' => $this->model->id,
         ]);
+    }
+
+    protected function createDraftExpenseReport()
+    {
+        $expenseReport = ExpenseReport::where('user_id', auth()->id())
+            ->where('is_draft', true)
+            ->first();
+
+        if (!$expenseReport) {
+            $expenseReport = new ExpenseReport();
+            $expenseReport->expense_title = '';
+            $expenseReport->user_id = auth()->id();
+            $expenseReport->customer_id = auth()->user()->getCurrentCustomer()->id;
+            $expenseReport->team_id = currentTeamId() ?? null;
+            $expenseReport->is_draft = true;
+            $expenseReport->save();
+        }
+
+        return $expenseReport;
+    }
+
+    public function rules()
+    {
+        return [
+            'expense_title' => 'required|string|max:255',
+            'team_id' => 'required|exists:teams,id',
+            'expense_description' => 'nullable|string|max:1000',
+        ];
     }
 }

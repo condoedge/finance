@@ -25,7 +25,7 @@ class ExpensesQuery extends Query
 
     public function render($expense)
     {
-        return _CardLevel4(
+        return _CardLevel5(
             _FlexBetween(
                 _Html($expense->expense_date->format('Y-m-d'))->class('text-lg'),
                 _FinanceCurrency($expense->total_expense_amount),

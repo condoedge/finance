@@ -22,6 +22,6 @@ class ExpenseReportTotal extends Form
 
             _FinanceCurrency($this->model->total_amount)
                 ->class('text-2xl font-bold')
-        );
+        )->class('mb-4');
     }
 }
