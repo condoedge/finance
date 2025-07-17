@@ -4,7 +4,6 @@ namespace Condoedge\Finance\Models\Dto\Invoices;
 
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\Dto\Customers\CreateAddressDto;
-use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Contracts\Validation\Validator;
 use WendellAdriel\ValidatedDTO\Casting\DTOCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
