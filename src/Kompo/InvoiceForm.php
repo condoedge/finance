@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
+use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
@@ -92,10 +93,8 @@ class InvoiceForm extends Form
                     ->options(InvoiceTypeEnum::optionsWithLabels()),
                 $this->model->id ? null : _Flex(
                     _Rows(
-                        new SelectCustomer(null, [
-                            'team_id' => $this->team?->id,
-                            'default_id' => $this->model->customer_id,
-                        ]),
+                        _Select('finance-invoiced-to')->name('customer_id')->class('!mb-0')
+                            ->searchOptions(2, 'searchCustomers'),
                     )->class('[&>form]:flex-1'),
                     _Rows(
                         _Html('&nbsp;'),
@@ -156,6 +155,13 @@ class InvoiceForm extends Form
         ];
     }
 
+    public function searchCustomers($searchTerm)
+    {
+        return Customer::forTeam($this->team->id ?? currentTeamId())
+            ->where('name', 'like', wildcardSpace($searchTerm))
+            ->pluck('name', 'id');
+    }
+
     protected function parsePossiblePaymentMethods($requestData = null)
     {
         $requestData = $requestData ?: request()->all();
@@ -178,9 +184,7 @@ class InvoiceForm extends Form
 
     public function getCustomerModal()
     {
-        return new CustomerForm(null, [
-            'refresh_id' => 'select-customer',
-        ]);
+        return new CustomerForm();
     }
 
     protected function getDefaultPaymentTerms()

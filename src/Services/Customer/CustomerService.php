@@ -148,6 +148,8 @@ class CustomerService implements CustomerServiceInterface
     {
         $customer = Customer::findOrFail($dto->id);
         $customer->name = $dto->name;
+        $customer->email = $dto->email;
+        $customer->phone = $dto->phone;
         $customer->save();
 
         return $customer;
@@ -160,6 +162,8 @@ class CustomerService implements CustomerServiceInterface
     {
         $customer = new Customer();
         $customer->name = $dto->name;
+        $customer->email = $dto->email;
+        $customer->phone = $dto->phone;
         $customer->team_id = $dto->team_id ?? currentTeamId();
         $customer->save();
 

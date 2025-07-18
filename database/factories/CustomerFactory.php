@@ -14,6 +14,8 @@ class CustomerFactory extends Factory
     {
         return [
             'name' => $this->faker->name,
+            'email' => $this->faker->unique()->safeEmail,
+            'phone' => $this->faker->phoneNumber,
             'default_payment_method_id' => null, // Will be populated later if needed
             'default_billing_address_id' => null, // Will be populated later if needed
             // 'customer_due_amount' => $this->faker->randomFloat(2, 0, 1000),

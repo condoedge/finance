@@ -34,6 +34,8 @@ class CustomerForm extends Modal
         if (!$modelInstance) {
             CustomerService::createOrUpdate(new CreateOrUpdateCustomerDto([
                 'name' => request('name'),
+                'email' => request('email'),
+                'phone' => request('phone'),
                 'address' => parsePlaceFromRequest('address'),
             ]));
         } else {
@@ -69,6 +71,10 @@ class CustomerForm extends Modal
             _Html('finance-or')->class('mb-4 mt-2'),
 
             _Input('finance-name')->name('name'),
+
+            _InputEmail('translate.finance-email')->name('email'),
+
+            _InputPhone('translate.finance-phone')->name('phone'),
 
             _Place()->name('address'),
         ];

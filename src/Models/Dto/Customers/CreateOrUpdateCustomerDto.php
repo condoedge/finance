@@ -19,6 +19,7 @@ class CreateOrUpdateCustomerDto extends ValidatedDTO
     public ?int $id;
 
     public string $name;
+    public string $email;
 
     public ?int $team_id;
 
@@ -28,6 +29,7 @@ class CreateOrUpdateCustomerDto extends ValidatedDTO
     {
         return [
             'name' => new StringCast(),
+            'email' => new StringCast(),
             'address' => new DTOCast(CreateAddressDto::class),
         ];
     }
@@ -44,6 +46,8 @@ class CreateOrUpdateCustomerDto extends ValidatedDTO
              */
             'id' => ['nullable', 'integer', 'exists:fin_customers,id'],
             'name' => ['required', 'string'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'team_id' => ['sometimes', 'integer', 'exists:teams,id'],
             'address' => ['required_without:id', 'array'],
             'address.address1' => ['required_with:address', 'string'],

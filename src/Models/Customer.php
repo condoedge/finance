@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\DB;
  *
  * @property int $id
  * @property string $name
+ * @property ?string $email
+ * @property ?string $phone
  * @property int $team_id
  * @property \Condoedge\Finance\Casts\SafeDecimal $customer_due_amount @CALCULATED BY calculate_customer_due() - Remaining amount to be paid
  * @property int|null $default_billing_address_id Foreign key to fin_addresses
