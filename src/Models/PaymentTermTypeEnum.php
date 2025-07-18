@@ -145,11 +145,11 @@ enum PaymentTermTypeEnum: int
 
         return $installments->map(function ($period) {
             return _Columns(
-                _Html($period['installment_number'])->col('col-md-2'),
-                _FinanceCurrency($period['amount'])->col('col-md-3'),
+//                _Html($period['installment_number'])->col('col-md-2'),
                 _Html($period['due_date']->format('Y-m-d'))->col('col-md-3'),
+                _FinanceCurrency($period['amount'])->col('col-md-3'),
                 isset($period['status']) ? $period['status']->pill() : null
-            )->class('pb-2 border-bottom border-gray-200');
+            )->class('pb-2');
         });
     }
 
