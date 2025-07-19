@@ -38,10 +38,8 @@ class ExpenseForm extends Modal
                 ->options(ExpenseReportTypeEnum::optionsWithLabels())
                 ->class('mb-4'),
             _Textarea('finance-expense-description')->name('expense_description'),
-
             _MultiImage('translate.finance-expense-images')
                 ->name('files'),
-
             _SubmitButton('finance-save-expense')
                 ->class('mt-4')
                 ->closeModal()
