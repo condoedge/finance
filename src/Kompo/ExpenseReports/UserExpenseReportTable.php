@@ -33,8 +33,7 @@ class UserExpenseReportTable extends WhiteTable
         }
 
         return ExpenseReport::whereIn('customer_id', auth()->user()->getCustomersRelated()->pluck('id'))
-            ->where('is_draft', false)
-            ->whereNotNull('sent_at');
+            ->where('is_draft', false);
     }
 
     public function headers()
@@ -67,7 +66,7 @@ class UserExpenseReportTable extends WhiteTable
         )->when(
             auth()->user()->hasPermission('manage_own_expense_report'),
             fn ($row) =>
-            $row->selfGet('getExpenseReportForm', $expenseReport->id)
+            $row->selfGet('getExpenseReportForm', ['id' => $expenseReport->id])
                 ->inModal()
         );
     }

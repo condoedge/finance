@@ -31,6 +31,11 @@ class ExpensesQuery extends Query
                 _FinanceCurrency($expense->total_expense_amount),
             )->class('mb-1'),
             _Html($expense->description)->class('text-sm'),
-        )->p4();
+        )->p4()->selfGet('getExpenseForm', ['id' => $expense->id])->inModal();
+    }
+
+    public function getExpenseForm($expenseId = null)
+    {
+        return new ExpenseForm($expenseId);
     }
 }
