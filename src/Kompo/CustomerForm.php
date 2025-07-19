@@ -80,9 +80,9 @@ class CustomerForm extends Modal
 
             _Input('finance-name')->name('name'),
 
-            _InputEmail('translate.finance-email')->name('email'),
+            _InputEmail('finance-email')->name('email'),
 
-            _InputPhone('translate.finance-phone')->name('phone'),
+            _InputPhone('finance-phone')->name('phone'),
 
             _CanadianPlace()->name('address')
                 ->class('place-input-without-visual'),
