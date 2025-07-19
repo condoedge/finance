@@ -59,6 +59,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->setCronExecutions();
 
         $this->registerPaymentWebhookRoutes();
+
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'finance');
     }
 
     /**

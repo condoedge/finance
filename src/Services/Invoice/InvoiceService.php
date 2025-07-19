@@ -9,6 +9,7 @@ use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Facades\PaymentProcessor;
 use Condoedge\Finance\Facades\PaymentTermService;
+use Condoedge\Finance\Mail\NewInvoiceMail;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
@@ -25,6 +26,8 @@ use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use InvalidArgumentException;
 
 /**
  * Invoice Service Implementation
@@ -142,14 +145,6 @@ class InvoiceService implements InvoiceServiceInterface
         return DB::transaction(function () use ($dto) {
             $invoice = Invoice::findOrFail($dto->invoice_id);
 
-            if ($invoice->is_draft) {
-                $this->updateInvoice(new UpdateInvoiceDto([
-                    'id' => $invoice->id,
-                    'payment_method_id' => $invoice->payment_method_id ?? $dto->payment_method_id,
-                    'payment_term_id' => $invoice->payment_term_id ?? $dto->payment_term_id,
-                ]));
-            }
-
             if ($dto->address) {
                 $this->setAddress($invoice, $dto->address->toArray() ?? []);
             }
@@ -161,21 +156,33 @@ class InvoiceService implements InvoiceServiceInterface
         });
     }
 
+    public function sendInvoice($id): void
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        if ($invoice->is_draft) {
+            abort(403, __('translate.finance-cannot-send-a-draft-invoice'));
+            // throw new InvalidArgumentException('translate.finance-cannot-send-a-draft-invoice');
+        }
+
+        Mail::to($invoice->customer->email)->send(new NewInvoiceMail($invoice));
+
+        $invoice->markAsSent();
+    }
+
     public function payInvoice(PayInvoiceDto $dto): PaymentResult
     {
         return DB::transaction(function () use ($dto) {
             $invoice = Invoice::findOrFail($dto->invoice_id);
 
             if ($invoice->is_draft) {
-                $this->approveInvoice(new ApproveInvoiceDto([
-                    'invoice_id' => $dto->invoice_id,
-                    'payment_method_id' => $dto->payment_method_id,
-                    'payment_term_id' => $dto->payment_term_id,
-                    'address' => $dto->address?->toArray() ?? null,
-                ]));
-
-                $invoice->refresh();
+                throw new Exception('translate.finance-cannot-pay-draft-invoice');
             }
+
+            $this->updateInvoiceFields($invoice, new UpdateInvoiceDto([
+                'payment_method_id' => $dto->payment_method_id,
+                'payment_term_id' => $dto->payment_term_id,
+            ]));
 
             if ($dto->pay_next_installment) {
                 $nextInstallment = $invoice->getNextInstallmentPeriod();
@@ -290,15 +297,26 @@ class InvoiceService implements InvoiceServiceInterface
      */
     protected function updateInvoiceFields(Invoice $invoice, UpdateInvoiceDto $dto): void
     {
-        if (!$invoice->is_draft) {
+        $colsJustUpdatablesOnDraft = [
+            'possible_payment_terms',
+            'possible_payment_methods',
+            'invoice_date',
+        ];
+
+        $tryingToUpdateInvalid = collect($dto->toArray())->only($colsJustUpdatablesOnDraft);
+
+        if (!$invoice->is_draft && $tryingToUpdateInvalid->isNotEmpty()) {
             throw new Exception('finance-cannot-update-non-draft-invoice');
         }
 
-        $invoice->possible_payment_terms = $dto->possible_payment_terms ?? $invoice->possible_payment_terms ?? [];
-        $invoice->possible_payment_methods = $dto->possible_payment_methods ?? $invoice->possible_payment_methods ?? [];
+        if ($invoice->is_draft) {
+            $invoice->possible_payment_terms = $dto->possible_payment_terms ?? $invoice->possible_payment_terms ?? [];
+            $invoice->possible_payment_methods = $dto->possible_payment_methods ?? $invoice->possible_payment_methods ?? [];
+            $invoice->invoice_date = $dto->invoice_date ?? $invoice->invoice_date;
+        }
+
         $invoice->payment_term_id = $dto->payment_term_id ?? (count($invoice->possible_payment_terms ?? []) == 1 ? $invoice->possible_payment_terms[0] : ($invoice->isDirty('possible_payment_terms') ? null : $invoice->payment_term_id));
         $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods ?? []) == 1 ? $invoice->possible_payment_methods[0] : ($invoice->isDirty('possible_payment_methods') ? null : $invoice->payment_method_id));
-        $invoice->invoice_date = $dto->invoice_date ?? $invoice->invoice_date;
 
         if ($invoice->isDirty('payment_term_id') && $invoice->paymentTerm) {
             $invoice->invoice_due_date = $invoice->paymentTerm->calculateDueDate($invoice->invoice_date);

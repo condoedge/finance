@@ -93,7 +93,8 @@ class InvoiceForm extends Form
                     ->options(InvoiceTypeEnum::optionsWithLabels()),
                 $this->model->id ? null : _Flex(
                     _Rows(
-                        _Select('finance-invoiced-to')->name('customer_id')->class('!mb-0')
+                        _Panel()->id('customer-after-save-info'),
+                        _Select('finance-invoiced-to')->name('customer_id')->class('!mb-0 select-on-create')
                             ->searchOptions(2, 'searchCustomers'),
                     )->class('[&>form]:flex-1'),
                     _Rows(
@@ -159,7 +160,10 @@ class InvoiceForm extends Form
     {
         return Customer::forTeam($this->team->id ?? currentTeamId())
             ->where('name', 'like', wildcardSpace($searchTerm))
-            ->pluck('name', 'id');
+            ->get()
+            ->mapWithKeys(function ($customer) {
+                return [$customer->id => '<span data-id ="' . $customer->id . '">' . $customer->name . '</span>'];
+            });
     }
 
     protected function parsePossiblePaymentMethods($requestData = null)

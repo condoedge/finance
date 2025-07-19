@@ -33,7 +33,8 @@ class UserExpenseReportTable extends WhiteTable
         }
 
         return ExpenseReport::whereIn('customer_id', auth()->user()->getCustomersRelated()->pluck('id'))
-            ->where('is_draft', false);
+            ->where('is_draft', false)
+            ->whereNotNull('sent_at');
     }
 
     public function headers()

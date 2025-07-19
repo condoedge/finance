@@ -30,21 +30,27 @@ class CustomerForm extends Modal
     public function handle()
     {
         $modelInstance = $this->getModelRelationInstance();
+        $customer = null;
 
         if (!$modelInstance) {
-            CustomerService::createOrUpdate(new CreateOrUpdateCustomerDto([
+            $customer = CustomerService::createOrUpdate(new CreateOrUpdateCustomerDto([
                 'name' => request('name'),
                 'email' => request('email'),
                 'phone' => request('phone'),
                 'address' => parsePlaceFromRequest('address'),
             ]));
         } else {
-            CustomerService::createFromCustomable(new CreateCustomerFromCustomable([
+            $customer = CustomerService::createFromCustomable(new CreateCustomerFromCustomable([
                 'customable_id' => $modelInstance->id,
                 'customable_type' => request('from_model'),
                 'address' => parsePlaceFromRequest('address'),
             ]));
         }
+
+        return _Html()->attr([
+            'data-id' => $customer->id,
+            'data-name' => $customer->name,
+        ]);
     }
 
     public function body()
@@ -60,7 +66,9 @@ class CustomerForm extends Modal
                 $this->manualForm()
             )->id('customableOptionsPanel'),
             _FlexEnd(
-                _SubmitButton('finance-save')->closeModal()->refresh($this->refreshId),
+                _SubmitButton('finance-save')
+                    ->inPanel('customer-after-save-info')
+                    ->run($this->jsToSelectCustomer())->closeModal()->refresh($this->refreshId),
             ),
         );
     }
@@ -76,7 +84,8 @@ class CustomerForm extends Modal
 
             _InputPhone('translate.finance-phone')->name('phone'),
 
-            _Place()->name('address'),
+            _CanadianPlace()->name('address')
+                ->class('place-input-without-visual'),
         ];
     }
 
@@ -115,7 +124,7 @@ class CustomerForm extends Modal
     {
         $modelInstance = $this->getModelRelationInstance();
 
-        if (!$modelInstance->getFirstValidAddress()) {
+        if (!$modelInstance?->getFirstValidAddressLabel()) {
             return _Place()->name('address');
         }
 
@@ -129,5 +138,52 @@ class CustomerForm extends Modal
         }
 
         return getModelFromMorphable(request('from_model'), request('from_id'));
+    }
+
+    public function jsToSelectCustomer()
+    {
+        return '() => {
+            const waitForCustomerInfo = async () => {
+                            return new Promise((resolve) => {
+                                const interval = setInterval(() => {
+                                    if ($("#customer-after-save-info").children().length > 0) {
+                                        clearInterval(interval);
+                                        resolve();
+                                    }
+                                }, 30);
+                            });
+                        };
+
+                        const waitUntilOptionAppear = async () => {
+                            return new Promise((resolve) => {
+                                const interval = setInterval(() => {
+                                    if ($(".select-on-create").find(".vlOptions").find("span[data-id]").length) {
+                                        clearInterval(interval);
+                                        resolve();
+                                    }
+                                }, 30);
+                            });
+                        };
+
+                        waitForCustomerInfo().then(() => {
+                            const customerInfo = $("#customer-after-save-info").children();
+                            const customerName = customerInfo.data("name");
+                            const customerId = customerInfo.data("id");
+
+                            $(".select-on-create").find("input").each(function() {
+                                $(this).val(customerName);
+                                $(this).get(0).dispatchEvent(new Event("input", { bubbles: true }));
+                                $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
+                            });
+
+                                                        waitUntilOptionAppear().then(() => {
+                                $(".select-on-create").find(".vlOptions").find("span[data-id]").each(function() {
+                                    if ($(this).data("id") == customerId) {
+                                        $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
+                                    }
+                                });
+                            });
+                        });
+            }';
     }
 }

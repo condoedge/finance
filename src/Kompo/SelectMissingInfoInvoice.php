@@ -19,8 +19,6 @@ class SelectMissingInfoInvoice extends Modal
     {
         InvoiceService::approveInvoice(new ApproveInvoiceDto([
             'invoice_id' => $this->model->id,
-            'payment_method_id' => request('payment_method_id'),
-            'payment_term_id' => request('payment_term_id'),
             'address' => parsePlaceFromRequest('address1'),
         ]));
     }
@@ -28,18 +26,12 @@ class SelectMissingInfoInvoice extends Modal
     public function body()
     {
         return _Rows(
-            _Select('finance-payment-type')
-                    ->default($this->model->payment_method_id)
-                    ->name('payment_method_id')
-                    ->options(PaymentMethodEnum::optionsWithLabels()),
-            _Select('finance-payment-term')
-                ->default($this->model->payment_term_id)
-                ->name('payment_term_id')
-                ->options(PaymentTerm::pluck('term_name', 'id')->toArray()),
             $this->model->address ? null : _CanadianPlace()
-                ->default($this->model->address),
+                ->default($this->model->address)
+                ->class('place-input-without-visual'),
             _SubmitButton('finance-save-and-approve')
                 ->closeModal()
+                ->refresh('invoice-page')
                 ->alert('finance-invoice-approved'),
         );
     }

@@ -226,6 +226,13 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
             ->where('invoice_type_id', $type?->value);
     }
 
+    public function scopeToBePaid($query)
+    {
+        return $query->whereIn('invoice_status_id', InvoiceStatusEnum::allToBePaid())
+            ->whereNotNull('sent_at');
+    }
+
+
     /* CALCULATED FIELDS */
     public function canApprove()
     {
@@ -235,6 +242,11 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     public function isRefund()
     {
         return $this->invoice_type_id->signMultiplier() < 0;
+    }
+
+    public function isLate()
+    {
+        return $this->invoice_status_id === InvoiceStatusEnum::OVERDUE;
     }
 
     public function canBePaid()
@@ -295,6 +307,11 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         $this->save();
     }
 
+    public function sendToCustomer()
+    {
+        InvoiceService::sendInvoice($this->id);
+    }
+
     /* ELEMENTS */
     public function approvalEls()
     {
@@ -310,6 +327,18 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     public function approvedByLabel()
     {
         return _Html('<b>' . __('finance-approved-by') . '</b> ' . $this->approvedBy->name);
+    }
+
+    public function sentEls()
+    {
+        if (!$this->sent_at) {
+            return null;
+        }
+
+        return _Flex(
+            _Html('translate.finance-invoice-sent-at')->class('font-semibold'),
+            _HtmlDate($this->sent_at)
+        )->class('gap-4');
     }
 
     public function onCompletePayment()

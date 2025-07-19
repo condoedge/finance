@@ -70,6 +70,8 @@ interface InvoiceServiceInterface
      */
     public function approveInvoice(ApproveInvoiceDto $dto): Invoice;
 
+    public function sendInvoice($id): void;
+
     /**
      * Approve multiple invoices
      *
