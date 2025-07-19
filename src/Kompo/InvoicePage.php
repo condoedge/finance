@@ -81,17 +81,17 @@ class InvoicePage extends Form
                 )->class('text-right')
             )->class('mb-4 p-6 bg-white rounded-2xl'),
             $this->stepBox(
-            	_Rows(
-            		$this->stepTitle('finance.send'),
-            		$this->model->sentEls(),
-            	),
-            	_FlexEnd4(
-            		!$this->model->isLate() ? null :
-            			_Button('finance-late-interests')->icon(_Sax('add',20))->class('!bg-danger text-white'),
-            		_Button('finance-send-invoice')
-            			->selfPost('sendInvoice', ['id' => $this->model->id])
-            			->inAlert()->refresh(),
-            	)
+                _Rows(
+                    $this->stepTitle('finance.send'),
+                    $this->model->sentEls(),
+                ),
+                _FlexEnd4(
+                    !$this->model->isLate() ? null :
+                        _Button('finance-late-interests')->icon(_Sax('add', 20))->class('!bg-danger text-white'),
+                    _Button('finance-send-invoice')
+                        ->selfPost('sendInvoice', ['id' => $this->model->id])
+                        ->inAlert()->refresh(),
+                )
             )->class('mb-4 p-6 bg-white rounded-2xl'),
             $this->model->canApprove() ? null : $this->stepBox(
                 $this->model->isRefund() ?

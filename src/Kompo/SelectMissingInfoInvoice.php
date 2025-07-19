@@ -3,11 +3,9 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceService;
-use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
-use Condoedge\Finance\Models\PaymentTerm;
 
 class SelectMissingInfoInvoice extends Modal
 {
