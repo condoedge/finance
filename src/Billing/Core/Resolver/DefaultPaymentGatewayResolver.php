@@ -19,6 +19,10 @@ class DefaultPaymentGatewayResolver implements PaymentGatewayResolverInterface
         // Current logic from PaymentMethodEnum
         $providerClass = $context->paymentMethod->getDefaultPaymentGateway();
 
+        if (!$providerClass) {
+            abort(403, __('translate.this-invoice-cannot-be-paid-with-the-selected-payment-method'));
+        }
+
         $provider = app()->make($providerClass);
 
         return $this->registry->get($provider->getCode());

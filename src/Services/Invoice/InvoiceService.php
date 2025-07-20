@@ -183,7 +183,7 @@ class InvoiceService implements InvoiceServiceInterface
                 $this->setAddress($invoice, $dto->address->toArray());
             }
 
-            $this->updateInvoiceFields($invoice, new UpdateInvoiceDto([
+            $this->updateInvoice(new UpdateInvoiceDto([
                 'id' => $invoice->id,
                 'payment_method_id' => $dto->payment_method_id,
                 'payment_term_id' => $dto->payment_term_id,

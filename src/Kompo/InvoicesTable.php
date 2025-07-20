@@ -136,7 +136,7 @@ class InvoicesTable extends WhiteTable
             _Rows(
                 _Html($invoice->invoice_reference)->class('group-hover:underline'),
             )->gotoInvoice($invoice->id),
-            _Html($invoice->payment_method_label),
+            _Html($invoice->invoice_type_id->label()),
             !$this->viewAsManager ? null : _Html($invoice->customer_label),
             $invoice->invoice_status_id->pill(),
             _Rows(
@@ -146,23 +146,6 @@ class InvoicesTable extends WhiteTable
                     _FinanceCurrency($invoice->abs_invoice_total_amount),
                 )->class('space-x-2 text-sm text-gray-600'),
             )->class('items-end'),
-            // _TripleDotsDropdown(
-
-            //     $this->dropdownLink('finance-view')->gotoInvoice($invoice->id),
-
-            //     $this->dropdownLink('finance-edit')->href($invoice->getEditRoute(), ['id' => $invoice->id,]),
-
-            //     !$invoice->canApprove() ? null : $this->dropdownLink('finance-approve')->selfPost('approveInvoice', ['id' => $invoice->id])->browse(),
-
-            //     (!$invoice->canPay() || ($invoice->due_amount <= 0)) ? null :
-            //         $this->dropdownLink('finance-record-payment')
-            //             ->get('payment-entry.form', [
-            //                 'type' => 'invoice',
-            //                 'id' => $invoice->id,
-            //             ])->inModal(),
-
-            // )->class('px-2 float-right hover:bg-gray-100 rounded-lg exclude-export')
-            // ->alignRight(),
         )->class('group');
     }
 
