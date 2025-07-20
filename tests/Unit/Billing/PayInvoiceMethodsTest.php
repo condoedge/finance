@@ -293,7 +293,7 @@ class PayInvoiceMethodsTest extends PaymentTestCase
             'quantity' => 1,
             'unit_price' => 300,
         ]);
-        
+
         $invoice->address?->delete(); // Ensure no address exists
         $invoice->customer()->first()?->address?->delete(); // Ensure customer address is also removed
 
