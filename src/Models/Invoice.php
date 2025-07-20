@@ -332,7 +332,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         }
 
         return _Flex(
-            _Html('translate.finance-invoice-sent-at')->class('font-semibold'),
+            _Html('finance-invoice-sent-at')->class('font-semibold'),
             _HtmlDate($this->sent_at)
         )->class('gap-4');
     }
