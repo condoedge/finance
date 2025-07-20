@@ -2,7 +2,9 @@
 
 namespace Condoedge\Finance\Models\Dto\Invoices;
 
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\Dto\Customers\CreateAddressDto;
+use Illuminate\Contracts\Validation\Validator;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
 use WendellAdriel\ValidatedDTO\Casting\DTOCast;
@@ -65,5 +67,19 @@ class PayInvoiceDto extends ValidatedDTO
             'installment_id' => null,
             'request_data' => [],
         ];
+    }
+
+    public function after(Validator $validator): void
+    {
+        $invoiceId = $this->dtoData['invoice_id'] ?? null;
+        $addressData = $this->dtoData['address'] ?? null;
+
+        if ($invoiceId) {
+            $invoice = InvoiceModel::find($invoiceId);
+
+            if (!$invoice->address && !$addressData) {
+                $validator->errors()->add('address', __('finance-address-required'));
+            }
+        }
     }
 }

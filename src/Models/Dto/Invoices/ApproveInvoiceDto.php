@@ -16,13 +16,10 @@ class ApproveInvoiceDto extends ValidatedDTO
 
     public int $invoice_id;
 
-    public ?CreateAddressDto $address;
-
     public function rules(): array
     {
         return [
             'invoice_id' => 'required|integer|exists:fin_invoices,id',
-            'address' => 'nullable|array',
         ];
     }
 
@@ -38,19 +35,5 @@ class ApproveInvoiceDto extends ValidatedDTO
     {
         return [
         ];
-    }
-
-    public function after(Validator $validator): void
-    {
-        $invoiceId = $this->dtoData['invoice_id'] ?? null;
-        $addressData = $this->dtoData['address'] ?? null;
-
-        if ($invoiceId) {
-            $invoice = InvoiceModel::find($invoiceId);
-
-            if (!$invoice->address && !$addressData) {
-                $validator->errors()->add('address', __('finance-address-required'));
-            }
-        }
     }
 }

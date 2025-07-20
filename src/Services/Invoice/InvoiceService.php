@@ -179,7 +179,12 @@ class InvoiceService implements InvoiceServiceInterface
                 throw new Exception('translate.finance-cannot-pay-draft-invoice');
             }
 
+            if (isset($dto->address)) {
+                $this->setAddress($invoice, $dto->address->toArray());
+            }
+
             $this->updateInvoiceFields($invoice, new UpdateInvoiceDto([
+                'id' => $invoice->id,
                 'payment_method_id' => $dto->payment_method_id,
                 'payment_term_id' => $dto->payment_term_id,
             ]));
@@ -303,7 +308,13 @@ class InvoiceService implements InvoiceServiceInterface
             'invoice_date',
         ];
 
-        $tryingToUpdateInvalid = collect($dto->toArray())->only($colsJustUpdatablesOnDraft);
+        $tryingToUpdateInvalid = collect($colsJustUpdatablesOnDraft)->filter(function ($col) use ($dto) {
+            if (!($dto->{$col} ?? null)) {
+                return false;
+            }
+
+            return true;
+        });
 
         if (!$invoice->is_draft && $tryingToUpdateInvalid->isNotEmpty()) {
             throw new Exception('finance-cannot-update-non-draft-invoice');

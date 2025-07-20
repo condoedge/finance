@@ -276,61 +276,6 @@ class PayInvoiceMethodsTest extends PaymentTestCase
     }
 
     /**
-     * Test automatic approval of draft invoice during payment
-     */
-    public function test_pay_invoice_approves_draft_invoice_automatically()
-    {
-        // Create draft invoice
-        $invoice = Invoice::factory()->create([
-            'payment_method_id' => PaymentMethodEnum::CREDIT_CARD,
-            'payment_term_id' => PaymentTermFactory::new()->create()->id,
-            'invoice_due_amount' => 400,
-            'invoice_type_id' => InvoiceTypeEnum::INVOICE->value,
-        ]);
-
-        // Create invoice details
-        \Condoedge\Finance\Models\InvoiceDetail::factory()->create([
-            'invoice_id' => $invoice->id,
-            'quantity' => 1,
-            'unit_price' => 400,
-        ]);
-
-        $invoice->refresh();
-
-        // Configure mock gateway
-        $this->mockGateway->reset();
-        $this->mockGateway->setShouldSucceed(true);
-        $this->mockGateway->setResponseData([
-            'amount' => 400,
-            'transactionId' => 'AUTO-APPROVE-001',
-        ]);
-
-        PaymentGatewayResolver::shouldReceive('resolve')
-            ->once()
-            ->andReturn($this->mockGateway);
-
-        $this->mockRequestData($this->createTestPaymentRequest(400));
-
-        $dto = new PayInvoiceDto([
-            'invoice_id' => $invoice->id,
-            'payment_method_id' => PaymentMethodEnum::CREDIT_CARD->value,
-            'payment_term_id' => $invoice->payment_term_id,
-        ]);
-
-        $result = InvoiceService::payInvoice($dto);
-
-        $this->assertInstanceOf(PaymentResult::class, $result);
-        $this->assertTrue($result->isSuccessful());
-
-        // Verify invoice was approved and paid
-        $invoice->refresh();
-        $this->assertEquals(0, $invoice->is_draft);
-        $this->assertNotNull($invoice->approved_at);
-        $this->assertNotNull($invoice->approved_by);
-        $this->assertEqualsDecimals(0, $invoice->invoice_due_amount);
-    }
-
-    /**
      * Test payment with address information
      */
     public function test_pay_invoice_with_address_information()
@@ -348,6 +293,11 @@ class PayInvoiceMethodsTest extends PaymentTestCase
             'quantity' => 1,
             'unit_price' => 300,
         ]);
+        
+        $invoice->address?->delete(); // Ensure no address exists
+        $invoice->customer()->first()?->address?->delete(); // Ensure customer address is also removed
+
+        $invoice->markApproved();
 
         $invoice->refresh();
 

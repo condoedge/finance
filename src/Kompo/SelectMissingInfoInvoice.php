@@ -17,16 +17,12 @@ class SelectMissingInfoInvoice extends Modal
     {
         InvoiceService::approveInvoice(new ApproveInvoiceDto([
             'invoice_id' => $this->model->id,
-            'address' => parsePlaceFromRequest('address1'),
         ]));
     }
 
     public function body()
     {
         return _Rows(
-            $this->model->address ? null : _CanadianPlace()
-                ->default($this->model->address)
-                ->class('place-input-without-visual'),
             _SubmitButton('finance-save-and-approve')
                 ->closeModal()
                 ->refresh('invoice-page')

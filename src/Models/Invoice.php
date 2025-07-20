@@ -269,10 +269,6 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function hasMissingInfoToApprove()
     {
-        if (!$this->payment_method_id || !$this->payment_term_id || !$this->address) {
-            return true;
-        }
-
         return false;
     }
 
