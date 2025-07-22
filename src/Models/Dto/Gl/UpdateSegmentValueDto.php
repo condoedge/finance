@@ -2,10 +2,7 @@
 
 namespace Condoedge\Finance\Models\Dto\Gl;
 
-use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\AccountTypeEnum;
-use Condoedge\Finance\Models\SegmentValue;
-use Condoedge\Finance\Services\AccountSegmentValidator;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
 use WendellAdriel\ValidatedDTO\Casting\EnumCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -16,9 +13,10 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
 /**
  * Update Segment Value DTO
 
+ *
  * @property int $id
  * @property string $segment_description Human-readable description
- * @property AccountTypeEnum $account_type  Type of account this segment value belongs to
+ * @property AccountTypeEnum $account_type Type of account this segment value belongs to
  */
 class UpdateSegmentValueDto extends ValidatedDTO
 {

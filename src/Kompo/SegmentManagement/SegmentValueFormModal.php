@@ -66,14 +66,12 @@ class SegmentValueFormModal extends Modal
                 _ValidatedInput('finance-account-value')->name('segment_value')->allow("^[0-9]{0,$segmentLenght}$")
                     ->required(),
             ),
-
             _Input('finance-account-segment-description')
                 ->name('segment_description')
                 ->required(),
             !$this->isRealAccount ? null : _Select('finance-account-type')->name('account_type')
                 ->options(AccountTypeEnum::optionsWithLabels())
                 ->required(),
-
             _Toggle('finance-allow-manual-entry')
                 ->name('allow_manual_entry')
                 ->default(true)
