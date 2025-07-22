@@ -86,8 +86,8 @@ class InvoicePage extends Form
                     $this->model->sentEls(),
                 ),
                 _FlexEnd4(
-                    !$this->model->isLate() ? null :
-                        _Button('finance-late-interests')->icon(_Sax('add', 20))->class('!bg-danger text-white'),
+                    // !$this->model->isLate() ? null :
+                    //     _Button('finance-late-interests')->icon(_Sax('add', 20))->class('!bg-danger text-white'),
 
                     //! It's not a delete link, but it's the easiest way to use the confirm modal
                     _LinkWithConfirmation('finance-send-invoice')->button()
