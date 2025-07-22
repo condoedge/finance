@@ -7,7 +7,7 @@ use Condoedge\Finance\Models\Expense;
 
 class ExpenseInfoModal extends Modal
 {
-    protected $_Title = 'translate.finance-expense-report-info';
+    protected $_Title = 'finance-expense-report-info';
     public $model = Expense::class;
 
     public function body()

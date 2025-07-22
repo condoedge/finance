@@ -32,7 +32,7 @@ class ExpenseReportsTable extends WhiteTable
 
     protected function header()
     {
-        return _Html('translate.finance-expense-reports')->class('font-semibold text-2xl mb-6');
+        return _Html('finance-expense-reports')->class('font-semibold text-2xl mb-6');
     }
 
     public function top()
@@ -49,7 +49,7 @@ class ExpenseReportsTable extends WhiteTable
                     ->filter(),
                 !currentTeam()->isGroupLevel() || !$this->asManager ? null : _Select()
                     ->name('team_id')
-                    ->placeholder('translate.finance-select-team')
+                    ->placeholder('finance-select-team')
                     ->options(TeamModel::whereIn('id', currentTeam()->getAllChildrenRawSolution())->pluck('team_name', 'id'))
                     ->filter()
             )->class('gap-6')
