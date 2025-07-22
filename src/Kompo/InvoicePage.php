@@ -176,7 +176,7 @@ class InvoicePage extends Form
     {
         InvoiceService::sendInvoice($id);
 
-        return __('translate.finance-invoice-sent');
+        return __('finance-invoice-sent');
     }
 
     public function getApplyPaymentToInvoiceModal()

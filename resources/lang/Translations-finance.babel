@@ -215,6 +215,36 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>error-finance-cannot-pay-draft-invoice</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>error-finance-cannot-send-a-draft-invoice</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>error-finance-interac-url-not-found</name>
 						<description/>
 						<comment/>
@@ -471,6 +501,21 @@
 					</concept_node>
 					<concept_node>
 						<name>error-start-date-must-be-before-end-date</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>error-this-invoice-cannot-be-paid-with-the-selected-payment-method</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -6025,6 +6070,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-expense-images</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-expense-title</name>
 						<description/>
 						<comment/>
@@ -7571,6 +7631,36 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-invoice-reference</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-invoice-sent</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-invoice-sent-at</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -14216,6 +14306,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-you-have</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-you-have-a-new-invoice</name>
 						<description/>
 						<comment/>
 						<translations>

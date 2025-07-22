@@ -161,8 +161,8 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice = Invoice::findOrFail($id);
 
         if ($invoice->is_draft) {
-            abort(403, __('translate.finance-cannot-send-a-draft-invoice'));
-            // throw new InvalidArgumentException('translate.finance-cannot-send-a-draft-invoice');
+            abort(403, __('error-finance-cannot-send-a-draft-invoice'));
+            // throw new InvalidArgumentException('error-finance-cannot-send-a-draft-invoice');
         }
 
         if (!$invoice->customer?->email) {
@@ -181,7 +181,7 @@ class InvoiceService implements InvoiceServiceInterface
             $invoice = Invoice::findOrFail($dto->invoice_id);
 
             if ($invoice->is_draft) {
-                throw new Exception('translate.finance-cannot-pay-draft-invoice');
+                throw new Exception('error-finance-cannot-pay-draft-invoice');
             }
 
             if (isset($dto->address)) {

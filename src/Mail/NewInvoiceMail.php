@@ -29,7 +29,7 @@ class NewInvoiceMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('translate.you-have-a-new-invoice'),
+            subject: __('finance-you-have-a-new-invoice'),
         );
     }
 
