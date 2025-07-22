@@ -34,7 +34,7 @@ class ChartOfAccounts extends Form
                 ->class('text-2xl font-bold mb-4'),
             $this->renderSegmentStructureInfo(),
             _FlexEnd(
-                _Button('finance.create-account')->class('mb-2')
+                _Button('finance-create-account')->class('mb-2')
                     ->selfGet('getLastSegmentValueForm')->inModal(),
             ),
             $this->renderAccountTypeTabs(),

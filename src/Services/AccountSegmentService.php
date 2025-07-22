@@ -8,6 +8,7 @@ use Condoedge\Finance\Models\AccountSegmentAssignment;
 use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
 use Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto;
 use Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto;
+use Condoedge\Finance\Models\Dto\Gl\UpdateSegmentValueDto;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\SegmentValue;
 use Illuminate\Support\Collection;
@@ -122,7 +123,21 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             $segmentValue->segment_value = str_pad($dto->segment_value, $segmentDefinition->segment_length, '0', STR_PAD_LEFT);
             $segmentValue->segment_description = $dto->segment_description;
             $segmentValue->is_active = $dto->is_active;
+            $segmentValue->allow_manual_entry = $dto->allow_manual_entry ?? true;
             $segmentValue->account_type = $dto->account_type ?? null;
+            $segmentValue->save();
+
+            return $segmentValue;
+        });
+    }
+
+    public function updateSegmentValue(UpdateSegmentValueDto $dto): SegmentValue
+    {
+        return $this->executeInTransaction(function () use ($dto) {
+            $segmentValue = SegmentValue::findOrFail($dto->id);
+            $segmentValue->segment_description = $dto->segment_description;
+            $segmentValue->account_type = $dto->account_type ?? null;
+            $segmentValue->allow_manual_entry = $dto->allow_manual_entry ?? true;
             $segmentValue->save();
 
             return $segmentValue;
