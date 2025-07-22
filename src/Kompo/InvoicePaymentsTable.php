@@ -3,9 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
-use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Utils\Kompo\Common\Table;
-use Condoedge\Utils\Kompo\Common\WhiteTable;
 
 class InvoicePaymentsTable extends Table
 {
@@ -41,7 +39,7 @@ class InvoicePaymentsTable extends Table
         return _TableRow(
             _Html($invoicePayment->apply_date?->format('Y-m-d')),
             _Html($paymentMethod?->name ?? 'N/A'),
-                _FinanceCurrency($invoicePayment->payment_applied_amount),
+            _FinanceCurrency($invoicePayment->payment_applied_amount),
         );
     }
 }

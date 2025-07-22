@@ -4,8 +4,6 @@ namespace Condoedge\Finance\Services\Tax;
 
 use Closure;
 use Condoedge\Finance\Casts\SafeDecimal;
-use Condoedge\Finance\Models\Customer;
-use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Tax;
 use Condoedge\Finance\Models\TaxGroup;

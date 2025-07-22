@@ -69,12 +69,12 @@ class InvoicePage extends Form
                         _Button('finance-approve-draft')
                         ->when(
                             $this->model->hasMissingInfoToApprove(),
-                            fn($e) =>
+                            fn ($e) =>
                             $e->selfGet('getMissingInfoToApproveModal')->inModal()
                         )
                         ->when(
                             !$this->model->hasMissingInfoToApprove(),
-                            fn($e) =>
+                            fn ($e) =>
                             $e->selfPost('approveInvoice', ['id' => $this->model->id])
                                 ->inAlert()->refresh()
                         ),
@@ -122,13 +122,11 @@ class InvoicePage extends Form
                             ->selfUpdate('getApplyPaymentToInvoiceModal')->inModal()
                     ),
                 ),
-
                 _Rows(
                     new InvoicePaymentsTable([
                         'invoice_id' => $this->model->id,
                     ]),
                 )->class('px-6'),
-
             )->class('p-6 !px-0 bg-white mb-4 rounded-2xl'),
 
             !$this->model->installmentsPeriods->count() ? null : _Rows(

@@ -24,19 +24,15 @@ class TaxForm extends Modal
             _Input('finance-name')
                 ->name('name')
                 ->required(),
-
             _InputNumber('translate.finance-rate')
                 ->name('pct_rate', false)
                 ->required()
                 ->default($this->model->rate?->multiply(100)->toFloat()),
-
             _AccountsSelect('translate.finance-account', $this->model->account)
                 ->name('account_id', false)
                 ->required(),
-
             _Date('translate.valid-from')->name('valide_from')
                 ->default(now()->format('Y-m-d')),
-
             _FlexEnd(
                 _SubmitButton('generic.save')->closeModal()
                     ->alert('translate.tax-saved-successfully')

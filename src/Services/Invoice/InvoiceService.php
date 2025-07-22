@@ -20,8 +20,6 @@ use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Condoedge\Finance\Models\PaymentTerm;
-use Condoedge\Finance\Models\TaxGroup;
-use Condoedge\Utils\Facades\GlobalConfig;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
 use Illuminate\Support\Collection;

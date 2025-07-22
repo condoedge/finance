@@ -1,6 +1,5 @@
 <?php
 
-use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\TaxModel;
 use Condoedge\Finance\Facades\TaxService;
 use Condoedge\Finance\Models\GlAccount;

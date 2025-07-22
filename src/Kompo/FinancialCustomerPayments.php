@@ -5,7 +5,6 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\MorphablesEnum;
-
 use Condoedge\Utils\Kompo\Common\WhiteTable;
 
 class FinancialCustomerPayments extends WhiteTable

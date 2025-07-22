@@ -4,7 +4,6 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
-use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\ProductService;
 use Condoedge\Finance\Facades\TaxService;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
