@@ -105,7 +105,7 @@ class InvoiceInfoModal extends Form
                         ),
                         _LabelWithIcon(
                             'wallet',
-                            _Html($this->model->payment_method?->label() ?: 'finance-to-be-selected')->class('font-semibold'),
+                            _Html($this->model->payment_method_id?->label() ?: 'finance-to-be-selected')->class('font-semibold'),
                         )->class('mb-4'),
                         // $this->model->paymentTerm?->preview($this->model),
                     )->class('p-6 gap-1'),

@@ -198,6 +198,8 @@ class InvoiceService implements InvoiceServiceInterface
                 $dto->installment_id = $nextInstallment?->id;
             }
 
+            $invoice->refresh();
+
             $paymentInstallment = $dto->installment_id ? PaymentInstallmentPeriod::findOrFail($dto->installment_id) : null;
 
             $result = PaymentProcessor::processPayment(new PaymentContext(payable: $paymentInstallment ?? $invoice, paymentMethod: $invoice->payment_method_id, paymentData: request()->all()));
