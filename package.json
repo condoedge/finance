@@ -1,4 +1,14 @@
 {
+  "name": "finance",
+  "version": "1.0.0",
+  "description": "This package provides a comprehensive solution for managing financial transactions and products. Its main goal is to ensure data integrity and offer components for handling payment gateways, accounts, payment methods (extendable), invoices, accounting, taxes, and more.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",
