@@ -164,8 +164,8 @@ class InvoiceService implements InvoiceServiceInterface
         }
 
         if (!$invoice->customer?->email) {
-            abort(403, __('translate.invoice-customer-email-not-found'));
-            // throw new InvalidArgumentException('translate.invoice-customer-email-not-found');
+            abort(403, __('error-invoice-customer-email-not-found'));
+            // throw new InvalidArgumentException('error-invoice-customer-email-not-found');
         }
 
         Mail::to($invoice->customer->email)->send(new NewInvoiceMail($invoice));

@@ -10,7 +10,7 @@ class LinkWithConfirmation extends DeleteLink
     {
         parent::initialize($label);
 
-        $this->deleteTitle(__('translate.are-you-sure'));
+        $this->deleteTitle(__('finance-are-you-sure'));
     }
 
     public function confirmationTitle($title)

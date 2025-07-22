@@ -136,7 +136,7 @@ class TaxService implements TaxServiceInterface
                 return $tax ? $tax->name : null;
             })
             ->filter()
-            ->implode(' + ') ?: __('translate.no-taxes');
+            ->implode(' + ') ?: __('finance-no-taxes');
     }
 
     /**

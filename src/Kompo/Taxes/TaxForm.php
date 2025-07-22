@@ -10,7 +10,7 @@ class TaxForm extends Modal
 {
     public $model = TaxModel::class;
 
-    protected $_Title = 'translate.add-new-tax';
+    protected $_Title = 'finance-add-new-tax';
 
     public function beforeSave()
     {
@@ -24,18 +24,18 @@ class TaxForm extends Modal
             _Input('finance-name')
                 ->name('name')
                 ->required(),
-            _InputNumber('translate.finance-rate')
+            _InputNumber('finance-rate')
                 ->name('pct_rate', false)
                 ->required()
                 ->default($this->model->rate?->multiply(100)->toFloat()),
-            _AccountsSelect('translate.finance-account', $this->model->account)
+            _AccountsSelect('finance-account', $this->model->account)
                 ->name('account_id', false)
                 ->required(),
-            _Date('translate.valid-from')->name('valide_from')
+            _Date('finance-valid-from')->name('valide_from')
                 ->default(now()->format('Y-m-d')),
             _FlexEnd(
                 _SubmitButton('generic.save')->closeModal()
-                    ->alert('translate.tax-saved-successfully')
+                    ->alert('finance-tax-saved-successfully')
                     ->refresh('taxes-table'),
             )->class('mt-3'),
         );

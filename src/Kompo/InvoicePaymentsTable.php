@@ -26,9 +26,9 @@ class InvoicePaymentsTable extends Table
     public function headers()
     {
         return [
-            _Th('translate.invoice-payment-date'),
-            _Th('translate.invoice-payment-method'),
-            _Th('translate.invoice-payment-amount'),
+            _Th('finance-invoice-payment-date'),
+            _Th('finance-invoice-payment-method'),
+            _Th('finance-invoice-payment-amount'),
         ];
     }
 

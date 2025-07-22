@@ -17,9 +17,9 @@ class TaxesTable extends WhiteTable
     public function headers()
     {
         return [
-            _Th('translate.name'),
-            _Th('translate.rate'),
-            _Th('translate.valid-from'),
+            _Th('finance-name'),
+            _Th('finance-rate'),
+            _Th('finance-valid-from'),
         ];
     }
 

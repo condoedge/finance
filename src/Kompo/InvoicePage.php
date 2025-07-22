@@ -92,7 +92,7 @@ class InvoicePage extends Form
                     //! It's not a delete link, but it's the easiest way to use the confirm modal
                     _LinkWithConfirmation('finance-send-invoice')->button()
                         ->selfPost('sendInvoice', ['id' => $this->model->id])
-                        ->confirmationTitle('translate.finance-send-invoice-confirm')
+                        ->confirmationTitle('finance-send-invoice-confirm')
                         ->run('() => {
                             $(".vlDeleteLinkModal").find(".vlBtnOutlined").click();
                         }')
