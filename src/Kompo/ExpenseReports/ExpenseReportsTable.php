@@ -22,8 +22,7 @@ class ExpenseReportsTable extends WhiteTable
             $query->where('team_id', currentTeamId())
                 ->when(currentTeam()->isGroupLevel(), function ($query) {
                     $query->whereIn('team_id', currentTeam()->getAllChildrenRawSolution());
-                })
-                ->orderBy('created_at', 'desc');
+                });
         } elseif (currentTeam()->isGroupLevel() && currentTeam()->getAllChildrenRawSolution()->contains(request('team_id'))) {
             $query->where('team_id', request('team_id'));
         }

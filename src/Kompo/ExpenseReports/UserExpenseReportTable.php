@@ -27,7 +27,8 @@ class UserExpenseReportTable extends ExpenseReportsTable
         }
 
         return ExpenseReport::whereIn('customer_id', auth()->user()->getCustomersRelated()->pluck('id'))
-            ->where('is_draft', false);
+            ->where('is_draft', false)
+            ->orderBy('created_at', 'desc');
     }
 
     protected function actionsButtons()
