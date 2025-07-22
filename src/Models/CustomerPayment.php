@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount The total amount of the payment
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount_left @CALCULATED BY calculate_payment_amount_left() - Amount left to be applied to invoices
  * @property int $payment_trace_id Foreign key to fin_payment_traces
+ * @property PaymentMethodEnum $payment_method_id The method of payment used (e.g., cash, credit card)
  *
  **/
 class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToInvoiceContract
@@ -30,12 +31,18 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
         'payment_date' => 'date',
         'amount' => SafeDecimalCast::class,
         'amount_left' => SafeDecimalCast::class,
+        'payment_method' => PaymentMethodEnum::class,
     ];
 
     // RELATIONS
     public function paymentTrace()
     {
         return $this->belongsTo(PaymentTrace::class);
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
 
     // ACTIONS

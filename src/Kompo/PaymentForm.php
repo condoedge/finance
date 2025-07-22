@@ -3,11 +3,13 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
+use Condoedge\Finance\Models\PaymentMethod;
 use Condoedge\Finance\Services\Payment\PaymentServiceInterface;
 
 class PaymentForm extends Modal
@@ -47,6 +49,7 @@ class PaymentForm extends Modal
         $applyInformation = [
             'payment_date' => request('payment_date'),
             'amount' => request('amount') * request('type'),
+            'payment_method_id' => request('payment_method_id'),
         ];
 
         if ($this->invoiceId) {
@@ -90,6 +93,10 @@ class PaymentForm extends Modal
                     1 => __('finance-from-customer'),
                     -1 => __('finance-to-customer'),
                 ]),
+
+            _Select('finance-payment-method')
+                ->name('payment_method_id')
+                ->options(PaymentMethod::pluck('name', 'id')->toArray()),
 
             _InputDollar('finance-amount')->name('amount')->default($this->getDefaultAmount())
                 ->placeholder('finance-amount'),
@@ -145,6 +152,7 @@ class PaymentForm extends Modal
         return [
             'amount' => 'required|numeric|min:0',
             'type' => 'required|in:1,-1',
+            'payment_method_id' => 'required|exists:fin_payment_methods,id',
         ];
     }
 }

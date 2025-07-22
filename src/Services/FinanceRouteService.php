@@ -38,9 +38,9 @@ class FinanceRouteService
     {
         Route::prefix('finance/customers')->name('finance.customers.')->group(function () {
             Route::get('/', \Condoedge\Finance\Kompo\FinantialCustomersTable::class)->name('list');
-            Route::get('/page/{id}', \Condoedge\Finance\Kompo\FinantialCustomerPage::class)->name('page');
+            Route::get('/page/{id}', \Condoedge\Finance\Kompo\FinancialCustomerPage::class)->name('page');
             Route::get('/form/{id?}', \Condoedge\Finance\Kompo\CustomerForm::class)->name('form');
-            Route::get('/{id}/payments', \Condoedge\Finance\Kompo\FinantialCustomerPayments::class)->name('payments');
+            Route::get('/{id}/payments', \Condoedge\Finance\Kompo\FinancialCustomerPayments::class)->name('payments');
         });
     }
 

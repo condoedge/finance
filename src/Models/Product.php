@@ -4,7 +4,9 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\ProductService;
+use Condoedge\Finance\Facades\TaxService;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Support\Facades\DB;
@@ -199,6 +201,9 @@ class Product extends AbstractMainFinanceModel
             'product_name' => $name ?: $type->label(),
             'default_revenue_account_id' => $accountId ?? GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id)->id, // ! TODO we must add a real way to get the account here
             'team_id' => $teamId ?? currentTeamId(),
+            'taxes_ids' => TaxService::getDefaultTaxesIds([
+                'team_id' => $teamId ?? currentTeamId(),
+            ]),
         ]));
     }
 

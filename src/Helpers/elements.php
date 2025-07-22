@@ -2,6 +2,7 @@
 
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\TaxModel;
+use Condoedge\Finance\Facades\TaxService;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\SegmentValue;
 
@@ -60,7 +61,7 @@ if (!function_exists('_AccountsSelect')) {
 }
 
 if (!function_exists('_TaxesSelect')) {
-    function _TaxesSelect($invoiceDetail = null, $name = 'taxes_ids')
+    function _TaxesSelect($invoiceDetail = null, $name = 'taxes_ids', $context = [])
     {
         $invoice = $invoiceDetail?->invoice;
 
@@ -70,7 +71,10 @@ if (!function_exists('_TaxesSelect')) {
 
         return	_MultiSelect()->placeholder('taxes')
             ->name($name)
-            ->default($invoiceDetail?->id ? $invoiceDetail->invoiceTaxes()->pluck('tax_id') : InvoiceService::getDefaultTaxesIds($invoice))
+            ->default($invoiceDetail?->id ? $invoiceDetail->invoiceTaxes()->pluck('tax_id') : TaxService::getDefaultTaxesIds([
+                'invoice' => $invoice,
+                ...$context,
+            ]))
             ->options($taxesOptions);
     }
 }

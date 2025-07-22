@@ -34,7 +34,7 @@ class InvoicePage extends Form
                             _DropdownLink('finance-create-another-invoice')
                                 ->href('finance.invoice-form'),
                         )->alignRight(),
-                    _Link('finance-edit-invoice')->outlined()
+                    !$this->model->is_draft ? null : _Link('finance-edit-invoice')->outlined()
                         ->href('invoices.form', ['id' => $this->model->id]),
                 )
             )->class('mb-12'),
@@ -69,12 +69,12 @@ class InvoicePage extends Form
                         _Button('finance-approve-draft')
                         ->when(
                             $this->model->hasMissingInfoToApprove(),
-                            fn ($e) =>
+                            fn($e) =>
                             $e->selfGet('getMissingInfoToApproveModal')->inModal()
                         )
                         ->when(
                             !$this->model->hasMissingInfoToApprove(),
-                            fn ($e) =>
+                            fn($e) =>
                             $e->selfPost('approveInvoice', ['id' => $this->model->id])
                                 ->inAlert()->refresh()
                         ),
@@ -88,32 +88,48 @@ class InvoicePage extends Form
                 _FlexEnd4(
                     !$this->model->isLate() ? null :
                         _Button('finance-late-interests')->icon(_Sax('add', 20))->class('!bg-danger text-white'),
-                    _Button('finance-send-invoice')
+
+                    //! It's not a delete link, but it's the easiest way to use the confirm modal
+                    _LinkWithConfirmation('finance-send-invoice')->button()
                         ->selfPost('sendInvoice', ['id' => $this->model->id])
+                        ->confirmationTitle('translate.finance-send-invoice-confirm')
+                        ->run('() => {
+                            $(".vlDeleteLinkModal").find(".vlBtnOutlined").click();
+                        }')
                         ->inAlert()->refresh(),
                 )
             )->class('mb-4 p-6 bg-white rounded-2xl'),
-            $this->model->canApprove() ? null : $this->stepBox(
-                $this->model->isRefund() ?
 
-                    _Rows(
-                        $this->stepTitle('finance-apply-credit'),
-                        $this->amountDue()
-                    ) :
+            _Rows(
+                $this->model->canApprove() ? null : $this->stepBox(
+                    $this->model->isRefund() ?
 
-                    _Rows(
-                        $this->stepTitle('finance-get-paid'),
-                        _Flex4(
-                            $this->amountDueDate(),
-                            $this->lastPaymentWithDate(),
-                        )
+                        _Rows(
+                            $this->stepTitle('finance-apply-credit'),
+                            $this->amountDue()
+                        ) :
+
+                        _Rows(
+                            $this->stepTitle('finance-get-paid'),
+                            _Flex4(
+                                $this->amountDueDate(),
+                                $this->lastPaymentWithDate(),
+                            )
+                        ),
+                    !$this->model->canBePaid() ? null : _FlexEnd(
+                        _Link('finance-record-payment')
+                            ->outlined()
+                            ->selfUpdate('getApplyPaymentToInvoiceModal')->inModal()
                     ),
-                !$this->model->canBePaid() ? null : _FlexEnd(
-                    _Link('finance-record-payment')
-                        ->outlined()
-                        ->selfUpdate('getApplyPaymentToInvoiceModal')->inModal()
-                )
-            )->class('mb-4 p-6 bg-white rounded-2xl'),
+                ),
+
+                _Rows(
+                    new InvoicePaymentsTable([
+                        'invoice_id' => $this->model->id,
+                    ]),
+                )->class('px-6'),
+
+            )->class('p-6 !px-0 bg-white mb-4 rounded-2xl'),
 
             !$this->model->installmentsPeriods->count() ? null : _Rows(
                 _TitleMini('finance-payment-period-installments')->class('uppercase text-greenmain opacity-70'),

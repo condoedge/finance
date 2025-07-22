@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Services\Tax;
 
+use Closure;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Invoice;
@@ -11,6 +12,7 @@ use Condoedge\Finance\Models\TaxGroup;
 use Condoedge\Utils\Facades\GlobalConfig;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
  * Tax Service Implementation
@@ -23,44 +25,15 @@ use Illuminate\Support\Facades\DB;
  */
 class TaxService implements TaxServiceInterface
 {
+    protected $resolverTaxGroupId;
+
     /**
      * Get active taxes for team
      */
-    public function getActiveTaxes(?int $teamId = null): Collection
+    public function getActiveTaxes(): Collection
     {
         return Tax::active()
-            ->forTeam($teamId)
             ->orderBy('name')
-            ->get();
-    }
-
-    /**
-     * Get default tax group for customer
-     */
-    public function getDefaultTaxGroupForCustomer(Customer $customer): TaxGroup
-    {
-        // Try customer's default address tax group first
-        $taxGroupId = $customer->defaultAddress?->tax_group_id
-            ?? GlobalConfig::getOrFail('default_tax_group_id');
-
-        $taxGroup = TaxGroup::find($taxGroupId);
-
-        if (!$taxGroup) {
-            throw new \Exception("Tax group {$taxGroupId} not found for customer {$customer->id}");
-        }
-
-        return $taxGroup;
-    }
-
-    /**
-     * Get taxes for invoice
-     */
-    public function getTaxesForInvoice(Invoice $invoice): Collection
-    {
-        $taxGroup = $this->getDefaultTaxGroupForCustomer($invoice->customer);
-
-        return $taxGroup->taxes()
-            ->active()
             ->get();
     }
 
@@ -74,77 +47,111 @@ class TaxService implements TaxServiceInterface
     }
 
     /**
-     * Calculate total tax for invoice detail
+     * Get default tax IDs for a given context
      */
-    public function calculateTotalTaxForInvoiceDetail(InvoiceDetail $invoiceDetail): SafeDecimal
+    public function getDefaultTaxesIds(array $context = []): Collection
     {
-        $taxes = $this->getTaxesForInvoice($invoiceDetail->invoice);
-        $baseAmount = $invoiceDetail->extended_price;
+        $taxGroupId = $this->resolverTaxGroupId
+            ? call_user_func($this->resolverTaxGroupId, $context)
+            : $this->defaultResolveTaxGroupId($context);
 
-        return $this->calculateSimpleTaxSum($baseAmount, $taxes);
+        if (!$taxGroupId) {
+            return collect(); // Return empty collection if no tax group found
+        }
+
+        $taxGroup = TaxGroup::findOrFail($taxGroupId);
+
+        return $taxGroup->taxes()->active()->pluck('fin_taxes.id');
+    }
+
+    public function setTaxGroupIdResolver(callable|Closure $resolver): void
+    {
+        if (!is_callable($resolver)) {
+            throw new InvalidArgumentException('Tax group ID resolver must be a callable');
+        }
+
+        $this->resolverTaxGroupId = $resolver;
     }
 
     /**
-     * Get tax breakdown for invoice detail
+     * Resolve tax group ID for invoice
      */
-    public function getTaxBreakdownForInvoiceDetail(InvoiceDetail $invoiceDetail): Collection
+    protected function defaultResolveTaxGroupId(array $context): int
     {
-        $taxes = $this->getTaxesForInvoice($invoiceDetail->invoice);
-        $baseAmount = $invoiceDetail->extended_price;
+        $invoice = $context['invoice'] ?? null;
 
-        return $taxes->map(function (Tax $tax) use ($baseAmount) {
-            return [
-                'tax_id' => $tax->id,
-                'tax_name' => $tax->name,
-                'tax_rate' => $tax->rate,
-                'tax_amount' => $this->calculateTaxAmount($baseAmount, $tax),
-                'base_amount' => $baseAmount,
-            ];
-        });
+        return $invoice?->customer?->defaultAddress->tax_group_id
+            ?? GlobalConfig::getOrFail('default_tax_group_id');
     }
-
 
     /**
      * Create tax group with taxes
      */
-    public function createTaxGroup(string $name, Collection $taxIds, ?int $teamId = null): TaxGroup
+    public function createTaxGroup(string $name, Collection $taxesIds): TaxGroup
     {
-        return DB::transaction(function () use ($name, $taxIds, $teamId) {
+        return DB::transaction(function () use ($name, $taxesIds) {
             // Create tax group
             $taxGroup = new TaxGroup();
             $taxGroup->name = $name;
-            $taxGroup->team_id = $teamId ?? currentTeamId();
             $taxGroup->save();
 
             // Attach taxes
-            $taxGroup->taxes()->attach($taxIds->toArray());
+            $taxGroup->taxes()->attach($taxesIds->toArray());
 
             return $taxGroup->refresh();
         });
+    }
+
+    public function upsertTaxGroup(array|Collection $taxesIds): TaxGroup
+    {
+        return DB::transaction(function () use ($taxesIds) {
+            $taxesIds = collect($taxesIds)->filter()->values();
+
+            $defaultName = $this->getDefaultTaxGroupName($taxesIds);
+            $taxesCount = $taxesIds->count();
+
+            // Check if tax group already exists based on taxes ids
+            $taxGroup = TaxGroup::whereHas('taxes', function ($query) use ($taxesIds) {
+                $query->whereIn('fin_taxes.id', $taxesIds->toArray());
+            })
+                ->withCount('taxes')
+                ->having('taxes_count', '=', $taxesCount)
+                ->whereDoesntHave('taxes', function ($query) use ($taxesIds) {
+                    $query->whereNotIn('fin_taxes.id', $taxesIds->toArray());
+                })
+                ->first();
+
+            if (!$taxGroup) {
+                $taxGroup = $this->createTaxGroup($defaultName, $taxesIds);
+            }
+        
+            return $taxGroup;
+        });
+    }
+
+    protected function getDefaultTaxGroupName(Collection $taxesIds): string
+    {
+        return collect($taxesIds)
+            ->map(function ($id) {
+                $tax = Tax::find($id);
+
+                return $tax ? $tax->name : null;
+            })
+            ->filter()
+            ->implode(' + ') ?: __('translate.no-taxes');
     }
 
     /**
      * Update tax group taxes
      */
-    public function updateTaxGroupTaxes(TaxGroup $taxGroup, Collection $taxIds): TaxGroup
+    public function updateTaxGroupTaxes(TaxGroup $taxGroup, Collection $taxesIds): TaxGroup
     {
-        return DB::transaction(function () use ($taxGroup, $taxIds) {
+        return DB::transaction(function () use ($taxGroup, $taxesIds) {
             // Sync taxes (this will remove old and add new)
-            $taxGroup->taxes()->sync($taxIds->toArray());
+            $taxGroup->taxes()->sync($taxesIds->toArray());
 
             return $taxGroup->refresh();
         });
-    }
-
-    /**
-     * Get tax groups for team
-     */
-    public function getTaxGroupsForTeam(?int $teamId = null): Collection
-    {
-        return TaxGroup::forTeam($teamId)
-            ->with('taxes')
-            ->orderBy('name')
-            ->get();
     }
 
     /**

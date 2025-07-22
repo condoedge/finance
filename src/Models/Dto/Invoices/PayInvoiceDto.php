@@ -33,8 +33,8 @@ class PayInvoiceDto extends ValidatedDTO
     {
         return [
             'invoice_id' => 'required|integer|exists:fin_invoices,id',
-            'payment_method_id' => 'nullable|integer|exists:fin_payment_methods,id',
-            'payment_term_id' => 'nullable|integer|exists:fin_payment_terms,id',
+            'payment_method_id' => 'required|integer|exists:fin_payment_methods,id',
+            'payment_term_id' => 'required|integer|exists:fin_payment_terms,id',
 
             'installment_id' => 'nullable|integer|exists:fin_payment_installment_periods,id',
 

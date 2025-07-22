@@ -165,6 +165,11 @@ class InvoiceService implements InvoiceServiceInterface
             // throw new InvalidArgumentException('translate.finance-cannot-send-a-draft-invoice');
         }
 
+        if (!$invoice->customer?->email) {
+            abort(403, __('translate.invoice-customer-email-not-found'));
+            // throw new InvalidArgumentException('translate.invoice-customer-email-not-found');
+        }
+
         Mail::to($invoice->customer->email)->send(new NewInvoiceMail($invoice));
 
         $invoice->markAsSent();
@@ -220,22 +225,6 @@ class InvoiceService implements InvoiceServiceInterface
 
             return $invoices;
         });
-    }
-
-    /**
-     * Get default tax IDs for invoice
-     */
-    public function getDefaultTaxesIds(?Invoice $invoice): Collection
-    {
-        $taxGroupId = $this->resolveTaxGroupId($invoice);
-
-        if (!$taxGroupId) {
-            return collect(); // Return empty collection if no tax group found
-        }
-
-        $taxGroup = TaxGroup::findOrFail($taxGroupId);
-
-        return $taxGroup->taxes()->active()->pluck('fin_taxes.id');
     }
 
     /* PROTECTED METHODS - Can be overridden for customization */
@@ -326,8 +315,8 @@ class InvoiceService implements InvoiceServiceInterface
             $invoice->invoice_date = $dto->invoice_date ?? $invoice->invoice_date;
         }
 
-        $invoice->payment_term_id = $dto->payment_term_id ?? (count($invoice->possible_payment_terms ?? []) == 1 ? $invoice->possible_payment_terms[0] : ($invoice->isDirty('possible_payment_terms') ? null : $invoice->payment_term_id));
-        $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods ?? []) == 1 ? $invoice->possible_payment_methods[0] : ($invoice->isDirty('possible_payment_methods') ? null : $invoice->payment_method_id));
+        $invoice->payment_term_id = $dto->payment_term_id ?? (count($invoice->possible_payment_terms ?? []) == 1 ? $invoice->possible_payment_terms[0] : null);
+        $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods ?? []) == 1 ? $invoice->possible_payment_methods[0] : null);
 
         if ($invoice->isDirty('payment_term_id') && $invoice->paymentTerm) {
             $invoice->invoice_due_date = $invoice->paymentTerm->calculateDueDate($invoice->invoice_date);
@@ -369,14 +358,5 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice->approved_by = auth()->user()?->id ?? 1;
         $invoice->approved_at = now();
         $invoice->save();
-    }
-
-    /**
-     * Resolve tax group ID for invoice
-     */
-    protected function resolveTaxGroupId(?Invoice $invoice): int
-    {
-        return $invoice?->customer?->defaultAddress->tax_group_id
-            ?? GlobalConfig::getOrFail('default_tax_group_id');
     }
 }

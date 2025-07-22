@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Services\Tax;
 
+use Closure;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Invoice;
@@ -21,40 +22,10 @@ interface TaxServiceInterface
     /**
      * Get active taxes for a specific team
      *
-     * @param int|null $teamId
      *
      * @return Collection<Tax>
      */
-    public function getActiveTaxes(?int $teamId = null): Collection;
-
-    /**
-     * Get default tax group for customer
-     *
-     * @param Customer $customer
-     *
-     * @return TaxGroup
-     *
-     * @throws \Exception When no tax group can be resolved
-     */
-    public function getDefaultTaxGroupForCustomer(Customer $customer): TaxGroup;
-
-    /**
-     * Get taxes that should be applied to an invoice
-     *
-     * @param Invoice $invoice
-     *
-     * @return Collection<Tax>
-     */
-    public function getTaxesForInvoice(Invoice $invoice): Collection;
-
-    /**
-     * Calculate total tax amount for invoice detail
-     *
-     * @param InvoiceDetail $invoiceDetail
-     *
-     * @return SafeDecimal
-     */
-    public function calculateTotalTaxForInvoiceDetail(InvoiceDetail $invoiceDetail): SafeDecimal;
+    public function getActiveTaxes(): Collection;
 
     /**
      * This is reduntant, we're doing it into the database.
@@ -67,26 +38,18 @@ interface TaxServiceInterface
     public function calculateTaxAmount(SafeDecimal $baseAmount, Tax $tax): SafeDecimal;
 
     /**
-     * Get tax breakdown for invoice detail
-     *
-     * @param InvoiceDetail $invoiceDetail
-     *
-     * @return Collection Array with tax_id, tax_rate, tax_amount
-     */
-    public function getTaxBreakdownForInvoiceDetail(InvoiceDetail $invoiceDetail): Collection;
-
-    /**
      * Create tax group with taxes
      *
      * @param string $name
      * @param Collection<int> $taxIds
-     * @param int|null $teamId
      *
      * @return TaxGroup
      *
      * @throws \Exception When tax IDs are invalid
      */
-    public function createTaxGroup(string $name, Collection $taxIds, ?int $teamId = null): TaxGroup;
+    public function createTaxGroup(string $name, Collection $taxIds): TaxGroup;
+
+    public function upsertTaxGroup(array|Collection $taxIds): TaxGroup;
 
     /**
      * Update tax group taxes
@@ -101,15 +64,6 @@ interface TaxServiceInterface
     public function updateTaxGroupTaxes(TaxGroup $taxGroup, Collection $taxIds): TaxGroup;
 
     /**
-     * Get tax groups for team
-     *
-     * @param int|null $teamId
-     *
-     * @return Collection<TaxGroup>
-     */
-    public function getTaxGroupsForTeam(?int $teamId = null): Collection;
-
-    /**
      * Calculate compound tax amount (tax on tax)
      *
      * @param SafeDecimal $baseAmount
@@ -119,4 +73,8 @@ interface TaxServiceInterface
      * @return SafeDecimal
      */
     public function calculateCompoundTaxAmount(SafeDecimal $baseAmount, Collection $taxes, bool $compoundMode = false): SafeDecimal;
+
+    public function getDefaultTaxesIds(array $context = []): Collection;
+
+    public function setTaxGroupIdResolver(callable|Closure $resolver): void;
 }

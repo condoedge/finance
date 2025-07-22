@@ -58,6 +58,8 @@ class PaymentService implements PaymentServiceInterface
                 'apply_date' => $dto->payment_date,
                 'applicable' => $payment,
                 'applicable_type' => MorphablesEnum::PAYMENT->value,
+                'payment_method' => $dto->payment_method,
+                'payment_trace_id' => $dto->payment_trace_id,
             ]));
 
             return $payment->refresh();
@@ -156,6 +158,8 @@ class PaymentService implements PaymentServiceInterface
         $payment->customer_id = $dto->customer_id;
         $payment->payment_date = $dto->payment_date;
         $payment->amount = $dto->amount;
+        $payment->payment_trace_id = $dto->payment_trace_id;
+        $payment->payment_method_id = $dto->payment_method_id;
         $payment->payment_trace_id = $dto->payment_trace_id;
         $payment->save();
 

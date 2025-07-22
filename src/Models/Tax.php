@@ -19,6 +19,8 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
  * @property \Condoedge\Finance\Casts\SafeDecimal $tax_amount Tax amount
  * @property \Condoedge\Finance\Casts\SafeDecimal $rate Tax rate as percentage / 100
  * @property-read \Condoedge\Finance\Models\Invoice $invoice
+ * 
+ * @property-read string $complete_label Complete label for the tax, including name and rate
  */
 class Tax extends AbstractMainFinanceModel
 {
@@ -26,12 +28,18 @@ class Tax extends AbstractMainFinanceModel
 
     protected $casts = [
         'rate' => SafeDecimalCast::class,
+        'valide_from' => 'datetime:Y-m-d',
     ];
 
     /* RELATIONSHIPS */
     public function groups()
     {
         return $this->belongsToMany(TaxGroup::class, 'fin_taxes_group_taxes', 'tax_id', 'tax_group_id');
+    }
+
+    public function account()
+    {
+        return $this->belongsTo(GlAccount::class, 'account_id');
     }
 
     /* ATTRIBUTES */

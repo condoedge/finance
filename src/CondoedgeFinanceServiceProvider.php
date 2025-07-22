@@ -202,12 +202,12 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
      */
     protected function loadRelationsMorphMap()
     {
-        Relation::morphMap(array_merge([
+        Relation::morphMap(collect([
             'product' => Product::class,
             'invoice' => InvoiceModel::getClass(),
-        ], CustomerService::getValidCustomableModels()->all(), collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
+        ])->union(CustomerService::getValidCustomableModels())->union(collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
             return [$case->value => $case->getMorphableClass()];
-        })->all()));
+        }))->all());
     }
 
     public function loadCommands()
@@ -273,7 +273,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         );
 
         // Tax Service
-        $this->app->bind(
+        $this->app->singleton(
             \Condoedge\Finance\Services\Tax\TaxServiceInterface::class,
             \Condoedge\Finance\Services\Tax\TaxService::class
         );

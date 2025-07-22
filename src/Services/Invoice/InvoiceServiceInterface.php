@@ -82,13 +82,4 @@ interface InvoiceServiceInterface
      * @throws \Exception When any invoice cannot be approved
      */
     public function approveMany(ApproveManyInvoicesDto $dto): Collection;
-
-    /**
-     * Get default tax IDs for an invoice
-     *
-     * @param Invoice $invoice
-     *
-     * @return Collection<int> Collection of tax IDs
-     */
-    public function getDefaultTaxesIds(Invoice $invoice): Collection;
 }

@@ -22,22 +22,13 @@ class TaxGroup extends Model
         return $this->belongsToMany(Tax::class, 'fin_taxes_group_taxes', 'tax_group_id', 'tax_id');
     }
 
-    /**
-     * Scope for team
-     */
-    public function scopeForTeam($query, $teamId = null)
-    {
-        $teamId = $teamId ?? currentTeamId();
-        return $query->where('team_id', $teamId);
-    }
-
     /* ACTIONS */
     /**
      * Create tax group with taxes
      */
-    public static function createWithTaxes(string $name, \Illuminate\Support\Collection $taxIds, ?int $teamId = null): self
+    public static function createWithTaxes(string $name, \Illuminate\Support\Collection $taxIds): self
     {
-        return TaxService::createTaxGroup($name, $taxIds, $teamId);
+        return TaxService::createTaxGroup($name, $taxIds);
     }
 
     /**

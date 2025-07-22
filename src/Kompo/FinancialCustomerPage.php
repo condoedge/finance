@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Utils\Kompo\Common\Form;
 
-class FinantialCustomerPage extends Form
+class FinancialCustomerPage extends Form
 {
     public $model = CustomerModel::class;
 
@@ -17,7 +17,7 @@ class FinantialCustomerPage extends Form
                 _Html('due-amount'),
                 _FinanceCurrency($this->model->customer_due_amount),
             )->class('text-white')->p4(),
-            new FinantialCustomerPayments([
+            new FinancialCustomerPayments([
                 'customer_id' => $this->model->id,
             ]),
         );

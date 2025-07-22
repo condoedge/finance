@@ -5,11 +5,12 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Models\CustomerPayment;
 use Condoedge\Finance\Models\MorphablesEnum;
-use Condoedge\Utils\Kompo\Common\Table;
 
-class FinantialCustomerPayments extends Table
+use Condoedge\Utils\Kompo\Common\WhiteTable;
+
+class FinancialCustomerPayments extends WhiteTable
 {
-    public $id = 'finantial-customer-payments-table';
+    public $id = 'financial-customer-payments-table';
 
     protected $customerId;
 

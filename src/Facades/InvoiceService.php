@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Condoedge\Finance\Billing\PaymentResult payInvoice(\Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice approveInvoice(\Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto $dto)
  * @method static \Illuminate\Support\Collection approveMany(\Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto $dto)
- * @method static \Illuminate\Support\Collection getDefaultTaxesIds(\Condoedge\Finance\Models\Invoice $invoice)
  * @method static array calculateInvoiceTotals(\Condoedge\Finance\Models\Invoice $invoice)
  * @method static bool validateInvoiceBusinessRules(\Condoedge\Finance\Models\Invoice $invoice)
  *

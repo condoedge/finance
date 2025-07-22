@@ -108,7 +108,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function team()
     {
-        return $this->hasOneThrough(Team::class, HistoricalCustomer::class, 'id', 'id', 'historical_customer_id', 'team_id');
+        return $this->customer->belongsTo(Team::class, 'team_id');
     }
 
     public function invoiceDetails()

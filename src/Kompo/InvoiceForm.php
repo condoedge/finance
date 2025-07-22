@@ -160,6 +160,7 @@ class InvoiceForm extends Form
     {
         return Customer::forTeam($this->team->id ?? currentTeamId())
             ->where('name', 'like', wildcardSpace($searchTerm))
+            ->orderBy('name')
             ->get()
             ->mapWithKeys(function ($customer) {
                 return [$customer->id => '<span data-id ="' . $customer->id . '">' . $customer->name . '</span>'];

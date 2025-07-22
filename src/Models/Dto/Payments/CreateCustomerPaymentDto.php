@@ -4,8 +4,10 @@ namespace Condoedge\Finance\Models\Dto\Payments;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Rule\SafeDecimalRule;
 use WendellAdriel\ValidatedDTO\Casting\CarbonCast;
+use WendellAdriel\ValidatedDTO\Casting\EnumCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
 use WendellAdriel\ValidatedDTO\Concerns\EmptyDefaults;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
@@ -31,6 +33,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
     public SafeDecimal $amount;
 
     public ?int $payment_trace_id;
+    public ?int $payment_method_id;
 
     public function casts(): array
     {
@@ -39,6 +42,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
             'amount' => new SafeDecimalCast(),
             'customer_id' => new IntegerCast(),
             'payment_trace_id' => new IntegerCast(),
+            'payment_method_id' => new IntegerCast(),
         ];
     }
 
@@ -50,6 +54,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
             'payment_date' => ['required', 'date'],
             'amount' => ['required', new SafeDecimalRule(true)],
             'payment_trace_id' => ['nullable', 'integer', 'exists:fin_payment_traces,id'],
+            'payment_method_id' => ['nullable', 'integer', 'exists:fin_payment_methods,id'],
         ];
     }
 }
