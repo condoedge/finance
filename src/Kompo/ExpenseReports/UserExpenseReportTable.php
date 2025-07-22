@@ -3,27 +3,21 @@
 namespace Condoedge\Finance\Kompo\ExpenseReports;
 
 use Condoedge\Finance\Models\ExpenseReport;
-use Condoedge\Utils\Kompo\Common\WhiteTable;
 
-class UserExpenseReportTable extends WhiteTable
+class UserExpenseReportTable extends ExpenseReportsTable
 {
     public $id = 'user-expense-report-table';
+    protected $asManager = false;
 
-    public function top()
+    protected function header()
     {
-        return _Rows(
-            _FlexBetween(
-                _Html('finance-my-expense-reports')->class('font-semibold text-2xl'),
-                _Button('finance-create-expense-report')
-                    ->checkAuthWrite('manage_own_expense_report')
-                    ->selfGet('getExpenseReportForm')
-                    ->inModal(),
-            )->class('mb-6'),
-            _Flex(
-                _InputSearch()->name('expense_title')
-                    ->placeholder('finance-search-expense-reports')->filter(),
-            )->class('gap-6')
-        );
+        return _FlexBetween(
+            _Html('finance-my-expense-reports')->class('font-semibold text-2xl'),
+            _Button('finance-create-expense-report')
+                ->checkAuthWrite('manage_own_expense_report')
+                ->selfGet('getExpenseReportModal')
+                ->inModal(),
+        )->class('mb-6');
     }
 
     public function query()
@@ -36,42 +30,18 @@ class UserExpenseReportTable extends WhiteTable
             ->where('is_draft', false);
     }
 
-    public function headers()
+    protected function actionsButtons()
     {
-        return [
-            _CheckAllItems(),
-            _Th('finance-date'),
-            _Th('finance-expense-title'),
-            _Th('finance-linked-to-this-team'),
-            _Th('finance-status'),
-            _Th('finance-total-amount')->sort('total_amount'),
-            _Th(),
-        ];
+        return [];
     }
 
-    public function render($expenseReport)
+
+    protected function canOpenModal()
     {
-        return _TableRow(
-            _CheckSingleItem($expenseReport->id),
-            _Html($expenseReport->created_at->format('Y-m-d')),
-            _Html($expenseReport->expense_title),
-            _Html($expenseReport->team->team_name),
-            $expenseReport->expense_status->pill(),
-            _FinanceCurrency($expenseReport->total_amount),
-            _TripleDotsDropdown(
-                _DeleteLink('finance-delete-expense-report')->class('text-red-500 hover:text-red-700')
-                    ->checkAuthWrite('manage_own_expense_report')
-                    ->byKey($expenseReport),
-            ),
-        )->when(
-            auth()->user()->hasPermission('manage_own_expense_report'),
-            fn ($row) =>
-            $row->selfGet('getExpenseReportForm', ['id' => $expenseReport->id])
-                ->inModal()
-        );
+        return auth()->user()->hasPermission('manage_own_expense_report');
     }
 
-    public function getExpenseReportForm($expenseReportId = null)
+    public function getExpenseReportModal($expenseReportId = null)
     {
         return new ExpenseReportForm($expenseReportId);
     }

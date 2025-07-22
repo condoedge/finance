@@ -51,6 +51,18 @@ class ExpenseReport extends AbstractMainFinanceModel
         return $this->hasMany(Expense::class, 'expense_report_id');
     }
 
+    public function approve()
+    {
+        $this->expense_status = ExpenseReportStatusEnum::APPROVED;
+        $this->save();
+    }
+
+    public function reject()
+    {
+        $this->expense_status = ExpenseReportStatusEnum::REJECTED;
+        $this->save();
+    }
+
     public static function columnsIntegrityCalculations()
     {
         return [

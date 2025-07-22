@@ -85,7 +85,8 @@ class FinanceRouteService
     public static function expenseReportRoutes(): void
     {
         Route::prefix('finance/expense-reports')->name('finance.expense-reports.')->group(function () {
-            Route::get('/', \Condoedge\Finance\Kompo\ExpenseReports\UserExpenseReportTable::class)->name('list');
+            Route::get('/', \Condoedge\Finance\Kompo\ExpenseReports\ExpenseReportsTable::class)->name('list');
+            Route::get('/user', \Condoedge\Finance\Kompo\ExpenseReports\UserExpenseReportTable::class)->name('user');
         });
     }
 

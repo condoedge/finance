@@ -12,9 +12,13 @@ class ExpensesQuery extends Query
     public $noItemsFound = 'finance-no-expenses-found';
     protected $expenseReportId;
 
+    protected $readonly = false;
+
     public function created()
     {
         $this->expenseReportId = $this->prop('expense_report_id');
+
+        $this->readonly = $this->prop('readonly');
     }
 
     public function query()
@@ -31,11 +35,20 @@ class ExpensesQuery extends Query
                 _FinanceCurrency($expense->total_expense_amount),
             )->class('mb-1'),
             _Html($expense->description)->class('text-sm'),
-        )->p4()->selfGet('getExpenseForm', ['id' => $expense->id])->inModal();
+        )->p4()->when(!$this->readonly, function ($el) use ($expense) {
+            return $el->selfGet('getExpenseForm', ['id' => $expense->id])->inModal();
+        })->when($this->readonly, function ($el) use ($expense) {
+            return $el->selfGet('getExpenseInfoModal', ['id' => $expense->id])->inModal();
+        });
     }
 
-    public function getExpenseForm($expenseId = null)
+    public function getExpenseForm($expenseId)
     {
         return new ExpenseForm($expenseId);
+    }
+
+    public function getExpenseInfoModal($expenseId)
+    {
+        return new ExpenseInfoModal($expenseId);
     }
 }
