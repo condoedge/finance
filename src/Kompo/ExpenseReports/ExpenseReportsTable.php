@@ -43,13 +43,11 @@ class ExpenseReportsTable extends WhiteTable
             _Flex(
                 _InputSearch()->name('expense_title')
                     ->placeholder('finance-search-expense-reports')->filter(),
-
                 _Select()
                     ->name('expense_status')
                     ->placeholder('finance-status')
                     ->options(ExpenseReportStatusEnum::optionsWithLabels())
                     ->filter(),
-
                 !currentTeam()->isGroupLevel() || !$this->asManager ? null : _Select()
                     ->name('team_id')
                     ->placeholder('translate.finance-select-team')
@@ -86,7 +84,7 @@ class ExpenseReportsTable extends WhiteTable
             _TripleDotsDropdown(
                 $this->actionsButtons(),
             )
-        )->when($this->canOpenModal(), fn($el) => $el->selfGet('getExpenseReportModal', ['id' => $expenseReport->id])
+        )->when($this->canOpenModal(), fn ($el) => $el->selfGet('getExpenseReportModal', ['id' => $expenseReport->id])
             ->inModal());
     }
 
@@ -99,7 +97,7 @@ class ExpenseReportsTable extends WhiteTable
     {
         return true;
     }
-    
+
     public function getExpenseReportModal($expenseReportId)
     {
         return new ExpenseReportAnswerModal($expenseReportId);
