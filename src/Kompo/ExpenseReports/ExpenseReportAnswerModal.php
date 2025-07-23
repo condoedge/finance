@@ -7,13 +7,13 @@ use Condoedge\Finance\Models\ExpenseReport;
 
 class ExpenseReportAnswerModal extends Modal
 {
-    protected $_Title = 'translate.review-expense-report';
+    protected $_Title = 'finance-review-expense-report';
     public $model = ExpenseReport::class;
 
     public function body()
     {
         return _Rows(
-            _Html(__('translate.with-values.expense-for-team', ['team_name' => $this->model->team->team_name]))
+            _Html(__('finance-with-values-expense-for-team', ['team_name' => $this->model->team->team_name]))
                 ->class('mb-2 text-xl font-semibold'),
             _FlexBetween(
                 _Rows(
@@ -32,12 +32,12 @@ class ExpenseReportAnswerModal extends Modal
                 ]),
             )->class('mb-4'),
             _FlexBetween(
-                _Button('translate.finance-reject')->class('bg-danger flex-1')
+                _Button('finance-reject')->class('bg-danger flex-1')
                     ->selfPost('rejectExpenseReport')->closeModal()->refresh('expense-reports-table')
-                    ->alert('translate.finance-rejected-expense-report'),
-                _Button('translate.finance-approve')->class('flex-1')
+                    ->alert('finance-rejected-expense-report'),
+                _Button('finance-approve')->class('flex-1')
                     ->selfPost('approveExpenseReport')->closeModal()->refresh('expense-reports-table')
-                    ->alert('translate.finance-approved-expense-report'),
+                    ->alert('finance-approved-expense-report'),
             )->class('gap-6'),
         );
     }

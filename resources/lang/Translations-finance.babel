@@ -1045,6 +1045,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-accounts</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-accounts-complete</name>
 						<description/>
 						<comment/>
@@ -1630,6 +1645,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-add-segment</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-add-taxes</name>
 						<description/>
 						<comment/>
@@ -2036,6 +2066,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-all-units</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-allow-manual-entry</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -2531,6 +2576,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-approved-by</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-approved-expense-report</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -4945,6 +5005,36 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-current-format</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-current-segment-structure</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-customable-model-must-implement</name>
 						<description/>
 						<comment/>
@@ -6010,6 +6100,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-example</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-exclude-from-contributions</name>
 						<description/>
 						<comment/>
@@ -6116,6 +6221,36 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-expense-images</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-expense-report-info</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-expense-reports</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -6491,6 +6626,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-for-your-union</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-format-example</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -10735,6 +10885,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-position</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-posted</name>
 						<description/>
 						<comment/>
@@ -11365,7 +11530,37 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-reject</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-rejected</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-rejected-expense-report</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -11636,6 +11831,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-reversal-line</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-review-expense-report</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -11965,7 +12175,52 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-segment-coverage</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-segment-description</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-segment-management</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-segment-structure</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -11995,7 +12250,37 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-segment-validation</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-segment-value</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-segment-values</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -12116,6 +12401,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-select-supplier-to-link</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-select-team</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -13315,6 +13615,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-total-accounts</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-total-amount</name>
 						<description/>
 						<comment/>
@@ -13481,6 +13796,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-total-number-of-units-sub1</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-total-segments</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -14320,6 +14650,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-with-values-expense-for-team</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-with-values-paying-invoice</name>
 						<description/>
 						<comment/>
@@ -14516,6 +14861,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-your-bank-client-number</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>nance-select-segment-to-manage</name>
 						<description/>
 						<comment/>
 						<translations>
