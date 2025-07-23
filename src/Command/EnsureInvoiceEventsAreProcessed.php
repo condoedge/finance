@@ -18,7 +18,7 @@ class EnsureInvoiceEventsAreProcessed extends Command
         $this->info('Running invoice events after payments...');
 
         InvoiceModel::whereNull('complete_payment_managed_at')
-            ->where('status', InvoiceStatusEnum::PAID)
+            ->where('invoice_status_id', InvoiceStatusEnum::PAID)
             ->chunk(100, function ($invoices) {
                 foreach ($invoices as $invoice) {
                     $this->info("Processing invoice ID: {$invoice->id}");
@@ -30,7 +30,7 @@ class EnsureInvoiceEventsAreProcessed extends Command
             });
 
         InvoiceModel::whereNull('partial_payment_managed_at')
-            ->where('status', InvoiceStatusEnum::PARTIAL)
+            ->where('invoice_status_id', InvoiceStatusEnum::PARTIAL)
             ->chunk(100, function ($invoices) {
                 foreach ($invoices as $invoice) {
                     $this->info("Processing invoice ID: {$invoice->id}");
@@ -42,7 +42,7 @@ class EnsureInvoiceEventsAreProcessed extends Command
             });
 
         InvoiceModel::whereNull('overdue_managed_at')
-            ->where('status', InvoiceStatusEnum::OVERDUE)
+            ->where('invoice_status_id', InvoiceStatusEnum::OVERDUE)
             ->chunk(100, function ($invoices) {
                 foreach ($invoices as $invoice) {
                     $this->info("Processing invoice ID: {$invoice->id}");
@@ -53,16 +53,18 @@ class EnsureInvoiceEventsAreProcessed extends Command
                 }
             });
 
-        $query = InvoiceModel::whereNull('considered_as_initial_paid_managed_at');
+        $query = InvoiceModel::whereNull('considered_as_initial_paid_at');
 
         collect(PaymentTermTypeEnum::cases())->each(function ($paymentTerm) use ($query) {
             $this->info("Processing invoices for payment term: {$paymentTerm->label()}");
 
             $query = clone $query;
 
-            $query->whereHas('paymentTerm', function ($q) use ($paymentTerm) {
-                $paymentTerm->consideredAsInitialPaidScope($q->where('term_type', $paymentTerm->value));
+            $query = $query->whereHas('paymentTerm', function ($q) use ($paymentTerm) {
+                $q->where('term_type', $paymentTerm->value);
             });
+
+            $query = $paymentTerm->consideredAsInitialPaidScope($query);
 
             $query->chunk(100, function ($invoices) use ($paymentTerm) {
                 foreach ($invoices as $invoice) {

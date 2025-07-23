@@ -217,6 +217,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 \Condoedge\Finance\Command\EnsureIntegrityCommand::class,
                 \Condoedge\Finance\Command\PreCreateFiscalPeriodsCommand::class,
                 \Condoedge\Finance\Command\CleanupWebhookEventsCommand::class,
+                \Condoedge\Finance\Command\EnsureInvoiceEventsAreProcessed::class
             ]);
         }
     }

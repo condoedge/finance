@@ -363,6 +363,9 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         } catch (\Exception $e) {
             Log::error('Error managing complete payment for invoice ID: ' . $this->id, [
                 'error' => $e->getMessage(),
+                'invoice_id' => $this->id,
+                'invoice' => $this,
+                'trace' => $e->getTraceAsString(),
             ]);
         }
     }

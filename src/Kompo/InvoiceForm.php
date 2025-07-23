@@ -46,8 +46,8 @@ class InvoiceForm extends Form
         $this->refreshId = $this->prop('refresh_id');
 
         // In modals is not loading the js method so we need to run it manually
-        $this->onLoad(fn ($e) => $e->run('() => {
-            '.financeScriptFile() . '
+        $this->onLoad(fn($e) => $e->run('() => {
+            ' . financeScriptFile() . '
         }'));
     }
 
@@ -58,12 +58,14 @@ class InvoiceForm extends Form
         $invoiceData = parseDataWithMultiForm('invoiceDetails');
         $invoiceData = $this->parsePossiblePaymentMethods($invoiceData);
 
-        $customer = CustomerService::ensureCustomerFromTeam(
-            Customer::find(request('customer_id')),
-            $teamId
-        );
+        if (!$this->model->id) {
+            $customer = CustomerService::ensureCustomerFromTeam(
+                Customer::find(request('customer_id')),
+                $teamId
+            );
 
-        $invoiceData['customer_id'] = $customer->id;
+            $invoiceData['customer_id'] = $customer->id;
+        }
 
         $dtoInvoiceData = $this->model->id ?
             new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]) :
@@ -151,15 +153,15 @@ class InvoiceForm extends Form
                         _TotalFinanceCurrencyCols(__('finance-subtotal'), 'finance-subtotal', $this->model->invoice_amount_before_taxes, false),
                         _Rows(
                             $this->model->getVisualTaxesGrouped()->map(
-                                fn ($amount, $name) => _TotalFinanceCurrencyCols($name, 'finance-tax', $amount, false)
+                                fn($amount, $name) => _TotalFinanceCurrencyCols($name, 'finance-tax', $amount, false)
                             )->values(),
                         )->id('tax-summary'),
                         _TotalFinanceCurrencyCols(__('finance-total'), 'finance-total', $this->model->invoice_total_amount)->class('!font-bold text-xl'),
                     )->class('relative p-6 bg-white rounded-2xl'),
                     _FlexEnd(
                         _SubmitButton('finance-save')
-                            ->when($this->modalDesign, fn ($e) => $e->closeModal())
-                            ->when($this->refreshId, fn ($e) => $e->refresh($this->refreshId)),
+                            ->when($this->modalDesign, fn($e) => $e->closeModal())
+                            ->when($this->refreshId, fn($e) => $e->refresh($this->refreshId)),
                     ),
                 )->class('w-96'),
             ),
@@ -172,7 +174,7 @@ class InvoiceForm extends Form
             ->where('name', 'like', wildcardSpace($searchTerm))
             ->orderBy('name')
             ->get()
-            ->unique(fn ($c) => $c->customable_type . '_' . $c->customable_id . '_' .$c->name)
+            ->unique(fn($c) => $c->customable_type . '_' . $c->customable_id . '_' . $c->name)
             ->mapWithKeys(function ($customer) {
                 return [$customer->id => '<span data-id ="' . $customer->id . '">' . $customer->name . '</span>'];
             });
