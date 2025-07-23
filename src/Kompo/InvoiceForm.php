@@ -158,10 +158,11 @@ class InvoiceForm extends Form
 
     public function searchCustomers($searchTerm)
     {
-        return Customer::forTeam($this->team->id ?? currentTeamId())
+        return Customer::where('team_id', $this->team->id ?? currentTeamId())
             ->where('name', 'like', wildcardSpace($searchTerm))
             ->orderBy('name')
             ->get()
+            ->unique(fn($c) => $c->customable_type . '_' . $c->customable_id . '_' .$c->name)
             ->mapWithKeys(function ($customer) {
                 return [$customer->id => '<span data-id ="' . $customer->id . '">' . $customer->name . '</span>'];
             });
