@@ -139,8 +139,12 @@ class CustomerService implements CustomerServiceInterface
         }
     }
 
-    public function ensureCustomerFromTeam(Customer $customer, $teamId)
+    public function ensureCustomerFromTeam(?Customer $customer, $teamId)
     {
+        if (!$customer) {
+            return null;
+        }
+
         if ($customer->team_id == $teamId) {
             return $customer;
         }
