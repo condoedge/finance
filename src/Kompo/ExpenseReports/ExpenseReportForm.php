@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Kompo\ExpenseReports;
 
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\ExpenseReport;
+use Condoedge\Finance\Models\ExpenseReportStatusEnum;
 use Kompo\Auth\Facades\TeamModel;
 
 class ExpenseReportForm extends Modal
@@ -27,6 +28,8 @@ class ExpenseReportForm extends Modal
 
         $this->model->is_draft = false;
         $this->model->customer_id = auth()->user()->getCurrentCustomer(request('team_id'))->id;
+
+        $this->model->expense_status = ExpenseReportStatusEnum::PENDING;
     }
 
     public function body()
