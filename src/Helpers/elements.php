@@ -60,13 +60,15 @@ if (!function_exists('_AccountsSelect')) {
 }
 
 if (!function_exists('_TaxesSelect')) {
-    function _TaxesSelect($invoiceDetail = null, $name = 'taxes_ids', $context = [])
+    function _TaxesSelect($invoiceDetail = null, $name = 'taxes_ids', $context = [], $restrictByTeam = true)
     {
         $invoice = $invoiceDetail?->invoice;
 
-        $taxesOptions = TaxModel::active()->forTeam(currentTeamId())->get()->pluck('complete_label_html', 'id')->union($invoiceDetail?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
-            fn ($it) => [$it->tax->id => $it->complete_label_html]
-        ));
+        $taxesOptions = TaxModel::active()->when($restrictByTeam, fn($q) => $q->forTeam(currentTeamId()))
+            ->get()->pluck('complete_label_html', 'id')
+            ->union($invoiceDetail?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
+                fn ($it) => [$it->tax->id => $it->complete_label_html]
+            ));
 
         return	_MultiSelect()->placeholder('taxes')
             ->name($name)
