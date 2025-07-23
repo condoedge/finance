@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
+use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
@@ -54,15 +55,15 @@ class InvoiceForm extends Form
     {
         $teamId = $this->team->id ?? currentTeamId();
 
-        $customerId = request('customer_id');
-        $customer = Customer::find($customerId);
-
         $invoiceData = parseDataWithMultiForm('invoiceDetails');
         $invoiceData = $this->parsePossiblePaymentMethods($invoiceData);
 
-        if ($customer->team_id != $teamId) {
-            $customer = Customer::equalButAnotherTeam($customer, $teamId)->first() ?? $customer->clone($teamId);
-        }
+        $customer = CustomerService::ensureCustomerFromTeam(
+            Customer::find(request('customer_id')),
+            $teamId
+        );
+
+        $invoiceData['customer_id'] = $customer->id;
 
         $dtoInvoiceData = $this->model->id ?
             new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]) :

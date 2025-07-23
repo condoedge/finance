@@ -139,6 +139,17 @@ class CustomerService implements CustomerServiceInterface
         }
     }
 
+    public function ensureCustomerFromTeam(Customer $customer, $teamId)
+    {
+        if ($customer->team_id == $teamId) {
+            return $customer;
+        }
+
+        $customer = Customer::equalButAnotherTeam($customer, $teamId)->first() ?? $customer->clone($teamId);
+
+        return $customer;
+    }
+
     /* PROTECTED METHODS - Can be overridden for customization */
 
     /**
