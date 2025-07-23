@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Services\Invoice;
 
 use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Billing\Core\PaymentResult;
+use Condoedge\Finance\Events\InvoiceSent;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
@@ -168,7 +169,9 @@ class InvoiceService implements InvoiceServiceInterface
             // throw new InvalidArgumentException('error-invoice-customer-email-not-found');
         }
 
-        Mail::to($invoice->customer->email)->send(new NewInvoiceMail($invoice));
+        // This will dispatch the InvoiceSent event
+        // and send the email to the customer
+        event(new InvoiceSent($invoice));
 
         $invoice->markAsSent();
     }

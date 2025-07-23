@@ -2,6 +2,8 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Communications\Services\CommunicationHandlers\Contracts\EmailCommunicable;
+use Condoedge\Communications\Services\CommunicationHandlers\Contracts\SmsCommunicable;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\CustomerCreated;
 use Condoedge\Finance\Facades\CustomerService;
@@ -27,7 +29,7 @@ use Illuminate\Support\Facades\DB;
  * @property int|null $default_payment_method_id Foreign key to fin_payment_methods
  * @property int|null $default_tax_group_id Foreign key to fin_taxes_groups
  */
-class Customer extends AbstractMainFinanceModel
+class Customer extends AbstractMainFinanceModel implements EmailCommunicable, SmsCommunicable
 {
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
@@ -120,4 +122,36 @@ class Customer extends AbstractMainFinanceModel
     }
 
     /* ELEMENTS */
+
+    /* COMMUNICABLES */
+    public function getEmail()
+    {
+        return $this->email;
+    }
+
+    public function getPhone()
+    {
+        return $this->phone;
+    }
+
+    public function getContextKey()
+    {
+        return 'customer';
+    }
+
+    public function scopeValidForCommunication($query)
+    {
+        return $query->whereNotNull('email')
+            ->orWhereNotNull('phone');
+    }
+
+    public function label()
+    {
+        return $this->name;
+    }
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('name', 'like', wildcardSpace($search));
+    }
 }
