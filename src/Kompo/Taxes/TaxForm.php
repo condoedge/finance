@@ -33,27 +33,23 @@ class TaxForm extends Modal
                 ->name('pct_rate', false)
                 ->required()
                 ->default($this->model->rate?->multiply(100)->toFloat()),
-
             !config('kompo-finance.taxes-have-locations') ? null :
                 _Rows(
                     _ButtonGroup('translate.tax-location')->name('taxable_location_type', false)
                         ->selfGet('getLocationsList')->inPanel('list-locations')
-                        ->when($this->model->location, fn($el) => $el->default($currentLocationType))
+                        ->when($this->model->location, fn ($el) => $el->default($currentLocationType))
                         ->options([
                             1 => 'translate.finance-federal',
                             2 => 'translate.finance-provincial',
                         ])->optionClass('cursor-pointer text-center px-4 py-3 flex justify-center')
                         ->class('mb-2'),
-
                     _Panel(
                         $this->getLocationsList($currentLocationType)
                     )->id('list-locations'),
                 ),
-
             _AccountsSelect('finance-account', $this->model->account)
                 ->name('account_id', false)
                 ->required(),
-
             _Date('finance-valid-from')->name('valide_from')
                 ->default(now()->format('Y-m-d')),
             _FlexEnd(
