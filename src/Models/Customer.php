@@ -90,6 +90,21 @@ class Customer extends AbstractMainFinanceModel implements EmailCommunicable, Sm
         return $query->whereIn('team_id', $teamIds);
     }
 
+    public function scopeEqualButAnotherTeam($query, $customer, $teamId)
+    {
+        if (!$customer->customable_type || !$customer->customable_id) {
+            return $query->whereNull('customable_type')
+                ->whereNull('customable_id')
+                ->where('name', $customer->name)
+                ->where('team_id', $teamId);
+        }
+
+        return $query->where('customable_type', $customer->customable_type)
+            ->where('customable_id', $customer->customable_id)
+            ->where('team_id', $teamId);
+    }
+
+
     /* ACTIONS */
 
     public function setPrimaryBillingAddress($id)
@@ -102,6 +117,22 @@ class Customer extends AbstractMainFinanceModel implements EmailCommunicable, Sm
     {
         $this->default_billing_address_id = $id;
         $this->save();
+    }
+
+    public function clone($teamId = null)
+    {
+        $customer = $this->replicate();
+        $customer->team_id = $teamId ?? currentTeamId();
+        $customer->save();
+
+        // Clone addresses
+        foreach ($this->addresses as $address) {
+            $clonedAddress = $address->replicate();
+            $clonedAddress->addressable_id = $customer->id;
+            $clonedAddress->save();
+        }
+
+        return $customer;
     }
 
     /**

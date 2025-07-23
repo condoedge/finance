@@ -52,8 +52,17 @@ class InvoiceForm extends Form
 
     public function handle(InvoiceServiceInterface $invoiceService)
     {
+        $teamId = $this->team->id ?? currentTeamId();
+
+        $customerId = request('customer_id');
+        $customer = Customer::find($customerId);
+
         $invoiceData = parseDataWithMultiForm('invoiceDetails');
         $invoiceData = $this->parsePossiblePaymentMethods($invoiceData);
+
+        if ($customer->team_id != $teamId) {
+            $customer = Customer::equalButAnotherTeam($customer, $teamId)->first() ?? $customer->clone($teamId);
+        }
 
         $dtoInvoiceData = $this->model->id ?
             new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]) :
@@ -158,7 +167,7 @@ class InvoiceForm extends Form
 
     public function searchCustomers($searchTerm)
     {
-        return Customer::where('team_id', $this->team->id ?? currentTeamId())
+        return Customer::forTeam($this->team->id ?? currentTeamId())
             ->where('name', 'like', wildcardSpace($searchTerm))
             ->orderBy('name')
             ->get()
