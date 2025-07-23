@@ -3,7 +3,6 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Facades\AccountSegmentService;
-use Condoedge\Utils\Models\Model;
 
 /**
  * Segment Value Model
