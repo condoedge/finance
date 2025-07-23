@@ -50,6 +50,7 @@ enum PaymentTermTypeEnum: int
             self::INSTALLMENT => [
                 'periods' => _InputNumber('finance-periods')->required()->name('settings_periods', false)->default($setting['periods'] ?? null),
                 'interval_type' => _ButtonGroup('finance-interval-type')
+                    ->optionClass('cursor-pointer text-center px-4 py-3 flex justify-center')
                     ->name('settings_interval_type', false)
                     ->default($setting['interval_type'] ?? 'months')
                     ->options([

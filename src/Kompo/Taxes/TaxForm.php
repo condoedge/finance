@@ -42,7 +42,8 @@ class TaxForm extends Modal
                         ->options([
                             1 => 'translate.finance-federal',
                             2 => 'translate.finance-provincial',
-                        ])->class('mb-2'),
+                        ])->optionClass('cursor-pointer text-center px-4 py-3 flex justify-center')
+                        ->class('mb-2'),
 
                     _Panel(
                         $this->getLocationsList($currentLocationType)
