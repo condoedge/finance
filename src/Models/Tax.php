@@ -20,6 +20,7 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
  * @property \Condoedge\Finance\Casts\SafeDecimal $rate Tax rate as percentage / 100
  * @property-read \Condoedge\Finance\Models\Invoice $invoice
  * @property-read string $complete_label Complete label for the tax, including name and rate
+ * @property-read TaxableLocation $location
  */
 class Tax extends AbstractMainFinanceModel
 {
@@ -41,6 +42,11 @@ class Tax extends AbstractMainFinanceModel
         return $this->belongsTo(GlAccount::class, 'account_id');
     }
 
+    public function location()
+    {
+        return $this->belongsTo(TaxableLocation::class, 'taxable_location_id');
+    }
+
     /* ATTRIBUTES */
     public function getCompleteLabelAttribute()
     {
@@ -59,6 +65,11 @@ class Tax extends AbstractMainFinanceModel
     {
         return $query->where('valide_from', '<=', now())
             ->where(fn ($q) => $q->where('valide_to', '>=', now())->orWhereNull('valide_to'));
+    }
+
+    public function scopeForTeam($query, $teamId)
+    {
+        return $query;
     }
 
     /* ACTIONS */

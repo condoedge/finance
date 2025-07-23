@@ -64,7 +64,7 @@ if (!function_exists('_TaxesSelect')) {
     {
         $invoice = $invoiceDetail?->invoice;
 
-        $taxesOptions = TaxModel::active()->get()->pluck('complete_label_html', 'id')->union($invoiceDetail?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
+        $taxesOptions = TaxModel::active()->forTeam(currentTeamId())->get()->pluck('complete_label_html', 'id')->union($invoiceDetail?->invoiceTaxes()->with('tax')->get()->mapWithKeys(
             fn ($it) => [$it->tax->id => $it->complete_label_html]
         ));
 

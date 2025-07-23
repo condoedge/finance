@@ -6,6 +6,8 @@ use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 
 return [
+    'taxes-have-locations' => false,
+
     'payment_providers' => [
         BnaPaymentProvider::class,
         StripePaymentProvider::class,
