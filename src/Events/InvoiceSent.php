@@ -27,7 +27,7 @@ class InvoiceSent implements CommunicableEvent
             'invoice' => $this->invoice,
         ];
     }
-    
+
     public static function getName(): string
     {
         return __('translate.invoice-sent');

@@ -10,7 +10,6 @@ use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Facades\PaymentProcessor;
 use Condoedge\Finance\Facades\PaymentTermService;
-use Condoedge\Finance\Mail\NewInvoiceMail;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
@@ -25,7 +24,6 @@ use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use InvalidArgumentException;
 
 /**
