@@ -22,7 +22,7 @@ class ExpenseInfoModal extends Modal
                 collect($this->model->files)->map(function ($file) {
                     return _Img($file->link)->class('h-48 object-cover');
                 }),
-            )->style('max-width: 400px;')->class('gap-4 mini-scroll overflow-x-auto'),
+            )->style('max-width: 400px;')->class('gap-4 mini-scroll overflow-x-auto mb-4'),
             _FlexEnd(
                 _FinanceCurrency($this->model->total_expense_amount)->class('text-2xl font-bold mb-4'),
             ),
