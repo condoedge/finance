@@ -39,7 +39,7 @@ interface CustomerServiceInterface
     public function createFromCustomable(CreateCustomerFromCustomable $dto): Customer;
 
     public function ensureCustomerFromTeam(Customer $customer, $teamId);
-    
+
     /**
      * Set default billing address for customer
      *
