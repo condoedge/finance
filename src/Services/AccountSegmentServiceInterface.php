@@ -6,6 +6,7 @@ use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\Dto\Gl\CreateAccountDto;
 use Condoedge\Finance\Models\Dto\Gl\CreateOrUpdateSegmentDto;
 use Condoedge\Finance\Models\Dto\Gl\CreateSegmentValueDto;
+use Condoedge\Finance\Models\Dto\Gl\UpdateSegmentValueDto;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\SegmentValue;
 use Illuminate\Support\Collection;
@@ -37,6 +38,8 @@ interface AccountSegmentServiceInterface
      * Create a new segment value
      */
     public function createSegmentValue(CreateSegmentValueDto $dto): SegmentValue;
+
+    public function updateSegmentValue(UpdateSegmentValueDto $dto): SegmentValue;
 
     /**
      * Create an account from segment values

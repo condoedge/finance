@@ -140,7 +140,7 @@ class ProductService implements ProductServiceInterface
                 throw new \Exception(__('finance-cannot-delete-product-in-use'));
             }
 
-            return $product->forceDelete();
+            return DB::table('fin_products')->where('id', $productId)->delete() > 0 ? true : false;
         });
     }
 

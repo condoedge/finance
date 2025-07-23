@@ -3,7 +3,6 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Facades\AccountSegmentService;
-use Condoedge\Utils\Models\Model;
 
 /**
  * Segment Value Model
@@ -16,6 +15,8 @@ use Condoedge\Utils\Models\Model;
  * @property string $segment_value The actual code ('10', '03', '4000')
  * @property string $segment_description Human-readable description
  * @property bool $is_active
+ * @property bool $allow_manual_entry Indicates if manual entry is allowed for this segment value
+ * @property AccountTypeEnum|null $account_type Type of account this segment value belongs to (e.g. asset, liability)
  */
 class SegmentValue extends AbstractMainFinanceModel
 {

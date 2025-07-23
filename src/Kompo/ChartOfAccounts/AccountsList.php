@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Kompo\ChartOfAccounts;
 
+use Condoedge\Finance\Kompo\SegmentManagement\SegmentValueFormModal;
 use Condoedge\Finance\Models\SegmentValue;
 use Kompo\Query;
 
@@ -36,7 +37,10 @@ class AccountsList extends Query
                     ])->alert('translated.toggled-successfully'),
                 _Delete($account),
             )->class('gap-4'),
-        )->class('py-2 px-4 space-x-4 bg-white rounded-lg mb-2 border border-gray-200 !items-center');
+        )->class('py-2 px-4 space-x-4 bg-white rounded-lg mb-2 border border-gray-200 !items-center')
+            ->selfGet('getLastSegmentValueForm', [
+                'segmentValueId' => $account->id,
+            ])->inModal();
     }
 
     public function toggleAccount()
@@ -44,5 +48,10 @@ class AccountsList extends Query
         $account = SegmentValue::findOrFail(request('account_id'));
         $account->is_active = !$account->is_active;
         $account->save();
+    }
+
+    public function getLastSegmentValueForm($segmentValueId)
+    {
+        return new SegmentValueFormModal($segmentValueId);
     }
 }

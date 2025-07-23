@@ -86,7 +86,7 @@ enum PaymentMethodEnum: int
     public function online()
     {
         return match ($this) {
-            self::CREDIT_CARD, self::INTERAC => true,
+            self::CREDIT_CARD, self::INTERAC, self::BANK_TRANSFER => true,
             default => false,
         };
     }

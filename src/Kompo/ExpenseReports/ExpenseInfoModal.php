@@ -20,7 +20,7 @@ class ExpenseInfoModal extends Modal
             )->class('text-lg font-semibold gap-4 mb-4'),
             _Flex(
                 collect($this->model->files)->map(function ($file) {
-                    return _Img($file->path)->class('h-48 object-cover');
+                    return _Img($file->link)->class('h-48 object-cover');
                 }),
             )->style('max-width: 400px;')->class('gap-4 mini-scroll overflow-x-auto'),
             _FlexEnd(
