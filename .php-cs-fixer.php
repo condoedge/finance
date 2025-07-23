@@ -34,9 +34,6 @@ $finder = PhpCsFixer\Finder::create()
     ->ignoreVCS(true);
 
 return (new PhpCsFixer\Config())
-    // Allow risky rules to enforce stricter standards
-    // Permite reglas arriesgadas para estándares más estrictos
-    ->setRiskyAllowed(true)
     
     // Define the rules for code linting
     // Define las reglas para el análisis del código
@@ -53,7 +50,6 @@ return (new PhpCsFixer\Config())
         'phpdoc_trim' => true, // Remove unnecessary spaces in PHPDoc / Elimina espacios innecesarios en PHPDoc
         'semicolon_after_instruction' => true, // Ensure semicolons after instructions / Asegura punto y coma después de instrucciones
         'single_blank_line_at_eof' => true, // Ensure a single blank line at the end of files / Asegura una línea en blanco al final de los archivos
-        'strict_param' => true, // Enforce strict parameter rules / Aplica reglas estrictas para parámetros
     ])
     
     // Apply the rules to the selected files

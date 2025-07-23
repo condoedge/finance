@@ -307,7 +307,7 @@ class InvoiceService implements InvoiceServiceInterface
         });
 
         if (!$invoice->is_draft && $tryingToUpdateInvalid->isNotEmpty()) {
-            throw new Exception('finance-cannot-update-non-draft-invoice');
+            throw new Exception(__('finance-cannot-update-non-draft-invoice'));
         }
 
         if ($invoice->is_draft) {
