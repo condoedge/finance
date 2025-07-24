@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Utils\Kompo\Common\Form;
 
 class InvoiceInfoModal extends Form
@@ -32,7 +33,8 @@ class InvoiceInfoModal extends Form
                 _FinanceCurrency($this->model->invoice_total_amount)->class('text-3xl font-bold mb-4'),
                 _FlexCenter(
                     _ButtonOutlined('finance.send-receipt')->class('!py-1')->icon('receipt'),
-                    _ButtonOutlined('finance.send-invoice')->class('!py-1')->icon('receipt'),
+                    _ButtonOutlined('finance.send-invoice')
+                        ->selfPost('sendInvoice')->alert('translate.invoice-sent')->class('!py-1')->icon('receipt'),
                 )->class('gap-4'),
             )->class('text-center border-b border-gray-200 pb-4 mb-4'),
             _Rows(
@@ -141,5 +143,10 @@ class InvoiceInfoModal extends Form
     public function getInvoicePayModal()
     {
         return new InvoicePayModal($this->model->id);
+    }
+
+    public function sendInvoice()
+    {
+        InvoiceService::sendInvoice($this->model->id);
     }
 }
