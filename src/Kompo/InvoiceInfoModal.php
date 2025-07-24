@@ -34,7 +34,7 @@ class InvoiceInfoModal extends Form
                 _FlexCenter(
                     _ButtonOutlined('finance.send-receipt')->class('!py-1')->icon('receipt'),
                     _ButtonOutlined('finance.send-invoice')
-                        ->selfPost('sendInvoice')->alert('translate.invoice-sent')->class('!py-1')->icon('receipt'),
+                        ->selfPost('sendInvoice')->alert('finance-invoice-sent')->class('!py-1')->icon('receipt'),
                 )->class('gap-4'),
             )->class('text-center border-b border-gray-200 pb-4 mb-4'),
             _Rows(
