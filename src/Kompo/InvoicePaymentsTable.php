@@ -34,7 +34,7 @@ class InvoicePaymentsTable extends Table
 
     public function render($invoicePayment)
     {
-        $paymentMethod = $invoicePayment->paymentTrace?->paymentMethod ?? $invoicePayment->applicable?->paymentMethod;
+        $paymentMethod = $invoicePayment->getPaymentMethod();
 
         return _TableRow(
             _Html($invoicePayment->apply_date?->format('Y-m-d')),

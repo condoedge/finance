@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Models\Dto\Invoices\ApplicableRecordDto;
+use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,6 +20,9 @@ use Illuminate\Support\Facades\DB;
  * @property int $applicable_id The ID of the applicable record (e.g., invoice, credit, etc.)
  * @property int $applicable_type The type of the applicable record (e.g., payment = 1, credit = 2, etc.)
  * @property \Condoedge\Finance\Casts\SafeDecimal $payment_applied_amount The amount of the payment applied to the invoice
+ * 
+ * @property-read Credit|CustomerPayment $applicable
+ * @property-read Invoice $invoice The invoice to which the payment is applied
  *
  **/
 class InvoiceApply extends AbstractMainFinanceModel
@@ -45,6 +49,12 @@ class InvoiceApply extends AbstractMainFinanceModel
     public function applicable()
     {
         return $this->morphTo();
+    }
+
+    // CALCULATED ACTIONS
+    public function getPaymentMethod()
+    {
+        return $this->applicable?->paymentTrace?->paymentMethod ?? $this->applicable?->paymentMethod ?? $this->invoice->paymentMethod;
     }
 
     // ACTIONS

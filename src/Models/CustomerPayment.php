@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\DB;
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount_left @CALCULATED BY calculate_payment_amount_left() - Amount left to be applied to invoices
  * @property int $payment_trace_id Foreign key to fin_payment_traces
  * @property PaymentMethodEnum $payment_method_id The method of payment used (e.g., cash, credit card)
+ * 
+ * @property-read PaymentTrace $paymentTrace The payment trace associated with this payment
+ * @property-read PaymentMethod $paymentMethod The payment method used for this payment
  *
  **/
 class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToInvoiceContract

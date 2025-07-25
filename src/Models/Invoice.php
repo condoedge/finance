@@ -62,6 +62,8 @@ use Kompo\Auth\Models\Teams\Team;
  * @property Collection<InvoiceDetail> $invoiceDetails The details of the invoice (items, services, etc.)
  * @property PaymentTerm $paymentTerm The payment term associated with the invoice
  * @property Collection<PaymentInstallmentPeriod> $installmentsPeriods The payment installment periods associated with the invoice
+ * 
+ * @property-read PaymentMethod $paymentMethod The payment method used for the invoice
  */
 class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterface
 {
@@ -165,6 +167,11 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     public function paymentTraces()
     {
         return $this->morphMany(PaymentTrace::class, 'payable');
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
     }
 
     /* ATTRIBUTES */
@@ -387,9 +394,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
                 $this->invoiceable?->onPartialPayment();
             });
         } catch (\Exception $e) {
-            Log::error('Error managing partial payment for invoice ID: ' . $this->id, [
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Error managing partial payment for invoice ID: ' . $this->id, $e->getTrace());
         }
     }
 
@@ -415,9 +420,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
                 $this->invoiceable?->onConsideredAsInitialPaid();
             });
         } catch (\Exception $e) {
-            Log::error('Error managing initial paid state for invoice ID: ' . $this->id, [
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Error managing initial paid state for invoice ID: ' . $this->id, $e->getTrace());
         }
     }
 
@@ -439,9 +442,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
                 $this->invoiceable?->onOverdue();
             });
         } catch (\Exception $e) {
-            Log::error('Error managing overdue state for invoice ID: ' . $this->id, [
-                'error' => $e->getMessage(),
-            ]);
+            Log::error('Error managing overdue state for invoice ID: ' . $this->id, $e->getTrace());
         }
     }
 
