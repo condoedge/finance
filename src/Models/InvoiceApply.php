@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\DB;
  * @property int $applicable_id The ID of the applicable record (e.g., invoice, credit, etc.)
  * @property int $applicable_type The type of the applicable record (e.g., payment = 1, credit = 2, etc.)
  * @property \Condoedge\Finance\Casts\SafeDecimal $payment_applied_amount The amount of the payment applied to the invoice
- * 
  * @property-read Credit|CustomerPayment $applicable
  * @property-read Invoice $invoice The invoice to which the payment is applied
  *

@@ -6,7 +6,7 @@ use Condoedge\Utils\Models\Model;
 
 /**
  * This class is just to follow the payment trace but it's not required for the balance, or any other financial calculations.
- * 
+ *
  * @property-read PaymentMethod $paymentMethod
  */
 class PaymentTrace extends Model

@@ -62,7 +62,6 @@ use Kompo\Auth\Models\Teams\Team;
  * @property Collection<InvoiceDetail> $invoiceDetails The details of the invoice (items, services, etc.)
  * @property PaymentTerm $paymentTerm The payment term associated with the invoice
  * @property Collection<PaymentInstallmentPeriod> $installmentsPeriods The payment installment periods associated with the invoice
- * 
  * @property-read PaymentMethod $paymentMethod The payment method used for the invoice
  */
 class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterface
