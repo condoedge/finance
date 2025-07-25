@@ -2,6 +2,8 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Facades\CustomerModel;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Utils\Facades\TeamModel;
 use Condoedge\Utils\Models\Model;
 
@@ -22,12 +24,12 @@ class HistoricalCustomer extends Model
     /* RELATIONSHIPS */
     public function customer()
     {
-        return $this->belongsTo(Customer::class, 'customer_id');
+        return $this->belongsTo(CustomerModel::getClass(), 'customer_id');
     }
 
     public function invoices()
     {
-        return $this->hasMany(Invoice::class, 'historical_customer_id');
+        return $this->hasMany(InvoiceModel::getClass(), 'historical_customer_id');
     }
 
     // SCOPES

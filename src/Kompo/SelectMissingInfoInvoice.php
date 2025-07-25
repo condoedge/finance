@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Kompo;
 
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
@@ -11,7 +12,7 @@ class SelectMissingInfoInvoice extends Modal
 {
     protected $_Title = 'finance-select-missing-info-invoice';
 
-    public $model = Invoice::class;
+    public $model = InvoiceModel::class;
 
     public function handle()
     {

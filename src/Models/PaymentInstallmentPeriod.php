@@ -5,6 +5,8 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Facades\InvoiceModel;
+use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -49,7 +51,7 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements Finan
     // RELATIONS
     public function invoice()
     {
-        return $this->belongsTo(Invoice::class, 'invoice_id');
+        return $this->belongsTo(InvoiceModel::getClass(), 'invoice_id');
     }
 
     // ACTIONS
@@ -69,6 +71,11 @@ class PaymentInstallmentPeriod extends AbstractMainFinanceModel implements Finan
     public function getCustomer(): ?Customer
     {
         return Customer::findOrFail($this->invoice->customer_id);
+    }
+
+    public function getAddress(): Address|null
+    {
+        return $this->invoice->getAddress() ?? null;
     }
 
     public function onPaymentFailed(array $failureData): void

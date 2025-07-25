@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceDetailGenerated;
 use Condoedge\Finance\Facades\InvoiceDetailService;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Illuminate\Support\Facades\DB;
 
@@ -45,7 +46,7 @@ class InvoiceDetail extends AbstractMainFinanceModel
     /* RELATIONSHIPS */
     public function invoice()
     {
-        return $this->belongsTo(Invoice::class, 'invoice_id');
+        return $this->belongsTo(InvoiceModel::getClass(), 'invoice_id');
     }
 
     public function invoiceTaxes()

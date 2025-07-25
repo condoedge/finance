@@ -6,7 +6,9 @@ use Condoedge\Communications\Services\CommunicationHandlers\Contracts\EmailCommu
 use Condoedge\Communications\Services\CommunicationHandlers\Contracts\SmsCommunicable;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\CustomerCreated;
+use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Facades\CustomerService;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Utils\Facades\TeamModel;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +61,7 @@ class Customer extends AbstractMainFinanceModel implements EmailCommunicable, Sm
     /* RELATIONSHIPS */
     public function invoices()
     {
-        return $this->hasMany(Invoice::class, 'customer_id');
+        return $this->hasMany(InvoiceModel::getClass(), 'customer_id');
     }
 
     public function defaultAddress()

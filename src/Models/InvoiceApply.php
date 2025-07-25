@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\Dto\Invoices\ApplicableRecordDto;
 use Condoedge\Finance\Models\GlobalScopesTypes\Credit;
 use Illuminate\Support\Facades\DB;
@@ -36,13 +37,13 @@ class InvoiceApply extends AbstractMainFinanceModel
     /* RELATIONSHIPS */
     public function invoice()
     {
-        return $this->belongsTo(Invoice::class, 'invoice_id');
+        return $this->belongsTo(InvoiceModel::getClass(), 'invoice_id');
     }
 
     // You can apply a credit to an invoice, so this morphTo relationship is used to link the applicable record and reload with the integrity checker.
     public function credit()
     {
-        return $this->morphTo(Invoice::class, 'applicable');
+        return $this->morphTo(InvoiceModel::getClass(), 'applicable');
     }
 
     public function applicable()

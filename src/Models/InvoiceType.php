@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Utils\Models\Model;
 
 class InvoiceType extends Model
@@ -11,7 +12,7 @@ class InvoiceType extends Model
     /* RELATIONSHIPS */
     public function invoices()
     {
-        return $this->hasMany(Invoice::class, 'invoice_type_id');
+        return $this->hasMany(InvoiceModel::getClass(), 'invoice_type_id');
     }
 
     /* CALCULATED ATTRIBUTES */
