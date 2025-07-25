@@ -357,7 +357,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         }
         try {
             DB::transaction(function () {
-
+                $this->overdue_managed_at = null; // Reset overdue state on complete payment
                 $this->complete_payment_managed_at = now();
                 $this->saveQuietly();
 
@@ -384,6 +384,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         }
         try {
             DB::transaction(function () {
+                $this->overdue_managed_at = null; // Reset overdue state on complete payment
                 $this->partial_payment_managed_at = now();
                 $this->saveQuietly();
 
@@ -409,7 +410,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
         try {
             DB::transaction(function () {
-
+                $this->overdue_managed_at = null; // Reset overdue state on complete payment
                 $this->considered_as_initial_paid_at = now();
                 $this->saveQuietly();
 
