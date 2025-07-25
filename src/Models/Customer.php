@@ -6,7 +6,6 @@ use Condoedge\Communications\Services\CommunicationHandlers\Contracts\EmailCommu
 use Condoedge\Communications\Services\CommunicationHandlers\Contracts\SmsCommunicable;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\CustomerCreated;
-use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Utils\Facades\TeamModel;
