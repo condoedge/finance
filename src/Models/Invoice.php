@@ -379,9 +379,9 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function onPartialPayment()
     {
-        if ($this->partial_payment_managed_at) {
-            return;
-        }
+        // if ($this->partial_payment_managed_at) {
+        //     return;
+        // }
         try {
             DB::transaction(function () {
                 $this->overdue_managed_at = null; // Reset overdue state on complete payment
