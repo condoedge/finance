@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 trait HasRelationsManager
 {
+    // TODO WE SHOULD CHANGE THIS WAY TO GET RELATIONSHIPS TO USE A GRAPH
     public static function getRelationships($relatedClass = null)
     {
         return Cache::rememberForever(static::class . 'relations' . $relatedClass, function () use ($relatedClass) {
@@ -29,6 +30,8 @@ trait HasRelationsManager
             $relations = [];
 
             DB::beginTransaction();
+            // Mute logs to avoid cluttering the log with relationship checks
+            \Illuminate\Support\Facades\Log::getLogger()->pushHandler(new \Monolog\Handler\NullHandler());
             foreach ($methods as $method) {
                 try {
                     // Try to call the method to see if it is a relationship
@@ -49,6 +52,9 @@ trait HasRelationsManager
                 }
             }
             DB::rollBack();
+
+            // Desmute the logger to avoid cluttering the log with relationship checks
+            \Illuminate\Support\Facades\Log::getLogger()->popHandler();
 
             return $relations;
         });

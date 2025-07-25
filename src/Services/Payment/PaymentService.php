@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Services\Payment;
 
 use Condoedge\Finance\Casts\SafeDecimal;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\CustomerPayment;
@@ -179,7 +180,7 @@ class PaymentService implements PaymentServiceInterface
         $invoicePayment->applicable_type = $data->applicable_type;
         $invoicePayment->save();
 
-        $invoice = Invoice::findOrFail($data->invoice_id);
+        $invoice = InvoiceModel::findOrFail($data->invoice_id);
 
         if ($invoice->paymentTerm?->consideredAsInitialPaid($invoice)) {
             $invoice->onConsideredAsInitialPaid();
