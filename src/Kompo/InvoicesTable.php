@@ -118,7 +118,6 @@ class InvoicesTable extends WhiteTable
             !$this->viewAsManager ? null : _Th('finance-client')->sort('customer_id')->class('w-1/4'),
             _Th('finance-status')->sort('status')->class('w-1/6'),
             _Th('finance-amount-due')->class('text-right')->class('w-1/6'),
-            _Th()->class('w-1/12'),
         ];
     }
 
