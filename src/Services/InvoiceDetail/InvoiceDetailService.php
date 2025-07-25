@@ -4,7 +4,6 @@ namespace Condoedge\Finance\Services\InvoiceDetail;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
-use Condoedge\Finance\Facades\ProductModel;
 use Condoedge\Finance\Facades\ProductService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
