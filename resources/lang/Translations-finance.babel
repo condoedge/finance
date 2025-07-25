@@ -6325,6 +6325,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-federal</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-fee-date</name>
 						<description/>
 						<comment/>
@@ -9385,6 +9400,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-no-location-found</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-no-parent-invoice-or-bill-given</name>
 						<description/>
 						<comment/>
@@ -11125,6 +11155,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-provincial</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-qty</name>
 						<description/>
 						<comment/>
@@ -12340,6 +12385,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-select-location</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-select-maintenance-contract</name>
 						<description/>
 						<comment/>
@@ -13151,6 +13211,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-tax-accounts</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-tax-location</name>
 						<description/>
 						<comment/>
 						<translations>
@@ -14636,6 +14711,21 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-when-will-adjustment-be-billed</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-with-value-example-account-value</name>
 						<description/>
 						<comment/>
 						<translations>

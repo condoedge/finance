@@ -58,7 +58,7 @@ class SegmentValueFormModal extends Modal
         return _Rows(
             $this->model->id ? null : _Rows(
                 _CardGray200(
-                    _Html(__('translate.finance-example-account-value', [
+                    _Html(__('finance-with-value-example-account-value', [
                         'example' =>
                         str_pad('', $segmentLenght, 'X'),
                     ])),

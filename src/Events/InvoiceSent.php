@@ -30,7 +30,7 @@ class InvoiceSent implements CommunicableEvent
 
     public static function getName(): string
     {
-        return __('translate.invoice-sent');
+        return __('finance-invoice-sent');
     }
 
     public function getCommunicables(): Collection|array
