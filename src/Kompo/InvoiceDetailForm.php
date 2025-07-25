@@ -54,7 +54,7 @@ class InvoiceDetailForm extends Form
                         ->run('calculateTotals'),
                     _Input()->type('number')
                         ->name('unit_price', false)
-                        ->default($this->model->unit_price?->toFloat() ?? $this->product?->getAmount() ?? 0)
+                        ->default($this->model->unit_price?->toFloat() ?? $this->product?->getAmount()->toFloat() ?? 0)
                         ->class('w-28 !mb-0')
                         ->run('calculateTotals'),
                     _FinanceCurrency($this->model->extended_price)

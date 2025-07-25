@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Services\InvoiceDetail;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\ProductModel;
+use Condoedge\Finance\Facades\ProductService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertManyTaxDetailDto;
 use Condoedge\Finance\Models\Dto\Taxes\UpsertTaxDetailDto;
@@ -280,7 +281,7 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         $detail->save();
 
         if ($dto->create_product_on_save) {
-            ProductModel::createFromInvoiceDetail($detail);
+            ProductService::createProductFromInvoiceDetail($detail->id);
         }
 
         return $detail;

@@ -61,6 +61,8 @@ class InvoicePayModal extends Form
 
     public function render()
     {
+        $paymentMethods = collect($this->getPaymentMethods());
+
         return _Rows(
             _Html('finance.pay-invoice')->class('text-center text-2xl font-semibold mb-6'),
             _CardLevel4(
@@ -76,7 +78,8 @@ class InvoicePayModal extends Form
                 ),
             )->class('p-6 mb-6'),
             $this->model->payment_method_id ? null : _ButtonGroup('finance.pay-with')->name('payment_method_id')
-                ->options($this->getPaymentMethods())
+                ->options($paymentMethods)
+                ->default($paymentMethods->count() == 1 ? $paymentMethods->first() : null)
                 ->selfGet('getPaymentMethodFields')->inPanel('payment-method-fields')
                 ->containerClass('flex flex-col gap-2')
                 ->class('vlButtonGroupVertical mb-6')
