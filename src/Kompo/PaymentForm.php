@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Kompo;
 
-use Condoedge\Finance\Facades\CustomerPaymentModel;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\CustomerPayment;

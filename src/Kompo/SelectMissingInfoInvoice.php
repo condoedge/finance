@@ -6,7 +6,6 @@ use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
-use Condoedge\Finance\Models\Invoice;
 
 class SelectMissingInfoInvoice extends Modal
 {
