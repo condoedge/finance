@@ -8,6 +8,7 @@ use Condoedge\Finance\Events\InvoiceSent;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\PaymentProcessor;
 use Condoedge\Finance\Facades\PaymentTermService;
 use Condoedge\Finance\Models\Customer;
@@ -87,7 +88,7 @@ class InvoiceService implements InvoiceServiceInterface
     public function updateInvoice(UpdateInvoiceDto $dto): Invoice
     {
         return DB::transaction(function () use ($dto) {
-            $invoice = Invoice::findOrFail($dto->id);
+            $invoice = InvoiceModel::findOrFail($dto->id);
 
             $oldPaymentTermId = $invoice->getOriginal('payment_term_id');
 
@@ -140,7 +141,7 @@ class InvoiceService implements InvoiceServiceInterface
     public function approveInvoice(ApproveInvoiceDto $dto): Invoice
     {
         return DB::transaction(function () use ($dto) {
-            $invoice = Invoice::findOrFail($dto->invoice_id);
+            $invoice = InvoiceModel::findOrFail($dto->invoice_id);
 
             if ($dto->address) {
                 $this->setAddress($invoice, $dto->address->toArray() ?? []);
@@ -155,7 +156,7 @@ class InvoiceService implements InvoiceServiceInterface
 
     public function sendInvoice($id): void
     {
-        $invoice = Invoice::findOrFail($id);
+        $invoice = InvoiceModel::findOrFail($id);
 
         if ($invoice->is_draft) {
             abort(403, __('error-finance-cannot-send-a-draft-invoice'));
@@ -177,7 +178,7 @@ class InvoiceService implements InvoiceServiceInterface
     public function payInvoice(PayInvoiceDto $dto): PaymentResult
     {
         return DB::transaction(function () use ($dto) {
-            $invoice = Invoice::findOrFail($dto->invoice_id);
+            $invoice = InvoiceModel::findOrFail($dto->invoice_id);
 
             if ($invoice->is_draft) {
                 throw new Exception('error-finance-cannot-pay-draft-invoice');
@@ -215,7 +216,7 @@ class InvoiceService implements InvoiceServiceInterface
     public function approveMany(ApproveManyInvoicesDto $dto): Collection
     {
         return DB::transaction(function () use ($dto) {
-            $invoices = Invoice::whereIn('id', $dto->invoices_ids)->get();
+            $invoices = InvoiceModel::whereIn('id', $dto->invoices_ids)->get();
 
             // Approve all if validation passes
             foreach ($invoices as $invoice) {
