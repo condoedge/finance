@@ -103,8 +103,12 @@ if (!function_exists('removeAccentsManually')) {
         // First, normalize using the mappings
         $value = strtr($value, array_merge($accents, $specialChars));
         
-        // Additional cleanup: remove any character that is not letter, number, space, hyphen, apostrophe, period
-        $value = preg_replace('/[^\p{L}\p{N}\s\-\'.]/u', '', $value);
+        // Convert periods to spaces since they're not allowed in the pattern
+        $value = str_replace('.', ' ', $value);
+        
+        // Remove any character that is NOT in the allowed pattern:
+        // \d (digits), a-zA-Z, \u00c0-\u00d6\u00d8-\u00f6\u00f8-\u00ff (extended latin), \s (spaces), - (hyphens)
+        $value = preg_replace('/[^\da-zA-Z\x{00c0}-\x{00d6}\x{00d8}-\x{00f6}\x{00f8}-\x{00ff}\s\-]/u', '', $value);
         
         // Normalize multiple spaces to single space
         $value = preg_replace('/\s+/', ' ', $value);
