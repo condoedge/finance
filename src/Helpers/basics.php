@@ -45,27 +45,27 @@ if (!function_exists('removeAccentsManually')) {
             // Latin A
             'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Ā' => 'A', 'Ą' => 'A', 'Ă' => 'A',
             'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'ā' => 'a', 'ą' => 'a', 'ă' => 'a',
-            
+
             // Latin E
             'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E', 'Ē' => 'E', 'Ę' => 'E', 'Ě' => 'E', 'Ė' => 'E', 'Ĕ' => 'E',
             'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ē' => 'e', 'ę' => 'e', 'ě' => 'e', 'ė' => 'e', 'ĕ' => 'e',
-            
+
             // Latin I
             'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ī' => 'I', 'Ĩ' => 'I', 'Ĭ' => 'I', 'Į' => 'I', 'İ' => 'I',
             'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ī' => 'i', 'ĩ' => 'i', 'ĭ' => 'i', 'į' => 'i', 'ı' => 'i',
-            
+
             // Latin O
             'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ō' => 'O', 'Ő' => 'O', 'Ŏ' => 'O',
             'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ō' => 'o', 'ő' => 'o', 'ŏ' => 'o',
-            
-            // Latin U  
+
+            // Latin U
             'Ù' => 'U', 'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ū' => 'U', 'Ũ' => 'U', 'Ŭ' => 'U', 'Ů' => 'U', 'Ű' => 'U', 'Ų' => 'U',
             'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ü' => 'u', 'ū' => 'u', 'ũ' => 'u', 'ŭ' => 'u', 'ů' => 'u', 'ű' => 'u', 'ų' => 'u',
-            
+
             // Latin Y
             'Ý' => 'Y', 'Ÿ' => 'Y', 'Ŷ' => 'Y',
             'ý' => 'y', 'ÿ' => 'y', 'ŷ' => 'y',
-            
+
             // Other Latin
             'Ñ' => 'N', 'ñ' => 'n', 'Ń' => 'N', 'ń' => 'n', 'Ň' => 'N', 'ň' => 'n', 'Ņ' => 'N', 'ņ' => 'n',
             'Ç' => 'C', 'ç' => 'c', 'Ć' => 'C', 'ć' => 'c', 'Ĉ' => 'C', 'ĉ' => 'c', 'Ċ' => 'C', 'ċ' => 'c', 'Č' => 'C', 'č' => 'c',
@@ -78,7 +78,7 @@ if (!function_exists('removeAccentsManually')) {
             'Ŕ' => 'R', 'ŕ' => 'r', 'Ř' => 'R', 'ř' => 'r',
             'Ţ' => 'T', 'ţ' => 't', 'Ť' => 'T', 'ť' => 't',
             'Ŵ' => 'W', 'ŵ' => 'w',
-            
+
             // Ligatures
             'Æ' => 'AE', 'æ' => 'ae',
             'Œ' => 'OE', 'œ' => 'oe',
@@ -89,7 +89,7 @@ if (!function_exists('removeAccentsManually')) {
         $specialChars = [
             // Quote marks
             chr(226).chr(128).chr(152) => "'", // left single quote
-            chr(226).chr(128).chr(153) => "'", // right single quote  
+            chr(226).chr(128).chr(153) => "'", // right single quote
             chr(226).chr(128).chr(156) => '"', // left double quote
             chr(226).chr(128).chr(157) => '"', // right double quote
             // Dashes
@@ -102,17 +102,17 @@ if (!function_exists('removeAccentsManually')) {
 
         // First, normalize using the mappings
         $value = strtr($value, array_merge($accents, $specialChars));
-        
+
         // Convert periods to spaces since they're not allowed in the pattern
         $value = str_replace('.', ' ', $value);
-        
+
         // Remove any character that is NOT in the allowed pattern:
         // \d (digits), a-zA-Z, \u00c0-\u00d6\u00d8-\u00f6\u00f8-\u00ff (extended latin), \s (spaces), - (hyphens)
         $value = preg_replace('/[^\da-zA-Z\x{00c0}-\x{00d6}\x{00d8}-\x{00f6}\x{00f8}-\x{00ff}\s\-]/u', '', $value);
-        
+
         // Normalize multiple spaces to single space
         $value = preg_replace('/\s+/', ' ', $value);
-        
+
         return $value;
     }
 }
