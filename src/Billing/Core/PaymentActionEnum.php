@@ -2,8 +2,6 @@
 
 namespace Condoedge\Finance\Billing\Core;
 
-use Illuminate\Support\Facades\Route;
-
 enum PaymentActionEnum: string
 {
     use \Kompo\Models\Traits\EnumKompo;
@@ -15,7 +13,7 @@ enum PaymentActionEnum: string
     {
         return match ($this) {
             self::REDIRECT => redirect()->away($result->redirectUrl),
-            self::MODAL => (new $result->options['modal'])(null, $result->options),
+            self::MODAL => (new $result->options['modal']())(null, $result->options),
         };
     }
 
@@ -40,7 +38,6 @@ enum PaymentActionEnum: string
         return _Rows(
             _Button()->get('modal.' . $modalName, $options)
                 ->inModal()->id('openModalInElement' . $modalName)->class('hidden'),
-
             _Hidden()->onLoad(fn ($e) => $e->run('() => {
                 $("#openModalInElement' . $modalName . '").click();
             }'))
