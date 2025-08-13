@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance;
 
+use Condoedge\Finance\Billing\Contracts\PaymentCanReturnModal;
 use Condoedge\Finance\Billing\Core\PaymentProviderRegistry;
 use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceModel;
@@ -59,6 +60,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->setCronExecutions();
 
         $this->registerPaymentWebhookRoutes();
+        $this->registerPaymentModalsRoutes();
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'finance');
     }
@@ -359,6 +361,28 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
 
                     foreach ($registry->all() as $provider) {
                         $provider->registerWebhookRoutes($router);
+                    }
+                });
+        });
+    }
+
+    private function registerPaymentModalsRoutes()
+    {
+        $this->app->booted(function () {
+            Route::middleware(['web'])
+                ->prefix('modals')
+                ->group(function ($router) {
+                    $registry = app(PaymentProviderRegistry::class);
+
+                    foreach ($registry->all() as $provider) {
+                        if (in_array(PaymentCanReturnModal::class, class_implements($provider))) {
+                            foreach ($provider->registerModals() as $modalClass) {
+                                if (class_exists($modalClass)) {
+                                    $router->get('modal/' . class_basename($modalClass), $modalClass)
+                                        ->name('modal.' . class_basename($modalClass));
+                                }
+                            }
+                        }
                     }
                 });
         });

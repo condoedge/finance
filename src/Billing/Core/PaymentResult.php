@@ -12,6 +12,7 @@ class PaymentResult
         public readonly ?string $errorMessage = null,
         public readonly array $metadata = [],
         public readonly ?PaymentActionEnum $action = null,
+        public readonly ?array $options = null, // Additional options for the payment action
         public readonly ?string $redirectUrl = null, // URL to redirect for pending payments
         public readonly ?bool $isPending = false, // Indicates if the payment is pending
     ) {
@@ -28,7 +29,7 @@ class PaymentResult
         );
     }
 
-    public static function pending(string $transactionId, float $amount, string $paymentProviderCode = '', array $metadata = [], ?PaymentActionEnum $action = null, ?string $redirectUrl = null): self
+    public static function pending(string $transactionId, float $amount, string $paymentProviderCode = '', array $metadata = [], ?PaymentActionEnum $action = null, ?array $options = [], ?string $redirectUrl = null): self
     {
         return new self(
             success: false,
@@ -37,6 +38,7 @@ class PaymentResult
             amount: $amount,
             metadata: $metadata,
             action: $action,
+            options: $options,
             isPending: true,
             redirectUrl: $redirectUrl
         );

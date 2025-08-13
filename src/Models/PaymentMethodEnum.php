@@ -2,8 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Billing\Kompo\PaymentCreditCardForm;
-use Faker\Provider\ar_EG\Payment;
+use Condoedge\Finance\Billing\Providers\Bna\Form\PaymentCreditCardForm;
 
 /**
  * Payment Type Enum

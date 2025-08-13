@@ -2,11 +2,13 @@
 
 namespace Condoedge\Finance\Billing\Providers\Bna;
 
+use Condoedge\Finance\Billing\Contracts\PaymentCanReturnModal;
 use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
 use Condoedge\Finance\Billing\Core\PaymentActionEnum;
 use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Billing\Core\PaymentResult;
 use Condoedge\Finance\Billing\Core\WebhookProcessor;
+use Condoedge\Finance\Billing\Providers\Bna\Form\InteracExplanationModal;
 use Condoedge\Finance\Billing\Providers\Bna\Form\PaymentCreditCardForm;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Support\Facades\Http;
@@ -16,7 +18,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Kompo\Elements\BaseElement;
 
-class BnaPaymentProvider implements PaymentGatewayInterface
+class BnaPaymentProvider implements PaymentGatewayInterface, PaymentCanReturnModal
 {
     use \Condoedge\Finance\Billing\Traits\RegistersWebhooks;
 
@@ -44,6 +46,13 @@ class BnaPaymentProvider implements PaymentGatewayInterface
     public function getCode(): string
     {
         return 'bna';
+    }
+
+    public function registerModals()
+    {
+        return [
+            InteracExplanationModal::class,
+        ];
     }
 
     public function getSupportedPaymentMethods(): array
@@ -168,7 +177,8 @@ class BnaPaymentProvider implements PaymentGatewayInterface
             transactionId: $this->getResponseData('referenceUUID'),
             amount: $this->getResponseData('amount'),
             paymentProviderCode: $this->getCode(),
-            action: PaymentActionEnum::REDIRECT,
+            action: PaymentActionEnum::MODAL,
+            options: ['modal' => InteracExplanationModal::class, 'redirect_url' => $interacUrl],
             redirectUrl: $interacUrl
         );
     }
