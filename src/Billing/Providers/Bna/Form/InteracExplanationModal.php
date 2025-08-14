@@ -19,10 +19,8 @@ class InteracExplanationModal extends Modal
     {
         return _Rows(
             _Html('translate.interac-explanation-modal-body')->class('mb-4'),
-
             _Img('images/vendor/kompo-finance/interac-explanation.png')
                 ->class('w-full h-24 mb-12')->bgCover(),
-
             _Link('translate.go-to-interac-page')->button()->href($this->redirectUrl)
                 ->inNewTab(),
         );
