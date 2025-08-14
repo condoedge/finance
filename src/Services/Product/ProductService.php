@@ -190,7 +190,7 @@ class ProductService implements ProductServiceInterface
             $existingProduct = Product::where('productable_type', $dto->productable_type)
                 ->where('productable_id', $dto->productable_id)
                 ->where('product_type', $dto->product_type)
-                ->when($dto->key, fn($q) => $q->where('key', $dto->key))
+                ->when($dto->key, fn ($q) => $q->where('key', $dto->key))
                 // ->forTeam($dto->team_id ?? currentTeamId())
                 ->first();
 
