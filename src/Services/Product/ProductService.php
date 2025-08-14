@@ -33,6 +33,7 @@ class ProductService implements ProductServiceInterface
             $product->taxes_ids = integerArray($dto->taxes_ids);
             $product->team_id = $dto->team_id ?? currentTeamId();
             $product->product_cost = $product->product_type->getSignedValue($product);
+            $product->key = $dto->key;
             $product->save();
 
             return $product->refresh();
@@ -189,6 +190,7 @@ class ProductService implements ProductServiceInterface
             $existingProduct = Product::where('productable_type', $dto->productable_type)
                 ->where('productable_id', $dto->productable_id)
                 ->where('product_type', $dto->product_type)
+                ->when($dto->key, fn($q) => $q->where('key', $dto->key))
                 // ->forTeam($dto->team_id ?? currentTeamId())
                 ->first();
 

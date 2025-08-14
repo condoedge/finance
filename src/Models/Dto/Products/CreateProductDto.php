@@ -39,6 +39,8 @@ class CreateProductDto extends ValidatedDTO
     public ?string $productable_type;
     public ?int $productable_id;
 
+    public ?string $key = null;
+
     /**
      * Validation rules for creating a product
      */
@@ -56,6 +58,7 @@ class CreateProductDto extends ValidatedDTO
             'product_template_id' => 'nullable|integer|exists:fin_products,id',
             'productable_type' => 'nullable|string|max:255',
             'productable_id' => 'nullable|integer',
+            'key' => 'nullable|string|max:255',
         ];
     }
 
@@ -72,6 +75,7 @@ class CreateProductDto extends ValidatedDTO
             'product_template_id' => new IntegerCast(),
             'productable_type' => new StringCast(),
             'productable_id' => new IntegerCast(),
+            'key' => new StringCast(),
         ];
     }
 
@@ -85,6 +89,7 @@ class CreateProductDto extends ValidatedDTO
             'product_template_id' => null,
             'productable_type' => null,
             'productable_id' => null,
+            'key' => null,
         ];
     }
 }

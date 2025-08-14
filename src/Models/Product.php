@@ -190,13 +190,14 @@ class Product extends AbstractMainFinanceModel
      * @deprecated Use ProductService::createOrUpdateProduct() instead
      * Maintained for backward compatibility
      */
-    public static function createOrUpdateProduct(Model $productable, ProductTypeEnum $type, SafeDecimal|float $amount, $name = '', $accountId = null, $teamId = null)
+    public static function createOrUpdateProduct(Model $productable, ProductTypeEnum $type, mixed $amount, $name = '', $accountId = null, $teamId = null, $key = null)
     {
         return ProductService::createOrUpdateProduct(new CreateProductDto([
             'productable_type' => $productable->getMorphClass(),
             'productable_id' => $productable->getKey(),
+            'key' => $key,
             'product_type' => $type->value,
-            'product_cost_abs' => $amount,
+            'product_cost_abs' => new SafeDecimal($amount),
             'product_name' => $name ?: $type->label(),
             'default_revenue_account_id' => $accountId ?? GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id)->id, // ! TODO we must add a real way to get the account here
             'team_id' => $teamId ?? currentTeamId(),
@@ -210,9 +211,9 @@ class Product extends AbstractMainFinanceModel
      * @deprecated Use ProductService::createOrUpdateProduct() instead
      * Maintained for backward compatibility
      */
-    public static function createOrUpdateCost(Model $productable, ProductTypeEnum $type, SafeDecimal|float $amount, $name = '', $teamId = null)
+    public static function createOrUpdateCost(Model $productable, ProductTypeEnum $type, mixed $amount, $name = '', $teamId = null, $key = null)
     {
-        return static::createOrUpdateProduct($productable, $type, $amount, $name, $teamId);
+        return static::createOrUpdateProduct($productable, $type, new SafeDecimal($amount), $name, teamId: $teamId, key: $key);
     }
 
     /**

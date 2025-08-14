@@ -17,14 +17,21 @@ trait HasProducts
             ->teamCommission()->first();
     }
 
+    public function getProductByKey($key)
+    {
+        return $this->products()
+            ->where('key', $key)
+            ->first();
+    }
+
     public function productsCountInTotal()
     {
         return $this->products()->countInTotal()->get();
     }
 
-    public function createOrUpdateCost(ProductTypeEnum $type, SafeDecimal $amount, string $name = '')
+    public function createOrUpdateCost(ProductTypeEnum $type, mixed $amount, string $name = '', string $key = null)
     {
-        return Product::createOrUpdateCost($this, $type, $amount, $name);
+        return Product::createOrUpdateCost($this, $type, new SafeDecimal($amount), $name, key: $key);
     }
 
     public function getAmount()
