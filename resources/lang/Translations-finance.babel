@@ -6880,6 +6880,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-go-to-interac-page</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-go-to-structure</name>
 						<description/>
 						<comment/>
@@ -7481,6 +7496,36 @@
 					</concept_node>
 					<concept_node>
 						<name>finance-interac</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-interac-explanation-modal</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>finance-interac-explanation-modal-body</name>
 						<description/>
 						<comment/>
 						<translations>
