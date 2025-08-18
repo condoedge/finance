@@ -40,7 +40,7 @@ class Bank extends Model
                 ->col('col-sm-3'),
             _Input('finance.account-number')->name('account_number')
                 ->placeholder('finance.account-number-placeholder')
-                ->col('col-sm-6'),            
+                ->col('col-sm-6'),
         );
     }
 
