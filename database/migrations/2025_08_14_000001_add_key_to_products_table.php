@@ -24,6 +24,8 @@ return new class () extends Migration {
     public function down(): void
     {
         Schema::table('fin_products', function (Blueprint $table) {
+            $table->dropUnique(['key', 'team_id']);
+            $table->dropColumn('key');
         });
     }
 };
