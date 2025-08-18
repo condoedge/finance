@@ -22,9 +22,9 @@ class Bank extends Model
     {
         return [
             'name' => 'required',
-            'institution' => 'required|digits:3',
-            'branch' => 'required|digits:5',
-            'account_number' => 'required|digits_between:5,12',
+            'institution' => [new \Condoedge\Eft\Rules\BankInstitutionRule()],
+            'branch' => [new \Condoedge\Eft\Rules\BankTransitRule()],
+            'account_number' => [new \Condoedge\Eft\Rules\BankAccountRule()],
         ];
     }
 
