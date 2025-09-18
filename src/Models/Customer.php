@@ -30,7 +30,6 @@ use Illuminate\Support\Facades\DB;
  * @property int|null $default_billing_address_id Foreign key to fin_addresses
  * @property int|null $default_payment_method_id Foreign key to fin_payment_methods
  * @property int|null $default_tax_group_id Foreign key to fin_taxes_groups
- * 
  * @property-read \Illuminate\Database\Eloquent\Collection|\Condoedge\Finance\Models\Invoice[] $invoices
  * @property-read \Illuminate\Database\Eloquent\Collection|\Condoedge\Finance\Models\CustomerPayment[] $payments
  * @property-read $customable;
