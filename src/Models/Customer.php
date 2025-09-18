@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
+use Condoedge\Communications\Services\CommunicationHandlers\Contracts\DatabaseCommunicable;
 use Condoedge\Communications\Services\CommunicationHandlers\Contracts\EmailCommunicable;
 use Condoedge\Communications\Services\CommunicationHandlers\Contracts\SmsCommunicable;
 use Condoedge\Finance\Casts\SafeDecimalCast;
@@ -29,8 +30,12 @@ use Illuminate\Support\Facades\DB;
  * @property int|null $default_billing_address_id Foreign key to fin_addresses
  * @property int|null $default_payment_method_id Foreign key to fin_payment_methods
  * @property int|null $default_tax_group_id Foreign key to fin_taxes_groups
+ * 
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Condoedge\Finance\Models\Invoice[] $invoices
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Condoedge\Finance\Models\CustomerPayment[] $payments
+ * @property-read $customable;
  */
-class Customer extends AbstractMainFinanceModel implements EmailCommunicable, SmsCommunicable
+class Customer extends AbstractMainFinanceModel implements EmailCommunicable, SmsCommunicable, DatabaseCommunicable
 {
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
@@ -156,6 +161,20 @@ class Customer extends AbstractMainFinanceModel implements EmailCommunicable, Sm
     /* ELEMENTS */
 
     /* COMMUNICABLES */
+    public function getUserId()
+    {
+        if (in_array(DatabaseCommunicable::class, class_implements($this->customable))) {
+            return $this->customable->getUserId();
+        }
+
+        return null;
+    }
+
+    public function hasTeam($teamId)
+    {
+        return $this->team_id == $teamId;
+    }
+
     public function getEmail()
     {
         return $this->email;

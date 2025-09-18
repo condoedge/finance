@@ -3,12 +3,13 @@
 namespace Condoedge\Finance\Events;
 
 use Condoedge\Communications\EventsHandling\Contracts\CommunicableEvent;
+use Condoedge\Communications\EventsHandling\Contracts\DatabaseCommunicableEvent;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 
-class InvoiceSent implements CommunicableEvent
+class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
 {
     use Dispatchable;
     use InteractsWithSockets;
@@ -25,6 +26,9 @@ class InvoiceSent implements CommunicableEvent
     {
         return [
             'invoice' => $this->invoice,
+
+            'about_type' => 'invoice',
+            'about_id' => $this->invoice->id,
         ];
     }
 
@@ -41,5 +45,15 @@ class InvoiceSent implements CommunicableEvent
     public static function validVariablesIds($specificField = null): ?array
     {
         return ['invoices.*'];
+    }
+
+    public static function getValidRoutes(): array
+    {
+        $invoicePage = route('invoices.show', ['id' => 'to_be_replaced']);
+        $invoicePage = str_replace('to_be_replaced', getVarBuilt('invoice.id', 'brace'), $invoicePage);
+
+        return [
+            $invoicePage => __('translate.invoice-page'),
+        ];
     }
 }
