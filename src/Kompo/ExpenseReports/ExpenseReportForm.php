@@ -49,6 +49,7 @@ class ExpenseReportForm extends Modal
                 ]))->class('text-center'),
                 _ButtonOutlined('finance-add-expense')
                     ->selfGet('getExpenseForm')
+                    ->warnBeforeClose()
                     ->inModal()
                     ->class('mt-2 mb-4'),
             ),

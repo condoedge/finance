@@ -36,7 +36,7 @@ class ExpensesQuery extends Query
             )->class('mb-1'),
             _Html($expense->description)->class('text-sm'),
         )->p4()->when(!$this->readonly, function ($el) use ($expense) {
-            return $el->selfGet('getExpenseForm', ['id' => $expense->id])->inModal();
+            return $el->selfGet('getExpenseForm', ['id' => $expense->id])->warnBeforeClose()->inModal();
         })->when($this->readonly, function ($el) use ($expense) {
             return $el->selfGet('getExpenseInfoModal', ['id' => $expense->id])->inModal();
         });
