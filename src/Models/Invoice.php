@@ -16,8 +16,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Kompo\Auth\Models\Teams\Team;
 use Kompo\Auth\Facades\UserModel;
+use Kompo\Auth\Models\Teams\Team;
 
 /**
  * Class Invoice
