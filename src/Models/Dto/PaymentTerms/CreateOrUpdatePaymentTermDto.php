@@ -71,9 +71,10 @@ class CreateOrUpdatePaymentTermDto extends ValidatedDTO
             $rules = PaymentTermTypeEnum::from($paymentTermType)->settingsRules();
 
             $validation = FacadesValidator::make($settings, $rules);
-            // (count($rules) > 0 && empty($settings)) || 
+            // (count($rules) > 0 && empty($settings)) ||
             if ($validation->fails()) {
-                collect($validation->errors()->messages())->each(fn($message, $field) => 
+                collect($validation->errors()->messages())->each(
+                    fn ($message, $field) =>
                     $validator->errors()->add("settings_$field", $message[0])
                 );
 
