@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Models;
 
-use App\Models\User;
 use Carbon\Carbon;
 use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
 use Condoedge\Finance\Casts\SafeDecimal;
@@ -18,6 +17,7 @@ use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Kompo\Auth\Models\Teams\Team;
+use Kompo\Auth\Facades\UserModel;
 
 /**
  * Class Invoice
@@ -135,7 +135,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function approvedBy()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(UserModel::getClass(), 'approved_by');
     }
 
     public function payments()
