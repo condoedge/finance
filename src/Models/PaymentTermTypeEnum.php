@@ -45,10 +45,10 @@ enum PaymentTermTypeEnum: int
         return match ($this) {
             self::COD => [],
             self::NET => [
-                _InputNumber('finance-days')->required()->name('settings_days', false)->default($setting['days'] ?? null),
+                _InputNumber('finance-days')->name('settings_days', false)->default($setting['days'] ?? null)->required(),
             ],
             self::INSTALLMENT => [
-                'periods' => _InputNumber('finance-periods')->required()->name('settings_periods', false)->default($setting['periods'] ?? null),
+                'periods' => _InputNumber('finance-periods')->name('settings_periods', false)->default($setting['periods'] ?? null)->required(),
                 'interval_type' => _ButtonGroup('finance-interval-type')
                     ->optionClass('cursor-pointer text-center px-4 py-3 flex justify-center')
                     ->name('settings_interval_type', false)

@@ -70,8 +70,16 @@ class CreateOrUpdatePaymentTermDto extends ValidatedDTO
             // Validate settings based on the payment term type
             $rules = PaymentTermTypeEnum::from($paymentTermType)->settingsRules();
 
-            if ((count($rules) > 0 && empty($settings)) || FacadesValidator::make($settings, $rules)->fails()) {
+            $validation = FacadesValidator::make($settings, $rules);
+            // (count($rules) > 0 && empty($settings)) || 
+            if ($validation->fails()) {
+                collect($validation->errors()->messages())->each(fn($message, $field) => 
+                    $validator->errors()->add("settings_$field", $message[0])
+                );
+
                 $validator->errors()->add('settings', __('finance-invalid-settings'));
+
+                return;
             }
         }
     }
