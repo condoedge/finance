@@ -142,7 +142,7 @@ class InvoiceForm extends Form
                 ])->addLabel(
                     $this->getChargeablesSelect(),
                 )
-                ->class('mb-6 bg-white rounded-2xl')
+                ->class('mb-6 bg-white rounded-2xl border')
                 ->id('finance-items'),
 
             _FlexEnd(
