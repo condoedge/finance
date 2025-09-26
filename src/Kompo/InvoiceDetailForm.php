@@ -33,7 +33,7 @@ class InvoiceDetailForm extends Form
     {
         return [
             _Rows(
-                _Hidden()->onLoad->run('calculateTotals'),
+                _Hidden()->name('_', false)->onLoad->run('calculateTotals'),
                 _Hidden()->name('create_product_on_save')->default($this->createProductsOnSave ? 1 : 0),
                 _Hidden()->name('product_id')->default($this->product->id ?? null),
                 _Input()->placeholder('finance.new-item-name')->name('name')->class('w-72 !mb-2')
