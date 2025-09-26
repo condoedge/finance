@@ -334,7 +334,7 @@ class InvoiceService implements InvoiceServiceInterface
     {
         foreach ($detailsData as $detail) {
             $id = $detail['id'] ?? null;
-            
+
             $data = new CreateOrUpdateInvoiceDetail($detail + [
                 'invoice_id' => $invoice->id,
             ]);
