@@ -32,7 +32,7 @@ class InvoicePage extends Form
                     _Dropdown('finance-actions')->rIcon('icon-down')->button()
                         ->submenu(
                             _DropdownLink('finance-create-another-invoice')
-                                ->href('finance.invoice-form'),
+                                ->href('invoices.form'),
                         )->alignRight(),
                     !$this->model->is_draft ? null : _Link('finance-edit-invoice')->outlined()
                         ->href('invoices.form', ['id' => $this->model->id]),
