@@ -139,10 +139,10 @@ class InvoicesTable extends WhiteTable
             !$this->viewAsManager ? null : _Html($invoice->customer_label),
             $invoice->invoice_status_id->pill(),
             _Rows(
-                _FinanceCurrency($invoice->abs_invoice_due_amount),
+                _FinanceCurrency($invoice->invoice_due_amount),
                 _Flex(
                     _Html('finance-total'),
-                    _FinanceCurrency($invoice->abs_invoice_total_amount),
+                    _FinanceCurrency($invoice->invoice_total_amount),
                 )->class('space-x-2 text-sm text-gray-600'),
             )->class('items-end'),
         )->class('group');

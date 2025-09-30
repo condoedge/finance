@@ -46,8 +46,23 @@ class InvoiceForm extends Form
         $this->refreshId = $this->prop('refresh_id');
 
         // In modals is not loading the js method so we need to run it manually
-        $this->onLoad(fn ($e) => $e->run('() => {
+        $this->onLoad(fn($e) => $e->run('() => {
             ' . financeScriptFile() . '
+
+            // The only way i found to listen to the validation error and execute functionalities
+            // In this case i am changing the color of the total field to red and scrolling to it
+            const observer = new MutationObserver( () => {   
+                const errorField = document.querySelector(".total_amount_error");
+                if (errorField?.innerText?.trim() !== "") {
+                    errorField.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                    const invoiceTotalField = document.getElementById("invoice_total_amount");
+                    invoiceTotalField.classList.add("!text-danger");
+
+                    $(invoiceTotalField).find(".vlHtml").addClass("!text-danger");
+                }
+            });
+            observer.observe(document.querySelector(".total_amount_error"), { attributes: true, childList: true, subtree: true });
         }'));
     }
 
@@ -153,15 +168,16 @@ class InvoiceForm extends Form
                         _TotalFinanceCurrencyCols(__('finance-subtotal'), 'finance-subtotal', $this->model->invoice_amount_before_taxes, false),
                         _Rows(
                             $this->model->getVisualTaxesGrouped()->map(
-                                fn ($amount, $name) => _TotalFinanceCurrencyCols($name, 'finance-tax', $amount, false)
+                                fn($amount, $name) => _TotalFinanceCurrencyCols($name, 'finance-tax', $amount, false)
                             )->values(),
                         )->id('tax-summary'),
-                        _TotalFinanceCurrencyCols(__('finance-total'), 'finance-total', $this->model->invoice_total_amount)->class('!font-bold text-xl'),
+                        _TotalFinanceCurrencyCols(__('finance-total'), 'finance-total', $this->model->invoice_total_amount)->class('!font-bold text-xl')->id('invoice_total_amount'),
+                        _ErrorField()->name('total_amount_error', false)->noInputWrapper()->class('!my-0 !text-end total_amount_error'),
                     )->class('relative p-6 bg-white rounded-2xl'),
                     _FlexEnd(
                         _SubmitButton('finance-save')
-                            ->when($this->modalDesign, fn ($e) => $e->closeModal())
-                            ->when($this->refreshId, fn ($e) => $e->refresh($this->refreshId)),
+                            ->when($this->modalDesign, fn($e) => $e->closeModal())
+                            ->when($this->refreshId, fn($e) => $e->refresh($this->refreshId)),
                     ),
                 )->class('w-96'),
             ),
@@ -174,7 +190,7 @@ class InvoiceForm extends Form
             ->where('name', 'like', wildcardSpace($searchTerm))
             ->orderBy('name')
             ->get()
-            ->unique(fn ($c) => $c->customable_type . '_' . $c->customable_id . '_' . $c->name)
+            ->unique(fn($c) => $c->customable_type . '_' . $c->customable_id . '_' . $c->name)
             ->mapWithKeys(function ($customer) {
                 return [$customer->id => '<span data-id ="' . $customer->id . '">' . $customer->name . '</span>'];
             });

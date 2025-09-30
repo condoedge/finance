@@ -66,7 +66,7 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoiceDetails.*.name' => 'required|string|max:255',
             'invoiceDetails.*.description' => 'nullable|string|max:255',
             'invoiceDetails.*.quantity' => 'required|integer|min:1|max:2147483647',
-            'invoiceDetails.*.unit_price' => 'required|numeric|gt:0|max:99999999999999.99999',
+            'invoiceDetails.*.unit_price' => 'required|numeric|max:99999999999999.99999',
             'invoiceDetails.*.revenue_account_id' => 'required_without:invoiceDetails.*.revenue_natural_account_id|integer|exists:fin_gl_accounts,id',
             'invoiceDetails.*.revenue_natural_account_id' => 'required_without:invoiceDetails.*.revenue_account_id|integer|exists:fin_segment_values,id',
             'invoiceDetails.*.taxesIds' => 'nullable|array',
@@ -103,5 +103,40 @@ class CreateInvoiceDto extends ValidatedDTO
             'possible_payment_methods' => [],
             'possible_payment_terms' => [],
         ];
+    }
+
+    public function after(\Illuminate\Validation\Validator $validator): void
+    {
+        parent::after($validator);
+        $this->validateInvoiceTotalSign($validator);
+    }
+
+    protected function validateInvoiceTotalSign(\Illuminate\Validation\Validator $validator): void
+    {
+        $invoiceTypeId = $this->dtoData['invoice_type_id'] ?? null;
+        $invoiceDetails = $this->dtoData['invoiceDetails'] ?? [];
+
+        if (!$invoiceTypeId || empty($invoiceDetails)) {
+            return;
+        }
+
+        // Calculate total amount
+        $totalAmount = 0;
+        foreach ($invoiceDetails as $detail) {
+            $quantity = $detail['quantity'] ?? 0;
+            $unitPrice = $detail['unit_price'] ?? 0;
+            $totalAmount += $quantity * $unitPrice;
+        }
+
+        // Get invoice type to determine expected sign
+        $invoiceType = \Condoedge\Finance\Models\InvoiceTypeEnum::from($invoiceTypeId);
+        $expectedSign = $invoiceType->signMultiplier();
+
+        // Validate sign consistency
+        if ($expectedSign > 0 && $totalAmount < 0) {
+            $validator->errors()->add('total_amount_error', __('validation-invoice-total-should-be-positive'));
+        } elseif ($expectedSign < 0 && $totalAmount > 0) {
+            $validator->errors()->add('total_amount_error', __('validation-invoice-total-should-be-negative'));
+        }
     }
 }

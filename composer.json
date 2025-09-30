@@ -57,8 +57,9 @@
             "@php vendor/bin/testbench serve --ansi"
         ],
         "test": [
-            "@clear",
-            "@php vendor/bin/phpunit"
+            "@php vendor/bin/testbench migrate",
+            "@php vendor/bin/phpunit schema:dump",
+            "@php vendor/bin/testbench package:test"
         ]
     }
 }

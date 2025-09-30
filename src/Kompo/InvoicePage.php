@@ -51,7 +51,7 @@ class InvoicePage extends Form
                 )->class('space-x-8'),
                 _FlexEnd4(
                     _MiniLabelDate('finance-invoice-date', $this->model->invoice_date, $this->bigClass),
-                    _MiniLabelFinanceCcy('finance-total', $this->model->abs_invoice_total_amount, $this->bigClass)->class('border-l border-level3 pl-4'),
+                    _MiniLabelFinanceCcy('finance-total', $this->model->invoice_total_amount, $this->bigClass)->class('border-l border-level3 pl-4'),
                 )->class('text-right'),
             )->class('space-x-8 mb-4 p-6 bg-white rounded-2xl'),
             $this->stepBox(
@@ -218,7 +218,7 @@ class InvoicePage extends Form
 
     protected function amountDue()
     {
-        return _MiniLabelFinanceCcy('finance-amount-due', $this->model->abs_invoice_due_amount, $this->bigClass);
+        return _MiniLabelFinanceCcy('finance-amount-due', $this->model->invoice_due_amount, $this->bigClass);
     }
 
     protected function lastPaymentWithDate()

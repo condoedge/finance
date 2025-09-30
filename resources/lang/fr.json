@@ -1011,6 +1011,8 @@
 	"validation-custom-finance-invoice-draft": "Brouillon",
 	"validation-customable-address-required": "Adresse requise",
 	"validation-customer-address-must-be-complete": "L'adresse doit être complète",
+	"validation-invoice-total-should-be-positive": "Le total de la facture doit être positif pour les factures régulières. Utilisez des montants négatifs uniquement pour les notes de crédit.",
+	"validation-invoice-total-should-be-negative": "Le total de la note de crédit doit être négatif. Utilisez des montants positifs uniquement pour les factures régulières.",
 	"validation-payment-term-required": "Terme de paiement requis",
 	"validation-with-values-transaction-must-balance": "La transaction doit être balancée<br>Crédit : :credit<br>Débit : :debit",
 	"with-values-you-have-values-with-the-wrong-length-in": "Valeurs de longueur incorrectes dans ce segment : :segment"

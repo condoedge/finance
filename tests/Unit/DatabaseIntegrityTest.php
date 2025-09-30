@@ -539,6 +539,7 @@ class DatabaseIntegrityTest extends TestCase
         ]);
     }
 
+    // This behaviour is just expected in applies. In unit prices we changed that
     public function test_it_validates_trigger_converts_negative_amount_into_positive()
     {
         $customer = CustomerFactory::new()->create();
@@ -755,7 +756,7 @@ class DatabaseIntegrityTest extends TestCase
                     'name' => 'Credit Item',
                     'description' => 'Credit Description',
                     'quantity' => 1,
-                    'unit_price' => $amount,
+                    'unit_price' => - abs($amount), // Now we obligate the negative or it'll get an error
                     'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],
