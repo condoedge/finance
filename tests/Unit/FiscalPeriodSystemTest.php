@@ -234,7 +234,7 @@ class FiscalPeriodSystemTest extends TestCase
 
         // Run pre-create command
         Artisan::call('finance:pre-create-periods', [
-            '--days-ahead' => now()->addMonth()->daysInMonth + 1,
+            '--days-ahead' => now()->daysInMonth + 1,
         ]);
 
         // Verify period was created
