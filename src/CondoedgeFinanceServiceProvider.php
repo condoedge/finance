@@ -192,6 +192,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $dirs = [
             'kompo-finance' => __DIR__.'/../config/kompo-finance.php',
             'global-config' => __DIR__.'/../config/global-config.php',
+            'laravel-impersonate' => __DIR__.'/../config/laravel-impersonate.php',
         ];
 
         foreach ($dirs as $key => $path) {

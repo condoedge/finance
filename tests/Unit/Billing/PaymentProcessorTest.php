@@ -414,6 +414,13 @@ class PaymentProcessorTest extends PaymentTestCase
 
     public function test_it_logs_payment_failures()
     {
+        // Patch for error that comes from HasRelationsManager
+        $loggerMock = Mockery::mock();
+        $loggerMock->shouldReceive('pushHandler')->andReturnNull();
+        $loggerMock->shouldReceive('popHandler')->andReturnNull();
+
+        Log::shouldReceive('getLogger')->andReturn($loggerMock);
+
         // Arrange
         Log::shouldReceive('error')
             ->with(Mockery::type('string'), Mockery::type('array'));

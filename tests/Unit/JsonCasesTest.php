@@ -163,7 +163,7 @@ class JsonCasesTest extends TestCase
                     'name' => $line['description'],
                     'description' => $line['description'],
                     'quantity' => $line['quantity'],
-                    'unit_price' => $line['unitPrice'],
+                    'unit_price' => - abs($line['unitPrice']), // Now it's mandatory to be negative
                     'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => collect($line['taxes'])->map(function ($tax) {
                         return $this->setupValues['taxes'][$tax]->id;

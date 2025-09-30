@@ -49,7 +49,7 @@ class UpdateInvoiceDto extends ValidatedDTO
             'invoiceDetails.*.id' => 'nullable|integer|exists:fin_invoice_details,id',
             'invoiceDetails.*.description' => 'nullable|string|max:255',
             'invoiceDetails.*.quantity' => 'required|integer|min:1',
-            'invoiceDetails.*.unit_price' => 'required|numeric|min:0',
+            'invoiceDetails.*.unit_price' => 'required|numeric',
             'invoiceDetails.*.revenue_account_id' => 'required_without:invoiceDetails.*.revenue_natural_account_id|integer|exists:fin_gl_accounts,id',
             'invoiceDetails.*.revenue_natural_account_id' => 'required_without:invoiceDetails.*.revenue_account_id|integer|exists:fin_segment_values,id',
 
@@ -85,6 +85,46 @@ class UpdateInvoiceDto extends ValidatedDTO
     {
         if ($validator->errors()->has('payment_term_id') || $validator->errors()->has('possible_payment_terms')) {
             $validator->errors()->add('payment_term_type', __('validation-payment-term-required'));
+        }
+
+        $this->validateInvoiceTotalSign($validator);
+    }
+
+    protected function validateInvoiceTotalSign(Validator $validator): void
+    {
+        $invoiceDetails = $this->dtoData['invoiceDetails'] ?? null;
+
+        if (!$invoiceDetails || empty($invoiceDetails)) {
+            return; // No details to validate
+        }
+
+        // Get the existing invoice to determine its type
+        $invoiceId = $this->dtoData['id'] ?? null;
+        if (!$invoiceId) {
+            return;
+        }
+
+        $invoice = \Condoedge\Finance\Facades\InvoiceModel::find($invoiceId);
+        if (!$invoice) {
+            return;
+        }
+
+        // Calculate total amount from details
+        $totalAmount = 0;
+        foreach ($invoiceDetails as $detail) {
+            $quantity = $detail['quantity'] ?? 0;
+            $unitPrice = $detail['unit_price'] ?? 0;
+            $totalAmount += $quantity * $unitPrice;
+        }
+
+        // Get expected sign from invoice type
+        $expectedSign = $invoice->invoice_type_id->signMultiplier();
+
+        // Validate sign consistency
+        if ($expectedSign > 0 && $totalAmount < 0) {
+            $validator->errors()->add('total_amount_error', __('validation-invoice-total-should-be-positive'));
+        } elseif ($expectedSign < 0 && $totalAmount > 0) {
+            $validator->errors()->add('total_amount_error', __('validation-invoice-total-should-be-negative'));
         }
     }
 }

@@ -676,7 +676,7 @@ class CustomerPaymentTest extends TestCase
                     'name' => 'Credit Item',
                     'description' => 'Credit Description',
                     'quantity' => 1,
-                    'unit_price' => $amount,
+                    'unit_price' => - abs($amount),
                     'revenue_account_id' => GlAccountFactory::new()->create()->id,
                     'taxesIds' => [],
                 ],

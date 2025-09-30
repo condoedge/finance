@@ -33,13 +33,15 @@ class InvoiceDetailsTable extends Table
 
     public function render($invoiceDetail)
     {
+        $signMultiplier = $invoiceDetail->invoice->invoice_type_id->signMultiplier();
+
         return _TableRow(
             _Html($invoiceDetail->name),
             _Html($invoiceDetail->revenueAccount?->display)->class('text-right'),
             _Html($invoiceDetail->quantity)->class('text-right'),
-            _FinanceCurrency($invoiceDetail->abs_unit_price)->class('text-right'),
-            _FinanceCurrency($invoiceDetail->abs_tax_amount)->class('text-right'),
-            _FinanceCurrency($invoiceDetail->abs_total_amount) ->class('text-right font-semibold'),
+            _FinanceCurrency($invoiceDetail->unit_price->multiply($signMultiplier))->class('text-right'),
+            _FinanceCurrency($invoiceDetail->tax_amount->multiply($signMultiplier))->class('text-right'),
+            _FinanceCurrency($invoiceDetail->total_amount->multiply($signMultiplier))->class('text-right font-semibold'),
         );
     }
 }
