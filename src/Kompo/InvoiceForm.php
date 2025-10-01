@@ -213,10 +213,10 @@ class InvoiceForm extends Form
         $input = null;
 
         if (!$invoiceDate || !$paymentTerm) {
-            $input = _Input('finance-due-date')->value('-')->disabled();
+            $input = _Input('finance-due-date')->name('_', false)->value('-')->disabled();
         } else {
             $dueDate = $paymentTerm->calculateDueDate($invoiceDate);
-            $input = _Date('finance-due-date')->name('invoice_due_date')->value($dueDate);
+            $input = _Date('finance-due-date')->name('_', false)->value($dueDate);
         }
 
         return _Rows(
