@@ -10,6 +10,8 @@ use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Models\PaymentTerm;
+use Condoedge\Finance\Models\PaymentTermTypeEnum;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
 use Condoedge\Utils\Kompo\Common\Form;
 
@@ -123,13 +125,21 @@ class InvoiceForm extends Form
                         _Panel()->id('customer-after-save-info'),
                         _Select('finance-invoiced-to')->name('customer_id')->class('!mb-0 select-on-create')
                             ->searchOptions(2, 'searchCustomers'),
-                    )->class('[&>form]:flex-1'),
+                    )->class('flex-1'),
                     _Rows(
                         _Html('&nbsp;'),
                         _Button()->icon('plus')->selfGet('getCustomerModal')->inModal(),
                     ),
                 )->class('gap-3'),
-                _Date('finance-invoice-date')->name('invoice_date')->default(date('Y-m-d')),
+            ),
+
+            _Columns(
+                _Date('finance-invoice-date')->name('invoice_date')->default(date('Y-m-d'))->class('flex-1')
+                    ->onChange->selfPost('getDueDateInput')->withAllFormValues()->inPanel('due-date-panel'),
+                    
+                _Panel(
+                    $this->dueDateInput($this->model->invoice_date, $this->model->paymentTerm),
+                )->id('due-date-panel'),
             ),
 
             _Columns(
@@ -182,6 +192,43 @@ class InvoiceForm extends Form
                 )->class('w-96'),
             ),
         ];
+    }
+
+    public function getDueDateInput()
+    {
+        $paymentTermType = request('payment_term_type');
+        
+        $paymentTerm = null;
+        if ($paymentTermType == PaymentTermTypeEnum::COD->value) {
+            $paymentTerm = PaymentTerm::where('term_type', PaymentTermTypeEnum::COD->value)->first();
+        } elseif ($paymentTermType) {
+            $paymentTerm = PaymentTerm::find(request('possible_payment_terms')[0] ?? null);
+        }
+
+        return $this->dueDateInput(request('invoice_date'), $paymentTerm);
+    }
+
+    protected function dueDateInput($invoiceDate, $paymentTerm)
+    {
+        $input = null;
+
+        if (!$invoiceDate || !$paymentTerm) {
+            $input = _Input('finance-due-date')->value('-')->disabled();
+        } else {
+            $dueDate = $paymentTerm->calculateDueDate($invoiceDate);
+            $input = _Date('finance-due-date')->name('invoice_due_date')->value($dueDate);
+        }
+
+        return _Rows(
+            _Html()->class('z-10 absolute top-0 left-0 w-full h-full'),
+            
+            $input->class('select-none [&>.vlInputWrapper>*]:!bg-gray-200 [&>.vlInputWrapper>*]:!opacity-50 [&>.vlInputWrapper>.vlInputGroup>.vlInputPrepend>.icon-calendar]:!text-gray-300')->disabled()
+        )->class('relative');
+    }
+
+    protected function onChangePaymentTerms()
+    {
+        return fn($el) => $el->selfPost('getDueDateInput')->withAllFormValues()->inPanel('due-date-panel');
     }
 
     public function searchCustomers($searchTerm)

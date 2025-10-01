@@ -10,6 +10,7 @@ trait TermSelectorTrait
     protected function getPaymentTermsSelector($selectPaymentTermId = null)
     {
         $paymentTermTypes = PaymentTerm::distinct()->pluck('term_type');
+        $onChangeCallback = $this->onChangePaymentTerms();
 
         return _Rows(
             _Select('finance-payment-terms')->name('payment_term_type', false)
@@ -19,6 +20,7 @@ trait TermSelectorTrait
             )
             ->default($selectPaymentTermId)
             ->selfGet('getPaymentTerms')->inPanel('payment-terms-panel')
+            ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2'),
             _Panel(
                 $this->getPaymentTerms($selectPaymentTermId)
@@ -45,9 +47,17 @@ trait TermSelectorTrait
             $element = _Select('finance-payment-terms');
         }
 
+        $onChangeCallback = $this->onChangePaymentTerms();
+
         return $element->name('possible_payment_terms')->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->all())
             ->default(PaymentTerm::whereIn('id', $this->getDefaultPaymentTerms())->where('term_type', $paymentTermType->value)->pluck('id')->all())
+            ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2');
+    }
+
+    protected function onChangePaymentTerms()
+    {
+        return null;
     }
 
     protected function getDefaultPaymentTerms()
