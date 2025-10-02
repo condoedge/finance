@@ -7885,6 +7885,21 @@
 						</translations>
 					</concept_node>
 					<concept_node>
+						<name>finance-invoice-page</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
 						<name>finance-invoice-payment</name>
 						<description/>
 						<comment/>
@@ -15191,6 +15206,36 @@
 					</concept_node>
 					<concept_node>
 						<name>validation-customer-address-must-be-complete</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>validation-invoice-total-should-be-negative</name>
+						<description/>
+						<comment/>
+						<translations>
+							<translation>
+								<language>en-US</language>
+								<approved>false</approved>
+							</translation>
+							<translation>
+								<language>fr-FR</language>
+								<approved>false</approved>
+							</translation>
+						</translations>
+					</concept_node>
+					<concept_node>
+						<name>validation-invoice-total-should-be-positive</name>
 						<description/>
 						<comment/>
 						<translations>

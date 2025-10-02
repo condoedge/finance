@@ -523,6 +523,7 @@
 	"finance-invoice-must-have-at-least-one-detail": "Invoice must have at least one detail",
 	"finance-invoice-notes": "Invoice notes",
 	"finance-invoice-number": "Invoice number",
+	"finance-invoice-page": "Invoice page",
 	"finance-invoice-payment": "Invoice payment",
 	"finance-invoice-payment-amount": "Amount",
 	"finance-invoice-payment-date": "Date",
@@ -1011,8 +1012,8 @@
 	"validation-custom-finance-invoice-draft": "Draft",
 	"validation-customable-address-required": "Address required",
 	"validation-customer-address-must-be-complete": "Address must be complete",
-	"validation-invoice-total-should-be-positive": "Invoice total should be positive for regular invoices. Use negative amounts only for credit notes.",
 	"validation-invoice-total-should-be-negative": "Credit note total should be negative. Use positive amounts only for regular invoices.",
+	"validation-invoice-total-should-be-positive": "Invoice total should be positive for regular invoices. Use negative amounts only for credit notes.",
 	"validation-payment-term-required": "Payment term required",
 	"validation-with-values-transaction-must-balance": "Transaction must balance<br>Credit: :credit<br>Debit: :debit",
 	"with-values-you-have-values-with-the-wrong-length-in": "Wrong length values in this segment: :segment"

@@ -53,7 +53,7 @@ class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
         $invoicePage = str_replace('to_be_replaced', getVarBuilt('invoice.id', 'brace'), $invoicePage);
 
         return [
-            $invoicePage => __('translate.invoice-page'),
+            $invoicePage => __('finance-invoice-page'),
         ];
     }
 }
