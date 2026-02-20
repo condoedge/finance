@@ -42,7 +42,7 @@ class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
         return collect([$this->invoice->mainCustomer]);
     }
 
-    public static function validVariablesIds($specificField = null): ?array
+    public static function validVariablesIds($specificField = null, $context = []): ?array
     {
         return ['invoices.*'];
     }
