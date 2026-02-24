@@ -225,11 +225,6 @@ class Product extends AbstractMainFinanceModel
         return ProductService::createProductFromInvoiceDetail($invoiceDetail->id);
     }
 
-    public function normalizeToInvoiceDetail($invoice = null)
-    {
-        return ProductService::normalizeToInvoiceDetail($this->id, $invoice);
-    }
-
     /**
      * @deprecated Use ProductService::copyProductToInvoice() instead
      * Maintained for backward compatibility

@@ -19,7 +19,7 @@ trait TermSelectorTrait
                 ->mapWithKeys(fn ($enum) => [$enum->value => $enum->label()])->all()
             )
             ->default($selectPaymentTermId)
-            ->selfGet('getPaymentTerms')->inPanel('payment-terms-panel')
+            ->selfGet('getPaymentTerms', ['payment_term_name' => $paymentTermName])->inPanel('payment-terms-panel')
             ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2'),
             _Panel(
@@ -30,6 +30,9 @@ trait TermSelectorTrait
 
     public function getPaymentTerms($paymentTermType = null, $paymentTermName = 'possible_payment_terms')
     {
+        $paymentTermType = request('payment_term_type', $paymentTermType);
+        $paymentTermName = request('payment_term_name', $paymentTermName);
+
         if (!$paymentTermType) {
             return null;
         }
