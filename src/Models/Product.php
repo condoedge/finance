@@ -7,6 +7,7 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Facades\ProductService;
 use Condoedge\Finance\Facades\TaxService;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
+use Condoedge\Finance\Services\Product\Rebates\RebateHandlerService;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -74,6 +75,11 @@ class Product extends AbstractMainFinanceModel
     public function defaultRevenueAccount()
     {
         return $this->belongsTo(GlAccount::class, 'default_revenue_account_id');
+    }
+
+    public function rebates()
+    {
+        return $this->hasMany(Rebate::class);
     }
 
     /* SCOPES */
@@ -152,9 +158,20 @@ class Product extends AbstractMainFinanceModel
         return $this->product_cost;
     }
 
+    public function getAmountWithRebates()
+    {
+        $amount = $this->getAmount();
+
+        if ($this->rebates()->count() > 0) {
+            $amount->negate(app(RebateHandlerService::class)->handleProductRebates($this));
+        }
+
+        return new SafeDecimal(max(0, $amount->toFloat()));
+    }
+
     public function getCommissionAmount()
     {
-        return safeDecimal($this->product_type->isCommission() ? $this->product_cost : 0);
+        return safeDecimal($this->product_type->isCommission() ? $this->getAmount() : 0);
     }
 
     /* ACTIONS */

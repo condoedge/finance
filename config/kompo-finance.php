@@ -4,8 +4,13 @@ use Condoedge\Finance\Billing\Providers\Bna\BnaPaymentProvider;
 use Condoedge\Finance\Billing\Providers\Stripe\StripePaymentProvider;
 use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Finance\Models\PaymentMethodEnum;
+use Condoedge\Finance\Services\Product\Rebates\DateRebateHandler;
 
 return [
+    'rebate_handlers' => [
+        'date' => DateRebateHandler::class,
+    ],
+
     'taxes-have-locations' => false,
 
     'payment_providers' => [

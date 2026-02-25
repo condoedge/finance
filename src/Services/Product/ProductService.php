@@ -5,10 +5,12 @@ namespace Condoedge\Finance\Services\Product;
 use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
+use Condoedge\Finance\Models\Dto\Products\CreateRebateDto;
 use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Product;
 use Condoedge\Finance\Models\ProductTypeEnum;
+use Condoedge\Finance\Models\Rebate;
 use Illuminate\Support\Facades\DB;
 
 class ProductService implements ProductServiceInterface
@@ -215,5 +217,19 @@ class ProductService implements ProductServiceInterface
         return InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail(
             $this->normalizeToInvoiceDetail($productId, $invoice)
         ));
+    }
+
+    public function createRebate(CreateRebateDto $dto): Rebate
+    {
+        $rebate = new Rebate();
+
+        $rebate->product_id = $dto->product_id;
+        $rebate->rebate_logic_type = $dto->rebate_logic_type;
+        $rebate->rebate_logic_parameters = $dto->rebate_logic_parameters;
+        $rebate->amount = $dto->amount;
+        $rebate->amount_type = $dto->amount_type;
+        $rebate->save();
+
+        return $rebate->refresh();
     }
 }

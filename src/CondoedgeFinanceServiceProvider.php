@@ -15,6 +15,7 @@ use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
 use Condoedge\Finance\Services\Invoice\InvoiceService;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
+use Condoedge\Finance\Services\Product\Rebates\RebateHandlerService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -157,6 +158,10 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->singleton(DatabaseIntegrityObserver::class);
         $this->app->singleton(DatabaseQueryInterceptor::class, function ($app) {
             return new DatabaseQueryInterceptor($app->make(DatabaseIntegrityObserver::class));
+        });
+
+        $this->app->bind(RebateHandlerService::class, function ($app) {
+            return new RebateHandlerService($app->has('rebate_context') ? $app->get('rebate_context') : []);
         });
     }
 

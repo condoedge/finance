@@ -3,9 +3,11 @@
 namespace Condoedge\Finance\Services\Product;
 
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
+use Condoedge\Finance\Models\Dto\Products\CreateRebateDto;
 use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Product;
+use Condoedge\Finance\Models\Rebate;
 
 interface ProductServiceInterface
 {
@@ -86,4 +88,6 @@ interface ProductServiceInterface
      * @return InvoiceDetail
      */
     public function copyProductToInvoice(int $productId, int $invoiceId): InvoiceDetail;
+
+    public function createRebate(CreateRebateDto $dto): Rebate;
 }

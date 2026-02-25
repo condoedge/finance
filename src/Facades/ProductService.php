@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Database\Eloquent\Collection getProductTemplates()
  * @method static \Condoedge\Finance\Models\Product createOrUpdateProduct(\Condoedge\Finance\Models\Dto\Products\CreateProductDto $dto)
  * @method static \Condoedge\Finance\Models\InvoiceDetail copyProductToInvoice(int $productId, int $invoiceId)
+ * @method static \Condoedge\Finance\Models\Rebate createRebate(\Condoedge\Finance\Models\Dto\Products\CreateRebateDto $dto)
  *
  * @see \Condoedge\Finance\Services\Product\ProductService
  */
