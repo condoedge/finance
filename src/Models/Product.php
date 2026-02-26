@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\DB;
 class Product extends AbstractMainFinanceModel
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
-    use \Condoedge\Utils\Traits\MemoizeTrait;
+    use \Condoedge\Utils\Models\Traits\MemoizesResults;
 
     protected $casts = [
         'product_type' => ProductTypeEnum::class,
