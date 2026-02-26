@@ -65,14 +65,14 @@ class ProductRebateForm extends Form
         $rebateService = app()->make(RebateHandlerService::class);
 
         return _Rows(
-            _Select('translate.logic-on')->name('rebate_logic_type')->options($rebateService->getRebateHandlersWithLabels())
+            _Select('finance-rebate-logic-on')->name('rebate_logic_type')->options($rebateService->getRebateHandlersWithLabels())
                 ->selfGet('getRebateHandlerParamsFields')->inPanel('logic-params-modal'),
 
             _Panel(
 
             )->id('logic-params-modal'),
 
-            _Html('translate.amount*')->class('text-sm font-semibold mb-1 cursor-default text-level1'),
+            _Html('finance-amount*')->class('text-sm font-semibold mb-1 cursor-default text-level1'),
             _Columns(
                 _InputNumber()->name('amount')->class('mb-0')->required(),
                 _ButtonGroup()->name('amount_type')
@@ -85,9 +85,9 @@ class ProductRebateForm extends Form
                     ->required(),
             )->class('mb-3'),
 
-            _Checkbox('translate.is-accumulable')->name('is_accumulable')->default(true)->class('mt-2'),
+            _Checkbox('finance-is-accumulable')->name('is_accumulable')->default(true)->class('mt-2'),
 
-            _SubmitButton('translate.save'),
+            _SubmitButton('finance-save'),
         )->class('p-8');
     }
 

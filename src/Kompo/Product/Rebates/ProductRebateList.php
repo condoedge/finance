@@ -21,9 +21,9 @@ class ProductRebateList extends Table
     public function headers()
     {
         return [
-            _Th('translate.logic-on'),
-            _Th('translate.logic'),
-            _Th('translate.amount'),
+            _Th('finance-rebate-logic-on'),
+            _Th('finance-rebate-logic'),
+            _Th('finance-amount'),
         ];
     }
 
@@ -47,7 +47,7 @@ class ProductRebateList extends Table
     {
         return _Rows(
             _Hidden()->name('product_id', false)->value($this->productId),
-            _Button('translate.create-rebate')->outlined()->icon('plus')->class('mt-4')
+            _Button('finance-create-rebate')->outlined()->icon('plus')->class('mt-4')
                 ->selfGet('getRebateForm')->inModal(),
         );
     }

@@ -25,14 +25,14 @@ class DateRebateHandler extends AbstractRebateHandler
 
     function getHandlerLabel(): string
     {
-        return __('translate.date');
+        return __('finance-date');
     }
 
     function getHandlerParamsFields()
     {
         return _Rows(
-            _Date('translate.start-date')->name('rebate_logic_parameters[start_date]')->required(),
-            _Date('translate.end-date')->name('rebate_logic_parameters[end_date]')->required()
+            _Date('finance-start-date')->name('rebate_logic_parameters[start_date]')->required(),
+            _Date('finance-end-date')->name('rebate_logic_parameters[end_date]')->required()
         );  
     }
 
@@ -46,6 +46,6 @@ class DateRebateHandler extends AbstractRebateHandler
 
     public function getHandlerParamsLabel($params): string
     {
-        return __('translate.date-range', $params);
+        return __('finance-date-range', $params);
     }
 }
