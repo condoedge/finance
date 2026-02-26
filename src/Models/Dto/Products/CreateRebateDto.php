@@ -44,7 +44,6 @@ class CreateRebateDto extends ValidatedDTO
         return [
             'amount' => SafeDecimalCast::class,
             'amount_type' => RebateAmountTypeEnum::class,
-            'rebate_logic_parameters' => ArrayCast::class,
         ];
     }
 
