@@ -12,7 +12,6 @@ class ProductRebateList extends Table
     public $class = 'p-6';
 
     protected $productId;
-    protected $multiFormClass = ProductRebateForm::class;
 
     public function created()
     {
@@ -39,7 +38,7 @@ class ProductRebateList extends Table
             _Html($rebate->handler_label),
             _Html($rebate->handler_params_label),
             _Html($rebate->visual_amount),
-        )->selfGet('getRebateForm', [
+        )->id('rebate'. $rebate->id)->selfGet('getRebateForm', [
             'id' => $rebate->id,
         ])->inModal();
     }
@@ -55,7 +54,7 @@ class ProductRebateList extends Table
 
     public function getRebateForm($id = null)
     {
-        return new ($this->multiFormClass)($id, [
+        return new ProductRebateForm($id, [
             'product_id' => $this->productId,
         ]);
     }
@@ -69,6 +68,7 @@ class ProductRebateList extends Table
     {
         return _TableRow(
             _Rows(
+                _Hidden()->name("rebate[{$index}][is_accumulable]", false)->value($rebate->is_accumulable),
                 _Hidden()->name("rebate[{$index}][rebate_logic_type]", false)->value($rebate->rebate_logic_type),
                 _Html($rebate->handler_label),
             ),

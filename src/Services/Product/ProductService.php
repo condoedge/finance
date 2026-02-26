@@ -248,4 +248,18 @@ class ProductService implements ProductServiceInterface
 
         return $rebate->refresh();
     }
+
+    public function updateRebate(int $rebateId, CreateRebateDto $dto): Rebate
+    {
+        $rebate = Rebate::findOrFail($rebateId);
+
+        $rebate->product_id = $dto->product_id;
+        $rebate->rebate_logic_type = $dto->rebate_logic_type;
+        $rebate->rebate_logic_parameters = $dto->rebate_logic_parameters;
+        $rebate->amount = $dto->amount;
+        $rebate->amount_type = $dto->amount_type;
+        $rebate->save();
+
+        return $rebate->refresh();
+    }
 }

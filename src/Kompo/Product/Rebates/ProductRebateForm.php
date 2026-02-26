@@ -28,13 +28,30 @@ class ProductRebateForm extends Form
         $this->model->amount_type = RebateAmountTypeEnum::from(request('amount_type')); // Force cast
 
         if ($this->productId) {
-            ProductService::createRebate(new CreateRebateDto([
+            if ($this->model->id) {
+                $rebate = ProductService::updateRebate($this->model->id, new CreateRebateDto([
+                    'product_id' => $this->productId,
+                    'rebate_logic_type' => $this->model->rebate_logic_type,
+                    'rebate_logic_parameters' => $this->model->rebate_logic_parameters,
+                    'amount' => $this->model->amount,
+                    'amount_type' => $this->model->amount_type,
+                ]));
+
+                return response()->kompoMulti([
+                    response()->updateInQuery('product-rebate-list', 'rebate'. $this->model->id, ProductRebateList::buildFormRow($rebate, $this->index)),
+                    response()->closeModal(),
+                ]);
+            }
+
+            $rebate = ProductService::createRebate(new CreateRebateDto([
                 'product_id' => $this->productId,
                 'rebate_logic_type' => $this->model->rebate_logic_type,
                 'rebate_logic_parameters' => $this->model->rebate_logic_parameters,
                 'amount' => $this->model->amount,
                 'amount_type' => $this->model->amount_type,
             ]));
+
+            $this->model($rebate);
         }
 
         return response()->kompoMulti([
@@ -67,6 +84,8 @@ class ProductRebateForm extends Form
                     ->class('mb-0')
                     ->required(),
             )->class('mb-3'),
+
+            _Checkbox()->name('is_accumulable')->default(true)->class('mt-2'),
 
             _SubmitButton('translate.save'),
         )->class('p-8');
