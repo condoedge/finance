@@ -35,7 +35,7 @@ class CreateRebateDto extends ValidatedDTO
             'rebate_logic_type' => 'required|string|max:255',
             'rebate_logic_parameters' => 'required|array',
             'amount' => [new SafeDecimalRule(true), 'required'],
-            'amount_type' => 'required|integer|' . collect(RebateAmountTypeEnum::cases())->pluck('value')->join(','),
+            'amount_type' => 'required|integer|in:' . collect(RebateAmountTypeEnum::cases())->pluck('value')->join(','),
         ];
     }
 
