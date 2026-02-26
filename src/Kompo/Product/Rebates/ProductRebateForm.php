@@ -85,7 +85,7 @@ class ProductRebateForm extends Form
                     ->required(),
             )->class('mb-3'),
 
-            _Checkbox()->name('is_accumulable')->default(true)->class('mt-2'),
+            _Checkbox('translate.is-accumulable')->name('is_accumulable')->default(true)->class('mt-2'),
 
             _SubmitButton('translate.save'),
         )->class('p-8');
