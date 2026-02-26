@@ -13,11 +13,7 @@ class RebateHandlerService
 
     public function getContext()
     {
-        return [
-            'current_user' => auth()->user(),
-            'date' => now(),
-            ...$this->context,
-        ];
+        return $this->context;
     }
 
     public function getRebateHandlers()
@@ -54,28 +50,41 @@ class RebateHandlerService
         return new $handlerClass($this->getContext());
     }
 
-    public function handleProductRebates($product)
+    public function getDiscountAmount($product)
+    {
+        return collect($this->normalizeRebatesToInvoiceDetails($product))->sum('unit_price');
+    }
+
+    public function normalizeRebatesToInvoiceDetails($product, $invoiceId = null)
     {
         $rebates = $product->rebates()->orderBy('order')->get();
-        $rebatesDiscount = 0;
-        $accumulatedDiscount = 0; // Just when the rebate has is_accumulable = true
+        $invoiceDetails = [];
+        $accumulatedDiscount = 0;
 
         foreach ($rebates as $rebate) {
             $handlerKey = $rebate->rebate_logic_type;
-
             $handler = $this->getRebateHandler($handlerKey);
 
             if ($handler->shouldApplyRebate($product, $rebate)) {
-                // They are accumulable so we must send the current discount to the handler so it can calculate the next rebate based on the already applied discounts
-                $discountAmount = $handler->calculateRebate($product, $rebate, $rebatesDiscount);
-                $rebatesDiscount += $discountAmount;
+                $discountAmount = $handler->calculateRebate($product, $rebate, $accumulatedDiscount);
                 
                 if ($rebate->is_accumulable) {
                     $accumulatedDiscount += $discountAmount;
                 }
+
+                $invoiceDetails[] = [
+                    'name' => "Rebate: {$rebate->handler_label}",
+                    'description' => "Applied rebate logic: {$rebate->handler_params_label}",
+                    'unit_price' => -$discountAmount,
+                    'quantity' => 1,
+                    'taxesIds' => $rebate->product->taxes_ids ?: [],
+                    'invoiceable_type' => 'rebate',
+                    'invoiceable_id' => $rebate->id,
+                    'invoice_id' => $invoiceId,
+                ];
             }
         }
 
-        return $rebatesDiscount;
+        return $invoiceDetails;
     }
 }

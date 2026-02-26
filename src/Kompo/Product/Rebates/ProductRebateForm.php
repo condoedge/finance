@@ -18,6 +18,7 @@ class ProductRebateForm extends Form
 
     public function created()
     {
+        $this->productId = $this->prop('product_id');
         $this->index = \Str::random(8);
     }
 
@@ -37,25 +38,7 @@ class ProductRebateForm extends Form
         }
 
         return response()->kompoMulti([
-            response()->addToQuery('product-rebate-list', _TableRow(
-                _Rows(
-                    _Hidden()->name("rebate[{$this->index}][rebate_logic_type]", false)->value($this->model->rebate_logic_type),
-                    _Html($this->model->handler_label),
-                ),
-                _Rows(
-                    _Html($this->model->handler_params_label),
-                    _Rows(
-                        collect($this->model->rebate_logic_parameters)->map(function ($value, $key) {
-                            return _Hidden()->name("rebate[{$this->index}][rebate_logic_parameters][{$key}]", false)->value($value);
-                        })
-                    )
-                ),
-                _Rows(
-                    _Hidden()->name("rebate[{$this->index}][amount]", false)->value($this->model->amount),
-                    _Hidden()->name("rebate[{$this->index}][amount_type]", false)->value($this->model->amount_type->value),
-                    _Html($this->model->visual_amount),
-                ),
-            )),
+            response()->addToQuery('product-rebate-list', ProductRebateList::buildFormRow($this->model, $this->index)),
             response()->closeModal(),
         ]);
     }

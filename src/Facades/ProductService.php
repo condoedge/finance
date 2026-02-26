@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Condoedge\Finance\Models\Product createOrUpdateProduct(\Condoedge\Finance\Models\Dto\Products\CreateProductDto $dto)
  * @method static \Condoedge\Finance\Models\InvoiceDetail copyProductToInvoice(int $productId, int $invoiceId)
  * @method static \Condoedge\Finance\Models\Rebate createRebate(\Condoedge\Finance\Models\Dto\Products\CreateRebateDto $dto)
- *
+ * @method static array[] normalizeInvoiceDetailsIncludingRebates($productId, $invoiceId = null)
+ * @method static array normalizeToInvoiceDetails(int $productId)
+ * 
  * @see \Condoedge\Finance\Services\Product\ProductService
  */
 class ProductService extends Facade

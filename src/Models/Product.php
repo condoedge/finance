@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\DB;
 class Product extends AbstractMainFinanceModel
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    use \Condoedge\Utils\Traits\MemoizeTrait;
 
     protected $casts = [
         'product_type' => ProductTypeEnum::class,
@@ -160,13 +161,15 @@ class Product extends AbstractMainFinanceModel
 
     public function getAmountWithRebates()
     {
-        $amount = $this->getAmount();
+        return $this->memoize('amount_with_rebates', function () {
+            $amount = $this->getAmount();
 
-        if ($this->rebates()->count() > 0) {
-            $amount->negate(app(RebateHandlerService::class)->handleProductRebates($this));
-        }
+            if ($this->rebates()->count() > 0) {
+                $amount->negate(app(RebateHandlerService::class)->getDiscountAmount($this));
+            }
 
-        return new SafeDecimal(max(0, $amount->toFloat()));
+            return new SafeDecimal(max(0, $amount->toFloat()));
+        });
     }
 
     public function getCommissionAmount()
@@ -264,6 +267,16 @@ class Product extends AbstractMainFinanceModel
             'default_revenue_account_id' => $this->default_revenue_account_id,
             'team_id' => currentTeamId(),
         ]));
+    }
+
+    public function normalizeToInvoiceDetail()
+    {
+        return ProductService::normalizeToInvoiceDetail($this);
+    }
+
+    public function normalizeInvoiceDetailsIncludingRebates($invoiceId = null)
+    {
+        return ProductService::normalizeInvoiceDetailsIncludingRebates($this, $invoiceId);
     }
 
     /**

@@ -9,6 +9,7 @@ use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\Product;
+use Condoedge\Finance\Models\Rebate;
 use Condoedge\Finance\Observers\DatabaseIntegrityObserver;
 use Condoedge\Finance\Services\DatabaseQueryInterceptor;
 use Condoedge\Finance\Services\Graph;
@@ -213,6 +214,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         Relation::morphMap(collect([
             'product' => Product::class,
             'invoice' => InvoiceModel::getClass(),
+            'rebate' => Rebate::class,
         ])->union(CustomerService::getValidCustomableModels())->union(collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
             return [$case->value => $case->getMorphableClass()];
         }))->all());

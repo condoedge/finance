@@ -11,6 +11,7 @@ use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Product;
 use Condoedge\Finance\Models\ProductTypeEnum;
 use Condoedge\Finance\Models\Rebate;
+use Condoedge\Finance\Services\Product\Rebates\RebateHandlerService;
 use Illuminate\Support\Facades\DB;
 
 class ProductService implements ProductServiceInterface
@@ -109,7 +110,7 @@ class ProductService implements ProductServiceInterface
     public function normalizeToInvoiceDetail($productId, $invoice = null)
     {
         $product = Product::findOrFail($productId);
-
+        
         return array_filter([
             'invoiceable_type' => 'product',
             'invoiceable_id' => $product->id,
@@ -122,6 +123,17 @@ class ProductService implements ProductServiceInterface
             'invoice_id' => $invoice ? $invoice->id : null,
             'product_id' => $product->id,
         ]);
+    }
+
+    public function normalizeInvoiceDetailsIncludingRebates($productId, $invoice = null)
+    {
+        $product = Product::findOrFail($productId);
+        
+        $rebateService = app(RebateHandlerService::class);
+
+        return $rebateService->normalizeRebatesToInvoiceDetails($product, $invoice ? $invoice->id : null)
+            ->prepend($this->normalizeToInvoiceDetail($productId, $invoice))
+            ->values();
     }
 
     /**
@@ -214,9 +226,13 @@ class ProductService implements ProductServiceInterface
     {
         $invoice = \Condoedge\Finance\Models\Invoice::find($invoiceId);
 
-        return InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail(
-            $this->normalizeToInvoiceDetail($productId, $invoice)
-        ));
+        $invoiceDetails = $this->normalizeInvoiceDetailsIncludingRebates($productId, $invoice);
+
+        foreach ($invoiceDetails as $detailData) {
+            InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail($detailData));
+        }
+
+        return $invoiceDetails->firstWhere('invoiceable_type', 'product');
     }
 
     public function createRebate(CreateRebateDto $dto): Rebate

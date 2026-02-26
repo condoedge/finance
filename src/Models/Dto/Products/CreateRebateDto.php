@@ -2,13 +2,10 @@
 
 namespace Condoedge\Finance\Models\Dto\Products;
 
-use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Models\RebateAmountTypeEnum;
 use Condoedge\Finance\Rule\SafeDecimalRule;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
-use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
-use WendellAdriel\ValidatedDTO\Casting\StringCast;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
