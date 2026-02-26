@@ -5,10 +5,12 @@ use Condoedge\Finance\Billing\Providers\Stripe\StripePaymentProvider;
 use Condoedge\Finance\Models\CustomableTeam;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Services\Product\Rebates\DateRebateHandler;
+use Condoedge\Finance\Services\Product\Rebates\TeamRebateHandler;
 
 return [
     'rebate_handlers' => [
         'date' => DateRebateHandler::class,
+        'team' => TeamRebateHandler::class,
     ],
 
     'taxes-have-locations' => false,
