@@ -241,7 +241,7 @@ class ProductService implements ProductServiceInterface
 
         $rebate->product_id = $dto->product_id;
         $rebate->rebate_logic_type = $dto->rebate_logic_type;
-        $rebate->rebate_logic_parameters = $dto->rebate_logic_parameters;
+        $rebate->rebate_logic_parameters = is_array($dto->rebate_logic_parameters) ? json_encode($dto->rebate_logic_parameters) : $dto->rebate_logic_parameters;
         $rebate->amount = $dto->amount;
         $rebate->amount_type = $dto->amount_type;
         $rebate->save();
@@ -255,7 +255,7 @@ class ProductService implements ProductServiceInterface
 
         $rebate->product_id = $dto->product_id;
         $rebate->rebate_logic_type = $dto->rebate_logic_type;
-        $rebate->rebate_logic_parameters = $dto->rebate_logic_parameters;
+        $rebate->rebate_logic_parameters = is_array($dto->rebate_logic_parameters) ? json_encode($dto->rebate_logic_parameters) : $dto->rebate_logic_parameters;
         $rebate->amount = $dto->amount;
         $rebate->amount_type = $dto->amount_type;
         $rebate->save();
