@@ -18,7 +18,7 @@ class Rebate extends Model
 {
     protected $table = 'fin_rebates';
     
-    protected $cast = [
+    protected $casts = [
         'amount_type' => RebateAmountTypeEnum::class,
         'rebate_logic_parameters' => 'array',
     ];
