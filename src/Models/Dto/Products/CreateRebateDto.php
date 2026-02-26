@@ -5,7 +5,9 @@ namespace Condoedge\Finance\Models\Dto\Products;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Models\RebateAmountTypeEnum;
 use Condoedge\Finance\Rule\SafeDecimalRule;
+use Dedoc\Scramble\Support\Type\EnumCaseType;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
+use WendellAdriel\ValidatedDTO\Casting\EnumCast;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
 /**
@@ -42,8 +44,8 @@ class CreateRebateDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'amount' => SafeDecimalCast::class,
-            'amount_type' => RebateAmountTypeEnum::class,
+            'amount' => new SafeDecimalCast(),
+            'amount_type' => new EnumCast(RebateAmountTypeEnum::class),
         ];
     }
 
