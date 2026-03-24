@@ -262,4 +262,13 @@ class ProductService implements ProductServiceInterface
 
         return $rebate->refresh();
     }
+
+    public function upsertRebate(CreateRebateDto $dto, ?int $rebateId = null): Rebate
+    {
+        if ($rebateId) {
+            return $this->updateRebate($rebateId, $dto);
+        }
+
+        return $this->createRebate($dto);
+    }
 }

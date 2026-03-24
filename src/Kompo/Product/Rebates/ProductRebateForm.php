@@ -26,36 +26,24 @@ class ProductRebateForm extends Form
     {
         $this->model->forceFill(request()->all());
         $this->model->amount_type = RebateAmountTypeEnum::from(request('amount_type')); // Force cast
+        $modelExisted = (bool) $this->model->id;
 
+        // In case we have product id we can save directly, if not we derivate the saving to the parent form that will receive the data.
         if ($this->productId) {
-            if ($this->model->id) {
-                $rebate = ProductService::updateRebate($this->model->id, new CreateRebateDto([
-                    'product_id' => $this->productId,
-                    'rebate_logic_type' => $this->model->rebate_logic_type,
-                    'rebate_logic_parameters' => $this->model->rebate_logic_parameters,
-                    'amount' => $this->model->amount,
-                    'amount_type' => $this->model->amount_type,
-                ]));
-
-                return response()->kompoMulti([
-                    response()->updateInQuery('product-rebate-list', 'rebate'. $this->model->id, ProductRebateList::buildFormRow($rebate, $this->index)),
-                    response()->closeModal(),
-                ]);
-            }
-
-            $rebate = ProductService::createRebate(new CreateRebateDto([
+            $rebate = ProductService::upsertRebate(new CreateRebateDto([
                 'product_id' => $this->productId,
                 'rebate_logic_type' => $this->model->rebate_logic_type,
                 'rebate_logic_parameters' => $this->model->rebate_logic_parameters,
                 'amount' => $this->model->amount,
                 'amount_type' => $this->model->amount_type,
-            ]));
+            ]), $this->model->id);
 
             $this->model($rebate);
         }
 
         return response()->kompoMulti([
-            response()->addToQuery('product-rebate-list', ProductRebateList::buildFormRow($this->model, $this->index)),
+            $modelExisted ? response()->updateInQuery('product-rebate-list', 'rebate'. $this->model->id, ProductRebateList::buildFormRow($rebate, $this->index))
+                : response()->addToQuery('product-rebate-list', ProductRebateList::buildFormRow($this->model, $this->index)),
             response()->closeModal(),
         ]);
     }

@@ -51,7 +51,12 @@ class InvoicePayModal extends Form
         }
 
         if ($result->success) {
-            return $this->successElsEvents();
+            return response()->kompoMulti([
+                response()->closeModal(),
+                response()->run('() => {utils.removeLoadingScreen()}'),
+                response()->alert('finance-paid-successfully'),
+                response()->refresh('dashboard-view'),
+            ]);
         }
 
         if (!$result->success) {
@@ -136,30 +141,5 @@ class InvoicePayModal extends Form
     protected function getPaymentInstallments()
     {
         return PaymentTerm::whereIn('id', $this->model->possible_payment_terms ?? [])->pluck('term_name', 'id');
-    }
-
-    protected function successElsEvents()
-    {
-        return _Rows(
-            _Hidden()->onLoad(fn ($e) => $e->run('() => {
-                        $("#pay-invoice-success").click();
-                    }')),
-            _Button()->id('pay-invoice-success')
-                ->class('hidden')
-                ->closeModal()
-                ->closeModal()
-                ->refresh('dashboard-view')
-                ->run('() => {utils.removeLoadingScreen()}')
-                ->alert('finance-paid-successfully')
-                ->onError(fn ($e) => $e->inAlert('error-icon', 'vlAlertError')->run('() => {utils.removeLoadingScreen()}')->closeModal())
-        );
-    }
-
-    public function rules()
-    {
-        return [
-            // 'payment_method_id' => 'required|exists:fin_payment_methods,id',
-            // 'payment_term_id' => 'nullable|exists:fin_payment_terms,id',
-        ];
     }
 }

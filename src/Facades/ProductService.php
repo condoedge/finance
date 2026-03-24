@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array[] normalizeInvoiceDetailsIncludingRebates($productId, $invoiceId = null)
  * @method static array normalizeToInvoiceDetails(int $productId)
  * @method static \Condoedge\Finance\Models\Rebate updateRebate(int $rebateId, \Condoedge\Finance\Models\Dto\Products\CreateRebateDto $dto)
+ * @method static \Condoedge\Finance\Models\Rebate upsertRebate(\Condoedge\Finance\Models\Dto\Products\CreateRebateDto $dto, ?int $rebateId = null)
  * 
  * @see \Condoedge\Finance\Services\Product\ProductService
  */

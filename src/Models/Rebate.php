@@ -49,6 +49,9 @@ class Rebate extends Model
     public function getHandlerParamsLabelAttribute(): string
     {
         $handler = app()->make(RebateHandlerService::class)->getRebateHandler($this->rebate_logic_type);
-        return $handler->getHandlerParamsLabel($this->rebate_logic_parameters);
+
+        $handlerParams = is_string($this->rebate_logic_parameters) ? json_decode($this->rebate_logic_parameters, true) : $this->rebate_logic_parameters;
+
+        return $handler->getHandlerParamsLabel($handlerParams);
     }
 }
