@@ -80,7 +80,7 @@ class Product extends AbstractMainFinanceModel
 
     public function rebates()
     {
-        return $this->hasMany(Rebate::class);
+        return $this->hasMany(Rebate::class, 'product_id');
     }
 
     /* SCOPES */
