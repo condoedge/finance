@@ -24,7 +24,7 @@ trait TermSelectorTrait
             ->class('mb-2'),
             _Panel(
                 $this->getPaymentTerms($selectPaymentTermId, $paymentTermName)
-            )->id('payment-terms-panel')
+            )->id('payment-terms-panel')->class('z-10')
         );
     }
 
