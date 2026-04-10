@@ -12,6 +12,7 @@ class ProductRebateList extends Table
     public $class = 'p-6';
 
     protected $productId;
+    public $noItemsFound = 'finance-no-rebates';
 
     public function created()
     {

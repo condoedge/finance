@@ -7,6 +7,7 @@ use Condoedge\Finance\Models\Dto\Products\CreateRebateDto;
 use Condoedge\Finance\Models\Rebate;
 use Condoedge\Finance\Models\RebateAmountTypeEnum;
 use Condoedge\Finance\Services\Product\Rebates\RebateHandlerService;
+use Condoedge\Utils\Facades\TeamModel;
 use Kompo\Form;
 
 class ProductRebateForm extends Form
@@ -89,6 +90,24 @@ class ProductRebateForm extends Form
         $handler = $rebateService->getRebateHandler($handlerKey);
 
         return $handler->getHandlerParamsFields();
+    }
+
+    // We need to move this to an specific route since ProductRebateForm shouldn't know about the handlers details
+    public function searchTeams($search)
+    {
+        $teamsIds = auth()->user()->getAllAccessibleTeamIds($search, 30);
+
+        return TeamModel::whereIn('id', $teamsIds)
+            ->pluck('team_name', 'id');
+    }
+
+    public function retrieveTeam($id)
+    {
+        $team = TeamModel::find($id);
+
+        return [
+            $id => $team->team_name,
+        ];
     }
 
     public function rules()

@@ -23,13 +23,13 @@ class TeamRebateHandler extends AbstractRebateHandler
 
     function getHandlerLabel(): string
     {
-        return __('finance-team');
+        return __('finance-team2');
     }
 
     function getHandlerParamsFields()
     {
         return _Rows(
-            _Select('finance-team')->name('rebate_logic_parameters.team_id')
+            _Select('finance-team2')->name('rebate_logic_parameters.team_id')
                 ->searchOptions(3, 'searchTeams', 'retrieveTeams')->required(),
         );  
     }
@@ -43,7 +43,7 @@ class TeamRebateHandler extends AbstractRebateHandler
 
     public function getHandlerParamsLabel($params): string
     {
-        return __('finance-team', $params);
+        return __('finance-team-with-values', $params ?? []);
     }
 
     public function searchTeams($search)
