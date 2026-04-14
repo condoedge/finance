@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Command;
 
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\InvoiceStatusEnum;
+use Condoedge\Finance\Models\PaymentTerm;
 use Condoedge\Finance\Models\PaymentTermTypeEnum;
 use Illuminate\Console\Command;
 
@@ -64,7 +65,7 @@ class EnsureInvoiceEventsAreProcessed extends Command
                 $q->where('term_type', $paymentTerm->value);
             });
 
-            $query = $paymentTerm->consideredAsInitialPaidScope($query);
+            $query = PaymentTerm::scopeConsideredAsInitialPaid($query, $paymentTerm);
 
             $query->chunk(100, function ($invoices) use ($paymentTerm) {
                 foreach ($invoices as $invoice) {

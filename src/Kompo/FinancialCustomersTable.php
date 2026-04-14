@@ -5,7 +5,7 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Utils\Kompo\Common\Table;
 
-class FinantialCustomersTable extends Table
+class FinancialCustomersTable extends Table
 {
     public function top()
     {

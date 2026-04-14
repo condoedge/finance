@@ -18,9 +18,12 @@ use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
+use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTerm;
+use Condoedge\Finance\Models\SegmentValue;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
 use Illuminate\Support\Collection;
@@ -260,9 +263,18 @@ class InvoiceService implements InvoiceServiceInterface
      */
     protected function setupInvoiceAccount(Invoice $invoice): void
     {
-        $account = $invoice->payment_method_id->getReceivableAccount();
+        $account = $this->resolveReceivableAccount($invoice->payment_method_id);
         $invoice->account_receivable_id = $account?->id;
         $invoice->save();
+    }
+
+    /**
+     * Resolve the receivable GL account for a payment method
+     * TODO: Implement proper account mapping per payment method
+     */
+    protected function resolveReceivableAccount(PaymentMethodEnum $paymentMethod): ?GlAccount
+    {
+        return GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id);
     }
 
     /**

@@ -50,7 +50,7 @@ class TaxForm extends Modal
             _AccountsSelect('finance-account', $this->model->account)
                 ->name('account_id', false)
                 ->required(),
-            _Date('finance-valid-from')->name('valide_from')
+            _Date('finance-valid-from')->name('valid_from')
                 ->default(now()->format('Y-m-d')),
             _FlexEnd(
                 _SubmitButton('generic.save')->closeModal()

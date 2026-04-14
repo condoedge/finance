@@ -28,7 +28,7 @@ class Tax extends AbstractMainFinanceModel
 
     protected $casts = [
         'rate' => SafeDecimalCast::class,
-        'valide_from' => 'datetime:Y-m-d',
+        'valid_from' => 'datetime:Y-m-d',
     ];
 
     /* RELATIONSHIPS */
@@ -63,8 +63,8 @@ class Tax extends AbstractMainFinanceModel
     /* SCOPES */
     public function scopeActive($query)
     {
-        return $query->where('valide_from', '<=', now())
-            ->where(fn ($q) => $q->where('valide_to', '>=', now())->orWhereNull('valide_to'));
+        return $query->where('valid_from', '<=', now())
+            ->where(fn ($q) => $q->where('valid_to', '>=', now())->orWhereNull('valid_to'));
     }
 
     public function scopeForTeam($query, $teamId)

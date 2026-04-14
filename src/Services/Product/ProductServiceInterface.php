@@ -6,6 +6,7 @@ use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
 use Condoedge\Finance\Models\Dto\Products\CreateRebateDto;
 use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
 use Condoedge\Finance\Models\InvoiceDetail;
+use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\Product;
 use Condoedge\Finance\Models\Rebate;
 
@@ -90,4 +91,44 @@ interface ProductServiceInterface
     public function copyProductToInvoice(int $productId, int $invoiceId): InvoiceDetail;
 
     public function createRebate(CreateRebateDto $dto): Rebate;
+
+    /**
+     * Normalize a product into an invoice detail array
+     *
+     * @param int $productId
+     * @param Invoice|null $invoice
+     *
+     * @return array
+     */
+    public function normalizeToInvoiceDetail(int $productId, ?Invoice $invoice = null): array;
+
+    /**
+     * Normalize a product and its rebates into invoice detail arrays
+     *
+     * @param int $productId
+     * @param Invoice|null $invoice
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function normalizeInvoiceDetailsIncludingRebates(int $productId, ?Invoice $invoice = null);
+
+    /**
+     * Update an existing rebate
+     *
+     * @param int $rebateId
+     * @param CreateRebateDto $dto
+     *
+     * @return Rebate
+     */
+    public function updateRebate(int $rebateId, CreateRebateDto $dto): Rebate;
+
+    /**
+     * Create or update a rebate
+     *
+     * @param CreateRebateDto $dto
+     * @param int|null $rebateId
+     *
+     * @return Rebate
+     */
+    public function upsertRebate(CreateRebateDto $dto, ?int $rebateId = null): Rebate;
 }

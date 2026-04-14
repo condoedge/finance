@@ -28,7 +28,7 @@ class TaxesTable extends WhiteTable
         return _TableRow(
             _Html($tax->name),
             _Html($tax->rate->multiply(100)->round(2) . '%'),
-            _Html($tax->valide_from?->format('Y-m-d') ?: '-'),
+            _Html($tax->valid_from?->format('Y-m-d') ?: '-'),
         )->selfGet('getTaxForm', ['tax_id' => $tax->id])->inModal();
     }
 

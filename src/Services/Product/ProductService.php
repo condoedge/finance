@@ -7,6 +7,7 @@ use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
 use Condoedge\Finance\Models\Dto\Products\CreateRebateDto;
 use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
+use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Product;
 use Condoedge\Finance\Models\ProductTypeEnum;
@@ -107,7 +108,7 @@ class ProductService implements ProductServiceInterface
         });
     }
 
-    public function normalizeToInvoiceDetail($productId, $invoice = null)
+    public function normalizeToInvoiceDetail(int $productId, ?Invoice $invoice = null): array
     {
         $product = Product::findOrFail($productId);
         
@@ -125,7 +126,7 @@ class ProductService implements ProductServiceInterface
         ]);
     }
 
-    public function normalizeInvoiceDetailsIncludingRebates($productId, $invoice = null)
+    public function normalizeInvoiceDetailsIncludingRebates(int $productId, ?Invoice $invoice = null)
     {
         $product = Product::findOrFail($productId);
         

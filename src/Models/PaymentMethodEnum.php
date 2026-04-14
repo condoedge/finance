@@ -2,8 +2,6 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Billing\Providers\Bna\Form\PaymentCreditCardForm;
-
 /**
  * Payment Type Enum
  *
@@ -72,29 +70,11 @@ enum PaymentMethodEnum: int
         return config('kompo-finance.payment_method_providers')[$this->value] ?? null;
     }
 
-    /**
-     * Get the account for this payment gateway
-     */
-    public function getReceivableAccount(): ?GlAccount
-    {
-        return match ($this) {
-            default => GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id), // TODO WE MUST SET A CORRECT VALUE HERE
-        };
-    }
-
     public function online()
     {
         return match ($this) {
             self::CREDIT_CARD, self::INTERAC, self::BANK_TRANSFER => true,
             default => false,
-        };
-    }
-
-    public function form($invoice)
-    {
-        return match ($this) {
-            self::CREDIT_CARD => new PaymentCreditCardForm($invoice->id),
-            default => null,
         };
     }
 }

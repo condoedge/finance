@@ -50,17 +50,38 @@ class PaymentTermForm extends Modal
         }
 
         $paymentTermType = PaymentTermTypeEnum::from($paymentTermType);
+        $fields = $this->getFieldsForTermType($paymentTermType, $this->model->settings ?? []);
 
-        if (!count($paymentTermType->settingsFields())) {
+        if (!count($fields)) {
             return null;
         }
 
         return _CardGray100(
             _Html(__('finance-with-values-settings-for', ['type' => $paymentTermType->label()]))->class('font-semibold mb-4 text-lg'),
-            _Rows(
-                $paymentTermType->settingsFields($this->model->settings ?? [])
-            ),
+            _Rows($fields),
         )->p4();
+    }
+
+    protected function getFieldsForTermType(PaymentTermTypeEnum $termType, array $settings = []): array
+    {
+        return match ($termType) {
+            PaymentTermTypeEnum::COD => [],
+            PaymentTermTypeEnum::NET => [
+                _InputNumber('finance-days')->name('settings_days', false)->default($settings['days'] ?? null)->required(),
+            ],
+            PaymentTermTypeEnum::INSTALLMENT => [
+                'periods' => _InputNumber('finance-periods')->name('settings_periods', false)->default($settings['periods'] ?? null)->required(),
+                'interval_type' => _ButtonGroup('finance-interval-type')
+                    ->optionClass('cursor-pointer text-center px-4 py-3 flex justify-center')
+                    ->name('settings_interval_type', false)
+                    ->default($settings['interval_type'] ?? 'months')
+                    ->options([
+                        'days' => __('finance-days'),
+                        'months' => __('finance-months'),
+                    ]),
+                'interval' => _InputNumber('finance-interval')->name('settings_interval', false)->default($settings['interval'] ?? null),
+            ],
+        };
     }
 
 }

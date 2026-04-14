@@ -271,7 +271,7 @@ class Product extends AbstractMainFinanceModel
 
     public function normalizeToInvoiceDetail()
     {
-        return ProductService::normalizeToInvoiceDetail($this);
+        return ProductService::normalizeToInvoiceDetail($this->id);
     }
 
     public function normalizeInvoiceDetailsIncludingRebates($invoiceId = null)
