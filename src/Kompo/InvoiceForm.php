@@ -154,6 +154,7 @@ class InvoiceForm extends Form
                 ->formClass(InvoiceDetailForm::class, [
                     'team_id' => $this->team->id,
                     'invoice_id' => $this->model->id,
+                    'refresh_id' => $this->refreshId,
                 ])
                 ->asTable([
                     __('finance-product-service'),

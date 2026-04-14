@@ -16,12 +16,14 @@ class InvoiceDetailForm extends Form
 
     protected $productId;
     protected $product;
+    protected $refreshId;
 
     protected $createProductsOnSave = false;
 
     public function created()
     {
         $this->teamId = $this->prop('team_id');
+        $this->refreshId = $this->prop('refresh_id');
 
         $this->productId = $this->prop('product_id');
         $this->product = $this->productId > 0 ? ProductModel::find($this->productId) : null;
@@ -88,9 +90,9 @@ class InvoiceDetailForm extends Form
     {
         return $this->model->id ?
 
-            _DeleteLink()->byKey($this->model) :
+            _DeleteLink()->byKey($this->model)->refresh($this->refreshId) :
 
-            _Link()->icon('icon-trash')->emitDirect('deleted');
+            _Link()->icon('icon-trash')->emitDirect('deleted')->refresh($this->refreshId);
     }
 
     public function rules()
