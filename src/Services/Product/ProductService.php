@@ -131,7 +131,7 @@ class ProductService implements ProductServiceInterface
         
         $rebateService = app(RebateHandlerService::class);
 
-        return $rebateService->normalizeRebatesToInvoiceDetails($product, $invoice ? $invoice->id : null)
+        return collect($rebateService->normalizeRebatesToInvoiceDetails($product, $invoice ? $invoice->id : null))
             ->prepend($this->normalizeToInvoiceDetail($productId, $invoice))
             ->values();
     }
