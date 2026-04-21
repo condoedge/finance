@@ -53,9 +53,9 @@ class Tax extends AbstractMainFinanceModel
         return $this->name . ' (' . $this->rounded_rate . '%)';
     }
 
-    public function getRoundedRateAttribute($precision = 3)
+    public function getRoundedRateAttribute()
     {
-        return $this->rate->multiply(100)->round($precision);
+        return $this->rate->multiply(100)->round(config('kompo-finance.decimals.taxes-visual-rate-rounding', 3));
     }
 
     public function getCompleteLabelHtmlAttribute()

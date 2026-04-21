@@ -38,6 +38,10 @@ return [
             'webhook_secret' => env('STRIPE_WEBHOOK_SECRET', ''),
         ],
     ],
+    
+    'decimals' => [
+        'taxes-visual-rate-rounding' => 3,
+    ],
 
     'decimal-scale' => 5,
 
