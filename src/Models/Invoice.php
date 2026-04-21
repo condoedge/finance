@@ -109,13 +109,13 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function mainCustomer()
     {
-        return $this->belongsTo(Customer::class, 'customer_id');
+        return $this->belongsTo(Customer::class, 'customer_id')->withTrashed();
     }
 
     public function team()
     {
         return $this->hasOneThrough(Team::class, HistoricalCustomer::class, 'id', 'id', 'historical_customer_id', 'team_id')
-            ->throughAuthorizedRelation();
+            ->throughAuthorizedRelation()->withTrashed();
     }
 
     public function invoiceDetails()
@@ -130,12 +130,12 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function invoiceStatus()
     {
-        return $this->belongsTo(InvoiceStatus::class, 'invoice_status_id');
+        return $this->belongsTo(InvoiceStatus::class, 'invoice_status_id')->withTrashed();
     }
 
     public function approvedBy()
     {
-        return $this->belongsTo(UserModel::getClass(), 'approved_by');
+        return $this->belongsTo(UserModel::getClass(), 'approved_by')->withTrashed();
     }
 
     public function payments()
@@ -145,32 +145,37 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function invoiceable()
     {
-        return $this->morphTo();
+        return $this->morphTo()->withTrashed();
     }
 
     public function accountReceivable()
     {
-        return $this->belongsTo(GlAccount::class, 'account_receivable_id');
+        return $this->belongsTo(GlAccount::class, 'account_receivable_id')
+            ->withTrashed();
     }
 
     public function paymentTerm()
     {
-        return $this->belongsTo(PaymentTerm::class, 'payment_term_id');
+        return $this->belongsTo(PaymentTerm::class, 'payment_term_id')
+            ->withTrashed();
     }
 
     public function installmentsPeriods()
     {
-        return $this->hasMany(PaymentInstallmentPeriod::class, 'invoice_id');
+        return $this->hasMany(PaymentInstallmentPeriod::class, 'invoice_id')
+            ->withTrashed();
     }
 
     public function paymentTraces()
     {
-        return $this->morphMany(PaymentTrace::class, 'payable');
+        return $this->morphMany(PaymentTrace::class, 'payable')
+            ->withTrashed();
     }
 
     public function paymentMethod()
     {
-        return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id')
+            ->withTrashed();
     }
 
     /* ATTRIBUTES */
