@@ -126,7 +126,7 @@ class InvoicePayModal extends Form
             return _Html('finance.select-installment')->class('text-center text-gray-500');
         }
 
-        $paymentTerm = PaymentTerm::findOrFail($paymentTermId);
+        $paymentTerm = PaymentTerm::withTrashed()->findOrFail($paymentTermId);
 
         return _Rows(
             $paymentTerm->preview($this->model)
