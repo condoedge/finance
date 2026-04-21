@@ -50,7 +50,12 @@ class Tax extends AbstractMainFinanceModel
     /* ATTRIBUTES */
     public function getCompleteLabelAttribute()
     {
-        return $this->name . ' (' . $this->rate->multiply(100) . '%)';
+        return $this->name . ' (' . $this->rounded_rate . '%)';
+    }
+
+    public function getRoundedRateAttribute($precision = 3)
+    {
+        return $this->rate->multiply(100)->round($precision);
     }
 
     public function getCompleteLabelHtmlAttribute()
