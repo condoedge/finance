@@ -53,7 +53,7 @@ class InvoicePayModal extends Form
         if ($result->success) {
             return response()->kompoMulti([
                 response()->closeModal(),
-                response()->run('() => {utils.removeLoadingScreen()}'),
+                response()->kompoRun('() => {utils.removeLoadingScreen()}'),
                 response()->alert('finance-paid-successfully'),
                 response()->refresh('dashboard-view'),
             ]);
