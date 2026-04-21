@@ -162,14 +162,12 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function installmentsPeriods()
     {
-        return $this->hasMany(PaymentInstallmentPeriod::class, 'invoice_id')
-            ->withTrashed();
+        return $this->hasMany(PaymentInstallmentPeriod::class, 'invoice_id');
     }
 
     public function paymentTraces()
     {
-        return $this->morphMany(PaymentTrace::class, 'payable')
-            ->withTrashed();
+        return $this->morphMany(PaymentTrace::class, 'payable');
     }
 
     public function paymentMethod()
