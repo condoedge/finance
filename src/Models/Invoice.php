@@ -135,7 +135,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function approvedBy()
     {
-        return $this->belongsTo(UserModel::getClass(), 'approved_by')->withTrashed();
+        return $this->belongsTo(UserModel::getClass(), 'approved_by');
     }
 
     public function payments()
@@ -145,7 +145,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function invoiceable()
     {
-        return $this->morphTo()->withTrashed();
+        return $this->morphTo();
     }
 
     public function accountReceivable()
