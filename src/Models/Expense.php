@@ -14,7 +14,6 @@ class Expense extends AbstractMainFinanceModel
     protected $table = 'fin_expenses';
 
     protected $casts = [
-        'expense_type' => ExpenseReportTypeEnum::class,
         'expense_date' => 'datetime:Y-m-d',
         'expense_amount_before_taxes' => SafeDecimalCast::class,
         'total_expense_amount' => SafeDecimalCast::class,
@@ -23,5 +22,10 @@ class Expense extends AbstractMainFinanceModel
     public function expenseReport()
     {
         return $this->belongsTo(ExpenseReport::class);
+    }
+
+    public function expenseType()
+    {
+        return $this->belongsTo(ExpenseReportType::class, 'expense_type_id');
     }
 }
