@@ -14,6 +14,7 @@ use Condoedge\Finance\Models\PaymentTerm;
 use Condoedge\Finance\Models\PaymentTermTypeEnum;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
 use Condoedge\Utils\Kompo\Common\Form;
+use Condoedge\Finance\Models\GlAccount;
 
 class InvoiceForm extends Form
 {
@@ -105,7 +106,16 @@ class InvoiceForm extends Form
 
     public function render()
     {
+        $glAccount = GlAccount::find($this->team->default_revenue_account_id);
+
         return [
+            _Rows(
+                $glAccount ? null :
+                    _Card(
+                        _Html('finance-no-default-revenue-account')->class('text-black'),
+                    )->class('bg-warning/10 border-warning p-6 mb-6 border text-center'),
+            ),
+
             _FlexBetween(
                 $this->modalDesign ? _Html('finance-edit')->class('text-2xl font-semibold') : _Breadcrumbs(
                     _BackLink('finance-all-receivables')->href('invoices.list'),

@@ -628,6 +628,7 @@
 	"finance-no-automated-payments-selected": "Aucun paiement automatisé sélectionné",
 	"finance-no-budget-found": "Aucun budget trouvé",
 	"finance-no-custom-quotes-per-unit": "Pas de fractions personnalisées par unité",
+	"finance-no-default-revenue-account": "Aucun compte de revenus par défaut. Vous obtiendrez une erreur si vous essayez de créer une facture sans spécifier le compte de revenus pour chaque élément.",
 	"finance-no-draft-or-approved-invoice": "Aucune facture brouillon ou approuvée n'a été trouvée.",
 	"finance-no-due-amount": "Aucun montant dû",
 	"finance-no-email-sent-no-email": "Aucun courriel n'a été envoyé. Êtes-vous certain que le copropriétaire a un courriel valide?",

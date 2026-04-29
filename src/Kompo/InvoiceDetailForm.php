@@ -4,6 +4,8 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\ProductModel;
+use Condoedge\Finance\Models\GlAccount;
+use Kompo\Auth\Facades\TeamModel;
 use Kompo\Form;
 
 class InvoiceDetailForm extends Form
@@ -11,6 +13,7 @@ class InvoiceDetailForm extends Form
     public $model = InvoiceDetailModel::class;
     public $class = 'align-top';
     protected $teamId;
+    protected $team;
     protected $invoiceId;
     protected $invoice;
 
@@ -25,6 +28,8 @@ class InvoiceDetailForm extends Form
         $this->teamId = $this->prop('team_id');
         $this->refreshId = $this->prop('refresh_id');
 
+        $this->team = TeamModel::find($this->teamId);
+
         $this->productId = $this->prop('product_id');
         $this->product = $this->productId > 0 ? ProductModel::find($this->productId) : null;
 
@@ -33,6 +38,8 @@ class InvoiceDetailForm extends Form
 
     public function render()
     {
+        $glAccount = $this->model->revenueAccount()->first() ?? $this->product?->defaultRevenueAccount ?? GlAccount::find($this->team->default_revenue_account_id);
+
         return [
             _Rows(
                 _Hidden()->name('_', false)->onLoad->run('calculateTotals'),
@@ -44,7 +51,8 @@ class InvoiceDetailForm extends Form
                     ->default($this->product?->product_description),
             ),
 
-            _AccountsSelect(account: $this->model->revenueAccount()->first() ?? $this->product?->defaultRevenueAccount)
+            _Hidden()
+                ->default($glAccount?->getLastSegmentValue()->id)
                 ->name('revenue_natural_account_id', false)
                 ->class('w-full !mb-0'),
 

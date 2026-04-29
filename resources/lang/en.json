@@ -629,6 +629,7 @@
 	"finance-no-budget-found": "No budget found",
 	"finance-no-custom-quotes-per-unit": "No custom fractions per unit",
 	"finance-no-draft-or-approved-invoice": "No draft or approved invoices found.",
+	"finance-no-default-revenue-account": "No default revenue account. You will get an error if you try to create an invoice without specifying the revenue account for each item.",
 	"finance-no-due-amount": "No amount due",
 	"finance-no-email-sent-no-email": "No email was sent. Are you sure the customer has a valid email address?",
 	"finance-no-expenses-found": "No expenses found",
