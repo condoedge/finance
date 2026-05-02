@@ -45,9 +45,10 @@ class InvoiceDetailForm extends Form
                 _Hidden()->name('_', false)->onLoad->run('calculateTotals'),
                 _Hidden()->name('create_product_on_save')->default($this->createProductsOnSave ? 1 : 0),
                 _Hidden()->name('product_id')->default($this->product->id ?? null),
-                _Input()->placeholder('finance.new-item-name')->name('name')->class('w-72 !mb-2')
+                _Input()->placeholder('finance.new-item-name')->name('name')->class('!mb-2')->style('width: 165%;')
                     ->default($this->product?->product_name),
                 _Input()->placeholder('finance.item-description')->name('description')->class('!mb-0')
+                    ->style('width: 165%;')
                     ->default($this->product?->product_description),
 
                 _Hidden()
