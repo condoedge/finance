@@ -168,8 +168,7 @@ class InvoiceForm extends Form
                 ])
                 ->asTable([
                     __('finance-product-service'),
-                    __('finance-account'),
-                    _FlexBetween(
+                    _FlexEnd(
                         _Flex(
                             _Th('finance-quantity')->class('w-28'),
                             _Th('finance-price')->class('w-28'),

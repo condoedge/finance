@@ -47,17 +47,17 @@ class InvoiceDetailForm extends Form
                 _Hidden()->name('product_id')->default($this->product->id ?? null),
                 _Input()->placeholder('finance.new-item-name')->name('name')->class('w-72 !mb-2')
                     ->default($this->product?->product_name),
-                _Input()->placeholder('finance.item-description')->name('description')->class('!mb-0')->style('width: 170%')
+                _Input()->placeholder('finance.item-description')->name('description')->class('!mb-0')
                     ->default($this->product?->product_description),
-            ),
 
-            _Hidden()
-                ->default($glAccount?->getLastSegmentValue()->id)
-                ->name('revenue_natural_account_id', false)
-                ->class('w-full !mb-0'),
+                _Hidden()
+                    ->default($glAccount?->getLastSegmentValue()->id)
+                    ->name('revenue_natural_account_id', false)
+                    ->class('w-full !mb-0'),
+            )->class('w-full'),
 
             _Rows(
-                _Flex(
+                _FlexEnd(
                     _Input()->type('number')
                         ->name('quantity')
                         ->default(1)
@@ -69,10 +69,10 @@ class InvoiceDetailForm extends Form
                         ->class('w-28 !mb-0')
                         ->run('calculateTotals'),
                     _FinanceCurrency($this->model->extended_price)
-                        ->class('item-total w-32 text-lg font-semibold text-level1 text-right'),
+                        ->class('item-total w-16 text-lg font-semibold text-level1 text-right'),
                 )->class('gap-3'),
-                _FlexBetween(
-                    _Flex(
+                _FlexEnd(
+                    _FlexEnd(
                         _TaxesSelect($this->model, 'taxesIds')
                             ->class('w-60 !mb-0 mt-2')
                             ->run('calculateTotals'),
@@ -83,7 +83,7 @@ class InvoiceDetailForm extends Form
                                 )
                             )->class('w-32 item-taxes font-semibold text-level1 text-right')
                         )->class('relative'),
-                    ),
+                    )->class('left-14'),
                 ),
             ),
 
