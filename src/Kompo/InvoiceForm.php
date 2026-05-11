@@ -167,8 +167,8 @@ class InvoiceForm extends Form
                     'refresh_id' => $this->refreshId,
                 ])
                 ->asTable([
-                    __('finance-product-service'),
-                    _FlexEnd(
+                    _Th('finance-product-service')->style('width: 65%;'),
+                    _FlexBetween(
                         _Flex(
                             _Th('finance-quantity')->class('w-28'),
                             _Th('finance-price')->class('w-28'),
