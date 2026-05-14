@@ -227,7 +227,8 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 \Condoedge\Finance\Command\PreCreateFiscalPeriodsCommand::class,
                 \Condoedge\Finance\Command\CleanupWebhookEventsCommand::class,
                 \Condoedge\Finance\Command\CleanupExpenseReportDraftsCommand::class,
-                \Condoedge\Finance\Command\EnsureInvoiceEventsAreProcessed::class
+                \Condoedge\Finance\Command\EnsureInvoiceEventsAreProcessed::class,
+                \Condoedge\Finance\Command\ReconcileMonerisPaymentsCommand::class,
             ]);
         }
     }
@@ -254,6 +255,14 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $schedule->command('finance:cleanup-webhook-events --days=90')
                 ->monthly()
                 ->at('02:00');
+
+            // Moneris doesn't have reliable IPN — if the user closes the browser
+            // between paying and our return URL firing, the trace stays in
+            // PROCESSING. Sweep every 15 min to call /receipt and finalize.
+            $schedule->command('finance:reconcile-moneris')
+                ->everyFifteenMinutes()
+                ->withoutOverlapping()
+                ->appendOutputTo(storage_path('logs/moneris-reconciliation.log'));
 
             $schedule->command('cleanup:expense-report-drafts')
                 ->daily()
@@ -339,6 +348,12 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->bind(
             \Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface::class,
             \Condoedge\Finance\Billing\Core\Resolver\DefaultPaymentGatewayResolver::class
+        );
+
+        // Provider health checker (sliding-window failure tracking, half-open recovery)
+        $this->app->singleton(
+            \Condoedge\Finance\Billing\Contracts\ProviderHealthCheckerInterface::class,
+            \Condoedge\Finance\Billing\Core\Health\DefaultProviderHealthChecker::class,
         );
 
         $this->app->singleton(PaymentProviderRegistry::class);

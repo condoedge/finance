@@ -48,26 +48,12 @@ class InvoiceForm extends Form
 
         $this->refreshId = $this->prop('refresh_id');
 
-        // TODO WE NEED TO REFACTOR THIS WITH THE NEW KOMPO VERSION!
-        // In modals is not loading the js method so we need to run it manually
-        $this->onLoad(fn ($e) => $e->run('() => {
-            ' . financeScriptFile() . '
-
-            // The only way i found to listen to the validation error and execute functionalities
-            // In this case i am changing the color of the total field to red and scrolling to it
-            const observer = new MutationObserver( () => {   
-                const errorField = document.querySelector(".total_amount_error");
-                if (errorField?.innerText?.trim() !== "") {
-                    errorField.scrollIntoView({ behavior: "smooth", block: "center" });
-
-                    const invoiceTotalField = document.getElementById("invoice_total_amount");
-                    invoiceTotalField.classList.add("!text-danger");
-
-                    $(invoiceTotalField).find(".vlHtml").addClass("!text-danger");
-                }
-            });
-            observer.observe(document.querySelector(".total_amount_error"), { attributes: true, childList: true, subtree: true });
-        }'));
+        // Modal context still needs the legacy script bootstrap until calculateTotals
+        // is fully replaced. The MutationObserver that watched the validation error
+        // was replaced with the declarative jsClassWhen on the invoice_total_amount
+        // element below (see render()) — when total_amount_error is non-empty, the
+        // total turns red and scrolls into view via jsScrollTo + jsAddClass.
+        $this->onLoad(fn ($e) => $e->run('() => { ' . financeScriptFile() . ' }'));
     }
 
     public function handle(InvoiceServiceInterface $invoiceService)
@@ -192,8 +178,17 @@ class InvoiceForm extends Form
                                 fn ($amount, $name) => _TotalFinanceCurrencyCols($name, 'finance-tax', $amount, false)
                             )->values(),
                         )->id('tax-summary'),
-                        _TotalFinanceCurrencyCols(__('finance-total'), 'finance-total', $this->model->invoice_total_amount)->class('!font-bold text-xl')->id('invoice_total_amount'),
-                        _ErrorField()->name('total_amount_error', false)->noInputWrapper()->class('!my-0 !text-end total_amount_error'),
+                        // Declarative replacement for the old MutationObserver:
+                        // turn red whenever the total_amount_error field has content,
+                        // and scroll into view on the same condition.
+                        _TotalFinanceCurrencyCols(__('finance-total'), 'finance-total', $this->model->invoice_total_amount)
+                            ->class('!font-bold text-xl')
+                            ->id('invoice_total_amount')
+                            ->jsClassWhen('total_amount_error', '!=', '', '!text-danger', ''),
+                        _ErrorField()->name('total_amount_error', false)
+                            ->noInputWrapper()
+                            ->class('!my-0 !text-end total_amount_error')
+                            ->jsShowWhen('total_amount_error', '!=', ''),
                     )->class('relative p-6 bg-white rounded-2xl'),
                     _FlexEnd(
                         _SubmitButton('finance-save')

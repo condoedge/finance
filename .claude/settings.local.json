@@ -5,7 +5,8 @@
       "Bash(head:*)",
       "Bash(php:*)",
       "Bash(grep:*)",
-      "Bash(wc -l /c/Users/jkend/Documents/Projects/kompo/finance/src/Models/Dto/**/*.php)"
+      "Bash(wc -l /c/Users/jkend/Documents/Projects/kompo/finance/src/Models/Dto/**/*.php)",
+      "Skill(superpowers:brainstorming)"
     ]
   }
 }

@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Models\Dto\Gl;
 
+use Condoedge\Finance\Enums\SystemAccountTypeEnum;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\AccountTypeEnum;
 use Condoedge\Finance\Models\SegmentValue;
@@ -31,6 +32,7 @@ class CreateSegmentValueDto extends ValidatedDTO
     public ?bool $is_active;
     public ?bool $allow_manual_entry;
     public ?AccountTypeEnum $account_type;
+    public ?SystemAccountTypeEnum $system_account_type;
 
     public $segmentDefinition;
 
@@ -42,6 +44,7 @@ class CreateSegmentValueDto extends ValidatedDTO
             'segment_description' => 'required|string|max:255',
             'is_active' => 'nullable|boolean',
             'account_type' => 'nullable|in:' . collect(AccountTypeEnum::cases())->pluck('value')->implode(','),
+            'system_account_type' => 'nullable|in:' . collect(SystemAccountTypeEnum::cases())->pluck('value')->implode(','),
         ];
     }
 
@@ -53,6 +56,7 @@ class CreateSegmentValueDto extends ValidatedDTO
             'segment_description' => new StringCast(),
             'is_active' => new BooleanCast(),
             'account_type' => new EnumCast(AccountTypeEnum::class),
+            'system_account_type' => new EnumCast(SystemAccountTypeEnum::class),
         ];
     }
 

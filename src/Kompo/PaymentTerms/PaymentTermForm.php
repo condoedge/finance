@@ -24,6 +24,13 @@ class PaymentTermForm extends Modal
                 ->mapWithKeys(fn ($value, $key) => [str_replace('settings_', '', $key) => $value])
                 ->all(),
         ]));
+
+        // Collapsed: button chain → server-driven kompoMulti.
+        return response()->kompoMulti([
+            response()->closeModal(),
+            response()->kompoRefresh('payment-terms-table'),
+            response()->kompoAlert(__('finance-payment-term-saved'), 'success'),
+        ]);
     }
 
     public function body()
@@ -38,8 +45,7 @@ class PaymentTermForm extends Modal
                 $this->getSettingsFields($this->model->term_type?->value)
             )->id('settings-fields-panel'),
             _Textarea('finance-term-description')->name('term_description'),
-            _SubmitButton('generic.save')->closeModal()->browse('payment-terms-table')
-                ->alert('finance-payment-term-saved'),
+            _SubmitButton('generic.save'),
         );
     }
 

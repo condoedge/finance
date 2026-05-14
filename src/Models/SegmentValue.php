@@ -28,6 +28,7 @@ class SegmentValue extends AbstractMainFinanceModel
         'segment_definition_id' => 'integer',
         'is_active' => 'boolean',
         'account_type' => AccountTypeEnum::class,
+        'system_account_type' => \Condoedge\Finance\Enums\SystemAccountTypeEnum::class,
     ];
 
     /**

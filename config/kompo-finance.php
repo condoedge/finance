@@ -18,12 +18,69 @@ return [
     'payment_providers' => [
         BnaPaymentProvider::class,
         StripePaymentProvider::class,
+        \Condoedge\Finance\Billing\Providers\Moneris\MonerisPaymentProvider::class,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Legacy method→provider map
+    |--------------------------------------------------------------------------
+    | Fallback for teams that have no rows in fin_team_payment_providers.
+    | Resolver consults this only when the new table returns no matches.
+    | Will be deprecated once all teams have explicit rows.
+    */
     'payment_method_providers' => [
         PaymentMethodEnum::CREDIT_CARD->value => StripePaymentProvider::class,
         PaymentMethodEnum::INTERAC->value => BnaPaymentProvider::class,
         PaymentMethodEnum::BANK_TRANSFER->value => StripePaymentProvider::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Offer fallback providers' payment methods
+    |--------------------------------------------------------------------------
+    | Controls which payment methods are shown to the customer.
+    |
+    | false (default): only methods supported by a team's PRIMARY provider
+    |   (priority 1 in any of its rows) are offered. A method exclusive to a
+    |   fallback-position provider — e.g. Interac when BNA is only a credit-card
+    |   fallback — stays hidden.
+    | true: methods supported by ANY healthy provider in the chain are offered,
+    |   including fallback-position ones.
+    |
+    | Capability is always enforced regardless of this flag — a method never
+    | shows unless some provider genuinely supports it.
+    */
+    'offer_fallback_provider_methods' => env('FIN_OFFER_FALLBACK_METHODS', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Force global provider credentials
+    |--------------------------------------------------------------------------
+    | When true, the resolver ignores the fin_provider_credentials table
+    | entirely (per-team AND team_id=NULL rows) and every provider uses its
+    | env-backed config('kompo-finance.services.*') credentials. The per-team
+    | "credentials" button in PaymentProvidersSettings is also hidden.
+    |
+    | Use this for single-tenant-account installs (e.g. SISC: one Moneris
+    | merchant account shared by every team). Leave false for multi-tenant
+    | installs where each team has its own merchant account.
+    */
+    'force_global_credentials' => env('FIN_FORCE_GLOBAL_CREDENTIALS', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Provider health-check thresholds
+    |--------------------------------------------------------------------------
+    | Sliding-window failure counters per (team, provider). PERMANENT errors
+    | (card declined) are excluded by classification — only TRANSIENT / NETWORK
+    | / AUTH / UNKNOWN affect health.
+    */
+    'health' => [
+        'failures_to_degrade' => env('FIN_HEALTH_DEGRADE_AT', 3),
+        'failures_to_down'    => env('FIN_HEALTH_DOWN_AT', 8),
+        'window_seconds'      => env('FIN_HEALTH_WINDOW', 600),
+        'recovery_successes'  => env('FIN_HEALTH_RECOVER_AT', 2),
     ],
 
     'services' => [
@@ -36,6 +93,16 @@ return [
             'api_key' => env('STRIPE_KEY', ''),
             'secret_key' => env('STRIPE_SECRET', ''),
             'webhook_secret' => env('STRIPE_WEBHOOK_SECRET', ''),
+        ],
+        'moneris' => [
+            // gateway.moneris.com works for both qa and prod with the `environment`
+            // request param. Override only if Moneris assigns you a custom host.
+            'host' => env('MONERIS_HOST', 'gateway.moneris.com'),
+            'store_id' => env('MONERIS_STORE_ID', ''),
+            'api_token' => env('MONERIS_API_TOKEN', ''),
+            // Moneris Checkout (MCO) profile ID. Distinct from store_id.
+            'checkout_id' => env('MONERIS_CHECKOUT_ID', ''),
+            'is_test' => env('MONERIS_TEST', true),
         ],
     ],
     

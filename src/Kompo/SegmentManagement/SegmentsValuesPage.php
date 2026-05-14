@@ -47,10 +47,18 @@ class SegmentsValuesPage extends Table
                 fn ($desc, $position) => _Html($desc)->attr(['data-segment-position' => $position])
             ))
             ->value($this->selectedSegmentPosition)
-            ->run('() => {
-                ('. getPushParameterFn('segment_position', "$('.vlCustomLabel > div[data-segment-position]').data().segmentPosition", true) .')()
-                utils.setLoadingScreen();
-                location.reload();
+            // Replaced jQuery polling + location.reload() with a bridge-driven
+            // URL update + kompoid refresh. No full page reload — Vue smart-diff
+            // re-renders only what changed.
+            ->onChange->run('({ value, $k }) => {
+                const url = new URL(window.location);
+                if (value) {
+                    url.searchParams.set("segment_position", value);
+                } else {
+                    url.searchParams.delete("segment_position");
+                }
+                window.history.replaceState({}, "", url);
+                $k.refresh("segments-values-page");
             }');
     }
 

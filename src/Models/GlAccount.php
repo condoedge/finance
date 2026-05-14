@@ -14,6 +14,7 @@ class GlAccount extends AbstractMainFinanceModel
     protected $casts = [
         'is_active' => 'boolean',
         'allow_manual_entry' => 'boolean',
+        'team_id' => 'integer',
     ];
 
     // Removed fillable - using property assignment instead

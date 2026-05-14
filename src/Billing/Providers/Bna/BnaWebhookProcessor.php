@@ -26,8 +26,16 @@ class BnaWebhookProcessor extends WebhookProcessor
 
     protected function verifySignature(Request $request): bool
     {
-        // For now they don't provide a signature verification method
-        return true;
+        Log::warning('BNA webhook rejected: signature verification not implemented by BNA', [
+            'reference_uuid' => $request->input('referenceUUID'),
+            'status' => $request->input('status'),
+            'ip' => $request->ip(),
+        ]);
+
+        throw new \RuntimeException(
+            'BNA webhook signature verification is not yet supported. '
+            . 'Refusing to process unverified webhook to prevent payment-status forgery.'
+        );
     }
 
     protected function processWebhookEvent(Request $request)
