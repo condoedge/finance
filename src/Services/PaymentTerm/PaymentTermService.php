@@ -33,7 +33,7 @@ class PaymentTermService implements PaymentTermServiceInterface
     public function manageNewPaymentTermIntoInvoice(Invoice $invoice, PaymentTermTypeEnum $oldPaymentTermType = null)
     {
         if ($oldPaymentTermType) {
-            $oldPaymentTermType->manageOldPaymentTermIntoInvoice($invoice);
+            $this->cleanupOldPaymentTerm($invoice, $oldPaymentTermType);
         }
 
         $paymentTerm = $invoice->paymentTerm;
@@ -42,13 +42,35 @@ class PaymentTermService implements PaymentTermServiceInterface
             return;
         }
 
-        $invoice->invoice_due_date = $paymentTerm->term_type->calculateDueDate($invoice->invoice_date, $paymentTerm->settings);
+        $invoice->invoice_due_date = $paymentTerm->calculateDueDate($invoice->invoice_date);
         $invoice->save();
 
-        $paymentTerm->term_type->manageNewPaymentTermIntoInvoice($invoice, $paymentTerm->settings);
+        $this->applyNewPaymentTerm($invoice, $paymentTerm);
 
         if ($paymentTerm->consideredAsInitialPaid($invoice)) {
             $invoice->onConsideredAsInitialPaid();
+        }
+    }
+
+    protected function cleanupOldPaymentTerm(Invoice $invoice, PaymentTermTypeEnum $oldTermType): void
+    {
+        if ($oldTermType === PaymentTermTypeEnum::INSTALLMENT) {
+            $invoice->installmentsPeriods()->delete();
+        }
+    }
+
+    protected function applyNewPaymentTerm(Invoice $invoice, PaymentTerm $paymentTerm): void
+    {
+        if ($paymentTerm->term_type === PaymentTermTypeEnum::INSTALLMENT) {
+            $settings = $paymentTerm->settings ?? [];
+            $this->createPaymentInstallmentPeriods(
+                new CreatePaymentInstallmentPeriodsDto([
+                    'periods' => $settings['periods'],
+                    'interval' => $settings['interval'],
+                    'interval_type' => $settings['interval_type'],
+                    'invoice_id' => $invoice->id,
+                ])
+            );
         }
     }
 

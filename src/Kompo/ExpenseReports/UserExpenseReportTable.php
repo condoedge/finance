@@ -9,6 +9,8 @@ class UserExpenseReportTable extends ExpenseReportsTable
     public $id = 'user-expense-report-table';
     protected $asManager = false;
 
+    public $permissionKey = 'OwnExpenses';
+
     protected function header()
     {
         return _FlexBetween(

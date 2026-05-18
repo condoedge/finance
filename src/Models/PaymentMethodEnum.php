@@ -2,8 +2,6 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Finance\Billing\Providers\Bna\Form\PaymentCreditCardForm;
-
 /**
  * Payment Type Enum
  *
@@ -67,19 +65,16 @@ enum PaymentMethodEnum: int
         return array_column(self::cases(), 'value');
     }
 
+    /**
+     * @deprecated Use PaymentGatewayResolverInterface::resolveChain($context) instead.
+     * The dynamic provider system (fin_team_payment_providers) replaces this static
+     * map. Kept for backwards compatibility with callers that don't yet pass a
+     * PaymentContext (resolver still consults this as a fallback when no row
+     * exists for the team).
+     */
     public function getDefaultPaymentGateway()
     {
         return config('kompo-finance.payment_method_providers')[$this->value] ?? null;
-    }
-
-    /**
-     * Get the account for this payment gateway
-     */
-    public function getReceivableAccount(): ?GlAccount
-    {
-        return match ($this) {
-            default => GlAccount::getFromLatestSegmentValue(SegmentValue::first()?->id), // TODO WE MUST SET A CORRECT VALUE HERE
-        };
     }
 
     public function online()
@@ -87,14 +82,6 @@ enum PaymentMethodEnum: int
         return match ($this) {
             self::CREDIT_CARD, self::INTERAC, self::BANK_TRANSFER => true,
             default => false,
-        };
-    }
-
-    public function form($invoice)
-    {
-        return match ($this) {
-            self::CREDIT_CARD => new PaymentCreditCardForm($invoice->id),
-            default => null,
         };
     }
 }

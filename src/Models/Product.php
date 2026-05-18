@@ -7,6 +7,7 @@ use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Facades\ProductService;
 use Condoedge\Finance\Facades\TaxService;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
+use Condoedge\Finance\Services\Product\Rebates\RebateHandlerService;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -30,6 +31,7 @@ use Illuminate\Support\Facades\DB;
 class Product extends AbstractMainFinanceModel
 {
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+    use \Condoedge\Utils\Models\Traits\MemoizesResults;
 
     protected $casts = [
         'product_type' => ProductTypeEnum::class,
@@ -74,6 +76,11 @@ class Product extends AbstractMainFinanceModel
     public function defaultRevenueAccount()
     {
         return $this->belongsTo(GlAccount::class, 'default_revenue_account_id');
+    }
+
+    public function rebates()
+    {
+        return $this->hasMany(Rebate::class, 'product_id');
     }
 
     /* SCOPES */
@@ -152,9 +159,22 @@ class Product extends AbstractMainFinanceModel
         return $this->product_cost;
     }
 
+    public function getAmountWithRebates()
+    {
+        return $this->memoize('amount_with_rebates', function () {
+            $amount = $this->getAmount();
+
+            if ($this->rebates()->count() > 0) {
+                $amount->negate(app(RebateHandlerService::class)->getDiscountAmount($this));
+            }
+
+            return new SafeDecimal(max(0, $amount->toFloat()));
+        });
+    }
+
     public function getCommissionAmount()
     {
-        return safeDecimal($this->product_type->isCommission() ? $this->product_cost : 0);
+        return safeDecimal($this->product_type->isCommission() ? $this->getAmount() : 0);
     }
 
     /* ACTIONS */
@@ -225,11 +245,6 @@ class Product extends AbstractMainFinanceModel
         return ProductService::createProductFromInvoiceDetail($invoiceDetail->id);
     }
 
-    public function normalizeToInvoiceDetail($invoice = null)
-    {
-        return ProductService::normalizeToInvoiceDetail($this->id, $invoice);
-    }
-
     /**
      * @deprecated Use ProductService::copyProductToInvoice() instead
      * Maintained for backward compatibility
@@ -252,6 +267,16 @@ class Product extends AbstractMainFinanceModel
             'default_revenue_account_id' => $this->default_revenue_account_id,
             'team_id' => currentTeamId(),
         ]));
+    }
+
+    public function normalizeToInvoiceDetail()
+    {
+        return ProductService::normalizeToInvoiceDetail($this->id);
+    }
+
+    public function normalizeInvoiceDetailsIncludingRebates($invoiceId = null)
+    {
+        return ProductService::normalizeInvoiceDetailsIncludingRebates($this->id, $invoiceId);
     }
 
     /**

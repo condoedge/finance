@@ -48,7 +48,7 @@ class PaymentGatewayResolverTest extends TestCase
         $this->resolver = new DefaultPaymentGatewayResolver($this->registry);
     }
 
-    protected function tearDown(): void
+    public function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();

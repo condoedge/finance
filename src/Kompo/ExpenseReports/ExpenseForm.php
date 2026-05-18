@@ -4,7 +4,7 @@ namespace Condoedge\Finance\Kompo\ExpenseReports;
 
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\Expense;
-use Condoedge\Finance\Models\ExpenseReportTypeEnum;
+use Condoedge\Finance\Models\ExpenseReportType;
 
 class ExpenseForm extends Modal
 {
@@ -23,6 +23,16 @@ class ExpenseForm extends Modal
         $this->model->total_expense_amount = request('total_expense_amount', 0);
     }
 
+    public function afterSave()
+    {
+        // Collapsed: button chain → server-driven kompoMulti.
+        return response()->kompoMulti([
+            response()->closeModal(),
+            response()->kompoRefresh('expenses-query'),
+            response()->kompoRefresh('expense-report-total'),
+        ]);
+    }
+
     public function body()
     {
         return _Rows(
@@ -35,15 +45,13 @@ class ExpenseForm extends Modal
                 ->default($this->model->total_expense_amount?->toFloat() ?? 0)
                 ->class('mb-4'),
             _Select('finance-expense-type')->name('expense_type')
-                ->options(ExpenseReportTypeEnum::optionsWithLabels())
+                ->options(ExpenseReportType::forTeam()->pluck('name', 'id'))
                 ->class('mb-4'),
             _Textarea('finance-expense-description')->name('expense_description'),
             _MultiImage('finance-expense-images')
                 ->name('files'),
             _SubmitButton('finance-save-expense')
-                ->class('mt-4')
-                ->closeModal()
-                ->refresh(['expenses-query', 'expense-report-total']),
+                ->class('mt-4'),
         );
     }
 
@@ -53,7 +61,7 @@ class ExpenseForm extends Modal
             'expense_date' => 'required|date',
             'expense_amount_before_taxes' => 'required|numeric|min:0',
             'total_expense_amount' => 'required|numeric|min:0|gte:expense_amount_before_taxes',
-            'expense_type' => 'required|in:' . implode(',', array_map(fn ($case) => $case->value, ExpenseReportTypeEnum::cases())),
+            'expense_type' => 'required|exists:fin_expense_report_types,id',
             'expense_description' => 'nullable|string|max:1000',
         ];
     }

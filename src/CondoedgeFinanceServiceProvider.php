@@ -9,12 +9,14 @@ use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\Product;
+use Condoedge\Finance\Models\Rebate;
 use Condoedge\Finance\Observers\DatabaseIntegrityObserver;
 use Condoedge\Finance\Services\DatabaseQueryInterceptor;
 use Condoedge\Finance\Services\Graph;
 use Condoedge\Finance\Services\IntegrityChecker;
 use Condoedge\Finance\Services\Invoice\InvoiceService;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
+use Condoedge\Finance\Services\Product\Rebates\RebateHandlerService;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\Factories\Factory as EloquentFactory;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -60,7 +62,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->setCronExecutions();
 
         $this->registerPaymentWebhookRoutes();
-        $this->registerPaymentModalsRoutes();
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'finance');
     }
@@ -158,6 +159,10 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->singleton(DatabaseQueryInterceptor::class, function ($app) {
             return new DatabaseQueryInterceptor($app->make(DatabaseIntegrityObserver::class));
         });
+
+        $this->app->bind(RebateHandlerService::class, function ($app) {
+            return new RebateHandlerService($app->has('rebate_context') ? $app->get('rebate_context') : []);
+        });
     }
 
     protected function loadHelpers()
@@ -208,6 +213,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         Relation::morphMap(collect([
             'product' => Product::class,
             'invoice' => InvoiceModel::getClass(),
+            'rebate' => Rebate::class,
         ])->union(CustomerService::getValidCustomableModels())->union(collect(MorphablesEnum::cases())->mapWithKeys(function ($case) {
             return [$case->value => $case->getMorphableClass()];
         }))->all());
@@ -220,7 +226,9 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 \Condoedge\Finance\Command\EnsureIntegrityCommand::class,
                 \Condoedge\Finance\Command\PreCreateFiscalPeriodsCommand::class,
                 \Condoedge\Finance\Command\CleanupWebhookEventsCommand::class,
-                \Condoedge\Finance\Command\EnsureInvoiceEventsAreProcessed::class
+                \Condoedge\Finance\Command\CleanupExpenseReportDraftsCommand::class,
+                \Condoedge\Finance\Command\EnsureInvoiceEventsAreProcessed::class,
+                \Condoedge\Finance\Command\ReconcileMonerisPaymentsCommand::class,
             ]);
         }
     }
@@ -247,6 +255,14 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             $schedule->command('finance:cleanup-webhook-events --days=90')
                 ->monthly()
                 ->at('02:00');
+
+            // Moneris doesn't have reliable IPN — if the user closes the browser
+            // between paying and our return URL firing, the trace stays in
+            // PROCESSING. Sweep every 15 min to call /receipt and finalize.
+            $schedule->command('finance:reconcile-moneris')
+                ->everyFifteenMinutes()
+                ->withoutOverlapping()
+                ->appendOutputTo(storage_path('logs/moneris-reconciliation.log'));
 
             $schedule->command('cleanup:expense-report-drafts')
                 ->daily()
@@ -334,6 +350,12 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             \Condoedge\Finance\Billing\Core\Resolver\DefaultPaymentGatewayResolver::class
         );
 
+        // Provider health checker (sliding-window failure tracking, half-open recovery)
+        $this->app->singleton(
+            \Condoedge\Finance\Billing\Contracts\ProviderHealthCheckerInterface::class,
+            \Condoedge\Finance\Billing\Core\Health\DefaultProviderHealthChecker::class,
+        );
+
         $this->app->singleton(PaymentProviderRegistry::class);
     }
 
@@ -362,28 +384,6 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
 
                     foreach ($registry->all() as $provider) {
                         $provider->registerWebhookRoutes($router);
-                    }
-                });
-        });
-    }
-
-    private function registerPaymentModalsRoutes()
-    {
-        $this->app->booted(function () {
-            Route::middleware(['web'])
-                ->prefix('modals')
-                ->group(function ($router) {
-                    $registry = app(PaymentProviderRegistry::class);
-
-                    foreach ($registry->all() as $provider) {
-                        if (in_array(PaymentCanReturnModal::class, class_implements($provider))) {
-                            foreach ($provider->registerModals() as $modalClass) {
-                                if (class_exists($modalClass)) {
-                                    $router->get('modal/' . class_basename($modalClass), $modalClass)
-                                        ->name('modal.' . class_basename($modalClass));
-                                }
-                            }
-                        }
                     }
                 });
         });

@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Billing\Providers\Bna;
 
 use Condoedge\Finance\Billing\Contracts\PaymentCanReturnModal;
 use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Core\ErrorClassification;
 use Condoedge\Finance\Billing\Core\PaymentActionEnum;
 use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Billing\Core\PaymentResult;
@@ -11,6 +12,8 @@ use Condoedge\Finance\Billing\Core\WebhookProcessor;
 use Condoedge\Finance\Billing\Providers\Bna\Form\InteracExplanationModal;
 use Condoedge\Finance\Billing\Providers\Bna\Form\PaymentCreditCardForm;
 use Condoedge\Finance\Models\PaymentMethodEnum;
+use Condoedge\Finance\Models\ProviderCredentials;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -21,10 +24,12 @@ use Kompo\Elements\BaseElement;
 class BnaPaymentProvider implements PaymentGatewayInterface, PaymentCanReturnModal
 {
     use \Condoedge\Finance\Billing\Traits\RegistersWebhooks;
+    use \Condoedge\Finance\Billing\Traits\BasicGatewayTrait;
 
     protected string $apiUrl;
     protected string $accessKey;
     protected string $secretKey;
+    protected ?ProviderCredentials $credentials = null;
 
     /**
      * Current payment context
@@ -46,6 +51,52 @@ class BnaPaymentProvider implements PaymentGatewayInterface, PaymentCanReturnMod
     public function getCode(): string
     {
         return 'bna';
+    }
+
+    public function getDisplayName(): string
+    {
+        return 'BNA Smart Payment';
+    }
+
+    public function withCredentials(?ProviderCredentials $creds): static
+    {
+        if (!$creds) {
+            return $this;
+        }
+
+        $copy = clone $this;
+        $copy->credentials = $creds;
+
+        if ($url = $creds->get('api_url')) {
+            $copy->apiUrl = $url;
+        }
+        if ($key = $creds->get('api_key')) {
+            $copy->accessKey = $key;
+        }
+        if ($secret = $creds->get('api_secret')) {
+            $copy->secretKey = $secret;
+        }
+
+        return $copy;
+    }
+
+    /**
+     * BNA error classification. BNA's API returns a status code; declines map
+     * to permanent. Connection issues retry-eligible.
+     */
+    public function classifyError(\Throwable $e): ErrorClassification
+    {
+        if ($e instanceof ConnectionException) {
+            return ErrorClassification::network('bna_network', $e->getMessage());
+        }
+
+        // BNA returns HTTP 401/403 on bad credentials.
+        if (str_contains(strtolower($e->getMessage()), 'unauthorized') ||
+            str_contains(strtolower($e->getMessage()), 'forbidden')) {
+            return ErrorClassification::authFailure('bna_auth', $e->getMessage());
+        }
+
+        return ErrorClassification::transient('bna_api', $e->getMessage());
     }
 
     public function registerModals()

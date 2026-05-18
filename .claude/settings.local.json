@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(head:*)",
+      "Bash(php:*)",
+      "Bash(grep:*)",
+      "Bash(wc -l /c/Users/jkend/Documents/Projects/kompo/finance/src/Models/Dto/**/*.php)",
+      "Skill(superpowers:brainstorming)"
+    ]
+  }
+}

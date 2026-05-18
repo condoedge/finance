@@ -16,8 +16,8 @@ class TaxFactory extends Factory
             'name' => $this->faker->word,
             'rate' => $this->faker->randomFloat(2, 0, 0.2),
             'account_id' => GlAccount::factory(),
-            'valide_from' => $this->faker->date(),
-            'valide_to' => $this->faker->date(),
+            'valid_from' => $this->faker->date(),
+            'valid_to' => $this->faker->date(),
         ];
     }
 }

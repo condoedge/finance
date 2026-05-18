@@ -18,15 +18,20 @@ class SelectMissingInfoInvoice extends Modal
         InvoiceService::approveInvoice(new ApproveInvoiceDto([
             'invoice_id' => $this->model->id,
         ]));
+
+        // Collapsed from button chain (->closeModal->refresh->alert) to a single
+        // server-driven kompoMulti. Easier to reason about, atomic on the client.
+        return response()->kompoMulti([
+            response()->closeModal(),
+            response()->kompoRefresh('invoice-page'),
+            response()->kompoAlert(__('finance-invoice-approved'), 'success'),
+        ]);
     }
 
     public function body()
     {
         return _Rows(
-            _SubmitButton('finance-save-and-approve')
-                ->closeModal()
-                ->refresh('invoice-page')
-                ->alert('finance-invoice-approved'),
+            _SubmitButton('finance-save-and-approve'),
         );
     }
 }

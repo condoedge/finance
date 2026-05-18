@@ -5,10 +5,14 @@ namespace Condoedge\Finance\Services\Product;
 use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
+use Condoedge\Finance\Models\Dto\Products\CreateRebateDto;
 use Condoedge\Finance\Models\Dto\Products\UpdateProductDto;
+use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceDetail;
 use Condoedge\Finance\Models\Product;
 use Condoedge\Finance\Models\ProductTypeEnum;
+use Condoedge\Finance\Models\Rebate;
+use Condoedge\Finance\Services\Product\Rebates\RebateHandlerService;
 use Illuminate\Support\Facades\DB;
 
 class ProductService implements ProductServiceInterface
@@ -104,10 +108,10 @@ class ProductService implements ProductServiceInterface
         });
     }
 
-    public function normalizeToInvoiceDetail($productId, $invoice = null)
+    public function normalizeToInvoiceDetail(int $productId, ?Invoice $invoice = null): array
     {
         $product = Product::findOrFail($productId);
-
+        
         return array_filter([
             'invoiceable_type' => 'product',
             'invoiceable_id' => $product->id,
@@ -120,6 +124,17 @@ class ProductService implements ProductServiceInterface
             'invoice_id' => $invoice ? $invoice->id : null,
             'product_id' => $product->id,
         ]);
+    }
+
+    public function normalizeInvoiceDetailsIncludingRebates(int $productId, ?Invoice $invoice = null)
+    {
+        $product = Product::findOrFail($productId);
+        
+        $rebateService = app(RebateHandlerService::class);
+
+        return collect($rebateService->normalizeRebatesToInvoiceDetails($product, $invoice ? $invoice->id : null))
+            ->prepend($this->normalizeToInvoiceDetail($productId, $invoice))
+            ->values();
     }
 
     /**
@@ -212,8 +227,49 @@ class ProductService implements ProductServiceInterface
     {
         $invoice = \Condoedge\Finance\Models\Invoice::find($invoiceId);
 
-        return InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail(
-            $this->normalizeToInvoiceDetail($productId, $invoice)
-        ));
+        $invoiceDetails = $this->normalizeInvoiceDetailsIncludingRebates($productId, $invoice);
+
+        foreach ($invoiceDetails as $detailData) {
+            InvoiceDetailService::createInvoiceDetail(new CreateOrUpdateInvoiceDetail($detailData));
+        }
+
+        return $invoiceDetails->firstWhere('invoiceable_type', 'product');
+    }
+
+    public function createRebate(CreateRebateDto $dto): Rebate
+    {
+        $rebate = new Rebate();
+
+        $rebate->product_id = $dto->product_id;
+        $rebate->rebate_logic_type = $dto->rebate_logic_type;
+        $rebate->rebate_logic_parameters = is_array($dto->rebate_logic_parameters) ? json_encode($dto->rebate_logic_parameters) : $dto->rebate_logic_parameters;
+        $rebate->amount = $dto->amount;
+        $rebate->amount_type = $dto->amount_type;
+        $rebate->save();
+
+        return $rebate->refresh();
+    }
+
+    public function updateRebate(int $rebateId, CreateRebateDto $dto): Rebate
+    {
+        $rebate = Rebate::findOrFail($rebateId);
+
+        $rebate->product_id = $dto->product_id;
+        $rebate->rebate_logic_type = $dto->rebate_logic_type;
+        $rebate->rebate_logic_parameters = is_array($dto->rebate_logic_parameters) ? json_encode($dto->rebate_logic_parameters) : $dto->rebate_logic_parameters;
+        $rebate->amount = $dto->amount;
+        $rebate->amount_type = $dto->amount_type;
+        $rebate->save();
+
+        return $rebate->refresh();
+    }
+
+    public function upsertRebate(CreateRebateDto $dto, ?int $rebateId = null): Rebate
+    {
+        if ($rebateId) {
+            return $this->updateRebate($rebateId, $dto);
+        }
+
+        return $this->createRebate($dto);
     }
 }

@@ -7,7 +7,7 @@ use Condoedge\Finance\Models\PaymentTermTypeEnum;
 
 trait TermSelectorTrait
 {
-    protected function getPaymentTermsSelector($selectPaymentTermId = null)
+    protected function getPaymentTermsSelector($selectPaymentTermId = null, $paymentTermName = 'possible_payment_terms')
     {
         $paymentTermTypes = PaymentTerm::distinct()->pluck('term_type');
         $onChangeCallback = $this->onChangePaymentTerms();
@@ -19,17 +19,20 @@ trait TermSelectorTrait
                 ->mapWithKeys(fn ($enum) => [$enum->value => $enum->label()])->all()
             )
             ->default($selectPaymentTermId)
-            ->selfGet('getPaymentTerms')->inPanel('payment-terms-panel')
+            ->selfGet('getPaymentTerms', ['payment_term_name' => $paymentTermName])->inPanel('payment-terms-panel')
             ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2'),
             _Panel(
-                $this->getPaymentTerms($selectPaymentTermId)
-            )->id('payment-terms-panel')
+                $this->getPaymentTerms($selectPaymentTermId, $paymentTermName)
+            )->id('payment-terms-panel')->class('z-10')
         );
     }
 
-    public function getPaymentTerms($paymentTermType = null)
+    public function getPaymentTerms($paymentTermType = null, $paymentTermName = 'possible_payment_terms')
     {
+        $paymentTermType = request('payment_term_type', $paymentTermType);
+        $paymentTermName = request('payment_term_name', $paymentTermName);
+
         if (!$paymentTermType) {
             return null;
         }
@@ -38,7 +41,7 @@ trait TermSelectorTrait
         $element = null;
 
         if ($paymentTermType == PaymentTermTypeEnum::COD) {
-            return _Hidden()->name('possible_payment_terms')->value([PaymentTerm::where('term_type', $paymentTermType->value)->pluck('id')->first()]);
+            return _Hidden()->name($paymentTermName)->value([PaymentTerm::where('term_type', $paymentTermType->value)->pluck('id')->first()]);
         }
 
         if ($paymentTermType == PaymentTermTypeEnum::INSTALLMENT) {
@@ -49,7 +52,7 @@ trait TermSelectorTrait
 
         $onChangeCallback = $this->onChangePaymentTerms();
 
-        return $element->name('possible_payment_terms')->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->all())
+        return $element->name($paymentTermName)->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->all())
             ->default(PaymentTerm::whereIn('id', $this->getDefaultPaymentTerms())->where('term_type', $paymentTermType->value)->pluck('id')->all())
             ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2');

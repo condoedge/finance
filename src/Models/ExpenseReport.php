@@ -6,6 +6,7 @@ use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\DB;
+use Kompo\Auth\Facades\TeamModel;
 use Kompo\Auth\Facades\UserModel;
 use Kompo\Auth\Models\Teams\BelongsToTeamTrait;
 
@@ -39,6 +40,11 @@ class ExpenseReport extends AbstractMainFinanceModel
     public function user()
     {
         return $this->belongsTo(UserModel::getClass());
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(TeamModel::getClass())->withTrashed();
     }
 
     public function customer()

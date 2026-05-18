@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Services;
 
 use Condoedge\Finance\Enums\SegmentDefaultHandlerEnum;
+use Condoedge\Finance\Exceptions\SegmentValueOverflowException;
 use Condoedge\Finance\Facades\SegmentDefaultHandlerEnum as FacadesSegmentDefaultHandlerEnum;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\SegmentValue;
@@ -47,6 +48,10 @@ class SegmentDefaultHandlerService
                 SegmentDefaultHandlerEnum::PARENT_TEAM => $this->resolveParentTeamValue($segment, $context),
                 SegmentDefaultHandlerEnum::MANUAL => null,
             };
+        } catch (SegmentValueOverflowException $e) {
+            // Overflow must fail loud: swallowing it here would silently drop
+            // the segment and produce a malformed GL account.
+            throw $e;
         } catch (\Exception $e) {
             Log::error('Error resolving default value for segment', [
                 'segment_id' => $segment->id,
@@ -68,17 +73,11 @@ class SegmentDefaultHandlerService
             return null;
         }
 
-        // For team handler, we use the team ID padded to segment length
-        $code = str_pad((string)$teamId, $segment->segment_length, '0', STR_PAD_LEFT);
-
-        // If code is too long, take the last N characters
-        if (strlen($code) > $segment->segment_length) {
-            $code = substr($code, -$segment->segment_length);
-        }
-
         $description = __('finance.team-id-value', ['id' => $teamId]);
 
-        return $this->findOrCreateSegmentValue($segment, $code, $description);
+        // Let findOrCreateSegmentValue (via fitToSegmentLength) handle
+        // zero-padding the team id to the segment slot, or throw on overflow.
+        return $this->findOrCreateSegmentValue($segment, (string) $teamId, $description, $teamId);
     }
 
     /**
@@ -92,12 +91,12 @@ class SegmentDefaultHandlerService
         }
 
         $team = \Kompo\Auth\Facades\TeamModel::find($teamId);
-        $code = $team->parent_team_id ?? 0;
+        $code = (string) ($team->parent_team_id ?? 0);
         $parentName = $team->parentTeam ? $team->parentTeam->team_name : __('finance.no-parent-team');
 
-        $code = $this->fitToSegmentLength($code, $segment->segment_length);
-
-        return $this->findOrCreateSegmentValue($segment, $code, $parentName);
+        // findOrCreateSegmentValue (via fitToSegmentLength) is the single
+        // fitting chokepoint; pass the raw value straight through.
+        return $this->findOrCreateSegmentValue($segment, $code, $parentName, $team->id);
     }
 
     /**
@@ -106,10 +105,12 @@ class SegmentDefaultHandlerService
     protected function findOrCreateSegmentValue(
         AccountSegment $segment,
         string $code,
-        string $description
+        string $description,
+        ?int $teamId = null
     ): SegmentValue {
-        // Ensure code fits segment length exactly
-        $code = $this->fitToSegmentLength($code, $segment->segment_length);
+        // Ensure code fits segment length exactly (pad-or-throw) before the
+        // lookup, so the lookup key matches what we would persist on create.
+        $code = $this->fitToSegmentLength($code, $segment, $teamId);
 
         // Try to find existing value
         $segmentValue = SegmentValue::where('segment_definition_id', $segment->id)
@@ -177,13 +178,28 @@ class SegmentDefaultHandlerService
 
     /**
      * Fit a value to segment length
+     *
+     * Pads short values with leading zeros. Throws (and logs) when the value
+     * is longer than the segment slot instead of silently truncating it,
+     * which would corrupt the resulting GL account.
      */
-    protected function fitToSegmentLength(string $value, int $length): string
+    protected function fitToSegmentLength(string $value, AccountSegment $segment, ?int $teamId = null): string
     {
+        $length = $segment->segment_length;
+
         if (strlen($value) > $length) {
-            // Take the last N characters if too long
-            return substr($value, -$length);
-        } elseif (strlen($value) < $length) {
+            $exception = new SegmentValueOverflowException(
+                segmentId: $segment->id,
+                segmentDescription: $segment->segment_description,
+                segmentLength: $length,
+                value: $value,
+                teamId: $teamId,
+            );
+            Log::error('Segment value overflow', $exception->loggingContext());
+            throw $exception;
+        }
+
+        if (strlen($value) < $length) {
             // Pad with zeros if too short
             return str_pad($value, $length, '0', STR_PAD_LEFT);
         }

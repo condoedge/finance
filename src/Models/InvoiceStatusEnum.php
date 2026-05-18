@@ -40,7 +40,7 @@ enum InvoiceStatusEnum: int
     public function class(): string
     {
         return match ($this) {
-            self::DRAFT => 'bg-gray-300',
+            self::DRAFT => 'bg-gray-500',
             self::PENDING => 'bg-warning',
             self::PAID => 'bg-positive',
             self::CANCELLED => 'bg-danger',

@@ -2,10 +2,14 @@
 
 namespace Condoedge\Finance\Kompo;
 
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface;
 use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentFlowEnum;
+use Condoedge\Finance\Billing\Core\PaymentLog;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\PaymentProcessor;
+use Condoedge\Finance\Kompo\Common\PaymentUnavailableNotice;
 use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\PaymentMethod;
@@ -51,7 +55,13 @@ class InvoicePayModal extends Form
         }
 
         if ($result->success) {
-            return $this->successElsEvents();
+            return response()->kompoMulti([
+                response()->closeModal(),
+                response()->closeModal(),
+                response()->kompoRun('() => {utils.removeLoadingScreen()}'),
+                response()->kompoAlert('finance-paid-successfully'),
+                response()->kompoRefresh('dashboard-view'),
+            ]);
         }
 
         if (!$result->success) {
@@ -108,11 +118,36 @@ class InvoicePayModal extends Form
         }
 
         $paymentMethod = PaymentMethodEnum::from($paymentMethodId);
-
-        return PaymentProcessor::getPaymentForm(new PaymentContext(
+        $context = new PaymentContext(
             payable: $this->model,
             paymentMethod: $paymentMethod,
-        )) ?? _Html($paymentMethod->label())->class('text-center text-gray-800');
+        );
+
+        // Pre-form gate: preview the resolver chain before rendering. If no
+        // provider is currently healthy, show the friendly notice and log it.
+        $chain = app(PaymentGatewayResolverInterface::class)->previewChain($context);
+
+        if (empty($chain)) {
+            PaymentLog::unavailable($context, 'no_healthy_provider');
+            return new PaymentUnavailableNotice(null, [
+                'method' => $paymentMethod->value,
+                'reason' => 'no_healthy_provider',
+            ]);
+        }
+
+        $primary = $chain[0];
+
+        // Hosted flow: no inline form to render. Submitting the modal's main
+        // Pay button kicks off payInvoice → processPayment → preload → REDIRECT
+        // action, which redirects the browser to the provider's hosted page.
+        if ($primary->getCheckoutFlow()->isHosted()) {
+            return _Html(__('finance.you-will-be-redirected-to', [
+                'provider' => $primary->getDisplayName(),
+            ]))->class('text-sm text-gray-600 text-center');
+        }
+
+        return $primary->getPaymentForm($context)
+            ?? _Html($paymentMethod->label())->class('text-center text-gray-800');
     }
 
     public function getPaymentSchedule($paymentTermId = null)
@@ -121,7 +156,7 @@ class InvoicePayModal extends Form
             return _Html('finance.select-installment')->class('text-center text-gray-500');
         }
 
-        $paymentTerm = PaymentTerm::findOrFail($paymentTermId);
+        $paymentTerm = PaymentTerm::withTrashed()->findOrFail($paymentTermId);
 
         return _Rows(
             $paymentTerm->preview($this->model)
@@ -130,36 +165,27 @@ class InvoicePayModal extends Form
 
     protected function getPaymentMethods()
     {
-        return PaymentMethod::whereIn('id', $this->model->possible_payment_methods ?? [])->isOnlinePayment()->pluck('name', 'id');
+        // Show only methods the team's providers can actually process. The
+        // resolver enforces provider capability (a method never shows unless a
+        // provider genuinely supports it) and the primary-vs-fallback rule
+        // controlled by config('kompo-finance.offer_fallback_provider_methods').
+        $methods = PaymentMethod::whereIn('id', $this->model->possible_payment_methods ?? [])
+            ->isOnlinePayment()
+            ->get();
+
+        $resolver = app(PaymentGatewayResolverInterface::class);
+
+        return $methods->filter(function (PaymentMethod $method) use ($resolver) {
+            $context = new PaymentContext(
+                payable: $this->model,
+                paymentMethod: PaymentMethodEnum::from($method->id),
+            );
+            return $resolver->isMethodAvailable($context);
+        })->pluck('name', 'id');
     }
 
     protected function getPaymentInstallments()
     {
         return PaymentTerm::whereIn('id', $this->model->possible_payment_terms ?? [])->pluck('term_name', 'id');
-    }
-
-    protected function successElsEvents()
-    {
-        return _Rows(
-            _Hidden()->onLoad(fn ($e) => $e->run('() => {
-                        $("#pay-invoice-success").click();
-                    }')),
-            _Button()->id('pay-invoice-success')
-                ->class('hidden')
-                ->closeModal()
-                ->closeModal()
-                ->refresh('dashboard-view')
-                ->run('() => {utils.removeLoadingScreen()}')
-                ->alert('finance-paid-successfully')
-                ->onError(fn ($e) => $e->inAlert('error-icon', 'vlAlertError')->run('() => {utils.removeLoadingScreen()}')->closeModal())
-        );
-    }
-
-    public function rules()
-    {
-        return [
-            // 'payment_method_id' => 'required|exists:fin_payment_methods,id',
-            // 'payment_term_id' => 'nullable|exists:fin_payment_terms,id',
-        ];
     }
 }

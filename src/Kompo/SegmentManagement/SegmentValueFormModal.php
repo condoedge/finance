@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Kompo\SegmentManagement;
 
+use Condoedge\Finance\Enums\SystemAccountTypeEnum;
 use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Models\AccountSegment;
 use Condoedge\Finance\Models\AccountTypeEnum;
@@ -33,6 +34,7 @@ class SegmentValueFormModal extends Modal
                 'segment_value' => request('segment_value'),
                 'segment_description' => request('segment_description'),
                 'account_type' => $this->isRealAccount ? (int) request('account_type') : null,
+                'system_account_type' => $this->isRealAccount ? (request('system_account_type') ?: null) : null,
                 'allow_manual_entry' => request('allow_manual_entry', true),
             ]));
         } else {
@@ -40,6 +42,7 @@ class SegmentValueFormModal extends Modal
                 'id' => $this->model->id,
                 'segment_description' => request('segment_description'),
                 'account_type' => $this->isRealAccount ? (int) request('account_type') : null,
+                'system_account_type' => $this->isRealAccount ? (request('system_account_type') ?: null) : null,
                 'allow_manual_entry' => request('allow_manual_entry', true),
             ]));
         }
@@ -72,6 +75,8 @@ class SegmentValueFormModal extends Modal
             !$this->isRealAccount ? null : _Select('finance-account-type')->name('account_type')
                 ->options(AccountTypeEnum::optionsWithLabels())
                 ->required(),
+            !$this->isRealAccount ? null : _Select('finance-system-account-type')->name('system_account_type')
+                ->options(SystemAccountTypeEnum::optionsWithLabels()),
             _Toggle('finance-allow-manual-entry')
                 ->name('allow_manual_entry')
                 ->default(true)

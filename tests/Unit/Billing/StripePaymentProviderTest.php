@@ -58,7 +58,7 @@ class StripePaymentProviderTest extends TestCase
         $property->setValue($this->provider, $this->mockStripeClient);
     }
 
-    protected function tearDown(): void
+    public function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();

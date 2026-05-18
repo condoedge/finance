@@ -23,7 +23,7 @@ class ApproveManyInvoicesDto extends ValidatedDTO
     public function casts(): array
     {
         return [
-            'invoice_id' => new ArrayCast(),
+            'invoices_ids' => new ArrayCast(),
         ];
     }
 }

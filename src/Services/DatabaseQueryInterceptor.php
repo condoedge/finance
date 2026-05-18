@@ -54,7 +54,9 @@ class DatabaseQueryInterceptor
         $operation = static::getOperationType($sql);
         $table = static::getTableName($sql);
 
-        static::$monitoredTables = collect((new Graph(config('kompo-finance.model_integrity_relations')))->getAllNodesBFS())->map(fn ($e) => (new $e())->getTable())->all();
+        if (static::$monitoredTables === []) {
+            static::$monitoredTables = collect((new Graph(config('kompo-finance.model_integrity_relations')))->getAllNodesBFS())->map(fn ($e) => (new $e())->getTable())->all();
+        }
 
         // Only process queries on monitored tables
         if (!$table || !in_array($table, static::$monitoredTables, true)) {

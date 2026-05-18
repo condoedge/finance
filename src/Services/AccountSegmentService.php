@@ -125,6 +125,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             $segmentValue->is_active = $dto->is_active;
             $segmentValue->allow_manual_entry = $dto->allow_manual_entry ?? true;
             $segmentValue->account_type = $dto->account_type ?? null;
+            $segmentValue->system_account_type = $dto->system_account_type ?? null;
             $segmentValue->save();
 
             return $segmentValue;
@@ -137,6 +138,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             $segmentValue = SegmentValue::findOrFail($dto->id);
             $segmentValue->segment_description = $dto->segment_description;
             $segmentValue->account_type = $dto->account_type ?? null;
+            $segmentValue->system_account_type = $dto->system_account_type ?? null;
             $segmentValue->allow_manual_entry = $dto->allow_manual_entry ?? true;
             $segmentValue->save();
 
@@ -168,7 +170,7 @@ class AccountSegmentService implements AccountSegmentServiceInterface
 
             // Create the account record using property assignment
             $account = new GlAccount();
-            $account->account_segments_descriptor = 'TEMP'; // Will be updated by trigger
+            $account->account_segments_descriptor = null; // Set after assignments via build_account_descriptor()
             $account->is_active = $dto->is_active;
             $account->allow_manual_entry = $dto->allow_manual_entry;
             $account->save();
@@ -176,11 +178,35 @@ class AccountSegmentService implements AccountSegmentServiceInterface
             // Create segment assignments
             AccountSegmentAssignment::createForAccount($account->id, $dto->segment_value_ids);
 
-            // Refresh to get computed fields from database
-            $account = $account->refresh();
+            // Built after assignments exist
+            $account->account_segments_descriptor = DB::scalar('SELECT build_account_descriptor(?)', [$account->id]);
+            $account->team_id = $this->deriveTeamIdFromAssignments($account->id);
+            $account->save();
 
             return $account;
         });
+    }
+
+    /**
+     * Derive the owning team_id from an account's team-handler segment assignment.
+     */
+    protected function deriveTeamIdFromAssignments(int $accountId): ?int
+    {
+        // Assumes a single, numeric, handler-produced team-segment value: the canonical
+        // structure guarantees exactly one team-handler segment and the team handler
+        // always produces a zero-padded numeric id.
+        $teamSegmentValue = DB::table('fin_account_segment_assignments as asa')
+            ->join('fin_segment_values as sv', 'sv.id', '=', 'asa.segment_value_id')
+            ->join('fin_account_segments as seg', 'seg.id', '=', 'sv.segment_definition_id')
+            ->where('asa.account_id', $accountId)
+            ->where('seg.default_handler', SegmentDefaultHandlerEnum::TEAM->value)
+            ->value('sv.segment_value');
+
+        if ($teamSegmentValue === null) {
+            return null;
+        }
+
+        return (int) $teamSegmentValue; // e.g. '0000047' => 47
     }
 
     public function createAccountFromLastValue($lastSegmentValueId): GlAccount
@@ -479,14 +505,24 @@ class AccountSegmentService implements AccountSegmentServiceInterface
 
     public function createDefaultSegments(): void
     {
-        if ($this->getSegmentStructure()->isEmpty()) {
-            // Create default segments if none exist
-            $this->createOrUpdateSegment(new CreateOrUpdateSegmentDto([
-                'segment_description' => 'Account',
-                'segment_position' => 1,
-                'segment_length' => 4,
-                'default_handler' => SegmentDefaultHandlerEnum::MANUAL,
-            ]));
+        if (!$this->getSegmentStructure()->isEmpty()) {
+            return;
         }
+
+        // Create the canonical chart-of-accounts structure: a Team segment
+        // followed by a natural Account segment.
+        $this->createOrUpdateSegment(new CreateOrUpdateSegmentDto([
+            'segment_description' => 'Team',
+            'segment_position' => 1,
+            'segment_length' => 7,
+            'default_handler' => SegmentDefaultHandlerEnum::TEAM,
+        ]));
+
+        $this->createOrUpdateSegment(new CreateOrUpdateSegmentDto([
+            'segment_description' => 'Account',
+            'segment_position' => 2,
+            'segment_length' => 4,
+            'default_handler' => SegmentDefaultHandlerEnum::MANUAL,
+        ]));
     }
 }

@@ -7,15 +7,12 @@ use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
 class PaymentProviderRegistry
 {
     /**
-     * Registered payment providers
-     *
-     * @var array<PaymentGatewayInterface>
+     * @var array<string, PaymentGatewayInterface>
      */
     private array $providers = [];
 
     public function __construct()
     {
-        // Allow custom providers via service provider
         foreach (config('kompo-finance.payment_providers', []) as $providerClass) {
             $this->register(app($providerClass));
         }
@@ -29,14 +26,19 @@ class PaymentProviderRegistry
     public function get(string $code): PaymentGatewayInterface
     {
         if (!isset($this->providers[$code])) {
-            throw new \Exception("Payment provider '{$code}' not found");
+            throw new \RuntimeException("Payment provider '{$code}' not registered");
         }
 
         return $this->providers[$code];
     }
 
+    public function has(string $code): bool
+    {
+        return isset($this->providers[$code]);
+    }
+
     /**
-     * @return array<PaymentGatewayInterface>
+     * @return array<string, PaymentGatewayInterface>
      */
     public function all(): array
     {

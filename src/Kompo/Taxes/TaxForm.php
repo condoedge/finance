@@ -21,6 +21,18 @@ class TaxForm extends Modal
         $this->model->account_id = AccountSegmentService::createAccountFromLastValue(request('account_id'))->id;
     }
 
+    public function afterSave()
+    {
+        // Collapsed: button chain → server-driven kompoMulti. Future improvement:
+        // replace kompoRefresh with response()->addToQuery('taxes-table', $row)
+        // for a surgical insert (requires moving the table row template here).
+        return response()->kompoMulti([
+            response()->closeModal(),
+            response()->kompoRefresh('taxes-table'),
+            response()->kompoAlert(__('finance-tax-saved-successfully'), 'success'),
+        ]);
+    }
+
     public function body()
     {
         $currentLocationType = $this->model->location?->type->value == 1 ? 1 : 2;
@@ -50,12 +62,10 @@ class TaxForm extends Modal
             _AccountsSelect('finance-account', $this->model->account)
                 ->name('account_id', false)
                 ->required(),
-            _Date('finance-valid-from')->name('valide_from')
+            _Date('finance-valid-from')->name('valid_from')
                 ->default(now()->format('Y-m-d')),
             _FlexEnd(
-                _SubmitButton('generic.save')->closeModal()
-                    ->alert('finance-tax-saved-successfully')
-                    ->refresh('taxes-table'),
+                _SubmitButton('generic.save'),
             )->class('mt-3'),
         );
     }

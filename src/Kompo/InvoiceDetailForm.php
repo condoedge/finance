@@ -4,6 +4,8 @@ namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceDetailModel;
 use Condoedge\Finance\Facades\ProductModel;
+use Condoedge\Finance\Models\GlAccount;
+use Kompo\Auth\Facades\TeamModel;
 use Kompo\Form;
 
 class InvoiceDetailForm extends Form
@@ -11,17 +13,22 @@ class InvoiceDetailForm extends Form
     public $model = InvoiceDetailModel::class;
     public $class = 'align-top';
     protected $teamId;
+    protected $team;
     protected $invoiceId;
     protected $invoice;
 
     protected $productId;
     protected $product;
+    protected $refreshId;
 
     protected $createProductsOnSave = false;
 
     public function created()
     {
         $this->teamId = $this->prop('team_id');
+        $this->refreshId = $this->prop('refresh_id');
+
+        $this->team = TeamModel::find($this->teamId);
 
         $this->productId = $this->prop('product_id');
         $this->product = $this->productId > 0 ? ProductModel::find($this->productId) : null;
@@ -31,56 +38,74 @@ class InvoiceDetailForm extends Form
 
     public function render()
     {
+        $glAccount = $this->model->revenueAccount()->first() ?? $this->product?->defaultRevenueAccount ?? GlAccount::find($this->team->default_revenue_account_id);
+
         return [
             _Rows(
+                // Triggers invoice-level totals on first render; per-row figures
+                // are now driven by jsComputedFormat (see below).
                 _Hidden()->name('_', false)->onLoad->run('calculateTotals'),
                 _Hidden()->name('create_product_on_save')->default($this->createProductsOnSave ? 1 : 0),
                 _Hidden()->name('product_id')->default($this->product->id ?? null),
-                _Input()->placeholder('finance.new-item-name')->name('name')->class('w-72 !mb-2')
+                _Input()->placeholder('finance.new-item-name')->name('name')->class('!mb-2')
                     ->default($this->product?->product_name),
-                _Input()->placeholder('finance.item-description')->name('description')->class('!mb-0')->style('width: 170%')
+                _Input()->placeholder('finance.item-description')->name('description')->class('!mb-0')
                     ->default($this->product?->product_description),
-            ),
 
-            _AccountsSelect(account: $this->model->revenueAccount()->first() ?? $this->product?->defaultRevenueAccount)
-                ->name('revenue_natural_account_id', false)
-                ->class('w-full !mb-0'),
+                _Hidden()
+                    ->default($glAccount?->getLastSegmentValue()->id)
+                    ->name('revenue_natural_account_id', false)
+                    ->class('w-full !mb-0'),
+            )->class('w-full'),
 
             _Rows(
-                _Flex(
-                    _Input()->type('number')
-                        ->name('quantity')
-                        ->default(1)
-                        ->class('w-28 !mb-0')
-                        ->run('calculateTotals'),
-                    _Input()->type('number')
-                        ->name('unit_price', false)
-                        ->default($this->model->unit_price?->toFloat() ?? $this->product?->getAmount()->toFloat() ?? 0)
-                        ->class('w-28 !mb-0')
-                        ->run('calculateTotals'),
-                    _FinanceCurrency($this->model->extended_price)
-                        ->class('item-total w-32 text-lg font-semibold text-level1 text-right'),
-                )->class('gap-3'),
                 _FlexBetween(
                     _Flex(
-                        _TaxesSelect($this->model, 'taxesIds')
-                            ->class('w-60 !mb-0 mt-2')
+                        _Input()->type('number')
+                            ->name('quantity')
+                            ->default(1)
+                            ->class('w-28 !mb-0')
+                            // calculateTotals still triggers invoice-level subtotal aggregation
+                            // (cross-row sum), which jsComputed can't express. Per-row display
+                            // is reactive via the jsComputedFormat below.
                             ->run('calculateTotals'),
-                        _FlexEnd(
-                            _Rows(
-                                $this->model->invoiceTaxes()->get()->map(
-                                    fn ($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate))
-                                )
-                            )->class('w-32 item-taxes font-semibold text-level1 text-right')
-                        )->class('relative'),
-                    ),
+                        _Input()->type('number')
+                            ->name('unit_price', false)
+                            ->default($this->model->unit_price?->toFloat() ?? $this->product?->getAmount()->toFloat() ?? 0)
+                            ->class('w-28 !mb-0')
+                            ->run('calculateTotals'),
+                    )->class('gap-3'),
+                    _FinanceCurrency($this->model->extended_price)
+                        ->jsComputedFormat(['quantity', 'unit_price'], 'quantity * unit_price', 'currency')
+                        ->class('item-total text-lg font-semibold text-level1 text-right'),
                 ),
-            ),
+                _FlexBetween(
+                    _TaxesSelect($this->model, 'taxesIds')
+                        ->class('w-60 !mb-0 mt-2')
+                        ->run('calculateTotals'),
+                    _FlexEnd(
+                        _Rows(
+                            $this->model->invoiceTaxes()->get()->map(
+                                // Tax rate is server-static per invoiceTax row — bake it into
+                                // the expression. quantity*unit_price recomputes live; only the
+                                // selected-taxes set requires a server roundtrip (handled by
+                                // the calculateTotals trigger on the TaxesSelect above).
+                                fn ($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate))
+                                    ->jsComputedFormat(
+                                        ['quantity', 'unit_price'],
+                                        'quantity * unit_price * ' . (float) $it->tax_rate,
+                                        'currency',
+                                    )
+                            )
+                        )->class('w-32 item-taxes font-semibold text-level1 text-right')
+                    )->class('relative'),
+                ),
+                $this->deleteInvoiceDetail()
+                    ->class('text-xl text-gray-300 absolute -top-2 -right-8')
+                    ->run('calculateTotals'),
+            )->class('relative'),
 
-            $this->deleteInvoiceDetail()
-                ->class('text-xl text-gray-300')
-                ->run('calculateTotals'),
-
+            _Hidden()->class('px-6'),
         ];
     }
 
@@ -88,9 +113,9 @@ class InvoiceDetailForm extends Form
     {
         return $this->model->id ?
 
-            _DeleteLink()->byKey($this->model) :
+            _DeleteLink()->byKey($this->model)->refresh($this->refreshId) :
 
-            _Link()->icon('icon-trash')->emitDirect('deleted');
+            _Link()->icon('icon-trash')->emitDirect('deleted')->refresh($this->refreshId);
     }
 
     public function rules()

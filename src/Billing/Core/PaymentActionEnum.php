@@ -20,27 +20,8 @@ enum PaymentActionEnum: string
     public function executeIntoKompoPanel(PaymentResult $result)
     {
         return match ($this) {
-            self::REDIRECT => _Rows(
-                _Hidden()->onLoad(fn ($e) => $e->run('() => {
-                    utils.setLoadingScreen();
-
-                    window.location.href = "' . $result->redirectUrl . '";
-                }'))
-            ),
-            self::MODAL => $this->openModalInElement($result->options),
+            self::REDIRECT => response()->kompoRedirect($result->redirectUrl),
+            self::MODAL => response()->modal((new $result->options['modal'])($result->options)),
         };
-    }
-
-    protected function openModalInElement($options)
-    {
-        $modalName = class_basename($options['modal']);
-
-        return _Rows(
-            _Button()->get('modal.' . $modalName, $options)
-                ->inModal()->id('openModalInElement' . $modalName)->class('hidden'),
-            _Hidden()->onLoad(fn ($e) => $e->run('() => {
-                $("#openModalInElement' . $modalName . '").click();
-            }'))
-        );
     }
 }

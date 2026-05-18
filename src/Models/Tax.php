@@ -28,7 +28,7 @@ class Tax extends AbstractMainFinanceModel
 
     protected $casts = [
         'rate' => SafeDecimalCast::class,
-        'valide_from' => 'datetime:Y-m-d',
+        'valid_from' => 'datetime:Y-m-d',
     ];
 
     /* RELATIONSHIPS */
@@ -50,7 +50,12 @@ class Tax extends AbstractMainFinanceModel
     /* ATTRIBUTES */
     public function getCompleteLabelAttribute()
     {
-        return $this->name . ' (' . $this->rate->multiply(100) . '%)';
+        return $this->name . ' (' . $this->rounded_rate . '%)';
+    }
+
+    public function getRoundedRateAttribute()
+    {
+        return $this->rate->multiply(100)->round(config('kompo-finance.decimals.taxes-visual-rate-rounding', 3));
     }
 
     public function getCompleteLabelHtmlAttribute()
@@ -63,8 +68,8 @@ class Tax extends AbstractMainFinanceModel
     /* SCOPES */
     public function scopeActive($query)
     {
-        return $query->where('valide_from', '<=', now())
-            ->where(fn ($q) => $q->where('valide_to', '>=', now())->orWhereNull('valide_to'));
+        return $query->where('valid_from', '<=', now())
+            ->where(fn ($q) => $q->where('valid_to', '>=', now())->orWhereNull('valid_to'));
     }
 
     public function scopeForTeam($query, $teamId)

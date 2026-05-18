@@ -47,10 +47,14 @@ class CustomerForm extends Modal
             ]));
         }
 
-        return _Html()->attr([
-            'data-id' => $customer->id,
-            'data-name' => $customer->name,
-        ]);
+        return _Rows(
+            _Html()->attr([
+                'data-id' => $customer->id,
+                'data-name' => $customer->name,
+            ]),
+
+            _Hidden()->onLoad->run($this->jsToSelectCustomer()),
+        );
     }
 
     public function body()
@@ -61,6 +65,7 @@ class CustomerForm extends Modal
                 ->options(CustomerService::getValidCustomableModels()->mapWithKeys(function ($customable, $morphableType) {
                     return [$morphableType => $customable::getVisualName()];
                 }))
+                ->config(['floatingOptions' => true])
                 ->selfGet('getCustomableOptions')->inPanel('customableOptionsPanel'),
             _Panel(
                 $this->manualForm()
@@ -68,7 +73,7 @@ class CustomerForm extends Modal
             _FlexEnd(
                 _SubmitButton('finance-save')
                     ->inPanel('customer-after-save-info')
-                    ->run($this->jsToSelectCustomer())->closeModal()->refresh($this->refreshId),
+                    ->closeModal()->refresh($this->refreshId),
             ),
         );
     }
@@ -82,7 +87,7 @@ class CustomerForm extends Modal
 
             _InputEmail('finance-email')->name('email'),
 
-            _InputPhone('finance-phone')->name('phone'),
+            _InternationalPhoneInput('finance-phone')->name('phone'),
 
             _CanadianPlace()->name('address')
                 ->class('place-input-without-visual'),
@@ -105,6 +110,7 @@ class CustomerForm extends Modal
             _Select($customableClass::getVisualName())->name('from_id')
                 ->selfPost('ensureAddress')->withAllFormValues()->inPanel('address-panel')
                 ->searchOptions(3, 'searchCustomables')
+                ->config(['floatingOptions' => true])
                 ->ajaxPayload([
                     'from_model' => request('from_model'),
                 ]),
@@ -142,48 +148,42 @@ class CustomerForm extends Modal
 
     public function jsToSelectCustomer()
     {
-        return '() => {
-            const waitForCustomerInfo = async () => {
-                            return new Promise((resolve) => {
-                                const interval = setInterval(() => {
-                                    if ($("#customer-after-save-info").children().length > 0) {
-                                        clearInterval(interval);
-                                        resolve();
-                                    }
-                                }, 30);
-                            });
-                        };
+        return <<<JS
+            () => {
+                const customerInfo = $("#customer-after-save-info").find('div[data-id]');
 
-                        const waitUntilOptionAppear = async () => {
-                            return new Promise((resolve) => {
-                                const interval = setInterval(() => {
-                                    if ($(".select-on-create").find(".vlOptions").find("span[data-id]").length) {
-                                        clearInterval(interval);
-                                        resolve();
-                                    }
-                                }, 30);
-                            });
-                        };
+                if (!customerInfo) return;
 
-                        waitForCustomerInfo().then(() => {
-                            const customerInfo = $("#customer-after-save-info").children();
-                            const customerName = customerInfo.data("name");
-                            const customerId = customerInfo.data("id");
+                const customerName = customerInfo.data("name");
+                const customerId = customerInfo.data("id");
 
-                            $(".select-on-create").find("input").each(function() {
-                                $(this).val(customerName);
-                                $(this).get(0).dispatchEvent(new Event("input", { bubbles: true }));
-                                $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
-                            });
+                const waitUntilOptionAppear = async () => {
+                    return new Promise((resolve) => {
+                        const interval = setInterval(() => {
+                            if ($(".select-on-create").find(".vlOptions").find("span[data-id]").length) {
+                                clearInterval(interval);
+                                resolve();
+                            }
+                        }, 30);
+                    });
+                };
 
-                                                        waitUntilOptionAppear().then(() => {
-                                $(".select-on-create").find(".vlOptions").find("span[data-id]").each(function() {
-                                    if ($(this).data("id") == customerId) {
-                                        $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
-                                    }
-                                });
-                            });
-                        });
-            }';
+                $(".select-on-create").find("input").each(function() {
+                    $(this).get(0).dispatchEvent(new Event("focus", { bubbles: true }));
+                    $(this).val(customerName);
+                    $(this).get(0).dispatchEvent(new Event("input", { bubbles: true }));
+                    $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
+                    $(this).get(0).dispatchEvent(new Event("focus", { bubbles: true }));
+                });
+
+                waitUntilOptionAppear().then(() => {
+                    $(".select-on-create").find(".vlOptions").find("span[data-id]").each(function() {
+                        if ($(this).data("id") == customerId) {
+                            $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
+                        }
+                    });
+                });
+        }
+        JS;
     }
 }

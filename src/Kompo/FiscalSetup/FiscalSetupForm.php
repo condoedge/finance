@@ -18,6 +18,12 @@ class FiscalSetupForm extends Form
     public function handle()
     {
         FiscalYearService::setupFiscalYear(currentTeamId(), carbon(request('fiscal_start_date')));
+
+        // Collapsed: button chain → server-driven kompoMulti for atomic updates.
+        return response()->kompoMulti([
+            response()->kompoAlert(__('finance-saved'), 'success'),
+            response()->kompoRefresh('finance-fiscal-setup-page'),
+        ]);
     }
 
     public function render()
@@ -25,7 +31,7 @@ class FiscalSetupForm extends Form
         return _CardGray100(
             _Date('finance-fiscal-start-date')->name('fiscal_start_date'),
             _FlexEnd(
-                _SubmitButton('generic.save')->alert('finance-saved')->refresh('finance-fiscal-setup-page'),
+                _SubmitButton('generic.save'),
             ),
         )->p4();
     }

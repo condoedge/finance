@@ -4,7 +4,8 @@ namespace Condoedge\Finance\Models\Dto\Gl;
 
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
-use Condoedge\Finance\Services\GlTransactionServiceInterface;
+use Condoedge\Finance\Models\GlAccount;
+use Condoedge\Finance\Models\SegmentValue;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\EnumCast;
 use WendellAdriel\ValidatedDTO\Casting\IntegerCast;
@@ -34,9 +35,6 @@ class CreateGlTransactionDto extends ValidatedDTO
     public ?int $vendor_id = null;
     public array $lines;
 
-    /**
-     * Defines the casts for the DTO properties.
-     */
     public function casts(): array
     {
         return [
@@ -48,9 +46,6 @@ class CreateGlTransactionDto extends ValidatedDTO
         ];
     }
 
-    /**
-     * Validation rules
-     */
     public function rules(): array
     {
         return [
@@ -60,7 +55,7 @@ class CreateGlTransactionDto extends ValidatedDTO
             'team_id' => 'required|integer|exists:teams,id',
             'customer_id' => 'nullable|integer|exists:fin_customers,id',
             'vendor_id' => 'nullable|integer',
-            'lines' => 'required|array|min:2', // At least 2 lines required for double-entry
+            'lines' => 'required|array|min:2',
             'lines.*.account_id' => 'required_without:lines.*.natural_account_id|integer|exists:fin_gl_accounts,id',
             'lines.*.natural_account_id' => 'required_without:lines.*.account_id|integer|exists:fin_segment_values,id',
             'lines.*.line_description' => 'nullable|string|max:255',
@@ -69,9 +64,6 @@ class CreateGlTransactionDto extends ValidatedDTO
         ];
     }
 
-    /**
-     * Default values
-     */
     public function defaults(): array
     {
         return [
@@ -79,144 +71,136 @@ class CreateGlTransactionDto extends ValidatedDTO
         ];
     }
 
-    /**
-     * Additional validation after basic rules
-     */
     public function after($validator): void
     {
-        $glTransactionType = $this->dtoData['gl_transaction_type'] ?? null;
+        $this->validateTransactionBalance($validator);
+        $this->validateLines($validator);
+        $this->validateTransactionParties($validator);
+    }
+
+    // -- Line validation -------------------------------------------------------
+
+    protected function validateLines($validator): void
+    {
         $lines = $this->dtoData['lines'] ?? [];
-        $vendorId = $this->dtoData['vendor_id'] ?? null;
-        $customerId = $this->dtoData['customer_id'] ?? null;
+        $transactionType = $this->dtoData['gl_transaction_type'] ?? null;
 
-        // Validate that transaction is balanced
-        if (!$this->validateBalance()) {
-            $validator->errors()->add(
-                'lines',
-                __('validation-with-values-transaction-must-balance', [
-                    'debits' => finance_currency($this->getTotalDebits()),
-                    'credits' => finance_currency($this->getTotalCredits())
-                ])
-            );
-        }
-
-        // Validate each line has either debit or credit, not both
         foreach ($lines as $index => $line) {
-            $debit = is_array($line) ? ($line['debit_amount'] ?? 0) : $line->debit_amount->toFloat();
-            $credit = is_array($line) ? ($line['credit_amount'] ?? 0) : $line->credit_amount->toFloat();
+            $this->validateLineAmounts($validator, $line, $index);
+            $this->validateLineAccount($validator, $line, $index, $transactionType);
+            $this->validateLineNaturalAccount($validator, $line, $index, $transactionType);
+        }
+    }
 
-            if (($debit > 0 && $credit > 0) || ($debit == 0 && $credit == 0)) {
-                $validator->errors()->add(
-                    "lines.{$index}",
-                    __('error-line-must-have-either-debit-or-credit')
-                );
-            }
+    protected function validateLineAmounts($validator, $line, int $index): void
+    {
+        $debit = is_array($line) ? ($line['debit_amount'] ?? 0) : $line->debit_amount->toFloat();
+        $credit = is_array($line) ? ($line['credit_amount'] ?? 0) : $line->credit_amount->toFloat();
 
-            $accountId = $line['account_id'] ?? null;
-            $naturalAccountId = $line['natural_account_id'] ?? null;
-            $glService = app(GlTransactionServiceInterface::class);
+        if (($debit > 0 && $credit > 0) || ($debit == 0 && $credit == 0)) {
+            $validator->errors()->add("lines.{$index}", __('error-line-must-have-either-debit-or-credit'));
+        }
+    }
 
-            if ($accountId && $glTransactionType) {
-                try {
-                    $glService->validateAccountAbleToTransaction($accountId, $glTransactionType);
-                } catch (\Exception $e) {
-                    $validator->errors()->add("lines.{$index}.account_id", $e->getMessage());
-                }
-            }
+    protected function validateLineAccount($validator, $line, int $index, $transactionType): void
+    {
+        $accountId = is_array($line) ? ($line['account_id'] ?? null) : ($line->account_id ?? null);
 
-            if ($naturalAccountId && $glTransactionType) {
-                try {
-                    $glService->validateNaturalAccountAbleToTransaction($naturalAccountId, $glTransactionType);
-                } catch (\Exception $e) {
-                    $validator->errors()->add("lines.{$index}.natural_account_id", $e->getMessage());
-                }
-            }
+        if (!$accountId || !$transactionType) {
+            return;
         }
 
-        // Validate vendor_id is required for AP transactions
-        if ($glTransactionType === GlTransactionTypeEnum::PAYABLE && empty($vendorId)) {
+        $account = GlAccount::find($accountId);
+
+        if (!$account || !$account->is_active) {
+            $validator->errors()->add("lines.{$index}.account_id", __('error-account-inactive', ['account_id' => $accountId]));
+        } elseif (!$account->allow_manual_entry && $transactionType === GlTransactionTypeEnum::MANUAL_GL) {
+            $validator->errors()->add("lines.{$index}.account_id", __('error-account-not-allow-manual-entry', ['account_id' => $accountId]));
+        }
+    }
+
+    protected function validateLineNaturalAccount($validator, $line, int $index, $transactionType): void
+    {
+        $naturalAccountId = is_array($line) ? ($line['natural_account_id'] ?? null) : ($line->natural_account_id ?? null);
+
+        if (!$naturalAccountId || !$transactionType) {
+            return;
+        }
+
+        $naturalAccount = SegmentValue::find($naturalAccountId);
+
+        if (!$naturalAccount || !$naturalAccount->is_active) {
+            $validator->errors()->add("lines.{$index}.natural_account_id", __('error-account-inactive', ['account_id' => $naturalAccountId]));
+        } elseif (!$naturalAccount->allow_manual_entry && $transactionType === GlTransactionTypeEnum::MANUAL_GL) {
+            $validator->errors()->add("lines.{$index}.natural_account_id", __('error-account-not-allow-manual-entry', ['account_id' => $naturalAccountId]));
+        }
+    }
+
+    // -- Balance validation ----------------------------------------------------
+
+    protected function validateTransactionBalance($validator): void
+    {
+        $totalDebits = $this->getTotalDebits();
+        $totalCredits = $this->getTotalCredits();
+
+        if (!$totalDebits->equals($totalCredits)) {
+            $validator->errors()->add('lines', __('validation-with-values-transaction-must-balance', [
+                'debits' => finance_currency($totalDebits),
+                'credits' => finance_currency($totalCredits),
+            ]));
+        }
+    }
+
+    // -- Party validation ------------------------------------------------------
+
+    protected function validateTransactionParties($validator): void
+    {
+        $transactionType = $this->dtoData['gl_transaction_type'] ?? null;
+
+        if ($transactionType === GlTransactionTypeEnum::PAYABLE && empty($this->dtoData['vendor_id'] ?? null)) {
             $validator->errors()->add('vendor_id', __('error-vendor-required-for-ap-transactions'));
         }
 
-        // Validate customer_id is required for AR transactions
-        if ($glTransactionType === GlTransactionTypeEnum::RECEIVABLE && empty($customerId)) {
+        if ($transactionType === GlTransactionTypeEnum::RECEIVABLE && empty($this->dtoData['customer_id'] ?? null)) {
             $validator->errors()->add('customer_id', __('error-customer-required-for-ar-transactions'));
         }
     }
 
-    /**
-     * Validate that the transaction balances (debits = credits)
-     */
-    public function validateBalance(): bool
-    {
-        $totalDebits = new SafeDecimal($this->getTotalDebits());
-        $totalCredits = new SafeDecimal($this->getTotalCredits());
+    // -- Helpers ---------------------------------------------------------------
 
-        // Allow for small rounding differences
-        return $totalDebits->equals($totalCredits);
-    }
-
-    /**
-     * Get total debit amount
-     */
     public function getTotalDebits(): SafeDecimal
     {
-        $total = new SafeDecimal(0.0);
-        $lines = $this->dtoData['lines'] ?? [];
-
-        foreach ($lines as $lineData) {
-            if (is_array($lineData)) {
-                $total = $total->add(new SafeDecimal($lineData['debit_amount'] ?? 0));
-            } elseif ($lineData instanceof CreateGlTransactionLineDto) {
-                $total = $total->add($lineData->debit_amount);
-            }
-        }
-
-        return $total;
+        return $this->sumLineField('debit_amount');
     }
 
-    /**
-     * Get total credit amount
-     */
     public function getTotalCredits(): SafeDecimal
     {
-        $total = new SafeDecimal(0.0);
-        $lines = $this->dtoData['lines'] ?? [];
+        return $this->sumLineField('credit_amount');
+    }
 
-        foreach ($lines as $lineData) {
-            if (is_array($lineData)) {
-                $total = $total->add(new SafeDecimal($lineData['credit_amount'] ?? 0));
-            } elseif ($lineData instanceof CreateGlTransactionLineDto) {
-                $total = $total->add($lineData->credit_amount);
-            }
+    protected function sumLineField(string $field): SafeDecimal
+    {
+        $total = new SafeDecimal(0.0);
+
+        foreach ($this->dtoData['lines'] ?? [] as $line) {
+            $value = is_array($line) ? ($line[$field] ?? 0) : $line->$field;
+            $total = $total->add(new SafeDecimal($value));
         }
 
         return $total;
     }
 
-    /**
-     * Convert lines to DTOs if they're arrays
-     */
     public function getLinesDtos(): array
     {
-        $lineDtos = [];
-
-        foreach ($this->lines as $lineData) {
-            if (is_array($lineData)) {
-                $lineDtos[] = new CreateGlTransactionLineDto($lineData);
-            } elseif ($lineData instanceof CreateGlTransactionLineDto) {
-                $lineDtos[] = $lineData;
-            }
-        }
-
-        return $lineDtos;
+        return collect($this->lines)->map(function ($line) {
+            return $line instanceof CreateGlTransactionLineDto
+                ? $line
+                : new CreateGlTransactionLineDto($line);
+        })->all();
     }
 
-    /**
-     * Check if this is a manual GL transaction
-     */
     public function isManualGlTransaction(): bool
     {
-        return $this->gl_transaction_type === 1;
+        return $this->gl_transaction_type === GlTransactionTypeEnum::MANUAL_GL;
     }
 }

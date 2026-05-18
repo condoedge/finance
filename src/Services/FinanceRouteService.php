@@ -37,7 +37,7 @@ class FinanceRouteService
     public static function financialCustomerRoutes(): void
     {
         Route::prefix('finance/customers')->name('finance.customers.')->group(function () {
-            Route::get('/', \Condoedge\Finance\Kompo\FinantialCustomersTable::class)->name('list');
+            Route::get('/', \Condoedge\Finance\Kompo\FinancialCustomersTable::class)->name('list');
             Route::get('/page/{id}', \Condoedge\Finance\Kompo\FinancialCustomerPage::class)->name('page');
             Route::get('/form/{id?}', \Condoedge\Finance\Kompo\CustomerForm::class)->name('form');
             Route::get('/{id}/payments', \Condoedge\Finance\Kompo\FinancialCustomerPayments::class)->name('payments');

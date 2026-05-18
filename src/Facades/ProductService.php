@@ -14,7 +14,12 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Illuminate\Database\Eloquent\Collection getProductTemplates()
  * @method static \Condoedge\Finance\Models\Product createOrUpdateProduct(\Condoedge\Finance\Models\Dto\Products\CreateProductDto $dto)
  * @method static \Condoedge\Finance\Models\InvoiceDetail copyProductToInvoice(int $productId, int $invoiceId)
- *
+ * @method static \Condoedge\Finance\Models\Rebate createRebate(\Condoedge\Finance\Models\Dto\Products\CreateRebateDto $dto)
+ * @method static array normalizeToInvoiceDetail(int $productId, ?\Condoedge\Finance\Models\Invoice $invoice = null)
+ * @method static \Illuminate\Support\Collection normalizeInvoiceDetailsIncludingRebates(int $productId, ?\Condoedge\Finance\Models\Invoice $invoice = null)
+ * @method static \Condoedge\Finance\Models\Rebate updateRebate(int $rebateId, \Condoedge\Finance\Models\Dto\Products\CreateRebateDto $dto)
+ * @method static \Condoedge\Finance\Models\Rebate upsertRebate(\Condoedge\Finance\Models\Dto\Products\CreateRebateDto $dto, ?int $rebateId = null)
+ * 
  * @see \Condoedge\Finance\Services\Product\ProductService
  */
 class ProductService extends Facade

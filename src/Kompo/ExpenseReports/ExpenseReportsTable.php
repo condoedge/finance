@@ -77,7 +77,7 @@ class ExpenseReportsTable extends WhiteTable
             _Html($expenseReport->created_at->format('Y-m-d')),
             _Html($expenseReport->expense_title),
             !$this->asManager ? null : _Html($expenseReport->customer->name),
-            _Html($expenseReport->team->team_name),
+            _Html($expenseReport->team?->team_name ?: '-'),
             $expenseReport->expense_status->pill(),
             _FinanceCurrency($expenseReport->total_amount),
             _TripleDotsDropdown(

@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Billing\Providers\Stripe;
 
 use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Core\ErrorClassification;
 use Condoedge\Finance\Billing\Core\PaymentActionEnum;
 use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Billing\Core\PaymentResult;
@@ -10,12 +11,17 @@ use Condoedge\Finance\Billing\Core\WebhookProcessor;
 use Condoedge\Finance\Billing\Providers\Stripe\Form\PaymentCanadianBankForm;
 use Condoedge\Finance\Billing\Providers\Stripe\Form\StripeCreditCardForm;
 use Condoedge\Finance\Models\PaymentMethodEnum;
+use Condoedge\Finance\Models\ProviderCredentials;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Kompo\Elements\BaseElement;
+use Stripe\Exception\ApiConnectionException;
 use Stripe\Exception\ApiErrorException;
+use Stripe\Exception\AuthenticationException;
+use Stripe\Exception\CardException;
+use Stripe\Exception\RateLimitException;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
 use Stripe\StripeClient;
@@ -23,9 +29,11 @@ use Stripe\StripeClient;
 class StripePaymentProvider implements PaymentGatewayInterface
 {
     use \Condoedge\Finance\Billing\Traits\RegistersWebhooks;
+    use \Condoedge\Finance\Billing\Traits\BasicGatewayTrait;
 
     protected StripeClient $stripe;
     protected string $webhookSecret;
+    protected ?ProviderCredentials $credentials = null;
 
     /**
      * Current payment context
@@ -51,6 +59,70 @@ class StripePaymentProvider implements PaymentGatewayInterface
     public function getCode(): string
     {
         return 'stripe';
+    }
+
+    public function getDisplayName(): string
+    {
+        return 'Stripe';
+    }
+
+    /**
+     * Per-team credential override. Returns a clone with credentials applied so
+     * the registry's shared singleton isn't mutated. Falls back to env config
+     * when no credentials are provided.
+     */
+    public function withCredentials(?ProviderCredentials $creds): static
+    {
+        if (!$creds) {
+            return $this;
+        }
+
+        $copy = clone $this;
+        $copy->credentials = $creds;
+
+        $apiKey = $creds->get('secret_key');
+        if ($apiKey) {
+            $copy->stripe = new StripeClient(['api_key' => $apiKey]);
+        }
+
+        $webhookSecret = $creds->get('webhook_secret');
+        if ($webhookSecret) {
+            $copy->webhookSecret = $webhookSecret;
+        }
+
+        return $copy;
+    }
+
+    /**
+     * Map Stripe SDK exceptions to ErrorClassification so the processor decides
+     * whether to try the next provider in the chain. Card-decline never triggers
+     * fallback (customer issue), rate-limit and connection errors do.
+     */
+    public function classifyError(\Throwable $e): ErrorClassification
+    {
+        return match (true) {
+            $e instanceof CardException => ErrorClassification::permanent(
+                $e->getStripeCode() ?: 'card_declined',
+                $e->getMessage(),
+            ),
+            $e instanceof AuthenticationException => ErrorClassification::authFailure(
+                'stripe_auth',
+                $e->getMessage(),
+            ),
+            $e instanceof RateLimitException => ErrorClassification::transient(
+                'stripe_rate_limit',
+                $e->getMessage(),
+            ),
+            $e instanceof ApiConnectionException => ErrorClassification::network(
+                'stripe_network',
+                $e->getMessage(),
+            ),
+            $e instanceof ApiErrorException => ErrorClassification::transient(
+                $e->getStripeCode() ?: 'stripe_api',
+                $e->getMessage(),
+            ),
+            default => ErrorClassification::unknown($e->getMessage()),
+        };
     }
 
     public function getSupportedPaymentMethods(): array
