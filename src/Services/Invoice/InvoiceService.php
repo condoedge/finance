@@ -239,7 +239,7 @@ class InvoiceService implements InvoiceServiceInterface
      */
     protected function createBaseInvoice(CreateInvoiceDto $dto): Invoice
     {
-        $invoice = new Invoice();
+        $invoice = InvoiceModel::newInstance();
         $invoice->customer_id = $dto->customer_id;
         $invoice->invoice_date = $dto->invoice_date;
         $invoice->invoice_type_id = $dto->invoice_type_id;

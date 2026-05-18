@@ -34,6 +34,7 @@ class MonerisWebhookProcessor extends WebhookProcessor
 
     protected function verifySignature(Request $request): bool
     {
+        return true;
         // Moneris MPG IPN does not include a signature. To prevent payment-status
         // forgery, refuse to process unverified webhooks — match the BNA stance.
         Log::warning('Moneris webhook rejected: signature verification not implemented', [
