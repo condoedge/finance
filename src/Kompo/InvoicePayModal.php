@@ -48,6 +48,12 @@ class InvoicePayModal extends Form
                 'address' => parsePlaceFromRequest('address1'),
                 'request_data' => request()->all()
             ]));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($e->validator->errors()->has('postal_code')) {
+                $e->validator->errors()->add('address1', __('finance-postal-code-required-for-payment'));
+            }
+
+            throw $e;
         } catch (\Exception $e) {
             abort(400, __('error-payment-failed'));
         }
@@ -198,5 +204,13 @@ class InvoicePayModal extends Form
     protected function getPaymentInstallments()
     {
         return PaymentTerm::whereIn('id', $this->model->possible_payment_terms ?? [])->pluck('term_name', 'id');
+    }
+
+    public function rules()
+    {
+        return [
+            'payment_method_id' => ['required_without:payment_term_id', 'exists:fin_payment_methods,id'],
+            'payment_term_id' => ['required_without:payment_method_id', 'exists:fin_payment_terms,id'],
+        ];
     }
 }
