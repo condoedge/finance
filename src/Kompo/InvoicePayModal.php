@@ -22,6 +22,9 @@ class InvoicePayModal extends Form
     public $class = 'overflow-y-auto mini-scroll max-w-lg';
     public $style = 'max-height: 95vh; height: 95vh; width: 98vw;';
 
+    // Just pays the next one installment.
+    protected $justPayingNextInstallment = true;
+
     /**
      * @var Invoice
      */
@@ -38,7 +41,7 @@ class InvoicePayModal extends Form
     {
         try {
             $result = InvoiceService::payInvoice(new PayInvoiceDto([
-                'pay_next_installment' => true, // If there is a payment installment, it will pay just it, if not it will pay the whole invoice
+                'pay_next_installment' => $this->justPayingNextInstallment, // If there is a payment installment, it will pay just it, if not it will pay the whole invoice
                 'invoice_id' => $this->model->id,
                 'payment_method_id' => $this->model->payment_method_id ?? request('payment_method_id'),
                 'payment_term_id' => $this->model->payment_term_id ?? request('payment_term_id'),
@@ -72,6 +75,7 @@ class InvoicePayModal extends Form
     public function render()
     {
         $paymentMethods = collect($this->getPaymentMethods());
+        $payable = $this->justPayingNextInstallment ? $this->model->getNextInstallmentPeriod() : $this->model;
 
         return _Rows(
             _Html('finance.pay-invoice')->class('text-center text-2xl font-semibold mb-6'),
@@ -102,6 +106,13 @@ class InvoicePayModal extends Form
                 $this->model->address ? null :
                     _CanadianPlace(),
             )->class('p-6'),
+
+            _FlexBetween(
+                _Html('finance-total')->class('text-lg text-uppercase font-semibold'),
+
+                _FinanceCurrency($payable->getPayableAmount())->class('text-2xl font-semibold'),
+            )->class('mb-4 mt-2'),
+
             _SubmitButton('finance.pay')
                 ->onError(fn ($e) => $e->inAlert('error-icon', 'vlAlertError')->run('() => {utils.removeLoadingScreen()}')->closeModal())
                 ->id('pay-button')
@@ -159,7 +170,7 @@ class InvoicePayModal extends Form
         $paymentTerm = PaymentTerm::withTrashed()->findOrFail($paymentTermId);
 
         return _Rows(
-            $paymentTerm->preview($this->model)
+            $paymentTerm->preview($this->model, $this->justPayingNextInstallment)
         )->class('mt-2');
     }
 

@@ -80,7 +80,7 @@ class PaymentTerm extends AbstractMainFinanceModel
         };
     }
 
-    public function preview(Invoice $invoice): BaseElement
+    public function preview(Invoice $invoice, bool $payingNextInstallment): BaseElement
     {
         $settings = $this->settings ?? [];
         $amount = safeDecimal($invoice->invoice_total_amount);
@@ -89,13 +89,15 @@ class PaymentTerm extends AbstractMainFinanceModel
             PaymentTermTypeEnum::COD => _Html(__('finance-cod-preview', ['amount' => $amount->toFloat()])),
             PaymentTermTypeEnum::NET => _Html(__('finance-net-preview', ['amount' => $amount->toFloat(), 'due_date' => $this->calculateDueDate($invoice->invoice_date)])),
             PaymentTermTypeEnum::INSTALLMENT => _CardWhite(
-                $this->getPreviewInstallments($invoice, $settings)
+                $this->getPreviewInstallments($invoice, $settings, $payingNextInstallment)
             )->p4(),
         };
     }
 
-    protected function getPreviewInstallments($invoice, ?array $settings)
+    protected function getPreviewInstallments($invoice, ?array $settings, bool $justPayingNextInstallment)
     {
+        $currentInstallment = $invoice->getNextInstallmentPeriod();
+
         if (!$invoice->installmentsPeriods->isEmpty()) {
             $installments = $invoice->installmentsPeriods->map(fn ($ip) => [
                 'installment_number' => $ip->installment_number,
@@ -115,11 +117,18 @@ class PaymentTerm extends AbstractMainFinanceModel
             ))->map(fn ($i) => (new PaymentInstallmentPeriod())->forceFill($i));
         }
 
-        return $installments->map(function ($period) {
+        return $installments->map(function ($period) use ($currentInstallment, $justPayingNextInstallment) {
+            $payingThisInstallment = !$justPayingNextInstallment || ($currentInstallment && $currentInstallment->installment_number == $period['installment_number']);
+            
             return _Columns(
-                _Html($period['due_date']->format('Y-m-d'))->col('col-md-4'),
-                _FinanceCurrency($period['amount'])->col('col-md-4'),
-                isset($period['status']) ? $period['status']->pill()->col('col-md-4') : null
+                _Html($period['due_date']->format('Y-m-d'))->class('w-max')->col('col-md-4'),
+                _FinanceCurrency($period['amount']),
+                isset($period['status']) ? $period['status']->pill() : null,
+
+                $justPayingNextInstallment && !$payingThisInstallment ? _Html()->class('pl-6') : _Checkbox()->col('col-md-1 pl-6 pt-1')->disabled()
+                    ->class('pointer-events-none opacity-70')
+                    ->name('installment_' . $period['installment_number'])
+                    ->value($payingThisInstallment)->disabled(!$payingThisInstallment),
             )->class('pb-2');
         });
     }

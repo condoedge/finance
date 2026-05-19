@@ -166,7 +166,7 @@ class InvoiceService implements InvoiceServiceInterface
             // throw new InvalidArgumentException('error-finance-cannot-send-a-draft-invoice');
         }
 
-        if (!$invoice->customer?->email) {
+        if (!$invoice->mainCustomer?->email) {
             abort(403, __('error-invoice-customer-email-not-found'));
             // throw new InvalidArgumentException('error-invoice-customer-email-not-found');
         }
