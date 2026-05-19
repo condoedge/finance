@@ -2,13 +2,6 @@
 
 namespace Condoedge\Finance\Billing\Core;
 
-enum ProviderHealthState: string
-{
-    case HEALTHY = 'healthy';
-    case DEGRADED = 'degraded';
-    case DOWN = 'down';
-}
-
 /**
  * Snapshot of a provider's recent reliability. Driven by recorded payment outcomes
  * (see DefaultProviderHealthChecker). Used by the resolver to order the fallback

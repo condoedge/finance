@@ -2,7 +2,6 @@
 
 namespace Condoedge\Finance\Kompo\Settings;
 
-use Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface;
 use Condoedge\Finance\Billing\Contracts\ProviderHealthCheckerInterface;
 use Condoedge\Finance\Billing\Core\PaymentProviderRegistry;
 use Condoedge\Finance\Billing\Core\ProviderHealthState;
@@ -11,30 +10,19 @@ use Condoedge\Finance\Models\TeamPaymentProvider;
 use Condoedge\Utils\Kompo\Common\Form;
 
 /**
- * Per-team payment-provider configuration UI. Embed in SISC's FinanceSettingsForm
- * via:  new \Condoedge\Finance\Kompo\Settings\PaymentProvidersSettings(null, ['team_id' => $team->id])
- *
+ * Per-team payment-provider configuration UI. Embed in SISC's FinanceSettingsForm.
+ * 
  * For each payment method that has at least one capable provider, renders:
  *   - mode toggle: single (no fallback) vs fallback (try chain on failure)
  *   - ordered list of enabled providers (priority asc) with up/down arrows
  *   - health badge per row (healthy / degraded / down)
  *   - remove + edit-credentials buttons
  *   - add-another-provider selector
- *
- * All mutations are surgical (audit §3.5): toggle priority via updateInQuery,
- * delete via removeFromQuery + optimistic, add via prependToQuery — no full
- * page refreshes. Health badges refresh every 30s via ->every().
  */
 class PaymentProvidersSettings extends Form
 {
     public $class = 'space-y-6';
 
-    /**
-     * Kompo Auth picks this up to gate access to the form — both render and
-     * the mutation methods (setMode, reorder, addProvider, removeRow,
-     * getCredentialsModal). Provider config controls how money is collected,
-     * so only roles granted PaymentProviders should reach it.
-     */
     public $permissionKey = 'PaymentProviders';
 
     protected int $teamId;
@@ -55,7 +43,9 @@ class PaymentProvidersSettings extends Form
         return _Rows(
             _Html('finance.payment-providers-settings')->class('text-xl font-semibold mb-2'),
             _Html('finance.payment-providers-settings-help')->class('text-sm text-gray-600 mb-4'),
-            $methods->map(fn (PaymentMethodEnum $m) => $this->methodCard($m))->toArray(),
+            _Rows(
+                $methods->map(fn(PaymentMethodEnum $m) => $this->methodCard($m))
+            ),
         );
     }
 
@@ -64,45 +54,48 @@ class PaymentProvidersSettings extends Form
         $rows = TeamPaymentProvider::chainFor($this->teamId, $method);
         $mode = $rows->first()->mode ?? TeamPaymentProvider::MODE_SINGLE;
 
-        $availableCodes = $this->capableProviderCodes($method);
-        $usedCodes = $rows->pluck('provider_code')->all();
-        $addable = array_diff($availableCodes, $usedCodes);
-
         return _CardLevel4(
             _Flex(
                 _Html($method->label())->class('text-lg font-semibold flex-grow'),
-                _Radio('finance.mode-single')
-                    ->name("mode_{$method->value}")
-                    ->value(TeamPaymentProvider::MODE_SINGLE)
-                    ->default($mode)
-                    ->onChange->selfPost('setMode', [
-                        'method' => $method->value,
-                        'mode' => TeamPaymentProvider::MODE_SINGLE,
-                    ])->jsAlert('finance.settings-saved', 'success'),
-                _Radio('finance.mode-fallback')
-                    ->name("mode_{$method->value}")
-                    ->value(TeamPaymentProvider::MODE_FALLBACK)
-                    ->default($mode)
-                    ->onChange->selfPost('setMode', [
-                        'method' => $method->value,
-                        'mode' => TeamPaymentProvider::MODE_FALLBACK,
-                    ])->jsAlert('finance.settings-saved', 'success'),
+                _ButtonGroup()->name("mode")
+                    ->optionClass('cursor-pointer text-center px-4 py-3 font-medium flex items-center')
+                    ->selectedClass('bg-warning text-greenmain selected', '')
+                    ->selfPost('setMode', ['method' => $method->value])
+                    ->alert('finance.settings-saved')
+                    ->options([
+                        TeamPaymentProvider::MODE_SINGLE => __('finance.mode-single'),
+                        TeamPaymentProvider::MODE_FALLBACK => __('finance.mode-fallback'),
+                    ])->default($mode ?? TeamPaymentProvider::MODE_SINGLE),
             )->class('items-center mb-3 gap-4'),
             _Panel(
                 $this->providerList($method, $rows),
             )->id("providers-list-{$method->value}"),
-            !empty($addable) ? $this->addProviderRow($method, $addable) : null,
         )->class('p-4 mb-4');
     }
 
     protected function providerList(PaymentMethodEnum $method, $rows)
     {
+        $availableCodes = $this->capableProviderCodes($method);
+        $usedCodes = TeamPaymentProvider::chainFor($this->teamId, $method)->pluck('provider_code')->all();
+        $addable = array_diff($availableCodes, $usedCodes);
+
         if ($rows->isEmpty()) {
-            return _Html('finance.no-providers-enabled')->class('text-sm text-gray-500 italic');
+            return _Rows(
+                _Html('finance.no-providers-enabled')->class('text-sm text-gray-500 italic'),
+                _Rows(
+                    $this->addProviderRow($method, $addable),
+                ),
+            );
         }
 
         return _Rows(
-            $rows->map(fn ($row, $i) => $this->providerRow($method, $row, $i, $rows->count()))->toArray(),
+            _Rows(
+                $rows->map(fn($row, $i) => $this->providerRow($method, $row, $i, $rows->count()))->toArray(),
+            ),
+
+            _Rows(
+                $this->addProviderRow($method, $addable),
+            ),
         );
     }
 
@@ -124,27 +117,22 @@ class PaymentProvidersSettings extends Form
             _Html("#{$row->priority}")->class('w-12 text-gray-500 font-mono'),
             _Html($displayName)->class('font-medium flex-grow'),
             _Html(__('finance.health-' . $health->state->value))
-                ->class("text-xs px-2 py-1 rounded {$badgeClass}")
-                ->every(30000)
-                ->selfGet('refreshHealthBadge', ['row_id' => $row->id])
-                ->inPanel("health-badge-{$row->id}"),
+                ->class("text-xs px-2 py-1 rounded {$badgeClass}"),
             $index > 0
                 ? _Link()->icon('arrow-up')->selfPost('reorder', ['row_id' => $row->id, 'direction' => 'up'])
-                    ->inPanel("providers-list-{$method->value}")
+                ->inPanel("providers-list-{$method->value}")
                 : _Html('')->class('w-6'),
             $index < $total - 1
                 ? _Link()->icon('arrow-down')->selfPost('reorder', ['row_id' => $row->id, 'direction' => 'down'])
-                    ->inPanel("providers-list-{$method->value}")
+                ->inPanel("providers-list-{$method->value}")
                 : _Html('')->class('w-6'),
             // Per-team credentials are meaningless when the install forces a
             // single global account — hide the button entirely in that mode.
             config('kompo-finance.force_global_credentials', false)
                 ? null
                 : _Link()->icon('settings')->selfGet('getCredentialsModal', ['row_id' => $row->id])->inModal(),
-            _Link()->icon('trash')->class('text-danger')
+            _Link()->icon('trash')->class('text-text-600 hover:text-red-600')
                 ->selfPost('removeRow', ['row_id' => $row->id])
-                ->optimistic()
-                ->jsRemoveFromQuery("providers-list-{$method->value}", "row-{$row->id}")
                 ->inPanel("providers-list-{$method->value}"),
         )->id("row-{$row->id}")->class('items-center gap-2 py-2 border-b last:border-b-0');
     }
@@ -159,20 +147,21 @@ class PaymentProvidersSettings extends Form
                 : $code;
         }
 
+        if (empty($options)) {
+            return null;
+        }
+
         return _Flex(
             _Select()->name("add_provider_{$method->value}", false)
                 ->options($options)
                 ->placeholder('finance.select-provider')
-                ->class('flex-grow'),
+                ->class('flex-grow !mb-0'),
             _Button('finance.add-provider')
                 ->selfPost('addProvider', ['method' => $method->value])
+                ->withAllFormValues()
                 ->inPanel("providers-list-{$method->value}"),
         )->class('mt-3 gap-2 items-end');
     }
-
-    // ===========================
-    // Mutations
-    // ===========================
 
     public function setMode()
     {
@@ -194,9 +183,10 @@ class PaymentProvidersSettings extends Form
         $direction = request('direction');
         $adjacent = TeamPaymentProvider::where('team_id', $this->teamId)
             ->where('payment_method_id', $row->payment_method_id)
-            ->when($direction === 'up',
-                fn ($q) => $q->where('priority', '<', $row->priority)->orderByDesc('priority'),
-                fn ($q) => $q->where('priority', '>', $row->priority)->orderBy('priority'),
+            ->when(
+                $direction === 'up',
+                fn($q) => $q->where('priority', '<', $row->priority)->orderByDesc('priority'),
+                fn($q) => $q->where('priority', '>', $row->priority)->orderBy('priority'),
             )
             ->first();
 
@@ -246,7 +236,7 @@ class PaymentProvidersSettings extends Form
         $row = TeamPaymentProvider::findOrFail((int) request('row_id'));
         $this->assertOwnsRow($row);
         $method = $row->payment_method_id;
-        $row->delete();
+        $row->forceDelete();
 
         return $this->providerList(
             $method instanceof PaymentMethodEnum ? $method : PaymentMethodEnum::from((int) $method),
