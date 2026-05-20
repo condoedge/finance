@@ -19,10 +19,12 @@ class InvoicesTable extends WhiteTable
     public $perPage = 50;
 
     protected $viewAsManager = true;
+    protected $isExport = false;
 
     public function created()
     {
         $this->teamId = currentTeamId();
+        $this->isExport = $this->prop('is_export');
 
         $viewAsManager = $this->viewAsManager;
 
@@ -110,21 +112,44 @@ class InvoicesTable extends WhiteTable
 
     public function headers()
     {
-        return [
-            _CheckAllItems()->class('w-1/12'),
+        return array_filter([
+            _CheckAllItems()->class('w-1/12')->class('exclude-export'),
             _Th('finance-date')->sort('invoice_date')->class('w-1/6'),
+            !$this->isExport ? null : _Th('finance-due-date'),
             _Th('finance-invoice-number')->sort('invoice_number')->class('w-1/6'),
             _Th('finance-type')->class('w-1/12'),
             !$this->viewAsManager ? null : _Th('finance-client')->sort('customer_id')->class('w-1/4'),
             _Th('finance-status')->sort('status')->class('w-1/6'),
-            _Th('finance-amount-due')->class('text-right')->class('w-1/6'),
-        ];
+            _Th('finance-amount-due')->class('text-right [&>.vlThHeader]:justify-end')->class('w-1/6'),
+            !$this->isExport ? null : _Th('finance-total-amount'),
+        ]);
     }
 
     public function render($invoice)
     {
-        return _TableRow(
-            _CheckSingleItem($invoice->id),
+        return _TableRow(array_filter(array_merge(
+            [_CheckSingleItem($invoice->id)->class('exclude-export')],
+            $this->datesEls($invoice),
+            [_Rows(
+                _Html($invoice->invoice_reference)->class('group-hover:underline'),
+            )->gotoInvoice($invoice->id),
+            _Html($invoice->invoice_type_id->label()),
+            !$this->viewAsManager ? null : _Html($invoice->customer_label),
+            $invoice->invoice_status_id->pill(),],
+            $this->totalsEls($invoice)
+        )))->class('group');
+    }
+
+    protected function datesEls($invoice)
+    {
+        if ($this->isExport) {
+            return [
+                _HtmlDate($invoice->invoice_date)->class('date'),
+                _HtmlDate($invoice->invoice_due_date)->class('date')
+            ];
+        }
+
+        return [
             _Rows(
                 _HtmlDate($invoice->invoice_date)->class('taxt-gray-400 font-bold'),
                 _Flex2(
@@ -132,20 +157,27 @@ class InvoicesTable extends WhiteTable
                     _HtmlDate($invoice->invoice_due_date)
                 )->class('text-xs text-gray-600')
             )->gotoInvoice($invoice->id),
-            _Rows(
-                _Html($invoice->invoice_reference)->class('group-hover:underline'),
-            )->gotoInvoice($invoice->id),
-            _Html($invoice->invoice_type_id->label()),
-            !$this->viewAsManager ? null : _Html($invoice->customer_label),
-            $invoice->invoice_status_id->pill(),
+        ];
+    }
+
+    protected function totalsEls($invoice)
+    {
+        if ($this->isExport) {
+            return [
+                _FinanceCurrency($invoice->invoice_due_amount)->class('currency'),
+                _FinanceCurrency($invoice->invoice_total_amount)->class('currency'),
+            ];
+        }
+
+        return [
             _Rows(
                 _FinanceCurrency($invoice->invoice_due_amount),
                 _Flex(
                     _Html('finance-total'),
                     _FinanceCurrency($invoice->invoice_total_amount),
                 )->class('space-x-2 text-sm text-gray-600'),
-            )->class('items-end'),
-        )->class('group');
+            )->class('items-end')
+        ];
     }
 
     public function getPaymentForm()
@@ -170,5 +202,12 @@ class InvoicesTable extends WhiteTable
     public function getInvoiceInfoModal($invoiceId)
     {
         return new InvoiceInfoModal($invoiceId);
+    }
+
+    public function getExportableInstance()
+    {
+        return new static([
+            'is_export' => true,
+        ]);
     }
 }
