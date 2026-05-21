@@ -16,7 +16,7 @@ class UserExpenseReportTable extends ExpenseReportsTable
         return _FlexBetween(
             _Html('finance-my-expense-reports')->class('font-semibold text-2xl'),
             _Button('finance-create-expense-report')
-                ->checkAuthWrite('manage_own_expense_report')
+                ->checkAuthWrite('OwnExpenses')
                 ->selfGet('getExpenseReportModal')
                 ->inModal(),
         )->class('mb-6');
@@ -29,6 +29,7 @@ class UserExpenseReportTable extends ExpenseReportsTable
         }
 
         return ExpenseReport::whereIn('customer_id', auth()->user()->getCustomersRelated()->pluck('id'))
+            ->alreadyVerifiedAccess() // Skipping default access check since we're already filtering by related customers
             ->where('is_draft', false)
             ->orderBy('created_at', 'desc');
     }
@@ -41,7 +42,7 @@ class UserExpenseReportTable extends ExpenseReportsTable
 
     protected function canOpenModal()
     {
-        return auth()->user()->hasPermission('manage_own_expense_report');
+        return auth()->user()->hasPermission('OwnExpenses');
     }
 
     public function getExpenseReportModal($expenseReportId = null)
