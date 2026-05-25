@@ -87,6 +87,17 @@ class ProviderCredentialsFormModal extends Modal
                     ->placeholder($this->maskedPlaceholder('api_token')),
                 _Input('finance.moneris-checkout-id')->name('checkout_id', false)
                     ->default($this->existing?->get('checkout_id')),
+                _Html(__('finance.moneris-sftp-section'))->class('text-sm font-semibold mt-4 mb-1'),
+                _Input('finance.moneris-sftp-host')->name('sftp_host', false)
+                    ->default($this->existing?->get('sftp_host')),
+                _Input('finance.moneris-sftp-username')->name('sftp_username', false)
+                    ->default($this->existing?->get('sftp_username')),
+                _Textarea('finance.moneris-sftp-private-key')->name('sftp_private_key', false)
+                    ->placeholder($this->maskedPlaceholder('sftp_private_key', '-----BEGIN ••••• PRIVATE KEY-----')),
+                _Input('finance.moneris-sftp-host-fingerprint')->name('sftp_host_fingerprint', false)
+                    ->default($this->existing?->get('sftp_host_fingerprint')),
+                _Input('finance.moneris-sftp-remote-path')->name('sftp_remote_path', false)
+                    ->default($this->existing?->get('sftp_remote_path', '/')),
             ),
             default => _Textarea('finance.credentials-json')
                 ->name('credentials_json', false)
@@ -102,7 +113,8 @@ class ProviderCredentialsFormModal extends Modal
         $fields = match ($this->row->provider_code) {
             'stripe' => ['secret_key', 'publishable_key', 'webhook_secret'],
             'bna' => ['api_url', 'api_key', 'api_secret'],
-            'moneris' => ['host', 'store_id', 'api_token', 'checkout_id'],
+            'moneris' => ['host', 'store_id', 'api_token', 'checkout_id',
+                'sftp_host', 'sftp_username', 'sftp_private_key', 'sftp_host_fingerprint', 'sftp_remote_path'],
             default => [],
         };
 

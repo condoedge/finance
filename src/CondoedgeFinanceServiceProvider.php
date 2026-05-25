@@ -231,6 +231,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 \Condoedge\Finance\Command\EnsureInvoiceEventsAreProcessed::class,
                 \Condoedge\Finance\Command\ReconcileMonerisPaymentsCommand::class,
                 \Condoedge\Finance\Command\ImportSettlementReportCommand::class,
+                \Condoedge\Finance\Command\FetchSettlementReportsCommand::class,
             ]);
         }
     }
@@ -271,6 +272,16 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 ->at('03:00')
                 ->withoutOverlapping()
                 ->appendOutputTo(storage_path('logs/expense-report-cleanup.log'));
+
+            // Moneris settles overnight (~03:00 ET) and drops the daily report on
+            // Merchant Direct SFTP. Pull at 06:00, after the file is reliably there.
+            // withoutOverlapping prevents two concurrent runs; runInBackground
+            // prevents a hung SFTP socket from freezing the scheduler thread.
+            $schedule->command('finance:fetch-settlements --provider=moneris')
+                ->dailyAt('06:00')
+                ->withoutOverlapping(120)
+                ->runInBackground()
+                ->appendOutputTo(storage_path('logs/moneris-settlement.log'));
         });
     }
 
@@ -298,6 +309,24 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->bind(
             \Condoedge\Finance\Billing\Settlement\Contracts\SettlementImportServiceInterface::class,
             \Condoedge\Finance\Billing\Settlement\SettlementImportService::class
+        );
+
+        // Settlement report fetch (SFTP -> local disk -> import)
+        $this->app->bind(
+            \Condoedge\Finance\Billing\Settlement\Fetch\Contracts\RemoteFilesystemFactoryInterface::class,
+            \Condoedge\Finance\Billing\Settlement\Fetch\MonerisSftpFilesystemFactory::class
+        );
+        $this->app->singleton(
+            \Condoedge\Finance\Billing\Settlement\Fetch\SettlementFetchService::class,
+            function ($app) {
+                $monerisFactory = $app->make(\Condoedge\Finance\Billing\Settlement\Fetch\MonerisSftpFilesystemFactory::class);
+                return new \Condoedge\Finance\Billing\Settlement\Fetch\SettlementFetchService(
+                    fetchers: [
+                        'moneris' => new \Condoedge\Finance\Billing\Settlement\Fetch\MonerisSettlementFetcher($monerisFactory),
+                    ],
+                    importer: $app->make(\Condoedge\Finance\Billing\Settlement\Contracts\SettlementImportServiceInterface::class),
+                );
+            }
         );
 
         // Tax Service
