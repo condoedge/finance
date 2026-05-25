@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\DB;
  * @property \DateTime $payment_date The date of the payment
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount The total amount of the payment
  * @property \Condoedge\Finance\Casts\SafeDecimal $amount_left @CALCULATED BY calculate_payment_amount_left() - Amount left to be applied to invoices
+ * @property \Condoedge\Finance\Casts\SafeDecimal $processor_fees Processor fee charged for this payment
+ * @property \Condoedge\Finance\Casts\SafeDecimal $net @CALCULATED BY calculate_payment_net() - amount minus processor_fees
  * @property int $payment_trace_id Foreign key to fin_payment_traces
  * @property PaymentMethodEnum $payment_method_id The method of payment used (e.g., cash, credit card)
  * @property-read PaymentTrace $paymentTrace The payment trace associated with this payment
@@ -33,6 +35,8 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
         'payment_date' => 'date',
         'amount' => SafeDecimalCast::class,
         'amount_left' => SafeDecimalCast::class,
+        'processor_fees' => SafeDecimalCast::class,
+        'net' => SafeDecimalCast::class,
         'payment_method' => PaymentMethodEnum::class,
     ];
 
@@ -65,6 +69,7 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
     {
         return [
             'amount_left' => DB::raw('calculate_payment_amount_left(fin_customer_payments.id)'),
+            'net' => DB::raw('calculate_payment_net(fin_customer_payments.id)'),
             // 'amount' => DB::raw('calculate_payment_amount_with_sign(fin_customer_payments.id)'),
         ];
     }

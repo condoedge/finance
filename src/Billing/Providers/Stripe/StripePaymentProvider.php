@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Billing\Providers\Stripe;
 
 use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Contracts\SimulatesPaymentInSandbox;
 use Condoedge\Finance\Billing\Core\ErrorClassification;
 use Condoedge\Finance\Billing\Core\PaymentActionEnum;
 use Condoedge\Finance\Billing\Core\PaymentContext;
@@ -22,11 +23,13 @@ use Stripe\Exception\ApiErrorException;
 use Stripe\Exception\AuthenticationException;
 use Stripe\Exception\CardException;
 use Stripe\Exception\RateLimitException;
+use Stripe\BalanceTransaction;
+use Stripe\Charge;
 use Stripe\PaymentIntent;
 use Stripe\PaymentMethod;
 use Stripe\StripeClient;
 
-class StripePaymentProvider implements PaymentGatewayInterface
+class StripePaymentProvider implements PaymentGatewayInterface, SimulatesPaymentInSandbox
 {
     use \Condoedge\Finance\Billing\Traits\RegistersWebhooks;
     use \Condoedge\Finance\Billing\Traits\BasicGatewayTrait;
@@ -42,9 +45,13 @@ class StripePaymentProvider implements PaymentGatewayInterface
 
     public function __construct()
     {
-        $this->webhookSecret = config('kompo-finance.services.stripe.webhook_secret');
+        $stripeConfig = config('kompo-finance.payment_sandbox')
+            ? config('kompo-finance.services.stripe.sandbox')
+            : config('kompo-finance.services.stripe');
 
-        $apiKey = config('kompo-finance.services.stripe.secret_key');
+        $this->webhookSecret = $stripeConfig['webhook_secret'] ?? '';
+
+        $apiKey = $stripeConfig['secret_key'] ?? null;
 
         if (!$apiKey) {
             Log::critical('Stripe API key is not configured.');
@@ -183,6 +190,22 @@ class StripePaymentProvider implements PaymentGatewayInterface
 
             throw $e;
         }
+    }
+
+    /**
+     * Run a real Stripe test-mode transaction using a Stripe test PaymentMethod.
+     */
+    public function simulateSandboxPayment(PaymentContext $context, bool $shouldSucceed): PaymentResult
+    {
+        return $this->processPayment(new PaymentContext(
+            payable: $context->payable,
+            paymentMethod: PaymentMethodEnum::CREDIT_CARD,
+            paymentData: [
+                'complete_name' => 'Sandbox Tester',
+                'stripe_payment_method_id' => $shouldSucceed ? 'pm_card_visa' : 'pm_card_visaChargeDeclined',
+            ],
+            returnUrl: $context->returnUrl,
+        ));
     }
 
     /**
@@ -386,6 +409,7 @@ class StripePaymentProvider implements PaymentGatewayInterface
     {
         $params = [
             'payment_method' => $paymentMethodId,
+            'expand' => ['latest_charge.balance_transaction'],
             'mandate_data' => [
                 'customer_acceptance' => [
                     'type' => 'online',
@@ -427,7 +451,8 @@ class StripePaymentProvider implements PaymentGatewayInterface
                     transactionId: $paymentIntent->id,
                     amount: $paymentIntent->amount / 100,
                     paymentProviderCode: $this->getCode(),
-                    metadata: $paymentIntent->metadata->toArray()
+                    metadata: $paymentIntent->metadata->toArray(),
+                    processorFees: $this->extractProcessorFee($paymentIntent)
                 );
 
             case PaymentIntent::STATUS_REQUIRES_ACTION:
@@ -494,6 +519,24 @@ class StripePaymentProvider implements PaymentGatewayInterface
                     paymentProviderCode: $this->getCode()
                 );
         }
+    }
+
+    /**
+     * Stripe's processing fee from the charge's balance transaction.
+     * Returns null when the charge or balance transaction is unavailable.
+     */
+    protected function extractProcessorFee(PaymentIntent $paymentIntent): ?float
+    {
+        $charge = $paymentIntent->latest_charge;
+        $balanceTransaction = $charge instanceof Charge ? $charge->balance_transaction : null;
+
+        if (!$balanceTransaction instanceof BalanceTransaction) {
+            // Succeeded payment with no resolvable fee — surface it instead of silently storing 0.
+            Log::warning('Stripe fee unavailable for succeeded payment', ['payment_intent' => $paymentIntent->id]);
+            return null;
+        }
+
+        return $balanceTransaction->fee / 100;
     }
 
     /**

@@ -20,6 +20,7 @@ use Kompo\Auth\Models\Teams\BelongsToTeamTrait;
  * @property bool $is_draft
  * @property string $expense_title
  * @property string $expense_description
+ * @property string|null $review_note Rejection reason or optional approval comment.
  * @property ExpenseReportStatusEnum $expense_status
  * @property SafeDecimal $amount_before_taxes @CALCULATED by `calculate_expense_report_amount_before_taxes`
  * @property SafeDecimal $total_amount @CALCULATED by `calculate_total_expense_report_amount`
@@ -57,15 +58,39 @@ class ExpenseReport extends AbstractMainFinanceModel
         return $this->hasMany(Expense::class, 'expense_report_id');
     }
 
-    public function approve()
+    public function approve(?string $note = null)
     {
+        if ($this->expense_status !== ExpenseReportStatusEnum::PENDING) {
+            abort(403, __('error-expense-report-status-not-pending'));
+        }
+
         $this->expense_status = ExpenseReportStatusEnum::APPROVED;
+        $this->review_note = $note !== null && trim($note) !== '' ? $note : null;
         $this->save();
     }
 
-    public function reject()
+    public function reject(string $note)
     {
+        if ($this->expense_status !== ExpenseReportStatusEnum::PENDING) {
+            abort(403, __('error-expense-report-status-not-pending'));
+        }
+
+        if (trim($note) === '') {
+            abort(422, __('error-expense-report-reject-reason-required'));
+        }
+
         $this->expense_status = ExpenseReportStatusEnum::REJECTED;
+        $this->review_note = $note;
+        $this->save();
+    }
+
+    public function markAsPaid()
+    {
+        if ($this->expense_status !== ExpenseReportStatusEnum::APPROVED) {
+            abort(403, __('error-expense-report-only-approved-can-be-paid'));
+        }
+
+        $this->expense_status = ExpenseReportStatusEnum::PAID;
         $this->save();
     }
 

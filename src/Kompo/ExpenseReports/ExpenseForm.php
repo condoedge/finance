@@ -44,11 +44,11 @@ class ExpenseForm extends Modal
             _InputDollar('finance-total-expense-amount')->name('total_expense_amount', false)
                 ->default($this->model->total_expense_amount?->toFloat() ?? 0)
                 ->class('mb-4'),
-            _Select('finance-expense-type')->name('expense_type')
-                ->options(ExpenseReportType::forTeam()->pluck('name', 'id'))
+            _Select('finance-expense-type')->name('expense_type_id')
+                ->options(ExpenseReportType::forTeam(currentTeamId())->pluck('name', 'id'))
                 ->class('mb-4'),
             _Textarea('finance-expense-description')->name('expense_description'),
-            _MultiImage('finance-expense-images')
+            _MultiFile('finance-expense-files')
                 ->name('files'),
             _SubmitButton('finance-save-expense')
                 ->class('mt-4'),
@@ -61,7 +61,7 @@ class ExpenseForm extends Modal
             'expense_date' => 'required|date',
             'expense_amount_before_taxes' => 'required|numeric|min:0',
             'total_expense_amount' => 'required|numeric|min:0|gte:expense_amount_before_taxes',
-            'expense_type' => 'required|exists:fin_expense_report_types,id',
+            'expense_type_id' => 'required|exists:fin_expense_report_types,id',
             'expense_description' => 'nullable|string|max:1000',
         ];
     }

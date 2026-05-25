@@ -83,6 +83,12 @@ return [
         'recovery_successes'  => env('FIN_HEALTH_RECOVER_AT', 2),
     ],
 
+    /*
+    | Payment sandbox / test mode. When enabled, the payment screen shows
+    | "Simulate Success / Failure" buttons and providers use sandbox credentials.
+    */
+    'payment_sandbox' => env('PAYMENT_PROVIDER_SANDBOX_ENABLED', false),
+
     'services' => [
         'bna_payment_provider' => [
             'api_url' => env('BNA_PAYMENT_API_URL', 'https://stage-api-service.bnasmartpayment.com'),
@@ -93,6 +99,11 @@ return [
             'api_key' => env('STRIPE_KEY', ''),
             'secret_key' => env('STRIPE_SECRET', ''),
             'webhook_secret' => env('STRIPE_WEBHOOK_SECRET', ''),
+            'sandbox' => [
+                'api_key' => env('STRIPE_SANDBOX_KEY', ''),
+                'secret_key' => env('STRIPE_SANDBOX_SECRET', ''),
+                'webhook_secret' => env('STRIPE_SANDBOX_WEBHOOK_SECRET', ''),
+            ],
         ],
         'moneris' => [
             // gateway.moneris.com works for both qa and prod with the `environment`

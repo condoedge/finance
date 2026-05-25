@@ -44,6 +44,9 @@ class MonerisPaymentProvider implements PaymentGatewayInterface
     protected bool $isTest;
     protected ?ProviderCredentials $credentials = null;
 
+    // Moneris MCO receipt key for the convenience-fee amount. Verify against a real receipt response.
+    private const RECEIPT_CONVENIENCE_FEE_KEY = 'fee_amount';
+
     public function __construct()
     {
         $this->host = config('kompo-finance.services.moneris.host', 'gateway.moneris.com');
@@ -194,6 +197,7 @@ class MonerisPaymentProvider implements PaymentGatewayInterface
                     'iso' => $receipt['iso_code'] ?? null,
                     'reference' => $receipt['reference_num'] ?? null,
                 ],
+                processorFees: $this->extractConvenienceFee($receipt),
             );
         }
 
@@ -202,6 +206,16 @@ class MonerisPaymentProvider implements PaymentGatewayInterface
             transactionId: (string) $txnNumber,
             paymentProviderCode: $this->getCode(),
         );
+    }
+
+    /**
+     * Convenience-fee amount Moneris charged on this transaction, when present.
+     */
+    private function extractConvenienceFee(array $receipt): ?float
+    {
+        $fee = $receipt[self::RECEIPT_CONVENIENCE_FEE_KEY] ?? null;
+
+        return is_numeric($fee) ? (float) $fee : null;
     }
 
     public function classifyError(\Throwable $e): ErrorClassification

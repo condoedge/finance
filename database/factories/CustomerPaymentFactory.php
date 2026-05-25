@@ -19,6 +19,8 @@ class CustomerPaymentFactory extends Factory
             'payment_date' => $this->faker->date(),
             'amount' => $amount,
             'amount_left' => $amount, // Initially, amount_left equals amount
+            'processor_fees' => 0,
+            'net' => $amount, // No fee by default, so net equals amount
         ];
     }
 }
