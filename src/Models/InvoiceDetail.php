@@ -36,6 +36,7 @@ class InvoiceDetail extends AbstractMainFinanceModel
         'extended_price' => SafeDecimalCast::class,
         'tax_amount' => SafeDecimalCast::class,
         'total_amount' => SafeDecimalCast::class,
+        'total_revenue' => SafeDecimalCast::class,
     ];
 
     public function getCreatedEventClass()
