@@ -12,6 +12,7 @@ use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Utils\Facades\TeamModel;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Support\Facades\DB;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
 /**
  * Class Customer
@@ -34,7 +35,7 @@ use Illuminate\Support\Facades\DB;
  * @property-read \Illuminate\Database\Eloquent\Collection|\Condoedge\Finance\Models\CustomerPayment[] $payments
  * @property-read $customable;
  */
-class Customer extends AbstractMainFinanceModel implements EmailCommunicable, SmsCommunicable, DatabaseCommunicable
+class Customer extends AbstractMainFinanceModel implements EmailCommunicable, SmsCommunicable, DatabaseCommunicable, ScopedToTeam
 {
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;

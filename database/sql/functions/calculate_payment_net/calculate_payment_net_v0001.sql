@@ -1,5 +1,5 @@
 drop function if exists calculate_payment_net;
-CREATE FUNCTION calculate_payment_net(payment_id INT) RETURNS DECIMAL(19,5)
+CREATE FUNCTION calculate_payment_net(payment_id INT) RETURNS DECIMAL(19,5) DETERMINISTIC
 BEGIN
     DECLARE payment_net DECIMAL(19,5);
 
