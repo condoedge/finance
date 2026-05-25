@@ -328,7 +328,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     public function applyTeamSecurityScope($query, $teamIds): void
     {
         $query->whereHas('team', function ($q) use ($teamIds) {
-            $q->whereIn('id', $teamIds);
+            $q->whereIn('teams.id', $teamIds);
         });
     }
 
