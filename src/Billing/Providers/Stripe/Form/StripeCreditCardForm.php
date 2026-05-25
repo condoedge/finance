@@ -8,8 +8,12 @@ class StripeCreditCardForm extends Form
 {
     public function created()
     {
+        $publicKey = config('kompo-finance.payment_sandbox')
+            ? config('kompo-finance.services.stripe.sandbox.api_key')
+            : config('kompo-finance.services.stripe.api_key');
+
         $stripeJs = file_get_contents(__DIR__ . '/../../../../../resources/js/stripe.js');
-        $stripeJs = str_replace('{{STRIPE_PUBLIC_KEY}}', config('kompo-finance.services.stripe.api_key'), $stripeJs);
+        $stripeJs = str_replace('{{STRIPE_PUBLIC_KEY}}', $publicKey, $stripeJs);
 
         $this->onLoad(fn ($e) => $e->run('() => {
             ' . $stripeJs . '

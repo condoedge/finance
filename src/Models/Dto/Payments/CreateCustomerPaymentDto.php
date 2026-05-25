@@ -19,6 +19,7 @@ use WendellAdriel\ValidatedDTO\ValidatedDTO;
  * @property int $customer_id The customer making the payment
  * @property \Carbon\Carbon|string $payment_date Date the payment was received
  * @property SafeDecimal $amount Payment amount with decimal precision
+ * @property SafeDecimal|null $processor_fees Processor fee charged for the payment
  */
 class CreateCustomerPaymentDto extends ValidatedDTO
 {
@@ -30,6 +31,8 @@ class CreateCustomerPaymentDto extends ValidatedDTO
 
     public SafeDecimal $amount;
 
+    public ?SafeDecimal $processor_fees;
+
     public ?int $payment_trace_id;
     public ?int $payment_method_id;
 
@@ -38,6 +41,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
         return [
             'payment_date' => new CarbonCast(),
             'amount' => new SafeDecimalCast(),
+            'processor_fees' => new SafeDecimalCast(),
             'customer_id' => new IntegerCast(),
             'payment_trace_id' => new IntegerCast(),
             'payment_method_id' => new IntegerCast(),
@@ -51,6 +55,7 @@ class CreateCustomerPaymentDto extends ValidatedDTO
             'customer_id' => ['required', 'integer', 'exists:fin_customers,id'],
             'payment_date' => ['required', 'date'],
             'amount' => ['required', new SafeDecimalRule(true)],
+            'processor_fees' => ['nullable', new SafeDecimalRule(true)],
             'payment_trace_id' => ['nullable', 'integer', 'exists:fin_payment_traces,id'],
             'payment_method_id' => ['nullable', 'integer', 'exists:fin_payment_methods,id'],
         ];

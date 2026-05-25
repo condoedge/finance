@@ -198,6 +198,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
             'kompo-finance' => __DIR__.'/../config/kompo-finance.php',
             'global-config' => __DIR__.'/../config/global-config.php',
             'laravel-impersonate' => __DIR__.'/../config/laravel-impersonate.php',
+            'finance-settlement' => __DIR__.'/../config/finance-settlement.php',
         ];
 
         foreach ($dirs as $key => $path) {
@@ -229,6 +230,7 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
                 \Condoedge\Finance\Command\CleanupExpenseReportDraftsCommand::class,
                 \Condoedge\Finance\Command\EnsureInvoiceEventsAreProcessed::class,
                 \Condoedge\Finance\Command\ReconcileMonerisPaymentsCommand::class,
+                \Condoedge\Finance\Command\ImportSettlementReportCommand::class,
             ]);
         }
     }
@@ -290,6 +292,12 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->bind(
             \Condoedge\Finance\Services\Payment\PaymentServiceInterface::class,
             \Condoedge\Finance\Services\Payment\PaymentService::class
+        );
+
+        // Settlement report import
+        $this->app->bind(
+            \Condoedge\Finance\Billing\Settlement\Contracts\SettlementImportServiceInterface::class,
+            \Condoedge\Finance\Billing\Settlement\SettlementImportService::class
         );
 
         // Tax Service

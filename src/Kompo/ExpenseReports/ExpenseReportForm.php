@@ -34,30 +34,65 @@ class ExpenseReportForm extends Modal
 
     public function body()
     {
+        $editable = $this->isEditable();
+
         return _Rows(
+            $this->statusBanner(),
             new ExpenseReportTotal($this->model->id),
             _Input('finance-expense-title')->name('expense_title')
+                ->when(!$editable, fn ($el) => $el->readOnly())
                 ->class('mb-4'),
             _Select('finance-team')->name('team_id')
-                ->searchOptions(2, 'searchTeams'),
+                ->searchOptions(2, 'searchTeams')
+                ->when(!$editable, fn ($el) => $el->readOnly()),
             _Textarea('finance-expense-description')->name('expense_description')
+                ->when(!$editable, fn ($el) => $el->readOnly())
                 ->class('mb-4'),
             _Rows(
                 _Html('finance-expenses')->class('text-lg mb-2'),
                 _Rows(new ExpensesQuery([
                     'expense_report_id' => $this->model->id,
+                    'readonly' => !$editable,
                 ]))->class('text-center'),
-                _ButtonOutlined('finance-add-expense')
+                !$editable ? null : _ButtonOutlined('finance-add-expense')
                     ->selfGet('getExpenseForm')
                     ->warnBeforeClose()
                     ->inModal()
                     ->class('mt-2 mb-4'),
             ),
-            _SubmitButton('finance-save-expense-report')
+            !$editable ? null : _SubmitButton('finance-save-expense-report')
                 ->class('mt-4')
                 ->closeModal()
                 ->refresh(['user-expense-report-table']),
         );
+    }
+
+    // Only true while the report is still a draft. Once submitted (even if
+    // later rejected) it's read-only here. A new report is the way to resubmit.
+    protected function isEditable(): bool
+    {
+        return (bool) $this->model->is_draft;
+    }
+
+    // Status pill + review note shown when the report is no longer a draft.
+    // This is the submitter's only window into the approver's decision.
+    protected function statusBanner()
+    {
+        if ($this->model->is_draft || !$this->model->expense_status) {
+            return null;
+        }
+
+        return _Rows(
+            _FlexBetween(
+                _Html('finance-status')->class('font-semibold'),
+                $this->model->expense_status->pill(),
+            )->class('mb-2'),
+            !$this->model->review_note ? null : _Rows(
+                _Html('finance-review-note')->class('font-semibold mb-1'),
+                _Html($this->model->review_note)
+                    ->class('text-gray-700 whitespace-pre-line p-3 bg-gray-50 rounded'),
+            ),
+        )->class('mb-4 p-3 border rounded');
     }
 
     public function searchTeams($search)

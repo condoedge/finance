@@ -159,6 +159,8 @@ class PaymentService implements PaymentServiceInterface
         $payment->customer_id = $dto->customer_id;
         $payment->payment_date = $dto->payment_date;
         $payment->amount = $dto->amount;
+        // Manual payments have no processor fee. Gateway payments stay null until settlement reconciles them.
+        $payment->processor_fees = $dto->payment_trace_id === null ? 0 : $dto->processor_fees;
         $payment->payment_trace_id = $dto->payment_trace_id;
         $payment->payment_method_id = $dto->payment_method_id;
         $payment->payment_trace_id = $dto->payment_trace_id;

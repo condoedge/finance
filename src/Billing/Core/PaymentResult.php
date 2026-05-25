@@ -15,17 +15,19 @@ class PaymentResult
         public readonly ?array $options = null, // Additional options for the payment action
         public readonly ?string $redirectUrl = null, // URL to redirect for pending payments
         public readonly ?bool $isPending = false, // Indicates if the payment is pending
+        public readonly ?float $processorFees = null, // Processor fee, when the provider reports it
     ) {
     }
 
-    public static function success(string $transactionId, float $amount, string $paymentProviderCode = '', array $metadata = []): self
+    public static function success(string $transactionId, float $amount, string $paymentProviderCode = '', array $metadata = [], ?float $processorFees = null): self
     {
         return new self(
             success: true,
             transactionId: $transactionId,
             paymentProviderCode: $paymentProviderCode,
             amount: $amount,
-            metadata: $metadata
+            metadata: $metadata,
+            processorFees: $processorFees
         );
     }
 

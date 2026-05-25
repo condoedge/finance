@@ -48,7 +48,7 @@ class ExpenseForm extends Modal
                 ->options(ExpenseReportType::forTeam()->pluck('name', 'id'))
                 ->class('mb-4'),
             _Textarea('finance-expense-description')->name('expense_description'),
-            _MultiImage('finance-expense-images')
+            _MultiFile('finance-expense-files')
                 ->name('files'),
             _SubmitButton('finance-save-expense')
                 ->class('mt-4'),

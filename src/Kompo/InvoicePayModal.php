@@ -3,8 +3,10 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface;
+use Condoedge\Finance\Billing\Contracts\SimulatesPaymentInSandbox;
 use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Billing\Core\PaymentFlowEnum;
+use Condoedge\Finance\Billing\Core\PaymentResult;
 use Condoedge\Finance\Billing\Core\PaymentLog;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceService;
@@ -157,14 +159,80 @@ class InvoicePayModal extends Form
         // Hosted flow: no inline form to render. Submitting the modal's main
         // Pay button kicks off payInvoice → processPayment → preload → REDIRECT
         // action, which redirects the browser to the provider's hosted page.
-        if ($primary->getCheckoutFlow()->isHosted()) {
-            return _Html(__('finance.you-will-be-redirected-to', [
+        $fields = $primary->getCheckoutFlow()->isHosted()
+            ? _Html(__('finance.you-will-be-redirected-to', [
                 'provider' => $primary->getDisplayName(),
-            ]))->class('text-sm text-gray-600 text-center');
+            ]))->class('text-sm text-gray-600 text-center')
+            : ($primary->getPaymentForm($context)
+                ?? _Html($paymentMethod->label())->class('text-center text-gray-800'));
+
+        if (config('kompo-finance.payment_sandbox')) {
+            return _Rows($fields, $this->sandboxSimulateButtons());
         }
 
-        return $primary->getPaymentForm($context)
-            ?? _Html($paymentMethod->label())->class('text-center text-gray-800');
+        return $fields;
+    }
+
+    protected function sandboxSimulateButtons()
+    {
+        return _Rows(
+            _Html('finance.sandbox-mode-active')->class('text-xs text-center text-warning-dark mt-4 mb-1'),
+            _Flex(
+                _Button('finance.simulate-successful-payment')
+                    ->selfPost('simulatePayment', ['outcome' => 'success'])
+                    ->withAllFormValues()
+                    ->class('!bg-greenmain text-white flex-1'),
+                _Button('finance.simulate-failed-payment')
+                    ->selfPost('simulatePayment', ['outcome' => 'failure'])
+                    ->withAllFormValues()
+                    ->class('!bg-red-600 text-white flex-1'),
+            )->class('gap-2'),
+        );
+    }
+
+    public function simulatePayment($outcome)
+    {
+        abort_unless(config('kompo-finance.payment_sandbox'), 403);
+
+        $paymentMethodId = $this->model->payment_method_id?->value ?? request('payment_method_id');
+        $paymentMethod = PaymentMethodEnum::tryFrom((int) $paymentMethodId);
+        abort_unless($paymentMethod, 422, __('finance.select-payment-method'));
+
+        $shouldSucceed = $outcome === 'success';
+        // Same payable selection as render()/handle().
+        $payable = ($this->justPayingNextInstallment ? $this->model->getNextInstallmentPeriod() : $this->model)
+            ?? $this->model;
+
+        $context = new PaymentContext(payable: $payable, paymentMethod: $paymentMethod);
+
+        try {
+            $provider = app(PaymentGatewayResolverInterface::class)->previewChain($context)[0] ?? null;
+
+            if ($provider instanceof SimulatesPaymentInSandbox) {
+                $result = $provider->simulateSandboxPayment($context, $shouldSucceed);
+            } else {
+                $code = $provider?->getCode() ?? 'sandbox';
+                $result = $shouldSucceed
+                    ? PaymentResult::success('sandbox-' . uniqid(), $payable->getPayableAmount()->toFloat(), $code)
+                    : PaymentResult::failed(__('error-payment-failed'), 'sandbox-' . uniqid(), $code);
+            }
+
+            PaymentProcessor::managePaymentResult($result, $context);
+        } catch (\Exception $e) {
+            abort(400, __('error-payment-failed'));
+        }
+
+        if ($result->success) {
+            return response()->kompoMulti([
+                response()->closeModal(),
+                response()->closeModal(),
+                response()->kompoRun('() => {utils.removeLoadingScreen()}'),
+                response()->kompoAlert('finance-paid-successfully'),
+                response()->kompoRefresh('dashboard-view'),
+            ]);
+        }
+
+        abort(400, __('error-payment-failed'));
     }
 
     public function getPaymentSchedule($paymentTermId = null)

@@ -65,6 +65,7 @@ class PaymentProcessor implements PaymentProcessorInterface
                     'amount' => $result->amount,
                     'customer_id' => $payable->getCustomer()->id,
                     'payment_trace_id' => $paymentTrace->id,
+                    'processor_fees' => $result->processorFees,
                 ]));
 
                 try {
