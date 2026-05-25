@@ -37,6 +37,7 @@ use Kompo\Auth\Contracts\Security\ScopedToTeam;
  */
 class Customer extends AbstractMainFinanceModel implements EmailCommunicable, SmsCommunicable, DatabaseCommunicable, ScopedToTeam
 {
+    use \Kompo\Auth\Models\Concerns\Security\BelongsToOneTeam;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
 
