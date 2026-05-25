@@ -229,7 +229,7 @@ class InvoiceForm extends Form
             _Html()->class('z-10 absolute top-0 left-0 w-full h-full'),
             
             $input->class('select-none [&>.vlInputWrapper>*]:!bg-gray-200 [&>.vlInputWrapper>*]:!opacity-50 [&>.vlInputWrapper>.vlInputGroup>.vlInputPrepend>.icon-calendar]:!text-gray-300')->disabled()
-                ->attr(['autocomplete' => 'off', 'readonly' => 'readonly']),
+                ->attr(['autocomplete' => 'off', 'readonly' => 'readonly', 'data-bwignore' => 'true', 'data-form-type' => 'due-date', 'data-1p-ignore' => 'true']),
         )->class('relative');
     }
 
