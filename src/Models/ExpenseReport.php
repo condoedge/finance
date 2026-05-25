@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Kompo\Auth\Facades\TeamModel;
 use Kompo\Auth\Facades\UserModel;
 use Kompo\Auth\Models\Teams\BelongsToTeamTrait;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
 /**
  *  * Represents an expense report in the finance module.
@@ -25,8 +26,9 @@ use Kompo\Auth\Models\Teams\BelongsToTeamTrait;
  * @property SafeDecimal $amount_before_taxes @CALCULATED by `calculate_expense_report_amount_before_taxes`
  * @property SafeDecimal $total_amount @CALCULATED by `calculate_total_expense_report_amount`
  */
-class ExpenseReport extends AbstractMainFinanceModel
+class ExpenseReport extends AbstractMainFinanceModel implements ScopedToTeam
 {
+    use \Kompo\Auth\Models\Concerns\Security\BelongsToOneTeam;
     use HasFactory;
     use BelongsToTeamTrait;
 

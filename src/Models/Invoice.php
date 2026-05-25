@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Kompo\Auth\Facades\UserModel;
 use Kompo\Auth\Models\Teams\Team;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
 /**
  * Class Invoice
@@ -64,7 +65,7 @@ use Kompo\Auth\Models\Teams\Team;
  * @property Collection<PaymentInstallmentPeriod> $installmentsPeriods The payment installment periods associated with the invoice
  * @property-read PaymentMethod $paymentMethod The payment method used for the invoice
  */
-class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterface
+class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterface, ScopedToTeam
 {
     use \Condoedge\Utils\Models\ContactInfo\Maps\MorphManyAddresses;
     use \Condoedge\Finance\Billing\Traits\PayableTrait;
@@ -322,6 +323,18 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     public function sendToCustomer()
     {
         InvoiceService::sendInvoice($this->id);
+    }
+
+    public function applyTeamSecurityScope($query, $teamIds): void
+    {
+        $query->whereHas('team', function ($q) use ($teamIds) {
+            $q->whereIn('id', $teamIds);
+        });
+    }
+
+    public function getRelatedTeamIds(): array
+    {
+        return array_filter([$this->team?->id]);
     }
 
     /* ELEMENTS */

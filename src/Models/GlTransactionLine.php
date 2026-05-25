@@ -4,8 +4,9 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
-class GlTransactionLine extends AbstractMainFinanceModel
+class GlTransactionLine extends AbstractMainFinanceModel implements ScopedToTeam
 {
     use HasIntegrityCheck;
 
@@ -69,5 +70,17 @@ class GlTransactionLine extends AbstractMainFinanceModel
     public function scopeCredits($query)
     {
         return $query->where('credit_amount', '>', 0);
+    }
+
+    public function applyTeamSecurityScope($query, $teamIds): void
+    {
+        $query->whereHas('header', function ($q) use ($teamIds) {
+            $q->whereIn('team_id', $teamIds);
+        });
+    }
+
+    public function getRelatedTeamIds(): array
+    {
+        return array_filter([$this->header?->team_id]);
     }
 }

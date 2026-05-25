@@ -10,6 +10,7 @@ use Condoedge\Finance\Models\Dto\Products\CreateProductDto;
 use Condoedge\Finance\Services\Product\Rebates\RebateHandlerService;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Support\Facades\DB;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
 /**
  * A class representing a financial product, service, or commission. (rebates as well)
@@ -28,8 +29,9 @@ use Illuminate\Support\Facades\DB;
  * @property array|null $taxes_ids An array of tax IDs that apply to this product
  * @property ProductTypeEnum $product_type
  */
-class Product extends AbstractMainFinanceModel
+class Product extends AbstractMainFinanceModel implements ScopedToTeam
 {
+    use \Kompo\Auth\Models\Concerns\Security\BelongsToOneTeam;
     use \Kompo\Auth\Models\Teams\BelongsToTeamTrait;
     use \Condoedge\Utils\Models\Traits\MemoizesResults;
 

@@ -6,9 +6,11 @@ use Carbon\Carbon;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Condoedge\Finance\Models\Traits\ValidatesFiscalPeriod;
 use Illuminate\Support\Facades\DB;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
-class GlTransactionHeader extends AbstractMainFinanceModel
+class GlTransactionHeader extends AbstractMainFinanceModel implements ScopedToTeam
 {
+    use \Kompo\Auth\Models\Concerns\Security\BelongsToOneTeam;
     use ValidatesFiscalPeriod;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
 
