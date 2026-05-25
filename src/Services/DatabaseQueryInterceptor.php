@@ -68,11 +68,13 @@ class DatabaseQueryInterceptor
             return;
         }
 
+        $entered = false;
         try {
             $affectedIds = static::extractAffectedIds($sql, $bindings, $table, $operation);
 
             if (!empty($affectedIds)) {
                 HasSecurity::enterBypassContext();
+                $entered = true;
                 // Trigger integrity checking
                 $this->observer->handleDatabaseChange($table, $operation, $affectedIds);
             }
@@ -83,7 +85,9 @@ class DatabaseQueryInterceptor
                 'trace' => $e->getTraceAsString()
             ]);
         } finally {
-            HasSecurity::exitBypassContext();
+            if ($entered) {
+                HasSecurity::exitBypassContext();
+            }
         }
     }
 
