@@ -145,7 +145,8 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function invoiceable()
     {
-        return $this->morphTo();
+        return $this->morphTo()->throughAuthorizedRelation()
+            ->withTrashed();
     }
 
     public function accountReceivable()
