@@ -23,16 +23,6 @@ class ExpenseForm extends Modal
         $this->model->total_expense_amount = request('total_expense_amount', 0);
     }
 
-    public function afterSave()
-    {
-        // Collapsed: button chain → server-driven kompoMulti.
-        return response()->kompoMulti([
-            response()->closeModal(),
-            response()->kompoRefresh('expenses-query'),
-            response()->kompoRefresh('expense-report-total'),
-        ]);
-    }
-
     public function body()
     {
         return _Rows(
@@ -51,6 +41,9 @@ class ExpenseForm extends Modal
             _MultiFile('finance-expense-files')
                 ->name('files'),
             _SubmitButton('finance-save-expense')
+                ->closeModal()
+                ->refresh('expenses-query')
+                ->refresh('expense-report-total')
                 ->class('mt-4'),
         );
     }
