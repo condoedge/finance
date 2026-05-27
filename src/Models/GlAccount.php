@@ -5,9 +5,11 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Facades\AccountSegmentService;
 use Condoedge\Finance\Facades\GlTransactionService;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
-class GlAccount extends AbstractMainFinanceModel
+class GlAccount extends AbstractMainFinanceModel implements ScopedToTeam
 {
+    use \Kompo\Auth\Models\Concerns\Security\BelongsToOneTeam;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
     protected $table = 'fin_gl_accounts';
 
