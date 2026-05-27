@@ -6,6 +6,7 @@ use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Utils\Facades\TeamModel;
 use Condoedge\Utils\Models\Model;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
 /**
  * @TRIGGERED BY: tr_historical_customers_after_insert (insert_historical_customers_v0001.sql)
@@ -17,8 +18,10 @@ use Condoedge\Utils\Models\Model;
  * WARNING: Do not create or update these records manually as they are managed by database triggers.
  * We use triggers to avoid deleting or updating records in this table.
  */
-class HistoricalCustomer extends Model
+class HistoricalCustomer extends Model implements ScopedToTeam
 {
+    use \Kompo\Auth\Models\Concerns\Security\BelongsToOneTeam;
+    
     protected $table = 'fin_historical_customers';
 
     /* RELATIONSHIPS */
