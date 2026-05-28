@@ -160,7 +160,7 @@ class CustomerForm extends Modal
                 const waitUntilOptionAppear = async () => {
                     return new Promise((resolve) => {
                         const interval = setInterval(() => {
-                            if ($(".select-on-create").find(".vlOptions").find("span[data-id]").length) {
+                            if ($(".select-on-create").find(".vlOptions").find("div[data-id]").length) {
                                 clearInterval(interval);
                                 resolve();
                             }
@@ -177,8 +177,9 @@ class CustomerForm extends Modal
                 });
 
                 waitUntilOptionAppear().then(() => {
-                    $(".select-on-create").find(".vlOptions").find("span[data-id]").each(function() {
+                    $(".select-on-create").find(".vlOptions").find("div[data-id]").each(function() {
                         if ($(this).data("id") == customerId) {
+                            console.log("Option found, selecting it...");
                             $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
                         }
                     });
