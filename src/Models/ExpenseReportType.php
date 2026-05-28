@@ -4,9 +4,11 @@ namespace Condoedge\Finance\Models;
 
 use Kompo\Auth\Facades\TeamModel;
 use Kompo\Database\HasTranslations;
+use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
-class ExpenseReportType extends AbstractMainFinanceModel
+class ExpenseReportType extends AbstractMainFinanceModel implements ScopedToTeam
 {
+    use \Kompo\Auth\Models\Concerns\Security\BelongsToOneTeam;
     use HasTranslations;
     
     protected $table = 'fin_expense_report_types';
