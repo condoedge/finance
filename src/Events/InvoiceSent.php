@@ -8,6 +8,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
+use Condoedge\Communications\Recipients\RecipientOverride;
 
 class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
 {
@@ -16,10 +17,12 @@ class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
     use SerializesModels;
 
     protected $invoice;
+    protected $customEmail;
 
-    public function __construct($invoice)
+    public function __construct($invoice, $customEmail = null)
     {
         $this->invoice = $invoice;
+        $this->customEmail = $customEmail;
     }
 
     public function getParams(): array
@@ -39,7 +42,13 @@ class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
 
     public function getCommunicables(): Collection|array
     {
-        return collect([$this->invoice->mainCustomer]);
+        $customer = $this->invoice->mainCustomer;
+
+        if ($this->customEmail) {
+            return collect([RecipientOverride::for($customer)->withEmail($this->customEmail)]);
+        }
+
+        return collect([]);
     }
 
     public static function validVariablesIds($specificField = null, $context = []): ?array

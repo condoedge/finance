@@ -157,7 +157,7 @@ class InvoiceService implements InvoiceServiceInterface
         });
     }
 
-    public function sendInvoice($id): void
+    public function sendInvoice($id, $customEmail = null): void
     {
         $invoice = InvoiceModel::findOrFail($id);
 
@@ -173,7 +173,7 @@ class InvoiceService implements InvoiceServiceInterface
 
         // This will dispatch the InvoiceSent event
         // and send the email to the customer
-        event(new InvoiceSent($invoice));
+        event(new InvoiceSent($invoice, $customEmail));
 
         $invoice->markAsSent();
     }

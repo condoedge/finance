@@ -90,14 +90,9 @@ class InvoicePage extends Form
                     // !$this->model->isLate() ? null :
                     //     _Button('finance-late-interests')->icon(_Sax('add', 20))->class('!bg-danger text-white'),
 
-                    //! It's not a delete link, but it's the easiest way to use the confirm modal
-                    _LinkWithConfirmation('finance-send-invoice')->button()
-                        ->selfPost('sendInvoice', ['id' => $this->model->id])
-                        ->confirmationTitle('finance-send-invoice-confirm')
-                        ->run('() => {
-                            $(".vlDeleteLinkModal").find(".vlBtnOutlined").click();
-                        }')
-                        ->inAlert()->refresh(),
+                    _Link('finance-send-invoice')->button()
+                        ->selfGet('getSendInvoiceModal', ['id' => $this->model->id])
+                        ->inModal(),
                 )
             )->class('mb-4 p-6 bg-white rounded-2xl'),
 
@@ -171,11 +166,9 @@ class InvoicePage extends Form
         return __('finance-invoice-approved');
     }
 
-    public function sendInvoice($id)
+    public function getSendInvoiceModal($id)
     {
-        InvoiceService::sendInvoice($id);
-
-        return __('finance-invoice-sent');
+        return new SendInvoiceModal($id);
     }
 
     public function getApplyPaymentToInvoiceModal()
