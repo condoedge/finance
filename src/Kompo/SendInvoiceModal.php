@@ -8,7 +8,7 @@ use Condoedge\Finance\Kompo\Common\Modal;
 
 class SendInvoiceModal extends Modal
 {
-    protected $_Title = 'translate.finance-send-invoice';
+    protected $_Title = 'finance-send-invoice';
     public $model = InvoiceModel::class;
 
     public function handle()
@@ -19,11 +19,11 @@ class SendInvoiceModal extends Modal
     public function body()
     {
         return _Rows(
-            _Input('translate.finance-invoice-email')->name('email')
+            _Input('finance-email')->name('email')
                 ->default($this->model->mainCustomer?->email),
 
             _Flex(
-                _ButtonOutlined('translate.finance-cancel')->closeModal()->class('flex-1'),
+                _ButtonOutlined('finance-cancel')->closeModal()->class('flex-1'),
                 _SubmitButton()->alert('finance-invoice-sent')->closeModal()
                     ->refresh('invoice-page')->class('flex-1'),
             )->class('mt-4 gap-4'),
