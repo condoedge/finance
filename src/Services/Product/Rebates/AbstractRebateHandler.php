@@ -31,7 +31,7 @@ abstract class AbstractRebateHandler
 
     abstract function getHandlerLabel(): string;
 
-    abstract function getHandlerParamsFields();
+    abstract function getHandlerParamsFields($rebate = null);
 
     abstract function getHandlerParamsRules(): array;
 

@@ -28,12 +28,18 @@ class DateRebateHandler extends AbstractRebateHandler
         return __('finance-date');
     }
 
-    function getHandlerParamsFields()
+    function getHandlerParamsFields($rebate = null)
     {
+        // rebate_logic_parameters is cast to 'array' on the model, but stays a JSON string before
+        // a fresh save, so guard the decode (json_decode() on an array throws a TypeError).
+        $params = is_string($rebate?->rebate_logic_parameters)
+            ? json_decode($rebate->rebate_logic_parameters, true)
+            : ($rebate?->rebate_logic_parameters ?? []);
+
         return _Rows(
-            _Date('finance-start-date')->name('rebate_logic_parameters[start_date]')->required(),
-            _Date('finance-end-date')->name('rebate_logic_parameters[end_date]')->required()
-        );  
+            _Date('finance-start-date')->name('rebate_logic_parameters[start_date]')->value($params['start_date'] ?? null),
+            _Date('finance-end-date')->name('rebate_logic_parameters[end_date]')->value($params['end_date'] ?? null),
+        );
     }
 
     function getHandlerParamsRules(): array

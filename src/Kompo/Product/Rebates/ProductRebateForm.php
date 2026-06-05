@@ -26,7 +26,7 @@ class ProductRebateForm extends Form
     public function handle()
     {
         $this->model->forceFill(request()->all());
-        $this->model->amount_type = RebateAmountTypeEnum::from(request('amount_type')); // Force cast
+        $this->model->amount_type = RebateAmountTypeEnum::from((int) request('amount_type')); // Force cast
         $modelExisted = (bool) $this->model->id;
 
         // In case we have product id we can save directly, if not we derivate the saving to the parent form that will receive the data.
@@ -40,11 +40,17 @@ class ProductRebateForm extends Form
             ]), $this->model->id);
 
             $this->model($rebate);
+
+            return response()->kompoMulti([
+                $modelExisted
+                    ? response()->updateInQuery('product-rebate-list', 'rebate'. $rebate->id, ProductRebateList::buildSavedRow($rebate))
+                    : response()->addToQuery('product-rebate-list', ProductRebateList::buildSavedRow($rebate)),
+                response()->closeModal(),
+            ]);
         }
 
         return response()->kompoMulti([
-            $modelExisted ? response()->updateInQuery('product-rebate-list', 'rebate'. $this->model->id, ProductRebateList::buildFormRow($rebate, $this->index))
-                : response()->addToQuery('product-rebate-list', ProductRebateList::buildFormRow($this->model, $this->index)),
+            response()->addToQuery('product-rebate-list', ProductRebateList::buildFormRow($this->model, $this->index)),
             response()->closeModal(),
         ]);
     }
@@ -58,21 +64,21 @@ class ProductRebateForm extends Form
                 ->selfGet('getRebateHandlerParamsFields')->inPanel('logic-params-modal'),
 
             _Panel(
-
+                $this->model->rebate_logic_type ? $this->getRebateHandlerParamsFields($this->model->rebate_logic_type) : null,
             )->id('logic-params-modal'),
 
             _Html('finance-amount*')->class('text-sm font-semibold mb-1 cursor-default text-level1'),
-            _Columns(
-                _InputNumber()->name('amount')->class('mb-0')->required(),
+            _Flex(
+                _InputNumber()->name('amount')->class('mb-0 flex-1')->required(),
                 _ButtonGroup()->name('amount_type')
                     ->options([
                         RebateAmountTypeEnum::PERCENT->value => RebateAmountTypeEnum::PERCENT->getAmountSymbol(),
                         RebateAmountTypeEnum::AMOUNT->value => RebateAmountTypeEnum::AMOUNT->getAmountSymbol(),
                     ])->optionClass('text-2xl font-bold text-center px-4 py-2 h-12 cursor-pointer border-level1 border')
                     ->selectedClass('bg-level1 text-white', 'text-level1')
-                    ->class('mb-0')
+                    ->class('mb-0 flex-1')
                     ->required(),
-            )->class('mb-3'),
+            )->class('mb-3 gap-4'),
 
             _Checkbox('finance-is-accumulable')->name('is_accumulable')->default(true)->class('mt-2'),
 
@@ -89,7 +95,7 @@ class ProductRebateForm extends Form
         $rebateService = app()->make(RebateHandlerService::class);
         $handler = $rebateService->getRebateHandler($handlerKey);
 
-        return $handler->getHandlerParamsFields();
+        return $handler->getHandlerParamsFields($this->model);
     }
 
     // We need to move this to an specific route since ProductRebateForm shouldn't know about the handlers details

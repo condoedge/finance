@@ -54,4 +54,9 @@ class Rebate extends Model
 
         return $handler->getHandlerParamsLabel($handlerParams);
     }
+
+    public function deletable()
+    {
+        return true;
+    }
 }

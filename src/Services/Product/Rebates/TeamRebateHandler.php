@@ -26,11 +26,14 @@ class TeamRebateHandler extends AbstractRebateHandler
         return __('finance-team2');
     }
 
-    function getHandlerParamsFields()
+    function getHandlerParamsFields($rebate = null)
     {
+        $defaultValue = $rebate?->id ? (json_decode($rebate->rebate_logic_parameters, true)['team_id'] ?? null) : null;
+
         return _Rows(
             _Select('finance-team2')->name('rebate_logic_parameters.team_id')
-                ->searchOptions(3, 'searchTeams', 'retrieveTeams')->required(),
+                ->default($defaultValue)
+                ->searchOptions(3, 'searchTeams', 'retrieveTeams'),
         );  
     }
 

@@ -25,6 +25,7 @@ class ProductRebateList extends Table
             _Th('finance-rebate-logic-on'),
             _Th('finance-rebate-logic'),
             _Th('finance-amount'),
+            _Th()->class('w-8'),
         ];
     }
 
@@ -35,10 +36,21 @@ class ProductRebateList extends Table
 
     public function render($rebate)
     {
+        return static::buildSavedRow($rebate);
+    }
+
+    /**
+     * Build a row for an already-persisted rebate. Its _DeleteLink removes the saved record from
+     * the database, so it must be used (instead of buildFormRow) whenever the rebate is saved
+     * directly - otherwise the trash would only hide the row while the record stays in the DB.
+     */
+    public static function buildSavedRow(Rebate $rebate)
+    {
         return _TableRow(
             _Html($rebate->handler_label),
             _Html($rebate->handler_params_label),
             _Html($rebate->visual_amount),
+            _DeleteLink()->byKey($rebate)->class('!text-gray-600 hover:!text-danger'),
         )->id('rebate'. $rebate->id)->selfGet('getRebateForm', [
             'id' => $rebate->id,
         ])->inModal();
@@ -86,6 +98,7 @@ class ProductRebateList extends Table
                 _Hidden()->name("rebate[{$index}][amount_type]", false)->value($rebate->amount_type->value),
                 _Html($rebate->visual_amount),
             ),
-        );
+            _Link()->icon('icon-trash')->class('!text-gray-600 hover:!text-danger')->jsRemoveFromQuery('product-rebate-list', "rebate[{$index}]"),
+        )->id("rebate[{$index}]");
     }
 }

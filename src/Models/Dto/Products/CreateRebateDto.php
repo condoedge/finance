@@ -5,8 +5,6 @@ namespace Condoedge\Finance\Models\Dto\Products;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Models\RebateAmountTypeEnum;
 use Condoedge\Finance\Rule\SafeDecimalRule;
-use Dedoc\Scramble\Support\Type\EnumCaseType;
-use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\EnumCast;
 use WendellAdriel\ValidatedDTO\ValidatedDTO;
 
