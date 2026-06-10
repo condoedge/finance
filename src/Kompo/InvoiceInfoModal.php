@@ -41,7 +41,6 @@ class InvoiceInfoModal extends Form
                 _Rows(
                     _FlexBetween(
                         _Html('finance.from')->class('font-semibold text-black'),
-                        _Link('finance.contact'),
                     ),
                     _Rows(
                         _Html($this->team->team_name),
