@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Models;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
 use Condoedge\Utils\Models\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Kompo\Database\HasTranslations;
 
 /**
  * Payment Type Model
@@ -15,6 +16,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class PaymentMethod extends Model
 {
     use HasFactory;
+    use HasTranslations;
+
+    protected $translatable = ['name'];
 
     protected $table = 'fin_payment_methods';
 

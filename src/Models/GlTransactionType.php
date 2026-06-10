@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Condoedge\Utils\Models\Model;
+use Kompo\Database\HasTranslations;
 
 /**
  * GL Transaction Type Model
@@ -13,6 +14,8 @@ use Condoedge\Utils\Models\Model;
  */
 class GlTransactionType extends Model
 {
+    use HasTranslations;
+    protected $translatable = ['name'];
     protected $table = 'fin_gl_transaction_types';
     protected $primaryKey = 'id';
 

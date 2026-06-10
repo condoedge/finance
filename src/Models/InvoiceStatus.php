@@ -4,9 +4,12 @@ namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Utils\Models\Model;
+use Kompo\Database\HasTranslations;
 
 class InvoiceStatus extends Model
 {
+    use HasTranslations;
+    protected $translatable = ['name'];
     protected $table = 'fin_invoice_statuses';
 
     /* RELATIONSHIPS */
