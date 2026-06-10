@@ -83,7 +83,7 @@ class InvoicePayModal extends Form
     public function render()
     {
         $paymentMethods = collect($this->getPaymentMethods());
-        $payable = $this->justPayingNextInstallment ? $this->model->getNextInstallmentPeriod() : $this->model;
+        $payable = $this->justPayingNextInstallment ? ($this->model->getNextInstallmentPeriod() ?: $this->model) : $this->model;
 
         return _Rows(
             _Html('finance.pay-invoice')->class('text-center text-2xl font-semibold mb-6'),
