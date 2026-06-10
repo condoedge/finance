@@ -16,12 +16,19 @@ enum InvoiceStatusEnum: int
     public function label(): string
     {
         return match ($this) {
-            self::DRAFT => __('finance-draft'),
-            self::PENDING => __('finance-pending'),
-            self::PAID => __('finance-paid'),
-            self::CANCELLED => __('finance-cancelled'),
-            self::OVERDUE => __('finance-overdue'),
-            self::PARTIAL => __('finance-partial'),
+            default => __($this->rawTranslationKey()),
+        };
+    }
+
+    public function rawTranslationKey(): string
+    {
+        return match ($this) {
+            self::DRAFT => 'finance-draft',
+            self::PENDING => 'finance-pending',
+            self::PAID => 'finance-paid',
+            self::CANCELLED => 'finance-cancelled',
+            self::OVERDUE => 'finance-overdue',
+            self::PARTIAL => 'finance-partial',
         };
     }
 

@@ -24,11 +24,18 @@ enum PaymentMethodEnum: int
     public function label(): string
     {
         return match($this) {
-            self::CREDIT_CARD => __('finance-credit-card'),
-            self::BANK_TRANSFER => __('finance-bank-transfer'),
-            self::INTERAC => __('finance-interac'),
-            self::CASH => __('finance-cash'),
-            self::CHECK => __('finance-check'),
+            default => __($this->rawTranslationKey()),
+        };
+    }
+
+    public function rawTranslationKey(): string
+    {
+        return match($this) {
+            self::CREDIT_CARD => 'finance-credit-card',
+            self::BANK_TRANSFER => 'finance-bank-transfer',
+            self::INTERAC => 'finance-interac',
+            self::CASH => 'finance-cash',
+            self::CHECK => 'finance-check',
         };
     }
 

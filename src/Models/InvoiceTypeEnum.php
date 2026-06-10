@@ -12,8 +12,15 @@ enum InvoiceTypeEnum: int
     public function label(): string
     {
         return match ($this) {
-            self::INVOICE => __('finance-invoice'),
-            self::CREDIT => __('finance-credit'),
+            default => __($this->rawTranslationKey()),
+        };
+    }
+
+    public function rawTranslationKey(): string
+    {
+        return match ($this) {
+            self::INVOICE => 'finance-invoice',
+            self::CREDIT => 'finance-credit',
         };
     }
 

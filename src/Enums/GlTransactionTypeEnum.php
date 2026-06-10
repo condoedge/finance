@@ -26,10 +26,17 @@ enum GlTransactionTypeEnum: int
     public function label(): string
     {
         return match($this) {
-            self::MANUAL_GL => 'Manual GL',
-            self::BANK => 'Bank Transaction',
-            self::RECEIVABLE => 'Accounts Receivable',
-            self::PAYABLE => 'Accounts Payable',
+            default => __($this->rawTranslationKey()),
+        };
+    }
+
+    public function rawTranslationKey(): string
+    {
+        return match($this) {
+            self::MANUAL_GL => 'finance-manual-gl',
+            self::BANK => 'finance-bank-transaction',
+            self::RECEIVABLE => 'finance-accounts-receivable',
+            self::PAYABLE => 'finance-accounts-payable',
         };
     }
 
