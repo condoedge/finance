@@ -117,7 +117,7 @@ class PaymentTerm extends AbstractMainFinanceModel
             ))->map(fn ($i) => (new PaymentInstallmentPeriod())->forceFill($i));
         }
 
-        return $installments->map(function ($period) use ($currentInstallment, $justPayingNextInstallment) {
+        return $installments->unique('id')->map(function ($period) use ($currentInstallment, $justPayingNextInstallment) {
             $payingThisInstallment = !$justPayingNextInstallment || ($currentInstallment && $currentInstallment->installment_number == $period['installment_number']);
             
             return _Columns(
