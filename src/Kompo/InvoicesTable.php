@@ -54,6 +54,10 @@ class InvoicesTable extends WhiteTable
             $query = $query->whereRaw('LEFT(invoice_date, 7) = ?', [request('month_year')]);
         }
 
+        if (request('itemIds')) {
+            $query->whereIn('id', request('itemIds'));
+        }
+
         return $query->orderByDesc('invoice_date')->orderByDesc('id');
     }
 
