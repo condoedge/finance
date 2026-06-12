@@ -38,6 +38,9 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
         'processor_fees' => SafeDecimalCast::class,
         'net' => SafeDecimalCast::class,
         'payment_method' => PaymentMethodEnum::class,
+
+        // Coming from concrete raw calculation in accounting summary to report by payment_method total
+        'payment_method_total' => SafeDecimalCast::class,
     ];
 
     // RELATIONS
