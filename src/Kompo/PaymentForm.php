@@ -74,7 +74,7 @@ class PaymentForm extends Modal
 
     public function body()
     {
-        $paymentType = $this->invoice?->invoice_type_id->signMultiplier() < 0 ? -1 : 1;
+        $paymentType = $this->invoice ? ($this->invoice?->invoice_type_id->signMultiplier() < 0 ? -1 : 1) : 1;
 
         return [
             $this->payingSpecificModelEl(),
@@ -87,12 +87,13 @@ class PaymentForm extends Modal
             _Date('finance-payment-date')->name('payment_date')->default(now())
                 ->placeholder('finance-payment-date'),
 
-            $this->invoice ? _Hidden()->name('type')->default($paymentType) : _ButtonGroup('finance-select-type')->name('type')
-                ->when($this->invoice, fn ($e) => $e->default($paymentType))
-                ->options([
-                    1 => __('finance-from-customer'),
-                    -1 => __('finance-to-customer'),
-                ])->optionClass('cursor-pointer text-center px-4 py-3 flex justify-center'),
+            _Hidden()->name('type')->default($paymentType),
+            // $this->invoice ? _Hidden()->name('type')->default($paymentType) : _ButtonGroup('finance-select-type')->name('type')
+            //     ->when($this->invoice, fn ($e) => $e->default($paymentType))
+            //     ->options([
+            //         1 => __('finance-from-customer'),
+            //         -1 => __('finance-to-customer'),
+            //     ])->optionClass('cursor-pointer text-center px-4 py-3 flex justify-center'),
 
             _Select('finance-payment-method')
                 ->name('payment_method_id')
