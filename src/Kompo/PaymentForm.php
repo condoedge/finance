@@ -5,6 +5,7 @@ namespace Condoedge\Finance\Kompo;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\CustomerPayment;
+use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
 use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
@@ -38,7 +39,7 @@ class PaymentForm extends Modal
 
         $this->invoice = !$this->invoiceId ? null : InvoiceModel::findOrFail($this->invoiceId);
 
-        $this->customerId = $this->prop('customer_id') ?? $this->invoice?->customer_id;
+        $this->customerId = $this->prop('customer_id') ?? $this->invoice?->customer_id ?: request('customer_id');
 
         $this->goToApplyModelAfter = $this->prop('go_to_apply_model_after');
     }
@@ -57,7 +58,7 @@ class PaymentForm extends Modal
                 ...$applyInformation,
             ]));
         } else {
-            $payment = $paymentService->createPayment(new CreateCustomerPaymentForInvoiceDto([
+            $payment = $paymentService->createPayment(new CreateCustomerPaymentDto([
                 'customer_id' => $this->customerId,
                 ...$applyInformation,
             ]));
