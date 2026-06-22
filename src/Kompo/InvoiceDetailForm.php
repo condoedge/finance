@@ -105,7 +105,7 @@ class InvoiceDetailForm extends Form
                     ->run('calculateTotals'),
             )->class('relative'),
 
-            _Hidden()->class('px-6'),
+            _Hidden()->name('_')->class('px-6'),
         ];
     }
 

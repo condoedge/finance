@@ -23,7 +23,7 @@ function calculateTotals(){
 
 		subtotal += itemAmount
 		total += Math.round(itemAmount * (1 + totalTaxRate) * 100) / 100
-		setRoundedAmount(row.find('.item-total span'), itemAmount)
+		setRoundedAmount(row.find('.item-total'), itemAmount)
 	})
 
 	setRoundedAmount($('#finance-subtotal span'), subtotal)

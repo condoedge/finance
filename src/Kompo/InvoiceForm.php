@@ -69,7 +69,7 @@ class InvoiceForm extends Form
                 $teamId
             );
 
-            $invoiceData['customer_id'] = $customer->id;
+            $invoiceData['customer_id'] = $customer?->id;
         }
 
         $dtoInvoiceData = $this->model->id ?
