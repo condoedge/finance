@@ -120,7 +120,7 @@ class PaymentForm extends Modal
             return $this->invoice->abs_invoice_due_amount->toFloat();
         }
 
-        return 0;
+        return null;
     }
 
     protected function payingSpecificModelEl()
