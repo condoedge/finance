@@ -85,10 +85,11 @@ class InvoiceDetailForm extends Form
                         )->class('w-32 item-taxes font-semibold text-level1 text-right')
                     )->class('relative'),
                 ),
-                $this->deleteInvoiceDetail()
-                    ->class('text-xl text-gray-300 absolute -top-2 -right-8')
-                    ->run('calculateTotals'),
             )->class('relative'),
+
+            $this->deleteInvoiceDetail()
+                ->class('text-xl text-gray-300')
+                ->run('calculateTotals'),
 
             _Hidden()->name('_', false)->class('px-6'),
         ];
