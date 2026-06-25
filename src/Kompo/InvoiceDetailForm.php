@@ -42,8 +42,6 @@ class InvoiceDetailForm extends Form
 
         return [
             _Rows(
-                // Triggers invoice-level totals on first render; per-row figures
-                // are now driven by jsComputedFormat (see below).
                 _Hidden()->name('_', false)->onLoad->run('calculateTotals'),
                 _Hidden()->name('create_product_on_save')->default($this->createProductsOnSave ? 1 : 0),
                 _Hidden()->name('product_id')->default($this->product->id ?? null),
@@ -65,9 +63,6 @@ class InvoiceDetailForm extends Form
                             ->name('quantity')
                             ->default(1)
                             ->class('w-28 !mb-0')
-                            // calculateTotals still triggers invoice-level subtotal aggregation
-                            // (cross-row sum), which jsComputed can't express. Per-row display
-                            // is reactive via the jsComputedFormat below.
                             ->run('calculateTotals'),
                         _Input()->type('number')
                             ->name('unit_price', false)
@@ -76,7 +71,6 @@ class InvoiceDetailForm extends Form
                             ->run('calculateTotals'),
                     )->class('gap-3'),
                     _FinanceCurrency($this->model->extended_price)
-                        ->jsComputedFormat(['quantity', 'unit_price'], 'quantity * unit_price', 'currency')
                         ->class('item-total text-lg font-semibold text-level1 text-right'),
                 ),
                 _FlexBetween(
@@ -86,16 +80,7 @@ class InvoiceDetailForm extends Form
                     _FlexEnd(
                         _Rows(
                             $this->model->invoiceTaxes()->get()->map(
-                                // Tax rate is server-static per invoiceTax row — bake it into
-                                // the expression. quantity*unit_price recomputes live; only the
-                                // selected-taxes set requires a server roundtrip (handled by
-                                // the calculateTotals trigger on the TaxesSelect above).
-                                fn ($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate))
-                                    ->jsComputedFormat(
-                                        ['quantity', 'unit_price'],
-                                        'quantity * unit_price * ' . (float) $it->tax_rate,
-                                        'currency',
-                                    )
+                                fn ($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate)),
                             )
                         )->class('w-32 item-taxes font-semibold text-level1 text-right')
                     )->class('relative'),
@@ -105,7 +90,7 @@ class InvoiceDetailForm extends Form
                     ->run('calculateTotals'),
             )->class('relative'),
 
-            _Hidden()->name('_')->class('px-6'),
+            _Hidden()->name('_', false)->class('px-6'),
         ];
     }
 
@@ -113,9 +98,9 @@ class InvoiceDetailForm extends Form
     {
         return $this->model->id ?
 
-            _DeleteLink()->byKey($this->model)->refresh($this->refreshId) :
+            _DeleteLink()->byKey($this->model) :
 
-            _Link()->icon('icon-trash')->emitDirect('deleted')->refresh($this->refreshId);
+            _Link()->icon('icon-trash')->emitDirect('deleted');
     }
 
     public function rules()
