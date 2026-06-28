@@ -505,9 +505,12 @@ class AccountSegmentService implements AccountSegmentServiceInterface
 
     public function createDefaultSegments(): void
     {
-        if (!$this->getSegmentStructure()->isEmpty()) {
+        if (!$this->getSegmentStructure()->isEmpty() && count($this->validateSegmentStructure()) === 0) {
             return;
         }
+
+        // TODO: Check if this could be risky. But if the structure is invalid, we want to reset it to a known good state.
+        AccountSegment::withTrashed()->forceDelete();
 
         // Create the canonical chart-of-accounts structure: a Team segment
         // followed by a natural Account segment.
