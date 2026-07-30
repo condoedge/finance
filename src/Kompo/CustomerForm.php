@@ -47,14 +47,7 @@ class CustomerForm extends Modal
             ]));
         }
 
-        return _Rows(
-            _Html()->attr([
-                'data-id' => $customer->id,
-                'data-name' => $customer->name,
-            ]),
-
-            _Hidden()->onLoad->run($this->jsToSelectCustomer()),
-        );
+        return ['option' => [$customer->id => $customer->name]];
     }
 
     public function body()
@@ -71,9 +64,9 @@ class CustomerForm extends Modal
                 $this->manualForm()
             )->id('customableOptionsPanel'),
             _FlexEnd(
-                _SubmitButton('finance-save')
-                    ->inPanel('customer-after-save-info')
-                    ->closeModal()->refresh($this->refreshId),
+                $this->refreshId
+                    ? _SubmitButton('finance-save')->closeModal()->refresh($this->refreshId)
+                    : _SubmitButton('finance-save'),
             ),
         );
     }
@@ -146,45 +139,4 @@ class CustomerForm extends Modal
         return getModelFromMorphable(request('from_model'), request('from_id'));
     }
 
-    public function jsToSelectCustomer()
-    {
-        return <<<JS
-            () => {
-                const customerInfo = $("#customer-after-save-info").find('div[data-id]');
-
-                if (!customerInfo) return;
-
-                const customerName = customerInfo.data("name");
-                const customerId = customerInfo.data("id");
-
-                const waitUntilOptionAppear = async () => {
-                    return new Promise((resolve) => {
-                        const interval = setInterval(() => {
-                            if ($(".select-on-create").find(".vlOptions").find("div[data-id]").length) {
-                                clearInterval(interval);
-                                resolve();
-                            }
-                        }, 30);
-                    });
-                };
-
-                $(".select-on-create").find("input").each(function() {
-                    $(this).get(0).dispatchEvent(new Event("focus", { bubbles: true }));
-                    $(this).val(customerName);
-                    $(this).get(0).dispatchEvent(new Event("input", { bubbles: true }));
-                    $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
-                    $(this).get(0).dispatchEvent(new Event("focus", { bubbles: true }));
-                });
-
-                waitUntilOptionAppear().then(() => {
-                    $(".select-on-create").find(".vlOptions").find("div[data-id]").each(function() {
-                        if ($(this).data("id") == customerId) {
-                            console.log("Option found, selecting it...");
-                            $(this).get(0).dispatchEvent(new Event("click", { bubbles: true }));
-                        }
-                    });
-                });
-        }
-        JS;
-    }
 }

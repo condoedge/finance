@@ -117,17 +117,14 @@ class InvoiceForm extends Form
                 $this->model->id ? null : _Select('finance-transaction-type')
                     ->name('invoice_type_id')
                     ->options(InvoiceTypeEnum::optionsWithLabels()),
-                $this->model->id ? null : _Flex(
-                    _Rows(
-                        _Panel()->id('customer-after-save-info'),
-                        _Select('finance-invoiced-to')->name('customer_id')->class('!mb-0 select-on-create')
-                            ->searchOptions(2, 'searchCustomers'),
-                    )->class('flex-1'),
-                    _Rows(
-                        _Html('&nbsp;'),
-                        _Button()->icon('plus')->selfGet('getCustomerModal')->inModal(),
-                    ),
-                )->class('gap-3'),
+                // addsRelatedOption binds the CustomerForm modal to this select's own
+                // X-Kompo-Id, so saving it adds the new customer as an option here and
+                // selects it. No DOM simulation, no after-save panel.
+                $this->model->id ? null : _SelectUpdatable('finance-invoiced-to')
+                    ->name('customer_id')->class('!mb-0 [&>.vlFormComment]:!text-end [&>.vlFormComment]:!mt-1')
+                    ->searchOptions(2, 'searchCustomers')
+                    ->addsRelatedOption(CustomerForm::class)
+                    ->addLabel('finance-customer', 'icon-plus', 'text-sm'),
             ),
 
             _Columns(
