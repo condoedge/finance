@@ -8,7 +8,7 @@ use Condoedge\Utils\Kompo\Common\Form;
 
 class InvoiceInfoModal extends Form
 {
-    public $class = 'overflow-y-auto mini-scroll max-w-lg';
+    public $class = 'overflow-y-auto mini-scroll max-w-lg sisc-inv-modal';
     public $style = 'max-height: 95vh; width: 98vw;';
 
     public $model = InvoiceModel::class;
@@ -23,6 +23,12 @@ class InvoiceInfoModal extends Form
     public function render()
     {
         return _Rows(
+            // Phone-only header (back arrow + title). Hidden on desktop via CSS; the Kompo close X is hidden on mobile instead.
+            _FlexBetween(
+                _Link()->icon('arrow-left')->closeModal()->class('text-greendark text-2xl'),
+                _Html('finance.invoice')->class('font-bold text-greendark text-lg'),
+                _Html('')->class('w-6'),
+            )->class('sisc-inv-header items-center mb-2'),
             _FlexEnd(
                 $this->model->invoice_status_id->pill(),
             ),
@@ -32,9 +38,14 @@ class InvoiceInfoModal extends Form
                 _Html(__('finance.issued-date', ['date' => $this->model->invoice_date->format('Y-m-d')]))->class('text-level1 mb-3'),
                 _FinanceCurrency($this->model->invoice_total_amount)->class('text-3xl font-bold mb-4'),
                 _FlexCenter(
-                    _ButtonOutlined('finance.send-receipt')->class('!py-1')->icon('receipt'),
+                    // Desktop labels
+                    _ButtonOutlined('finance.send-receipt')->class('!py-1 sisc-inv-bd')->icon('receipt'),
                     _ButtonOutlined('finance.send-invoice')
-                        ->selfPost('sendInvoice')->alert('finance-invoice-sent')->class('!py-1')->icon('receipt'),
+                        ->selfPost('sendInvoice')->alert('finance-invoice-sent')->class('!py-1 sisc-inv-bd')->icon('receipt'),
+                    // Phone-only short labels (toggled by CSS; desktop variants stay untouched)
+                    _ButtonOutlined('finance.receipt')->class('!py-1 sisc-inv-bm')->icon('receipt'),
+                    _ButtonOutlined('finance.send')
+                        ->selfPost('sendInvoice')->alert('finance-invoice-sent')->class('!py-1 sisc-inv-bm')->icon('send-2'),
                 )->class('gap-4'),
             )->class('text-center border-b border-gray-200 pb-4 mb-4'),
             _Rows(
@@ -46,15 +57,15 @@ class InvoiceInfoModal extends Form
                         _Html($this->team->team_name),
                         _TextSm($this->team->getFirstValidAddressLabel()),
                     )
-                )->class('text-level1'),
+                )->class('text-level1 sisc-inv-party'),
                 _Rows(
                     _Html('finance.to')->class('font-semibold text-black'),
                     _Rows(
                         _Html($this->model->customer->name),
                         // _TextSm($this->model->customer->getFirstValidAddressLabel()),
                     )
-                )->class('text-level1'),
-            )->class('gap-3 mb-6'),
+                )->class('text-level1 sisc-inv-party'),
+            )->class('gap-3 mb-6 sisc-inv-parties'),
             $this->latestPaymentTries(),
             _Tabs(
                 _Tab(
@@ -82,7 +93,7 @@ class InvoiceInfoModal extends Form
                         _FlexBetween(
                             _Html('finance.balance'),
                             _FinanceCurrency($this->model->invoice_due_amount)->class('font-semibold'),
-                        ),
+                        )->class('sisc-inv-balance'),
                     )->class('gap-1 p-6'),
                 )->label('finance.summary'),
                 _Tab(
@@ -113,8 +124,15 @@ class InvoiceInfoModal extends Form
                 )->label('finance.payments'),
             )->class('mb-4'),
             !$this->model->invoice_status_id?->canBePaid() ? null :
-                _Button('finance.pay-invoice')->selfGet('getInvoicePayModal')->inModal()->class('mb-4'),
+                _Button('finance.pay-invoice')->attr(['data-amount' => $this->payAmountLabel()])
+                    ->selfGet('getInvoicePayModal')->inModal()->class('mb-4 sisc-inv-pay'),
         )->class('p-6');
+    }
+
+    /** Plain due-amount label appended after the pay button on phones (via CSS ::after). */
+    protected function payAmountLabel(): string
+    {
+        return ' · ' . number_format($this->model->invoice_due_amount->toFloat(), 2, ',', ' ') . ' $';
     }
 
     public function latestPaymentTries()
