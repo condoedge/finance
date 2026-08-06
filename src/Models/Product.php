@@ -290,13 +290,13 @@ class Product extends AbstractMainFinanceModel implements ScopedToTeam
         return static::createProductCopy($productable);
     }
 
-    /**
-     * @deprecated Use ProductService::deleteProduct() instead
-     * Maintained for backward compatibility
-     */
     public function delete()
     {
-        return ProductService::deleteProduct($this->id);
+        if ($this->children()->count() > 0) {
+            abort(403, __('error.cannot-delete-a-template-that-has-products-associated'));
+        }
+
+        parent::delete();
     }
 
     public static function columnsIntegrityCalculations(): array

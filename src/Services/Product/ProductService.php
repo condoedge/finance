@@ -138,37 +138,6 @@ class ProductService implements ProductServiceInterface
     }
 
     /**
-     * Delete a product
-     */
-    public function deleteProduct(int $productId): bool
-    {
-        return DB::transaction(function () use ($productId) {
-            $product = Product::findOrFail($productId);
-
-            // Check if product has children (is a template)
-            if ($product->children()->count() > 0) {
-                abort(403, __('error.cannot-delete-a-template-that-has-products-associated'));
-            }
-
-            // Check if product is being used in invoice details
-            $invoiceDetailsCount = InvoiceDetail::where('product_id', $productId)->count();
-            if ($invoiceDetailsCount > 0) {
-                throw new \Exception(__('finance-cannot-delete-product-in-use'));
-            }
-
-            return DB::table('fin_products')->where('id', $productId)->delete() > 0 ? true : false;
-        });
-    }
-
-    /**
-     * Find a product by ID
-     */
-    public function findProduct(int $productId): ?Product
-    {
-        return Product::find($productId);
-    }
-
-    /**
      * Get all products for current team
      */
     public function getAllProducts()

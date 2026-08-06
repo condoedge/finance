@@ -40,24 +40,6 @@ interface ProductServiceInterface
     public function createProductFromInvoiceDetail(int $invoiceDetailId): Product;
 
     /**
-     * Delete a product
-     *
-     * @param int $productId
-     *
-     * @return bool
-     */
-    public function deleteProduct(int $productId): bool;
-
-    /**
-     * Find a product by ID
-     *
-     * @param int $productId
-     *
-     * @return Product|null
-     */
-    public function findProduct(int $productId): ?Product;
-
-    /**
      * Get all products for current team
      *
      * @return \Illuminate\Database\Eloquent\Collection

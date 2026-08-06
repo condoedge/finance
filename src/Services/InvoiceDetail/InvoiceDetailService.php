@@ -225,7 +225,6 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
             $newDetail->product_id = $sourceDetail->product_id;
             $newDetail->quantity = $sourceDetail->quantity;
             $newDetail->unit_price = $sourceDetail->unit_price;
-            $newDetail->product_id = $sourceDetail->product_id;
             $newDetail->save();
 
             // Copy taxes
@@ -276,7 +275,6 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         $detail->product_id = $dto->product_id;
         $detail->quantity = $dto->quantity;
         $detail->unit_price = $dto->unit_price;
-        $detail->product_id = $dto->product_id;
         $detail->save();
 
         if ($dto->create_product_on_save) {
@@ -297,7 +295,6 @@ class InvoiceDetailService implements InvoiceDetailServiceInterface
         $detail->product_id = $dto->product_id;
         $detail->quantity = $dto->quantity;
         $detail->unit_price = $dto->unit_price;
-        $detail->product_id = $dto->product_id;
         $detail->save();
     }
 

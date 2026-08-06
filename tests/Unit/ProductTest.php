@@ -275,38 +275,6 @@ class ProductTest extends TestCase
         $this->assertEqualsDecimals($expectedTotal, $product->product_cost_total->multiply($quantity));
     }
 
-    public function test_delete_product_with_invoice_details()
-    {
-        $product = ProductFactory::new()->create();
-        $customer = CustomerFactory::new()->create();
-
-        // Create invoice with detail using the product
-        $invoice = InvoiceService::createInvoice(new CreateInvoiceDto([
-            'customer_id' => $customer->id,
-            'invoice_type_id' => InvoiceTypeEnum::getEnumCase('INVOICE')->value,
-            'payment_method_id' => PaymentMethodEnum::getEnumCase('CASH')->value,
-            'payment_term_id' => PaymentTermFactory::new()->create()->id,
-            'invoice_date' => now(),
-            // 'invoice_due_date' => now()->addDays(30),
-            'is_draft' => true,
-            'invoiceDetails' => [
-                [
-                    'product_id' => $product->id,
-                    'name' => $product->product_name,
-                    'description' => $product->product_description,
-                    'quantity' => 1,
-                    'unit_price' => $product->product_cost_abs->toFloat(),
-                    'revenue_account_id' => $product->default_revenue_account_id,
-                    'taxesIds' => $product->taxes_ids ?? [],
-                ],
-            ],
-        ]));
-
-        // Try to delete product that's in use
-        $this->expectException(Exception::class);
-        ProductService::deleteProduct($product->id);
-    }
-
     public function test_normalize_product_to_invoice_detail()
     {
         $taxes = TaxFactory::new()->count(2)->create();
