@@ -9,14 +9,14 @@ class UserExpenseReportTable extends ExpenseReportsTable
     public $id = 'user-expense-report-table';
     protected $asManager = false;
 
-    public $permissionKey = 'OwnExpenses';
+    public $permissionKey = 'my_expenses';
 
     protected function header()
     {
         return _FlexBetween(
             _Html('finance-my-expense-reports')->class('font-semibold text-2xl'),
             _Button('finance-create-expense-report')
-                ->checkAuthWrite('OwnExpenses')
+                ->checkAuthWrite('my_expenses')
                 ->selfGet('getExpenseReportModal')
                 ->inModal(),
         )->class('mb-6');
@@ -42,7 +42,7 @@ class UserExpenseReportTable extends ExpenseReportsTable
 
     protected function canOpenModal()
     {
-        return auth()->user()->hasPermission('OwnExpenses');
+        return auth()->user()->hasPermission('my_expenses');
     }
 
     public function getExpenseReportModal($expenseReportId = null)

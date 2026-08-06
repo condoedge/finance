@@ -23,7 +23,7 @@ class PaymentProvidersSettings extends Form
 {
     public $class = 'space-y-6';
 
-    public $permissionKey = 'PaymentProviders';
+    public $permissionKey = 'payment_providers';
 
     protected int $teamId;
 
