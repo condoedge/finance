@@ -17,6 +17,9 @@ class InvoiceInfoModal extends Form
 
     public function created()
     {
+        // findOrNew hands an empty model for ids the reader cannot see — refuse it.
+        abort_if(!$this->model->exists, 404);
+
         $this->team = $this->model->team;
     }
 
@@ -43,8 +46,8 @@ class InvoiceInfoModal extends Form
                         _Html('finance.from')->class('font-semibold text-black'),
                     ),
                     _Rows(
-                        _Html($this->team->team_name),
-                        _TextSm($this->team->getFirstValidAddressLabel()),
+                        _Html($this->team?->team_name),
+                        _TextSm($this->team?->getFirstValidAddressLabel()),
                     )
                 )->class('text-level1'),
                 _Rows(

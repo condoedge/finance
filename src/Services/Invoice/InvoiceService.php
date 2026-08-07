@@ -250,6 +250,7 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice->payment_term_id = $dto->payment_term_id ?? (count($invoice->possible_payment_terms) == 1 ? $invoice->possible_payment_terms[0] : null);
         $invoice->invoiceable_type = $dto->invoiceable_type;
         $invoice->invoiceable_id = $dto->invoiceable_id;
+        $invoice->team_id = $dto->team_id;
 
         if ($invoice->paymentTerm) {
             $invoice->invoice_due_date = $invoice->paymentTerm->calculateDueDate($invoice->invoice_date);

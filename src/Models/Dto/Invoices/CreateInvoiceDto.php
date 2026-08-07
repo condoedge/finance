@@ -43,6 +43,9 @@ class CreateInvoiceDto extends ValidatedDTO
     public ?string $invoiceable_type = null;
     public ?int $invoiceable_id = null;
 
+    // Team owning the invoice. Defaults to the customer's team when omitted.
+    public ?int $team_id = null;
+
     public function rules(): array
     {
         return [
@@ -79,6 +82,8 @@ class CreateInvoiceDto extends ValidatedDTO
 
             'invoiceable_type' => 'nullable|string',
             'invoiceable_id' => 'nullable|integer',
+
+            'team_id' => 'nullable|integer|exists:teams,id',
         ];
     }
 

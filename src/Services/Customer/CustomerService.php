@@ -77,6 +77,7 @@ class CustomerService implements CustomerServiceInterface
     {
         // Apply customer data to invoice
         $invoice->customer_id = $customer->id;
+        $invoice->team_id = $invoice->team_id ?? $customer->team_id;
 
         return $invoice;
     }
