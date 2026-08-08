@@ -33,7 +33,9 @@ class UpdateInvoiceDto extends ValidatedDTO
             // 'invoice_due_date' => 'required|date|after_or_equal:invoice_date',
 
             'possible_payment_methods' => 'nullable|array',
+            'possible_payment_methods.*' => 'integer|in:' . collect(PaymentMethodEnum::getEnumClass()::cases())->pluck('value')->implode(','),
             'possible_payment_terms' => 'nullable|array',
+            'possible_payment_terms.*' => 'integer|exists:fin_payment_terms,id',
 
             'customer_id' => 'prohibited',
             'invoice_type_id' => 'prohibited',

@@ -33,27 +33,32 @@ trait TermSelectorTrait
         $paymentTermType = request('payment_term_type', $paymentTermType);
         $paymentTermName = request('payment_term_name', $paymentTermName);
 
+        $paymentTermType = $paymentTermType instanceof PaymentTermTypeEnum ?
+            $paymentTermType :
+            PaymentTermTypeEnum::tryFrom((int) $paymentTermType);
+
         if (!$paymentTermType) {
             return null;
         }
 
-        $paymentTermType = is_numeric($paymentTermType) ? PaymentTermTypeEnum::tryFrom($paymentTermType) : $paymentTermType;
-        $element = null;
-
         if ($paymentTermType == PaymentTermTypeEnum::COD) {
-            return _Hidden()->name($paymentTermName)->value([PaymentTerm::where('term_type', $paymentTermType->value)->pluck('id')->first()]);
+            return _Hidden()->name($paymentTermName)->value(array_filter([PaymentTerm::where('term_type', $paymentTermType->value)->pluck('id')->first()]));
         }
 
-        if ($paymentTermType == PaymentTermTypeEnum::INSTALLMENT) {
-            $element = _MultiSelect('finance-payment-terms');
-        } else {
-            $element = _Select('finance-payment-terms');
-        }
+        $isInstallment = $paymentTermType == PaymentTermTypeEnum::INSTALLMENT;
+        $element = $isInstallment ? _MultiSelect('finance-payment-terms') : _Select('finance-payment-terms');
+
+        // possible_payment_terms holds terms of every type, so the model must not fill this
+        // element: an id that isn't one of the options below comes back unusable from the front.
+        $selectedIds = PaymentTerm::whereIn('id', $this->getDefaultPaymentTerms())
+            ->where('term_type', $paymentTermType->value)
+            ->pluck('id')->all();
 
         $onChangeCallback = $this->onChangePaymentTerms();
 
-        return $element->name($paymentTermName)->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->all())
-            ->default(PaymentTerm::whereIn('id', $this->getDefaultPaymentTerms())->where('term_type', $paymentTermType->value)->pluck('id')->all())
+        return $element->name($paymentTermName, false)
+            ->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->all())
+            ->default($isInstallment ? $selectedIds : ($selectedIds[0] ?? null))
             ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2');
     }

@@ -235,6 +235,21 @@ class InvoiceService implements InvoiceServiceInterface
     /* PROTECTED METHODS - Can be overridden for customization */
 
     /**
+     * Auto-select the option when only one is possible.
+     * Anything that isn't a usable id is discarded so it never reaches the foreign key column.
+     */
+    protected function soleOptionId(?array $possibleOptions): ?int
+    {
+        $possibleOptions = array_values($possibleOptions ?? []);
+
+        if (count($possibleOptions) != 1 || !is_numeric($possibleOptions[0])) {
+            return null;
+        }
+
+        return (int) $possibleOptions[0];
+    }
+
+    /**
      * Create base invoice model
      */
     protected function createBaseInvoice(CreateInvoiceDto $dto): Invoice
@@ -246,8 +261,8 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice->is_draft = true; // Always it starts as draft
         $invoice->possible_payment_terms = $dto->possible_payment_terms ?? [];
         $invoice->possible_payment_methods = $dto->possible_payment_methods ?? [];
-        $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods) == 1 ? $invoice->possible_payment_methods[0] : null);
-        $invoice->payment_term_id = $dto->payment_term_id ?? (count($invoice->possible_payment_terms) == 1 ? $invoice->possible_payment_terms[0] : null);
+        $invoice->payment_method_id = $dto->payment_method_id ?? $this->soleOptionId($invoice->possible_payment_methods);
+        $invoice->payment_term_id = $dto->payment_term_id ?? $this->soleOptionId($invoice->possible_payment_terms);
         $invoice->invoiceable_type = $dto->invoiceable_type;
         $invoice->invoiceable_id = $dto->invoiceable_id;
         $invoice->team_id = $dto->team_id;
@@ -330,8 +345,8 @@ class InvoiceService implements InvoiceServiceInterface
             $invoice->invoice_date = $dto->invoice_date ?? $invoice->invoice_date;
         }
 
-        $invoice->payment_term_id = $dto->payment_term_id ?? (count($invoice->possible_payment_terms ?? []) == 1 ? $invoice->possible_payment_terms[0] : null);
-        $invoice->payment_method_id = $dto->payment_method_id ?? (count($invoice->possible_payment_methods ?? []) == 1 ? $invoice->possible_payment_methods[0] : null);
+        $invoice->payment_term_id = $dto->payment_term_id ?? $this->soleOptionId($invoice->possible_payment_terms);
+        $invoice->payment_method_id = $dto->payment_method_id ?? $this->soleOptionId($invoice->possible_payment_methods);
 
         if ($invoice->isDirty('payment_term_id') && $invoice->paymentTerm) {
             $invoice->invoice_due_date = $invoice->paymentTerm->calculateDueDate($invoice->invoice_date);
