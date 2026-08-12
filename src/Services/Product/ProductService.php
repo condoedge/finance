@@ -112,18 +112,20 @@ class ProductService implements ProductServiceInterface
     {
         $product = Product::findOrFail($productId);
         
-        return array_filter([
+        // We don't filter the ones that are required, it could filter 0 that will throw erros
+        return array_merge([
             'invoiceable_type' => 'product',
             'invoiceable_id' => $product->id,
             'name' => $product->product_name,
-            'description' => $product->product_description,
             'unit_price' => $product->getAmount()->toFloat(),
             'quantity' => 1,
+        ], array_filter([
+            'description' => $product->product_description,
             'revenue_account_id' => $product->default_revenue_account_id,
             'taxesIds' => $product->taxes_ids ?: [],
             'invoice_id' => $invoice ? $invoice->id : null,
             'product_id' => $product->id,
-        ]);
+        ]));
     }
 
     public function normalizeInvoiceDetailsIncludingRebates(int $productId, ?Invoice $invoice = null)
