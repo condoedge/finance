@@ -108,7 +108,7 @@ class InvoiceForm extends Form
                     _Html('finance-edit'),
                 ),
                 $this->modalDesign ? null : _FlexEnd4(
-                    $this->model->id ? _DeleteLink('finance-delete')->outlined()->byKey($this->model)->redirect('invoices.table') : null,
+                    $this->model->id ? _DeleteLink('finance-delete')->outlined()->byKey($this->model)->redirect('invoices.list') : null,
                     _SubmitButton('finance-save'),
                 )
             )->class('mb-6 gap-8'),
