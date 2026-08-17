@@ -7,6 +7,7 @@ use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceGenerated;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoicePaymentModel;
 use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\PaymentService;
@@ -150,6 +151,18 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
             ->withTrashed();
     }
 
+    /** Set on a credit note: the invoice it was raised to correct. */
+    public function creditedInvoice()
+    {
+        return $this->belongsTo(InvoiceModel::getClass(), 'credited_invoice_id');
+    }
+
+    /** The other side: credit notes raised against this invoice. */
+    public function creditNotes()
+    {
+        return $this->hasMany(InvoiceModel::getClass(), 'credited_invoice_id');
+    }
+
     public function accountReceivable()
     {
         return $this->belongsTo(GlAccount::class, 'account_receivable_id')
@@ -228,9 +241,15 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         return $query->where('invoice_status_id', InvoiceStatusEnum::PENDING);
     }
 
+    /**
+     * Targets a payment or credit can be applied to. Must match canBePaid(), which gates
+     * the buttons that open the modal — pending() alone left overdue and partly-paid
+     * invoices offering an "apply" link onto an empty list.
+     */
     public function scopeCanApplyOnIt($query)
     {
-        return $query->pending()->where('invoice_type_id', InvoiceTypeEnum::INVOICE);
+        return $query->whereIn('invoice_status_id', InvoiceStatusEnum::allCanBePaid())
+            ->where('invoice_type_id', InvoiceTypeEnum::INVOICE);
     }
 
     public function scopeByReferenceDetails($query, $prefix, $number)
@@ -246,6 +265,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     public function scopeToBePaid($query)
     {
         return $query->whereIn('invoice_status_id', InvoiceStatusEnum::allToBePaid())
+            ->where('invoice_type_id', InvoiceTypeEnum::INVOICE)
             ->whereNotNull('sent_at');
     }
 
@@ -266,9 +286,10 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         return $this->invoice_status_id === InvoiceStatusEnum::OVERDUE;
     }
 
+    /** A credit note is applied or refunded, never paid. */
     public function canBePaid()
     {
-        return $this->invoice_status_id->canBePaid();
+        return !$this->isRefund() && $this->invoice_status_id->canBePaid();
     }
 
     public function getTaxesGrouped()

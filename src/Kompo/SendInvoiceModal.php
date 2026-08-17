@@ -13,7 +13,9 @@ class SendInvoiceModal extends Modal
 
     public function handle()
     {
-        InvoiceService::sendInvoice($this->model->id);
+        // The address was collected then dropped; InvoiceSent::getCommunicables()
+        // returns nothing without it, so no invoice email has ever gone out.
+        InvoiceService::sendInvoice($this->model->id, request('email'));
     }
 
     public function body()

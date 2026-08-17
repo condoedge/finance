@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Condoedge\Finance\Models\CustomerPayment createPayment(\Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto $dto)
  * @method static \Condoedge\Finance\Models\CustomerPayment createPaymentAndApplyToInvoice(\Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\CustomerPayment createPaymentAndApplyToInvoiceInstallmentPeriod(int $installmentPeriodId)
+ * @method static \Condoedge\Finance\Models\CustomerPayment refundCredit(\Condoedge\Finance\Models\Dto\Payments\RefundCreditDto $dto)
  * @method static \Condoedge\Finance\Models\InvoiceApply applyPaymentToInvoice(\Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto $data)
  * @method static \Illuminate\Support\Collection applyPaymentToInvoices(\Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto $data)
  * @method static \Illuminate\Support\Collection getAvailablePayments(\Condoedge\Finance\Models\Customer|null $customer = null)

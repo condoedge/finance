@@ -77,9 +77,10 @@ class CreateInvoiceDto extends ValidatedDTO
             'invoiceDetails.*.product_id' => 'nullable|integer|exists:fin_products,id',
             'invoiceDetails.*.create_product_on_save' => 'nullable|boolean',
 
-            'possible_payment_methods' => 'required_without:payment_method_id|array',
+            // A credit note is never paid, so it needs neither a method nor a term.
+            'possible_payment_methods' => ($this->isCreditType() ? 'nullable' : 'required_without:payment_method_id') . '|array',
             'possible_payment_methods.*' => 'integer|in:' . collect(PaymentMethodEnum::getEnumClass()::cases())->pluck('value')->implode(','),
-            'possible_payment_terms' => 'required_without:payment_term_id|array',
+            'possible_payment_terms' => ($this->isCreditType() ? 'nullable' : 'required_without:payment_term_id') . '|array',
             'possible_payment_terms.*' => 'integer|exists:fin_payment_terms,id',
 
             'invoiceable_type' => 'nullable|string',
@@ -116,6 +117,11 @@ class CreateInvoiceDto extends ValidatedDTO
     {
         parent::after($validator);
         $this->validateInvoiceTotalSign($validator);
+    }
+
+    protected function isCreditType(): bool
+    {
+        return (int) ($this->dtoData['invoice_type_id'] ?? 0) === \Condoedge\Finance\Models\InvoiceTypeEnum::CREDIT->value;
     }
 
     protected function validateInvoiceTotalSign(\Illuminate\Validation\Validator $validator): void

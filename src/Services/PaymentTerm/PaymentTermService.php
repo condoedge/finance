@@ -38,7 +38,8 @@ class PaymentTermService implements PaymentTermServiceInterface
 
         $paymentTerm = $invoice->paymentTerm;
 
-        if (!$paymentTerm) {
+        // A credit note is never paid, so it takes no due date and no installments.
+        if (!$paymentTerm || $invoice->isRefund()) {
             return;
         }
 

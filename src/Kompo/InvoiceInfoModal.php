@@ -33,7 +33,7 @@ class InvoiceInfoModal extends Form
                 _Img('images/logo-green.png')->class('w-28 h-28 mx-auto mb-4 '),
                 _TitleModal(__('finance.invoice-number', ['number' => $this->model->invoice_reference]))->class('text-center text-black'),
                 _Html(__('finance.issued-date', ['date' => $this->model->invoice_date->format('Y-m-d')]))->class('text-level1 mb-3'),
-                _FinanceCurrency($this->model->invoice_total_amount)->class('text-3xl font-bold mb-4'),
+                _FinanceCurrency($this->model->abs_invoice_total_amount)->class('text-3xl font-bold mb-4'),
                 _FlexCenter(
                     _ButtonOutlined('finance.send-receipt')->class('!py-1')->icon('receipt'),
                     _ButtonOutlined('finance.send-invoice')
@@ -72,19 +72,19 @@ class InvoiceInfoModal extends Form
                         )->class('mb-4'),
                         _FlexBetween(
                             _Html('finance.sub-total'),
-                            _FinanceCurrency($this->model->invoice_amount_before_taxes)->class('font-semibold'),
+                            _FinanceCurrency($this->model->invoice_amount_before_taxes?->abs())->class('font-semibold'),
                         ),
                         _FlexBetween(
                             _Html('finance.taxes'),
-                            _FinanceCurrency($this->model->invoice_tax_amount)->class('font-semibold'),
+                            _FinanceCurrency($this->model->invoice_tax_amount?->abs())->class('font-semibold'),
                         ),
                         _FlexBetween(
                             _Html('finance.total'),
-                            _FinanceCurrency($this->model->invoice_total_amount)->class('font-semibold'),
+                            _FinanceCurrency($this->model->abs_invoice_total_amount)->class('font-semibold'),
                         )->class('pb-3 mb-2 border-b border-gray-300'),
                         _FlexBetween(
                             _Html('finance.balance'),
-                            _FinanceCurrency($this->model->invoice_due_amount)->class('font-semibold'),
+                            _FinanceCurrency($this->model->abs_invoice_due_amount)->class('font-semibold'),
                         ),
                     )->class('gap-1 p-6'),
                 )->label('finance.summary'),
@@ -97,7 +97,7 @@ class InvoiceInfoModal extends Form
                     _FlexEnd(
                         _FlexBetween(
                             _Html('finance.total'),
-                            _FinanceCurrency($this->model->invoice_total_amount)->class('font-semibold'),
+                            _FinanceCurrency($this->model->abs_invoice_total_amount)->class('font-semibold'),
                         )->class('gap-4'),
                     )->class('px-6'),
                 )->label('finance.details'),
@@ -115,7 +115,8 @@ class InvoiceInfoModal extends Form
                     )->class('p-6 gap-1'),
                 )->label('finance.payments'),
             )->class('mb-4'),
-            !$this->model->invoice_status_id?->canBePaid() ? null :
+            // The model method, not the status enum: a pending credit note is not payable.
+            !$this->model->canBePaid() ? null :
                 _Button('finance.pay-invoice')->selfGet('getInvoicePayModal')->inModal()->class('mb-4'),
         )->class('p-6');
     }

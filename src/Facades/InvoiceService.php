@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Facade;
  *
  * @method static \Condoedge\Finance\Models\Invoice upsertInvoice(\Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto|\Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice createInvoice(\Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto $dto)
+ * @method static \Condoedge\Finance\Models\Invoice createCreditNote(\Condoedge\Finance\Models\Dto\Invoices\CreateCreditNoteDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice updateInvoice(\Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto $dto)
  * @method static \Condoedge\Finance\Billing\PaymentResult payInvoice(\Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto $dto)
  * @method static \Condoedge\Finance\Models\Invoice approveInvoice(\Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto $dto)

@@ -6,7 +6,7 @@ use Condoedge\Finance\Facades\InvoiceService;
 use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Models\ApplicableToInvoiceContract;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
-use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\RefundCreditDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceTypeEnum as ModelsInvoiceTypeEnum;
 
@@ -25,19 +25,24 @@ class Credit extends Invoice implements ApplicableToInvoiceContract
 
     // SERVICE
     /**
-     * Creates a credit note and apply a payment to it. It's used to pay to the customer.
+     * Creates a credit note and immediately refunds it in full — money going back to
+     * the customer in one step. Refunding an existing credit is PaymentService::refundCredit().
+     *
+     * $dto->payment_method_id is required: the refund has to say how the money left.
      */
     public static function createCreditPayment(CreateInvoiceDto $dto, $paymentDate): self
     {
         $dto->invoice_type_id = ModelsInvoiceTypeEnum::CREDIT->value;
 
         $credit = InvoiceService::createInvoice($dto);
+        $credit->markApproved();
+        $credit->refresh();
 
-        PaymentService::createPaymentAndApplyToInvoice(new CreateCustomerPaymentForInvoiceDto([
-            'customer_id' => $dto->customer_id,
-            'invoice_id' => $credit->id,
-            'amount' => $credit->invoice_due_amount,
+        PaymentService::refundCredit(new RefundCreditDto([
+            'credit_id' => $credit->id,
+            'amount' => $credit->abs_invoice_due_amount,
             'payment_date' => $paymentDate,
+            'payment_method_id' => $dto->payment_method_id,
         ]));
 
         return $credit;

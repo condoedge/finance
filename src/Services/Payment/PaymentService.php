@@ -11,6 +11,7 @@ use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateCustomerPaymentForInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\RefundCreditDto;
 use Condoedge\Finance\Models\Invoice;
 use Condoedge\Finance\Models\InvoiceApply;
 use Condoedge\Finance\Models\MorphablesEnum;
@@ -64,6 +65,25 @@ class PaymentService implements PaymentServiceInterface
             ]));
 
             return $payment->refresh();
+        });
+    }
+
+    /**
+     * Hand money back to the customer against a credit note.
+     *
+     * The caller passes a positive amount; it is stored as a negative payment, which
+     * is what makes it read as money leaving in the payment reports.
+     */
+    public function refundCredit(RefundCreditDto $dto): CustomerPayment
+    {
+        return DB::transaction(function () use ($dto) {
+            return $this->createPaymentAndApplyToInvoice(new CreateCustomerPaymentForInvoiceDto([
+                'invoice_id' => $dto->credit_id,
+                'amount' => $dto->amount->multiply(-1),
+                'payment_date' => $dto->payment_date,
+                'payment_method_id' => $dto->payment_method_id,
+                'is_refund' => true,
+            ]));
         });
     }
 

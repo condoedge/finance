@@ -8,12 +8,14 @@ use Condoedge\Utils\Kompo\Common\WhiteTable;
 class CustomerInvoicesToBeAppliedTable extends WhiteTable
 {
     protected $customerId;
+    protected $preselectInvoiceId;
 
     public $itemsWrapperClass = 'px-6 py-2 TableWithoutRowsBorders';
 
     public function created()
     {
         $this->customerId = $this->prop('customer_id');
+        $this->preselectInvoiceId = $this->prop('preselect_invoice_id');
     }
 
     public function query()
@@ -37,12 +39,17 @@ class CustomerInvoicesToBeAppliedTable extends WhiteTable
     {
         return _TableRow(
             _Flex(
-                _CheckSingleItem($invoice->id)->name('apply_to_' . $invoice->id)->shareToParentForm(),
+                _Rows(
+                    _Checkbox()->name('apply_to_' . $invoice->id)->shareToParentForm()->class('!mb-0 child-checkbox')
+                        ->when($invoice->id == $this->preselectInvoiceId, fn ($e) => $e->default(1))->emit('checkItemId', ['id' => $invoice->id])
+                )->attr([
+                    'onclick' => 'event.stopPropagation()',
+                ]),
                 _Html($invoice->invoice_reference),
             )->class('gap-3'),
             _HtmlDate($invoice->invoice_date),
-            _FinanceCurrency($invoice->invoice_total_amount),
-            _FinanceCurrency($invoice->invoice_due_amount),
+            _FinanceCurrency($invoice->abs_invoice_total_amount),
+            _FinanceCurrency($invoice->abs_invoice_due_amount),
             _Input()->name('amount_applied_to_' . $invoice->id)->shareToParentForm()->class('!mb-0'),
         )->class('text-gray-700');
     }

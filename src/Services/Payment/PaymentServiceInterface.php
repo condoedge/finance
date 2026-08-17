@@ -49,6 +49,12 @@ interface PaymentServiceInterface
     public function createPaymentAndApplyToInvoiceInstallmentPeriod(int $installmentPeriodId): CustomerPayment;
 
     /**
+     * Hand money back to the customer against a credit note. Takes a positive amount
+     * and records it as a negative payment.
+     */
+    public function refundCredit(\Condoedge\Finance\Models\Dto\Payments\RefundCreditDto $dto): CustomerPayment;
+
+    /**
      * Apply existing payment to invoice
      *
      * @param CreateApplyForInvoiceDto $data

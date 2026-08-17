@@ -45,6 +45,12 @@ interface InvoiceServiceInterface
     public function createInvoice(CreateInvoiceDto $dto): Invoice;
 
     /**
+     * Raise a credit note, optionally against an invoice whose lines it mirrors.
+     * Line amounts are stated positive in the DTO and stored negative.
+     */
+    public function createCreditNote(\Condoedge\Finance\Models\Dto\Invoices\CreateCreditNoteDto $dto): Invoice;
+
+    /**
      * Update an existing invoice from DTO
      *
      * @param UpdateInvoiceDto $dto

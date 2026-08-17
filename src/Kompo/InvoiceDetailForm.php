@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Kompo;
 
 use Condoedge\Finance\Facades\InvoiceDetailModel;
+use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\ProductModel;
 use Condoedge\Finance\Models\GlAccount;
 use Kompo\Auth\Facades\TeamModel;
@@ -27,6 +28,8 @@ class InvoiceDetailForm extends Form
     {
         $this->teamId = $this->prop('team_id');
         $this->refreshId = $this->prop('refresh_id');
+
+        $this->invoiceId = $this->prop('invoice_id');
 
         $this->team = TeamModel::find($this->teamId);
 
@@ -66,11 +69,11 @@ class InvoiceDetailForm extends Form
                             ->run('calculateTotals'),
                         _Input()->type('number')
                             ->name('unit_price', false)
-                            ->default($this->model->unit_price?->toFloat() ?? $this->product?->getAmount()->toFloat() ?? 0)
+                            ->default($this->displayedUnitPrice())
                             ->class('w-28 !mb-0')
                             ->run('calculateTotals'),
                     )->class('gap-3'),
-                    _FinanceCurrency($this->model->extended_price)
+                    _FinanceCurrency($this->model->extended_price?->multiply($this->signMultiplier()))
                         ->class('item-total text-lg font-semibold text-level1 text-right'),
                 ),
                 _FlexBetween(
@@ -80,7 +83,7 @@ class InvoiceDetailForm extends Form
                     _FlexEnd(
                         _Rows(
                             $this->model->invoiceTaxes()->get()->map(
-                                fn ($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate)),
+                                fn ($it) => _FinanceCurrency($this->model->extended_price->multiply($it->tax_rate)->multiply($this->signMultiplier())),
                             )
                         )->class('w-32 item-taxes font-semibold text-level1 text-right')
                     )->class('relative'),
@@ -93,6 +96,28 @@ class InvoiceDetailForm extends Form
 
             _Hidden()->name('_', false)->class('px-6'),
         ];
+    }
+
+    /**
+     * Credits are stored negative and shown positive. The user types what they are
+     * crediting; InvoiceForm::handle() puts the sign back.
+     */
+    protected function displayedUnitPrice()
+    {
+        // Only the stored value carries the document's sign. A product's catalogue price is
+        // already positive, which is what the input expects.
+        if ($this->model->unit_price) {
+            return $this->model->unit_price->toFloat() * $this->signMultiplier();
+        }
+
+        return $this->product?->getAmount()->toFloat() ?? 0;
+    }
+
+    protected function signMultiplier(): int
+    {
+        $invoice = $this->model->invoice ?? ($this->invoiceId ? InvoiceModel::find($this->invoiceId) : null);
+
+        return $invoice?->invoice_type_id?->signMultiplier() ?? 1;
     }
 
     protected function deleteInvoiceDetail()

@@ -10,6 +10,7 @@ use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Models\InvoiceTypeEnum as InvoiceTypeEnumModel;
 use Condoedge\Finance\Models\PaymentTerm;
 use Condoedge\Finance\Models\PaymentTermTypeEnum;
 use Condoedge\Finance\Services\Invoice\InvoiceServiceInterface;
@@ -62,6 +63,7 @@ class InvoiceForm extends Form
 
         $invoiceData = parseDataWithMultiForm('invoiceDetails');
         $invoiceData = $this->parsePossiblePaymentMethods($invoiceData);
+        $invoiceData = $this->applyTypeSignToLines($invoiceData);
 
         if (!$this->model->id) {
             $customer = CustomerService::ensureCustomerFromTeam(
@@ -169,16 +171,18 @@ class InvoiceForm extends Form
                 _Rows(
                     _TitleMini('finance-invoice-total')->class('mb-2'),
                     _CardWhiteP4(
-                        _TotalFinanceCurrencyCols(__('finance-subtotal'), 'finance-subtotal', $this->model->invoice_amount_before_taxes, false),
+                        // Flip the document once by its type, as InvoiceDetailsTable does, so a
+                        // genuinely negative component on a regular invoice keeps its sign.
+                        _TotalFinanceCurrencyCols(__('finance-subtotal'), 'finance-subtotal', $this->model->invoice_amount_before_taxes?->multiply($this->documentSign()), false),
                         _Rows(
                             $this->model->getVisualTaxesGrouped()->map(
-                                fn ($amount, $name) => _TotalFinanceCurrencyCols($name, 'finance-tax', $amount, false)
+                                fn ($amount, $name) => _TotalFinanceCurrencyCols($name, 'finance-tax', $amount?->multiply($this->documentSign()), false)
                             )->values(),
                         )->id('tax-summary'),
                         // Declarative replacement for the old MutationObserver:
                         // turn red whenever the total_amount_error field has content,
                         // and scroll into view on the same condition.
-                        _TotalFinanceCurrencyCols(__('finance-total'), 'finance-total', $this->model->invoice_total_amount)
+                        _TotalFinanceCurrencyCols(__('finance-total'), 'finance-total', $this->model->invoice_total_amount?->multiply($this->documentSign()))
                             ->class('!font-bold text-xl')
                             ->id('invoice_total_amount')
                             ->jsClassWhen('total_amount_error', '!=', '', '!text-danger', ''),
@@ -247,6 +251,43 @@ class InvoiceForm extends Form
                     _Html($customer->name)->attr(['data-id' => $customer->id]),
                 )];
             });
+    }
+
+    /**
+     * The form takes amounts the way the user states them ("credit $150") and stores them
+     * signed, mirroring InvoiceDetailsTable, which has always displayed them multiplied by
+     * the type's sign. Only credits are flipped: a negative line on a real invoice is a rebate.
+     */
+    protected function applyTypeSignToLines($invoiceData)
+    {
+        if ($this->invoiceTypeInPlay()->signMultiplier() > 0 || empty($invoiceData['invoiceDetails'])) {
+            return $invoiceData;
+        }
+
+        $invoiceData['invoiceDetails'] = array_map(function ($line) {
+            if (isset($line['unit_price'])) {
+                $line['unit_price'] = -abs((float) $line['unit_price']);
+            }
+
+            return $line;
+        }, $invoiceData['invoiceDetails']);
+
+        return $invoiceData;
+    }
+
+    protected function documentSign(): int
+    {
+        return $this->invoiceTypeInPlay()->signMultiplier();
+    }
+
+    /** Editing keeps the stored type; creating reads the transaction-type select. */
+    protected function invoiceTypeInPlay(): InvoiceTypeEnumModel
+    {
+        if ($this->model->id) {
+            return $this->model->invoice_type_id;
+        }
+
+        return InvoiceTypeEnumModel::tryFrom((int) request('invoice_type_id')) ?? InvoiceTypeEnumModel::INVOICE;
     }
 
     protected function parsePossiblePaymentMethods($requestData = null)

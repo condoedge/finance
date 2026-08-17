@@ -6,6 +6,7 @@ use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\Dto\Payments\CreateAppliesForMultipleInvoiceDto;
 use Condoedge\Finance\Models\InvoiceApply;
+use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Services\Payment\PaymentServiceInterface;
 use Condoedge\Utils\Kompo\Plugins\FormCanHaveTableWithFields;
 
@@ -43,6 +44,12 @@ class ApplyPaymentToInvoiceModal extends Modal
 
             $this->customerId = $this->applicableModel->customer_id;
         }
+
+        // Either entry point into the credit flow: opened on a credit, or opened from an
+        // invoice looking for one. Without the second the title still says "payment".
+        if ($this->applicableType == MorphablesEnum::CREDIT->value || $this->prop('crediting')) {
+            $this->_Title = 'finance-apply-credit';
+        }
     }
 
     public function handle(PaymentServiceInterface $paymentService)
@@ -69,7 +76,7 @@ class ApplyPaymentToInvoiceModal extends Modal
     public function body()
     {
         return _CardLevel4(
-            _Columns(
+            _Flex(
                 _Rows(
                     _Select('finance-invoiced-to')->name('customer_id', false)->class('!mb-0')
                         ->options(CustomerModel::forTeam(currentTeamId())->pluck('name', 'id'))
@@ -81,12 +88,12 @@ class ApplyPaymentToInvoiceModal extends Modal
                     _Panel(
                         !$this->customerId ? null : $this->getApplicableOptions($this->customerId)
                     )->id('applicables-panel'),
-                )->class('gap-2'),
+                )->class('gap-2 flex-1'),
                 _Panel(
                     $this->getPaymentInfo($this->applicableKey),
-                )->id('payment-info')->class('h-full'),
-            )->class('items-stretch'),
-            _Date('finance.apply-date')->name('apply_date')->required(),
+                )->id('payment-info')->class('h-full flex-1'),
+            )->class('items-stretch gap-4'),
+            _Date('finance.apply-date')->name('apply_date')->default(now())->required(),
             _ErrorField()->name('amounts_to_apply', false)->noInputWrapper()->class('!my-0'),
             _Panel(
                 $this->getInvoicesToBeApliedTable($this->customerId),
@@ -101,6 +108,8 @@ class ApplyPaymentToInvoiceModal extends Modal
     {
         return new CustomerInvoicesToBeAppliedTable([
             'customer_id' => $customerId,
+            // Opened from an invoice: tick that row so the operator only picks the credit.
+            'preselect_invoice_id' => $this->invoiceId,
         ]);
     }
 

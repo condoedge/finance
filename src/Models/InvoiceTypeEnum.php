@@ -20,7 +20,8 @@ enum InvoiceTypeEnum: int
     {
         return match ($this) {
             self::INVOICE => 'finance-invoice',
-            self::CREDIT => 'finance-credit',
+            // "Credit" on its own reads as a credit card to a treasurer.
+            self::CREDIT => 'finance-credit-note',
         };
     }
 

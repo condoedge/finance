@@ -13,19 +13,19 @@ enum InvoiceStatusEnum: int
     case OVERDUE = 5;
     case PARTIAL = 6;
 
-    public function label(): string
+    public function label($i = null): string
     {
         return match ($this) {
-            default => __($this->rawTranslationKey()),
+            default => __($this->rawTranslationKey($i)),
         };
     }
 
-    public function rawTranslationKey(): string
+    public function rawTranslationKey($i = null): string
     {
         return match ($this) {
             self::DRAFT => 'finance-draft',
             self::PENDING => 'finance-pending',
-            self::PAID => 'finance-paid',
+            self::PAID => $i?->invoice_type_id != InvoiceTypeEnum::CREDIT ? 'finance-paid' : 'finance-used',
             self::CANCELLED => 'finance-cancelled',
             self::OVERDUE => 'finance-overdue',
             self::PARTIAL => 'finance-partial',
@@ -56,19 +56,27 @@ enum InvoiceStatusEnum: int
         };
     }
 
-    public function pill()
+    public function pill($i = null)
     {
-        return _Pill($this->label())
+        return _Pill($this->label($i))
             ->class('text-sm font-semibold text-white')
             ->class($this->class());
     }
 
     public function canBePaid(): bool
     {
-        return match ($this) {
-            self::PENDING, self::OVERDUE, self::PARTIAL => true,
-            default => false,
-        };
+        return in_array($this, self::allCanBePaid(), true);
+    }
+
+    /**
+     * Every status with a balance still open. One list, so the buttons and the queries
+     * behind them cannot drift apart.
+     *
+     * @return array<int, self>
+     */
+    public static function allCanBePaid(): array
+    {
+        return [self::PENDING, self::OVERDUE, self::PARTIAL];
     }
 
     public static function allToBePaid(): array

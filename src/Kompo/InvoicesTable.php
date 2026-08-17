@@ -139,7 +139,7 @@ class InvoicesTable extends WhiteTable
             )->gotoInvoice($invoice->id),
             _Html($invoice->invoice_type_id->label()),
             !$this->viewAsManager ? null : _Html($invoice->customer_label),
-            $invoice->invoice_status_id->pill(),],
+            $invoice->invoice_status_id->pill($invoice),],
             $this->totalsEls($invoice)
         )))->class('group');
     }
@@ -156,7 +156,8 @@ class InvoicesTable extends WhiteTable
         return [
             _Rows(
                 _HtmlDate($invoice->invoice_date)->class('taxt-gray-400 font-bold'),
-                _Flex2(
+                // Credits have no due date, so the label would sit there with nothing after it.
+                $invoice->isRefund() ? null : _Flex2(
                     _Html('finance-due-at'),
                     _HtmlDate($invoice->invoice_due_date)
                 )->class('text-xs text-gray-600')
@@ -164,21 +165,23 @@ class InvoicesTable extends WhiteTable
         ];
     }
 
+    // Credits are stored negative; the Type column already says "Credit", so the
+    // amounts read positive here like everywhere else.
     protected function totalsEls($invoice)
     {
         if ($this->isExport) {
             return [
-                _FinanceCurrency($invoice->invoice_due_amount)->class('currency'),
-                _FinanceCurrency($invoice->invoice_total_amount)->class('currency'),
+                _FinanceCurrency($invoice->abs_invoice_due_amount)->class('currency'),
+                _FinanceCurrency($invoice->abs_invoice_total_amount)->class('currency'),
             ];
         }
 
         return [
             _Rows(
-                _FinanceCurrency($invoice->invoice_due_amount),
+                _FinanceCurrency($invoice->abs_invoice_due_amount),
                 _Flex(
                     _Html('finance-total'),
-                    _FinanceCurrency($invoice->invoice_total_amount),
+                    _FinanceCurrency($invoice->abs_invoice_total_amount),
                 )->class('space-x-2 text-sm text-gray-600'),
             )->class('items-end')
         ];

@@ -10,16 +10,21 @@ use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceDetailService;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\PaymentProcessor;
+use Condoedge\Finance\Facades\PaymentService;
 use Condoedge\Finance\Facades\PaymentTermService;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\ApproveManyInvoicesDto;
+use Condoedge\Finance\Models\Dto\Invoices\CreateCreditNoteDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
+use Condoedge\Finance\Models\InvoiceTypeEnum;
+use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Condoedge\Finance\Models\PaymentTerm;
@@ -28,6 +33,7 @@ use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 /**
@@ -83,6 +89,86 @@ class InvoiceService implements InvoiceServiceInterface
 
             return $invoice;
         });
+    }
+
+    /**
+     * Raise a credit note, optionally against an invoice.
+     *
+     * Lines are stated as they read on the invoice — positive for a charge being credited,
+     * negative for a rebate being reversed — and the whole set is mirrored once here.
+     *
+     * A single negation, never abs(): an inscription invoice carries rebate lines, and
+     * stripping their sign would credit 100 + 30 against a 70 invoice.
+     */
+    public function createCreditNote(CreateCreditNoteDto $dto): Invoice
+    {
+        return DB::transaction(function () use ($dto) {
+            $source = $dto->credited_invoice_id ? InvoiceModel::findOrFail($dto->credited_invoice_id) : null;
+
+            $lines = $dto->lines ?: $this->cloneLinesFrom($source);
+
+            $credit = $this->createInvoice(new CreateInvoiceDto([
+                'customer_id' => $dto->customer_id ?: $source->customer_id,
+                'team_id' => $dto->team_id ?: $source?->team_id,
+                'invoice_type_id' => InvoiceTypeEnum::CREDIT->value,
+                'invoice_date' => $dto->invoice_date,
+                'invoiceDetails' => array_map(fn ($line) => [
+                    ...$line,
+                    'unit_price' => -1 * (float) $line['unit_price'],
+                ], $lines),
+            ]));
+
+            if ($source) {
+                $credit->credited_invoice_id = $source->id;
+                $credit->save();
+            }
+
+            $this->applyApprovalToInvoice($credit);
+            $credit->refresh();
+
+            // Checked here rather than in the DTO because only now is the figure exact:
+            // taxes are computed, and the clone path never states its lines up front.
+            if ($source && $dto->apply_to_invoice
+                && $source->invoice_due_amount->lessThan($credit->abs_invoice_due_amount)) {
+                throw ValidationException::withMessages([
+                    'lines' => __('finance-credit-exceeds-invoice-due'),
+                ]);
+            }
+
+            if ($source && $dto->apply_to_invoice) {
+                PaymentService::applyPaymentToInvoice(new CreateApplyForInvoiceDto([
+                    'invoice_id' => $source->id,
+                    'amount_applied' => $credit->abs_invoice_due_amount,
+                    'apply_date' => $dto->invoice_date,
+                    'applicable' => $credit,
+                    'applicable_type' => MorphablesEnum::CREDIT->value,
+                ]));
+
+                $credit->refresh();
+            }
+
+            return $credit;
+        });
+    }
+
+    /**
+     * Mirror an invoice's lines, keeping revenue accounts, taxes and signs so the credit
+     * reverses exactly what was charged — rebates and taxes included.
+     */
+    protected function cloneLinesFrom(?Invoice $source): array
+    {
+        if (!$source) {
+            return [];
+        }
+
+        return $source->invoiceDetails->map(fn ($detail) => [
+            'name' => $detail->name,
+            'description' => $detail->description,
+            'quantity' => $detail->quantity,
+            'unit_price' => $detail->unit_price->toFloat(),
+            'revenue_account_id' => $detail->revenue_account_id,
+            'taxesIds' => $detail->invoiceTaxes->pluck('tax_id')->all(),
+        ])->all();
     }
 
     /**
@@ -267,7 +353,8 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice->invoiceable_id = $dto->invoiceable_id;
         $invoice->team_id = $dto->team_id;
 
-        if ($invoice->paymentTerm) {
+        // A credit note is never due: a due date is what makes it fall overdue.
+        if ($invoice->paymentTerm && !$invoice->isRefund()) {
             $invoice->invoice_due_date = $invoice->paymentTerm->calculateDueDate($invoice->invoice_date);
         }
 
@@ -348,7 +435,7 @@ class InvoiceService implements InvoiceServiceInterface
         $invoice->payment_term_id = $dto->payment_term_id ?? $this->soleOptionId($invoice->possible_payment_terms);
         $invoice->payment_method_id = $dto->payment_method_id ?? $this->soleOptionId($invoice->possible_payment_methods);
 
-        if ($invoice->isDirty('payment_term_id') && $invoice->paymentTerm) {
+        if ($invoice->isDirty('payment_term_id') && $invoice->paymentTerm && !$invoice->isRefund()) {
             $invoice->invoice_due_date = $invoice->paymentTerm->calculateDueDate($invoice->invoice_date);
         }
 
