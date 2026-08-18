@@ -42,8 +42,11 @@ trait HasRelationsManager
                         // Get the related model
                         $relatedModel = get_class($returnValue->getRelated());
 
-                        // Compare if this relationship points to the child model we are looking for
-                        if (!$relatedClass || $relatedModel === $relatedClass) {
+                        // The graph holds package classes while relations resolve to the app
+                        // subclass, so compare the hierarchy rather than exact identity.
+                        if (!$relatedClass || $relatedModel === $relatedClass
+                            || is_subclass_of($relatedModel, $relatedClass)
+                            || is_subclass_of($relatedClass, $relatedModel)) {
                             $relations[] = [$method->getName(), $relatedModel];
                         }
                     }

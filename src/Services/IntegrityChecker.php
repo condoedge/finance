@@ -109,7 +109,8 @@ class IntegrityChecker
         if ($ids) {
             foreach ($children as $child) {
                 $relationClass = $child::getRelationships($currentRelationClass)[0] ?? null;
-                $childrenIds[$child] = !$relationClass ? null : $child::whereHas($relationClass[0], fn ($q) => $q->whereIn((new $relationClass[1]())->getTable() . '.id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
+                // An unresolvable relation means the scope is unknown, not "every row".
+                $childrenIds[$child] = !$relationClass ? [] : $child::whereHas($relationClass[0], fn ($q) => $q->whereIn((new $relationClass[1]())->getTable() . '.id', $this->parseIds($ids))->withTrashed())->pluck('id')->all();
 
                 $currentRelationClass = $child;
             }
@@ -143,13 +144,18 @@ class IntegrityChecker
             if ($ids) {
                 $relationsClass = $ancestor::getRelationships($currentRelationClass) ?? null;
 
-                $ids = collect($relationsClass)->isEmpty() ? null : [];
+                // Read the child ids before reassigning $ids: the previous version captured the
+                // accumulator by value after emptying it, so every ancestor resolved to no rows.
+                $childIds = $this->parseIds($ids) ?? [];
+                $ancestorIds = [];
 
-                collect($relationsClass)->each(function ($relationClass) use ($ancestor, &$ids) {
-                    $ids = array_merge($ids, $ancestor::whereHas($relationClass[0], function ($query) use ($relationClass, $ids) {
-                        $query->whereIn((new $relationClass[1]())->getTable() . '.id', $this->parseIds($ids) ?? []);
+                foreach ($relationsClass ?? [] as $relationClass) {
+                    $ancestorIds = array_merge($ancestorIds, $ancestor::whereHas($relationClass[0], function ($query) use ($relationClass, $childIds) {
+                        $query->whereIn((new $relationClass[1]())->getTable() . '.id', $childIds);
                     })->withTrashed()->pluck('id')->all());
-                });
+                }
+
+                $ids = collect($relationsClass)->isEmpty() ? null : array_values(array_unique($ancestorIds));
             }
 
             $this->runCheckIntegrityOn($ancestor, $ids);
@@ -167,12 +173,16 @@ class IntegrityChecker
         }
     }
 
+    /**
+     * Null means "no filter"; an empty array means "no rows". Collapsing the second into
+     * the first makes a scoped check rewrite the whole table.
+     */
     protected function parseIds($ids): array|null
     {
-        if (!$ids) {
-            return null;
+        if (is_array($ids)) {
+            return $ids;
         }
 
-        return is_array($ids) ? $ids : [$ids];
+        return $ids ? [$ids] : null;
     }
 }

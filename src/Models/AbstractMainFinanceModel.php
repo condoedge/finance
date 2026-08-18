@@ -59,9 +59,15 @@ abstract class AbstractMainFinanceModel extends Model
             return;
         }
 
+        // An empty set is nothing to check. Only null means every row, otherwise a model
+        // saved before its children exist recalculates the whole table.
+        if (is_array($ids) && !$ids) {
+            return;
+        }
+
         DB::table((new static())->getTable())
-            ->when($ids, function ($query) use ($ids) {
-                return $query->whereIn('id', $ids);
+            ->when(!is_null($ids), function ($query) use ($ids) {
+                return $query->whereIn('id', (array) $ids);
             })
             ->update(static::columnsIntegrityCalculations());
     }
