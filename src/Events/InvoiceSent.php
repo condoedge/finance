@@ -44,11 +44,13 @@ class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
     {
         $customer = $this->invoice->mainCustomer;
 
-        if ($this->customEmail) {
-            return collect([RecipientOverride::for($customer)->withEmail($this->customEmail)]);
+        $email = $this->customEmail ?: $customer?->email;
+
+        if (!$email) {
+            return collect([]);
         }
 
-        return collect([]);
+        return collect([RecipientOverride::for($customer)->withEmail($email)]);
     }
 
     public static function validVariablesIds($specificField = null, $context = []): ?array
