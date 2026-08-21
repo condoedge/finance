@@ -44,7 +44,11 @@ class EnsureInvoiceEventsAreProcessed extends Command
                 }
             });
 
-        $query = InvoiceModel::whereNull('considered_as_initial_paid_at');
+        // Drafts are excluded on purpose. The three blocks above filter on a concrete status,
+        // which a draft never holds; this one leans on the term scope, and NET adds no
+        // condition at all — so without this every unissued invoice was swept in.
+        $query = InvoiceModel::whereNull('considered_as_initial_paid_at')
+            ->where('is_draft', false);
 
         collect(PaymentTermTypeEnum::cases())->each(function ($paymentTerm) use ($query, &$failures) {
             $this->info("Processing invoices for payment term: {$paymentTerm->label()}");
