@@ -404,13 +404,8 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
                 $this->invoiceable?->onCompletePayment();
             });
-        } catch (\Exception $e) {
-            Log::error('Error managing complete payment for invoice ID: ' . $this->id, [
-                'error' => $e->getMessage(),
-                'invoice_id' => $this->id,
-                'invoice' => $this,
-                'trace' => $e->getTraceAsString(),
-            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error managing complete payment for invoice ID: ' . $this->id, $this->hookLoggingContext($e, 'complete_payment'));
         }
     }
 
@@ -431,8 +426,8 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
                 $this->invoiceable?->onPartialPayment();
             });
-        } catch (\Exception $e) {
-            Log::error('Error managing partial payment for invoice ID: ' . $this->id, $e->getTrace());
+        } catch (\Throwable $e) {
+            Log::error('Error managing partial payment for invoice ID: ' . $this->id, $this->hookLoggingContext($e, 'partial_payment'));
         }
     }
 
@@ -457,8 +452,8 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
                 $this->invoiceable?->onConsideredAsInitialPaid();
             });
-        } catch (\Exception $e) {
-            Log::error('Error managing initial paid state for invoice ID: ' . $this->id, $e->getTrace());
+        } catch (\Throwable $e) {
+            Log::error('Error managing initial paid state for invoice ID: ' . $this->id, $this->hookLoggingContext($e, 'considered_as_initial_paid'));
         }
     }
 
@@ -479,9 +474,33 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
                 $this->invoiceable?->onOverdue();
             });
-        } catch (\Exception $e) {
-            Log::error('Error managing overdue state for invoice ID: ' . $this->id, $e->getTrace());
+        } catch (\Throwable $e) {
+            Log::error('Error managing overdue state for invoice ID: ' . $this->id, $this->hookLoggingContext($e, 'overdue'));
         }
+    }
+
+    /**
+     * Log context for a failed invoiceable hook.
+     *
+     * The exception MESSAGE is the part that identifies what actually went wrong — a bare
+     * getTrace() gives you frames with no reason, which is unreadable when the invoiceable
+     * rejects the state change rather than crashing.
+     */
+    protected function hookLoggingContext(\Throwable $e, string $hook): array
+    {
+        return [
+            'hook' => $hook,
+            'error' => $e->getMessage(),
+            'exception' => get_class($e),
+            'invoice_id' => $this->id,
+            'invoice_reference' => $this->invoice_reference,
+            'invoice_status_id' => $this->invoice_status_id?->value,
+            'team_id' => $this->getTeamId(),
+            'customer_id' => $this->customer_id,
+            'invoiceable_type' => $this->invoiceable_type,
+            'invoiceable_id' => $this->invoiceable_id,
+            'trace' => $e->getTraceAsString(),
+        ];
     }
 
     public function setPrimaryBillingAddress($addressId)
