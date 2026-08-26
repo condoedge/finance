@@ -35,7 +35,6 @@ class InvoiceInfoModal extends Form
                 _Html(__('finance.issued-date', ['date' => $this->model->invoice_date->format('Y-m-d')]))->class('text-level1 mb-3'),
                 _FinanceCurrency($this->model->abs_invoice_total_amount)->class('text-3xl font-bold mb-4'),
                 _FlexCenter(
-                    _ButtonOutlined('finance.send-receipt')->class('!py-1')->icon('receipt'),
                     _ButtonOutlined('finance.send-invoice')
                         ->selfPost('sendInvoice')->alert('finance-invoice-sent')->class('!py-1')->icon('receipt'),
                 )->class('gap-4'),
