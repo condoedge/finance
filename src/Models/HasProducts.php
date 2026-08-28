@@ -51,7 +51,7 @@ trait HasProducts
 
     public function getParentCommisionCosts()
     {
-        return $this->getParentCosts()->filter(fn ($cost) => $cost->getCommissionAmount());
+        return $this->getParentCosts()->filter(fn ($cost) => safeDecimal($cost->getCommissionAmount())->greaterThan(0));
     }
 
     public function getProfit()
