@@ -266,7 +266,11 @@ class InvoiceService implements InvoiceServiceInterface
 
     public function payInvoice(PayInvoiceDto $dto): PaymentResult
     {
-        return DB::transaction(function () use ($dto) {
+        // Selections are committed BEFORE the gateway call: updating the invoice X-locks
+        // its row and (through the integrity cascade) the customer row, and holding those
+        // across the gateway's HTTP round-trip starved same-family invoice writes into
+        // 1205 lock-wait timeouts. The gateway outcome is recorded in its own transaction.
+        [$invoice, $paymentInstallment] = DB::transaction(function () use ($dto) {
             $invoice = InvoiceModel::findOrFail($dto->invoice_id);
 
             if ($invoice->is_draft) {
@@ -293,10 +297,10 @@ class InvoiceService implements InvoiceServiceInterface
 
             $paymentInstallment = $dto->installment_id ? PaymentInstallmentPeriod::findOrFail($dto->installment_id) : null;
 
-            $result = PaymentProcessor::processPayment(new PaymentContext(payable: $paymentInstallment ?? $invoice, paymentMethod: $invoice->payment_method_id, paymentData: request()->all()));
-
-            return $result;
+            return [$invoice, $paymentInstallment];
         });
+
+        return PaymentProcessor::processPayment(new PaymentContext(payable: $paymentInstallment ?? $invoice, paymentMethod: $invoice->payment_method_id, paymentData: request()->all()));
     }
 
     /**

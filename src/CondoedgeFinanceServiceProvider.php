@@ -241,8 +241,16 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
 
-            // Daily integrity check
-            $schedule->command('finance:ensure-integrity')->dailyAt('01:00');
+            // Daily: only recently created rows (and their parents). The weekly pass
+            // sweeps everything in id-chunks, so old drift still heals without a
+            // full-table UPDATE holding every row lock for the whole run.
+            $schedule->command('finance:ensure-integrity --since-days=2')
+                ->dailyAt('01:00')
+                ->withoutOverlapping();
+
+            $schedule->command('finance:ensure-integrity')
+                ->weeklyOn(0, '02:00')
+                ->withoutOverlapping();
 
             $schedule->command('finance:pre-create-periods')
                 ->monthlyOn(\Carbon\Carbon::now()->endOfMonth()->day, '23:30')

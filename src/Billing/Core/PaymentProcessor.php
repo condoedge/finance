@@ -42,59 +42,7 @@ class PaymentProcessor implements PaymentProcessorInterface
     public function managePaymentResult(PaymentResult $result, PaymentContext $context)
     {
         try {
-            if ($result->isPending) {
-                $this->managePaymentTrace($context, $result, PaymentTraceStatusEnum::PROCESSING);
-                return $result;
-            }
-
-            $payable = $context->payable;
-
-            if (!($payable instanceof FinancialPayableInterface)) {
-                Log::critical('Error finishing payment', [
-                    'payable_type' => get_class($payable),
-                    'payable_id' => $payable->getPayableId(),
-                ]);
-                throw new \RuntimeException('Unsupported payable type');
-            }
-
-            if ($result->success) {
-                $paymentTrace = $this->managePaymentTrace($context, $result, PaymentTraceStatusEnum::COMPLETED);
-
-                $payment = PaymentService::createPayment(new CreateCustomerPaymentDto([
-                    'payment_date' => now(),
-                    'amount' => $result->amount,
-                    'customer_id' => $payable->getCustomer()->id,
-                    'payment_trace_id' => $paymentTrace->id,
-                    'processor_fees' => $result->processorFees,
-                ]));
-
-                try {
-                    $payable->onPaymentSuccess($payment);
-                } catch (\Exception $e) {
-                    Log::critical('Error executing onPaymentSuccess', [
-                        'error' => $e->getMessage(),
-                        'payable_type' => get_class($payable),
-                        'payable_id' => $payable->getPayableId(),
-                    ]);
-                }
-            } else {
-                $this->managePaymentTrace($context, $result, PaymentTraceStatusEnum::FAILED);
-
-                PaymentLog::failure(
-                    context: $context,
-                    providerCode: $result->paymentProviderCode,
-                    classification: null,
-                    message: $result->errorMessage,
-                    latencyMs: 0,
-                );
-
-                $payable->onPaymentFailed([
-                    'error' => $result->errorMessage,
-                    'transaction_id' => $result->transactionId,
-                ]);
-            }
-
-            return $result;
+            return DB::transaction(fn () => $this->recordPaymentResult($result, $context));
         } catch (\Exception $e) {
             Log::error('Payment processing failed', [
                 'error' => $e->getMessage(),
@@ -110,11 +58,79 @@ class PaymentProcessor implements PaymentProcessorInterface
         }
     }
 
+    /** The writes for a settled gateway outcome — atomic, but never around the HTTP call. */
+    protected function recordPaymentResult(PaymentResult $result, PaymentContext $context)
+    {
+        if ($result->isPending) {
+            $this->managePaymentTrace($context, $result, PaymentTraceStatusEnum::PROCESSING);
+            return $result;
+        }
+
+        $payable = $context->payable;
+
+        if (!($payable instanceof FinancialPayableInterface)) {
+            Log::critical('Error finishing payment', [
+                'payable_type' => get_class($payable),
+                'payable_id' => $payable->getPayableId(),
+            ]);
+            throw new \RuntimeException('Unsupported payable type');
+        }
+
+        if ($result->success) {
+            $paymentTrace = $this->managePaymentTrace($context, $result, PaymentTraceStatusEnum::COMPLETED);
+
+            $payment = PaymentService::createPayment(new CreateCustomerPaymentDto([
+                'payment_date' => now(),
+                'amount' => $result->amount,
+                'customer_id' => $payable->getCustomer()->id,
+                'payment_trace_id' => $paymentTrace->id,
+                'processor_fees' => $result->processorFees,
+            ]));
+
+            try {
+                $payable->onPaymentSuccess($payment);
+            } catch (\Exception $e) {
+                Log::critical('Error executing onPaymentSuccess', [
+                    'error' => $e->getMessage(),
+                    'payable_type' => get_class($payable),
+                    'payable_id' => $payable->getPayableId(),
+                ]);
+            }
+        } else {
+            $this->managePaymentTrace($context, $result, PaymentTraceStatusEnum::FAILED);
+
+            PaymentLog::failure(
+                context: $context,
+                providerCode: $result->paymentProviderCode,
+                classification: null,
+                message: $result->errorMessage,
+                latencyMs: 0,
+            );
+
+            $payable->onPaymentFailed([
+                'error' => $result->errorMessage,
+                'transaction_id' => $result->transactionId,
+            ]);
+        }
+
+        return $result;
+    }
+
     public function processPayment(PaymentContext $context)
     {
-        return DB::transaction(function () use ($context) {
-            return $this->attemptChain($context);
-        });
+        // The provider call is external HTTP and must never run while this process holds
+        // row locks — a slow gateway held the invoice/customer locks for its whole
+        // round-trip (1205 lock-wait timeouts on same-family invoice writes). Result
+        // recording gets its own transaction inside managePaymentResult.
+        if (DB::transactionLevel() > 0) {
+            Log::warning('processPayment called inside an open DB transaction; gateway latency will hold its locks', [
+                'transaction_level' => DB::transactionLevel(),
+                'payable_type' => $context->payable->getPayableType(),
+                'payable_id' => $context->payable->getPayableId(),
+            ]);
+        }
+
+        return $this->attemptChain($context);
     }
 
     /**

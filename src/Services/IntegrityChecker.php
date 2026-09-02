@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Services;
 
 use Condoedge\Finance\Facades\Graph;
 use Condoedge\Finance\Models\Traits\HasIntegrityCheck;
+use Illuminate\Support\Facades\DB;
 
 class IntegrityChecker
 {
@@ -93,6 +94,29 @@ class IntegrityChecker
     }
 
     /**
+     * Check only rows created since the cutoff, propagating each batch to its parents,
+     * so an old parent whose child is recent is still recalculated. This is the daily
+     * scoped pass; the full (chunked) pass sweeps older drift on its own schedule.
+     */
+    public function checkRecentIntegrity(\DateTimeInterface $cutoff): void
+    {
+        $nodes = array_reverse($this->graph->getAllNodesBFS());
+
+        foreach ($nodes as $node) {
+            $class = $node::getMainClass();
+
+            $ids = DB::table((new $class())->getTable())
+                ->where('created_at', '>=', $cutoff)
+                ->pluck('id')
+                ->all();
+
+            if ($ids) {
+                $this->checkModelThenParents($class, $ids);
+            }
+        }
+    }
+
+    /**
      * Check integrity of children first, then the specified model.
      * Used when you want to ensure a model's integrity by first ensuring its dependencies.
      *
@@ -138,38 +162,80 @@ class IntegrityChecker
 
         $this->runCheckIntegrityOn($class::getMainClass(), $ids);
 
-        $currentRelationClass = $class;
-
-        foreach ($ancestors as $ancestor) {
-            if ($ids) {
-                $relationsClass = $ancestor::getRelationships($currentRelationClass) ?? null;
-
-                // Read the child ids before reassigning $ids: the previous version captured the
-                // accumulator by value after emptying it, so every ancestor resolved to no rows.
-                $childIds = $this->parseIds($ids) ?? [];
-                $ancestorIds = [];
-
-                foreach ($relationsClass ?? [] as $relationClass) {
-                    $ancestorIds = array_merge($ancestorIds, $ancestor::whereHas($relationClass[0], function ($query) use ($relationClass, $childIds) {
-                        $query->whereIn((new $relationClass[1]())->getTable() . '.id', $childIds);
-                    })->withTrashed()->pluck('id')->all());
-                }
-
-                $ids = collect($relationsClass)->isEmpty() ? null : array_values(array_unique($ancestorIds));
+        if ($ids === null) {
+            foreach ($ancestors as $ancestor) {
+                $this->runCheckIntegrityOn($ancestor, null);
             }
 
-            $this->runCheckIntegrityOn($ancestor, $ids);
+            return;
+        }
 
-            $currentRelationClass = $ancestor;
+        // Ids resolved so far, keyed by the class they belong to. An ancestor can hang
+        // off ANY already-resolved branch — Customer and PaymentInstallmentPeriod are
+        // both parents of Invoice — so walking the list as a chain (each ancestor mapped
+        // from the PREVIOUS one) found no relation between siblings and widened the
+        // scope to the whole table: every invoice save rewrote all installment periods.
+        $resolved = [$class => $this->parseIds($ids) ?? []];
+
+        foreach ($ancestors as $ancestor) {
+            $ancestorIds = [];
+            $anyRelationFound = false;
+
+            foreach ($resolved as $sourceClass => $sourceIds) {
+                $relationsClass = $ancestor::getRelationships($sourceClass) ?? [];
+
+                if (!$relationsClass) {
+                    continue;
+                }
+
+                $anyRelationFound = true;
+
+                if (!$sourceIds) {
+                    continue;
+                }
+
+                foreach ($relationsClass as $relationClass) {
+                    $ancestorIds = array_merge($ancestorIds, $ancestor::whereHas($relationClass[0], function ($query) use ($relationClass, $sourceIds) {
+                        $query->whereIn((new $relationClass[1]())->getTable() . '.id', $sourceIds);
+                    })->withTrashed()->pluck('id')->all());
+                }
+            }
+
+            // An unresolvable relation means the scope is unknown, not "every row".
+            $resolved[$ancestor] = $anyRelationFound ? array_values(array_unique($ancestorIds)) : [];
+
+            $this->runCheckIntegrityOn($ancestor, $resolved[$ancestor]);
         }
     }
 
+    /**
+     * One UPDATE per id-chunk: a single full-table statement holds every row lock for
+     * the whole recalculation, which blocked all concurrent invoice writes (1205s).
+     */
     protected function runCheckIntegrityOn($class, $ids = null): void
     {
-        if (method_exists($class, 'checkIntegrity')) {
-            $ids = $this->parseIds($ids);
+        if (!method_exists($class, 'checkIntegrity')) {
+            return;
+        }
 
-            $class::checkIntegrity($ids);
+        if (count($class::columnsIntegrityCalculations()) === 0) {
+            return;
+        }
+
+        $ids = $this->parseIds($ids);
+        $chunkSize = max(1, (int) config('kompo-finance.integrity-chunk-size', 500));
+
+        if ($ids === null) {
+            DB::table((new $class())->getTable())
+                ->select('id')
+                ->orderBy('id')
+                ->chunkById($chunkSize, fn ($rows) => $class::checkIntegrity($rows->pluck('id')->all()));
+
+            return;
+        }
+
+        foreach (array_chunk($ids, $chunkSize) as $chunk) {
+            $class::checkIntegrity($chunk);
         }
     }
 

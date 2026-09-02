@@ -143,6 +143,9 @@ return [
     | The keys are parent model classes and the values are arrays of child model classes.
     |
     */
+    // Max ids per integrity UPDATE statement — keeps row-lock windows short.
+    'integrity-chunk-size' => 500,
+
     'model_integrity_relations' => [
         \Condoedge\Finance\Models\Customer::class => [
             \Condoedge\Finance\Models\Invoice::class,
