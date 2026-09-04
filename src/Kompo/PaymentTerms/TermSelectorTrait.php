@@ -12,18 +12,21 @@ trait TermSelectorTrait
         $paymentTermTypes = PaymentTerm::distinct()->pluck('term_type');
         $onChangeCallback = $this->onChangePaymentTerms();
 
+        $paymentTerm = $selectPaymentTermId ? PaymentTerm::find($selectPaymentTermId) : null;
+        $paymentTermType = $paymentTerm?->term_type;
+
         return _Rows(
             _Select('finance-payment-terms')->name('payment_term_type', false)
             ->options(
                 collect(PaymentTermTypeEnum::cases())->filter(fn ($enum) => $paymentTermTypes->contains($enum))
                 ->mapWithKeys(fn ($enum) => [$enum->value => $enum->label()])->all()
             )
-            ->default($selectPaymentTermId)
+            ->default($paymentTermType?->value ?? null)
             ->selfGet('getPaymentTerms', ['payment_term_name' => $paymentTermName])->inPanel('payment-terms-panel')
             ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2'),
             _Panel(
-                $this->getPaymentTerms($selectPaymentTermId, $paymentTermName)
+                $this->getPaymentTerms($paymentTermType, $paymentTermName)
             )->id('payment-terms-panel')->class('z-10')
         );
     }
