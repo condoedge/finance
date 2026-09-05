@@ -51,9 +51,17 @@ class PaymentTerm extends AbstractMainFinanceModel
         };
     }
 
+    /**
+     * The catalogue is global and invoice creation falls back to it, so it must never run
+     * empty: the last COD term stays, and so does the last term of any type without one.
+     */
     public function deletable()
     {
-        return true;
+        if ($this->term_type === PaymentTermTypeEnum::COD) {
+            return static::cod()->where('id', '!=', $this->id)->exists();
+        }
+
+        return static::where('id', '!=', $this->id)->exists();
     }
 
     public function consideredAsInitialPaid(Invoice $invoice): bool
