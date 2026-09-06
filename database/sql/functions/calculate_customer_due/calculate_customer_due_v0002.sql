@@ -1,5 +1,6 @@
 drop function if exists calculate_customer_due;
 CREATE FUNCTION calculate_customer_due(p_customer_id INT) RETURNS DECIMAL(19,5)
+READS SQL DATA
 BEGIN
     DECLARE customer_due DECIMAL(19,5);
 
