@@ -14,6 +14,9 @@ class InvoicesTable extends WhiteTable
 {
     public $containerClass = 'container-fluid';
 
+    /** Named so a grouped action running in a modal can browse the table back. */
+    public $id = 'invoices-table';
+
     protected $teamId;
 
     public $perPage = 50;
@@ -89,6 +92,10 @@ class InvoicesTable extends WhiteTable
                             ->selfPost('approveMany')
                             ->config(['withCheckedItemIds' => true])
                             ->browse(),
+                        _DropdownLink('finance-void-invoices')
+                            ->selfPost('getVoidManyModal')->inModal()
+                            ->config(['withCheckedItemIds' => true])
+                            ->class('text-danger'),
                     ),
                 _FlexEnd(
                     _Columns(
@@ -204,6 +211,14 @@ class InvoicesTable extends WhiteTable
         InvoiceService::approveMany(new ApproveManyInvoicesDto([
             'invoices_ids' => $ids,
         ]));
+    }
+
+    public function getVoidManyModal()
+    {
+        return new VoidManyInvoicesModal(null, [
+            'invoice_to_void_ids' => implode(',', request('itemIds') ?: []),
+            'refresh_id' => $this->id,
+        ]);
     }
 
     public function getInvoiceInfoModal($invoiceId)

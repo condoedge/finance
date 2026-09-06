@@ -51,6 +51,21 @@ interface InvoiceServiceInterface
     public function createCreditNote(\Condoedge\Finance\Models\Dto\Invoices\CreateCreditNoteDto $dto): Invoice;
 
     /**
+     * Cancel an invoice for good. A draft is flagged; an approved invoice is reversed by
+     * a full credit note dated today. The invoice itself is never edited.
+     *
+     * @throws \Illuminate\Validation\ValidationException When the invoice cannot be voided
+     */
+    public function voidInvoice(\Condoedge\Finance\Models\Dto\Invoices\VoidInvoiceDto $dto): Invoice;
+
+    /**
+     * Void a selection, skipping what cannot be voided. Returns the invoices voided.
+     *
+     * @return Collection<Invoice>
+     */
+    public function voidMany(\Condoedge\Finance\Models\Dto\Invoices\VoidManyInvoicesDto $dto): Collection;
+
+    /**
      * Update an existing invoice from DTO
      *
      * @param UpdateInvoiceDto $dto

@@ -20,6 +20,8 @@ use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\CreateOrUpdateInvoiceDetail;
 use Condoedge\Finance\Models\Dto\Invoices\PayInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\VoidInvoiceDto;
+use Condoedge\Finance\Models\Dto\Invoices\VoidManyInvoicesDto;
 use Condoedge\Finance\Models\Dto\Payments\CreateApplyForInvoiceDto;
 use Condoedge\Finance\Models\GlAccount;
 use Condoedge\Finance\Models\Invoice;
@@ -172,6 +174,77 @@ class InvoiceService implements InvoiceServiceInterface
     }
 
     /**
+     * Cancel an invoice for good.
+     *
+     * A draft is only flagged — nothing was approved, sent or posted, so there is nothing
+     * to reverse. An approved invoice is reversed the way an approved invoice always is:
+     * a full credit note dated today, applied to it. The original is never edited, which
+     * is the rule this method exists to respect.
+     */
+    public function voidInvoice(VoidInvoiceDto $dto): Invoice
+    {
+        return DB::transaction(function () use ($dto) {
+            $invoice = InvoiceModel::query()->lockForUpdate()->findOrFail($dto->invoice_id);
+
+            // Re-checked here: the DTO validated before the row was locked, and a payment
+            // landing in between is exactly the case that must not be voided.
+            if ($reason = $invoice->voidRefusalReason()) {
+                throw ValidationException::withMessages(['invoice_id' => __($reason)]);
+            }
+
+            if (!$invoice->is_draft) {
+                $this->suppressPaymentHooks($invoice);
+
+                $this->createCreditNote(new CreateCreditNoteDto([
+                    'credited_invoice_id' => $invoice->id,
+                    'invoice_date' => now(),
+                    'apply_to_invoice' => true,
+                ]));
+            }
+
+            $invoice->voided_at = now();
+            $invoice->voided_by = auth()->id();
+            $invoice->save();
+
+            return $invoice->refresh();
+        });
+    }
+
+    /**
+     * Void a selection, skipping what cannot be voided rather than refusing the batch
+     * over one paid invoice. Returns only the invoices actually voided — the modal states
+     * the split before confirming, and this is what really happened.
+     *
+     * Takes ids as given, like approveMany. No global scope filters them — verified, not
+     * assumed — so a caller passing ids from a request must scope them to the team first.
+     */
+    public function voidMany(VoidManyInvoicesDto $dto): Collection
+    {
+        // All-or-nothing, like approveMany: a half-applied irreversible batch is worse
+        // than none. ponytail: fine for a page of results; chunk it if selections ever
+        // outgrow that, since every credit note holds its locks until the batch commits.
+        return DB::transaction(function () use ($dto) {
+            return InvoiceModel::whereIn('id', $dto->invoices_ids)->get()
+                ->filter->canBeVoided()
+                ->each(fn ($invoice) => $this->voidInvoice(new VoidInvoiceDto([
+                    'invoice_id' => $invoice->id,
+                ])))
+                ->values();
+        });
+    }
+
+    /**
+     * Stop the credit note from being mistaken for money.
+     */
+    protected function suppressPaymentHooks(Invoice $invoice): void
+    {
+        $invoice->complete_payment_managed_at = now();
+        $invoice->partial_payment_managed_at = now();
+        $invoice->considered_as_initial_paid_at = now();
+        $invoice->saveQuietly();
+    }
+
+    /**
      * Update existing invoice
      */
     public function updateInvoice(UpdateInvoiceDto $dto): Invoice
@@ -250,6 +323,16 @@ class InvoiceService implements InvoiceServiceInterface
         if ($invoice->is_draft) {
             abort(403, __('error-finance-cannot-send-a-draft-invoice'));
             // throw new InvalidArgumentException('error-finance-cannot-send-a-draft-invoice');
+        }
+
+        if ($invoice->voided_at) {
+            abort(403, __('finance-cannot-send-a-voided-invoice'));
+        }
+
+        // The invoice mail asks the customer to pay, which is wrong on a credit note.
+        // InvoicePage never offered it; InvoiceInfoModal's button did, ungated.
+        if ($invoice->isRefund()) {
+            abort(403, __('finance-cannot-send-a-credit-note'));
         }
 
         if (!$invoice->mainCustomer?->email) {
@@ -473,6 +556,12 @@ class InvoiceService implements InvoiceServiceInterface
     {
         if ($invoice->invoiceDetails()->count() == 0) {
             throw new Exception('finance-invoice-must-have-at-least-one-detail');
+        }
+
+        // Guarded here rather than in approveInvoice(): approveMany() and markApproved()
+        // both funnel through this method, and a voided draft is still status DRAFT.
+        if ($invoice->voided_at) {
+            throw new Exception('finance-cannot-approve-a-voided-invoice');
         }
 
         $invoice->is_draft = false;

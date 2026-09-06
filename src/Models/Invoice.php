@@ -41,6 +41,8 @@ use Kompo\Auth\Contracts\Security\ScopedToTeam;
  * @property bool $is_draft Default: true
  * @property int|null $approved_by Foreign key to users table
  * @property Carbon|null $approved_at
+ * @property Carbon|null $voided_at Set when the invoice was cancelled; display only, never a status
+ * @property int|null $voided_by Foreign key to users table
  * @property int $historical_customer_id Foreign key to fin_historical_customers
  * @property int $customer_id Foreign key to fin_customers
  * @property string $invoiceable_type The type of the invoiceable model (it could have information about what the client is paying)
@@ -91,6 +93,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         'possible_payment_terms' => 'array',
 
         'sent_at' => 'datetime',
+        'voided_at' => 'datetime',
     ];
 
     /**
@@ -273,7 +276,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     /* CALCULATED FIELDS */
     public function canApprove()
     {
-        return $this->invoice_status_id === InvoiceStatusEnum::DRAFT;
+        return $this->invoice_status_id === InvoiceStatusEnum::DRAFT && !$this->voided_at;
     }
 
     public function isRefund()
@@ -292,6 +295,16 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         return !$this->isRefund() && $this->invoice_status_id->canBePaid();
     }
 
+    /**
+     * A draft was never issued, a voided one is cancelled, and the invoice mail asks the
+     * customer to pay — which a credit note must never do. InvoiceService::sendInvoice()
+     * refuses the same three, with the reason, plus a customer with no email address.
+     */
+    public function canBeSent(): bool
+    {
+        return !$this->is_draft && !$this->isRefund() && !$this->voided_at;
+    }
+
     public function getTaxesGrouped()
     {
         return $this->invoiceDetailsTaxes()->groupBy('tax_id')->groupBy('invoice_id')
@@ -308,6 +321,43 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     public function hasMissingInfoToApprove()
     {
         return false;
+    }
+
+    /**
+     * Why this invoice cannot be voided, or null when it can. One predicate, so the
+     * button and the service cannot disagree about what is on offer.
+     */
+    public function voidRefusalReason(): ?string
+    {
+        return match (true) {
+            (bool) $this->voided_at => 'finance-invoice-already-voided',
+            $this->isRefund() => 'finance-cannot-void-a-credit-note',
+            $this->hasReceivedPayment() => 'finance-cannot-void-an-invoice-with-payments',
+            // A void credits the invoice in full, which would exceed what is still owed
+            // and fail on the over-credit guard. The remainder is a manual credit note.
+            $this->hasAppliedCredit() => 'finance-cannot-void-a-partly-credited-invoice',
+            default => null,
+        };
+    }
+
+    public function canBeVoided(): bool
+    {
+        return $this->voidRefusalReason() === null;
+    }
+
+    /** Applied money, as opposed to an applied credit note. */
+    public function hasReceivedPayment(): bool
+    {
+        return $this->payments()
+            ->where('applicable_type', MorphablesEnum::PAYMENT->value)
+            ->exists();
+    }
+
+    public function hasAppliedCredit(): bool
+    {
+        return $this->payments()
+            ->where('applicable_type', MorphablesEnum::CREDIT->value)
+            ->exists();
     }
 
     protected function checkInvoiceable()

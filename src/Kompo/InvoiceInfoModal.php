@@ -27,7 +27,8 @@ class InvoiceInfoModal extends Form
     {
         return _Rows(
             _FlexEnd(
-                $this->model->invoice_status_id->pill(),
+                // With the invoice, so a voided one reads "cancelled" here too and not "paid".
+                $this->model->invoice_status_id->pill($this->model),
             ),
             _Rows(
                 _Img('images/logo-green.png')->class('w-28 h-28 mx-auto mb-4 '),
@@ -35,7 +36,7 @@ class InvoiceInfoModal extends Form
                 _Html(__('finance.issued-date', ['date' => $this->model->invoice_date->format('Y-m-d')]))->class('text-level1 mb-3'),
                 _FinanceCurrency($this->model->abs_invoice_total_amount)->class('text-3xl font-bold mb-4'),
                 _FlexCenter(
-                    _ButtonOutlined('finance.send-invoice')
+                    !$this->model->canBeSent() ? null : _ButtonOutlined('finance.send-invoice')
                         ->selfPost('sendInvoice')->alert('finance-invoice-sent')->class('!py-1')->icon('receipt'),
                 )->class('gap-4'),
             )->class('text-center border-b border-gray-200 pb-4 mb-4'),

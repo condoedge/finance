@@ -37,6 +37,8 @@ class InvoicePage extends Form
                                 ->href('invoices.form'),
                             $this->canBeCredited() ? _DropdownLink('finance-create-credit-note')
                                 ->selfGet('getCreditNoteModal')->inModal() : null,
+                            !$this->model->canBeVoided() ? null : _DropdownLink('finance-void-invoice')
+                                ->selfGet('getVoidInvoiceModal')->inModal()->class('text-danger'),
                         )->alignRight(),
                     !$this->model->is_draft ? null : _Link('finance-edit-invoice')->outlined()
                         ->href('invoices.form', ['id' => $this->model->id]),
@@ -88,9 +90,7 @@ class InvoicePage extends Form
                         ),
                 )->class('text-right')
             )->class('mb-4 p-6 bg-white rounded-2xl'),
-            // Sending is refused on drafts by the service, and a credit note needs its own
-            // template rather than the invoice one, whose body asks the customer to pay.
-            ($this->model->is_draft || $this->model->isRefund()) ? null : $this->stepBox(
+            !$this->model->canBeSent() ? null : $this->stepBox(
                 _Rows(
                     $this->stepTitle('finance.send'),
                     $this->model->sentEls(),
@@ -243,6 +243,13 @@ class InvoicePage extends Form
     public function getCreditNoteModal()
     {
         return new CreditNoteForm(null, ['invoice_id' => $this->model->id]);
+    }
+
+    public function getVoidInvoiceModal()
+    {
+        return new VoidInvoiceModal($this->model->id, [
+            'refresh_id' => $this->id,
+        ]);
     }
 
     protected function canBeCredited(): bool
