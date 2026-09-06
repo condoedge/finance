@@ -192,19 +192,20 @@ class InvoiceService implements InvoiceServiceInterface
                 throw ValidationException::withMessages(['invoice_id' => __($reason)]);
             }
 
-            if (!$invoice->is_draft) {
-                $this->suppressPaymentHooks($invoice);
+            // Stamped BEFORE the credit note, not after: applying it drives the balance to
+            // zero, and the payment hooks read that balance. The flag is what tells them
+            // the zero is a cancellation rather than money — see Invoice::onCompletePayment.
+            $invoice->voided_at = now();
+            $invoice->voided_by = auth()->id();
+            $invoice->save();
 
+            if (!$invoice->is_draft) {
                 $this->createCreditNote(new CreateCreditNoteDto([
                     'credited_invoice_id' => $invoice->id,
                     'invoice_date' => now(),
                     'apply_to_invoice' => true,
                 ]));
             }
-
-            $invoice->voided_at = now();
-            $invoice->voided_by = auth()->id();
-            $invoice->save();
 
             return $invoice->refresh();
         });
@@ -231,17 +232,6 @@ class InvoiceService implements InvoiceServiceInterface
                 ])))
                 ->values();
         });
-    }
-
-    /**
-     * Stop the credit note from being mistaken for money.
-     */
-    protected function suppressPaymentHooks(Invoice $invoice): void
-    {
-        $invoice->complete_payment_managed_at = now();
-        $invoice->partial_payment_managed_at = now();
-        $invoice->considered_as_initial_paid_at = now();
-        $invoice->saveQuietly();
     }
 
     /**

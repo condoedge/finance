@@ -41,7 +41,7 @@ use Kompo\Auth\Contracts\Security\ScopedToTeam;
  * @property bool $is_draft Default: true
  * @property int|null $approved_by Foreign key to users table
  * @property Carbon|null $approved_at
- * @property Carbon|null $voided_at Set when the invoice was cancelled; display only, never a status
+ * @property Carbon|null $voided_at Set when the invoice was cancelled; drives calculate_invoice_status
  * @property int|null $voided_by Foreign key to users table
  * @property int $historical_customer_id Foreign key to fin_historical_customers
  * @property int $customer_id Foreign key to fin_customers
@@ -345,6 +345,15 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         return $this->voidRefusalReason() === null;
     }
 
+    /**
+     * Voiding settles the balance to zero, and the payment hooks read the balance. This is
+     * what tells them the zero is a cancellation and not money arriving.
+     */
+    public function isVoided(): bool
+    {
+        return $this->voided_at !== null;
+    }
+
     /** Applied money, as opposed to an applied credit note. */
     public function hasReceivedPayment(): bool
     {
@@ -439,7 +448,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
 
     public function onCompletePayment()
     {
-        if ($this->complete_payment_managed_at) {
+        if ($this->complete_payment_managed_at || $this->isVoided()) {
             return;
         }
         try {
@@ -464,6 +473,9 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         // if ($this->partial_payment_managed_at) {
         //     return;
         // }
+        if ($this->isVoided()) {
+            return;
+        }
         try {
             DB::transaction(function () {
                 $this->overdue_managed_at = null; // Reset overdue state on complete payment
@@ -486,7 +498,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
      */
     public function onConsideredAsInitialPaid()
     {
-        if ($this->considered_as_initial_paid_at) {
+        if ($this->considered_as_initial_paid_at || $this->isVoided()) {
             return;
         }
 

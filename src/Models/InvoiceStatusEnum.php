@@ -58,13 +58,6 @@ enum InvoiceStatusEnum: int
 
     public function pill($i = null)
     {
-        // A voided invoice is settled to zero, so the calculated status reads "paid" —
-        // true of the balance, a lie about what happened. CANCELLED is display only:
-        // calculate_invoice_status() never returns it and nothing ever writes it.
-        if ($i?->voided_at && $this !== self::CANCELLED) {
-            return self::CANCELLED->pill();
-        }
-
         return _Pill($this->label($i))
             ->class('text-sm font-semibold text-white')
             ->class($this->class());
