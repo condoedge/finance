@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Kompo\ExpenseReports;
 
 use Condoedge\Finance\Models\ExpenseReport;
 use Condoedge\Finance\Models\ExpenseReportStatusEnum;
+use Condoedge\Finance\Services\ExpenseReports\ExpenseReportAuthorizer;
 use Condoedge\Utils\Kompo\Common\WhiteTable;
 use Kompo\Auth\Facades\TeamModel;
 
@@ -11,7 +12,19 @@ class ExpenseReportsTable extends WhiteTable
 {
     public $id = 'expense-reports-table';
 
+    /** Subclasses (see UserExpenseReportTable) name their own key. */
+    public $permissionKey;
+
     protected $asManager = true;
+
+    /**
+     * Without this the plugin falls back to the class name, which is not a seeded
+     * permission — an unknown key short-circuits to "allowed" and the page opens for anyone.
+     */
+    public function getPermissionKey()
+    {
+        return $this->permissionKey ?: app(ExpenseReportAuthorizer::class)->approvePermission();
+    }
 
     public function query()
     {

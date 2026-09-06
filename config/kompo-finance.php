@@ -89,6 +89,20 @@ return [
     */
     'payment_sandbox' => env('PAYMENT_PROVIDER_SANDBOX_ENABLED', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Expense report permissions
+    |--------------------------------------------------------------------------
+    | Who may decide on a team's expense reports. Both are answered for the
+    | REPORT's team, not the acting one. `payment_permission` null keeps
+    | approving and paying as one right; name a key to reserve payment for a
+    | treasurer who is not necessarily an approver.
+    */
+    'expense_reports' => [
+        'approve_permission' => 'ExpenseReport',
+        'payment_permission' => null,
+    ],
+
     'services' => [
         'bna_payment_provider' => [
             'api_url' => env('BNA_PAYMENT_API_URL', 'https://stage-api-service.bnasmartpayment.com'),

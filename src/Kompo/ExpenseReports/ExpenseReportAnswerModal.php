@@ -5,11 +5,17 @@ namespace Condoedge\Finance\Kompo\ExpenseReports;
 use Condoedge\Finance\Kompo\Common\Modal;
 use Condoedge\Finance\Models\ExpenseReport;
 use Condoedge\Finance\Models\ExpenseReportStatusEnum;
+use Condoedge\Finance\Services\ExpenseReports\ExpenseReportAuthorizer;
 
 class ExpenseReportAnswerModal extends Modal
 {
     protected $_Title = 'finance-review-expense-report';
     public $model = ExpenseReport::class;
+
+    public function getPermissionKey()
+    {
+        return $this->authorizer()->approvePermission();
+    }
 
     public function body()
     {
@@ -39,9 +45,9 @@ class ExpenseReportAnswerModal extends Modal
         );
     }
 
-    // Show note input + action buttons depending on status.
-    // PENDING  → editable note + Approve/Reject (reject requires non-empty).
-    // APPROVED → previous note (read-only) + Mark as Paid.
+    // Show note input + action buttons depending on status AND on what the viewer may do.
+    // PENDING  → editable note + Approve/Reject, for approvers only.
+    // APPROVED → previous note (read-only) + Mark as Paid, for the payment right only.
     // REJECTED → previous note (read-only), no actions.
     // PAID     → previous note (read-only), no actions.
     protected function reviewBlock()
@@ -49,6 +55,10 @@ class ExpenseReportAnswerModal extends Modal
         $status = $this->model->expense_status;
 
         if ($status === ExpenseReportStatusEnum::PENDING) {
+            if (!$this->authorizer()->canApprove($this->model)) {
+                return null;
+            }
+
             return _Rows(
                 _Textarea('finance-review-note')->name('review_note', false)
                     ->placeholder('finance-review-note-placeholder')
@@ -68,7 +78,7 @@ class ExpenseReportAnswerModal extends Modal
 
         return _Rows(
             $this->reviewNoteReadOnly(),
-            $status === ExpenseReportStatusEnum::APPROVED
+            $status === ExpenseReportStatusEnum::APPROVED && $this->authorizer()->canMarkAsPaid($this->model)
                 ? _Button('finance-mark-as-paid')->class('flex-1')
                     ->selfPost('markAsPaidExpenseReport')
                     ->closeModal()->refresh('expense-reports-table')
@@ -92,16 +102,32 @@ class ExpenseReportAnswerModal extends Modal
 
     public function rejectExpenseReport()
     {
+        $this->authorizer()->assertCanApprove($this->model);
+
         $this->model->reject((string) request('review_note', ''));
     }
 
     public function approveExpenseReport()
     {
+        $this->authorizer()->assertCanApprove($this->model);
+
         $this->model->approve(request('review_note'));
     }
 
+    /**
+     * The report's own write scope asks for the approval permission, which would force
+     * every treasurer to be an approver too. Authorization is resolved above, on the
+     * payment key, so the save itself runs bypassed.
+     */
     public function markAsPaidExpenseReport()
     {
-        $this->model->markAsPaid();
+        $this->authorizer()->assertCanMarkAsPaid($this->model);
+
+        executeInBypassContext(fn () => $this->model->markAsPaid());
+    }
+
+    protected function authorizer(): ExpenseReportAuthorizer
+    {
+        return app(ExpenseReportAuthorizer::class);
     }
 }
