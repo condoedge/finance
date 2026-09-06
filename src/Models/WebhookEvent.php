@@ -2,7 +2,7 @@
 
 namespace Condoedge\Finance\Models;
 
-use Condoedge\Utils\Models\Model;
+use Kompo\Model;
 
 class WebhookEvent extends Model
 {
