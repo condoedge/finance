@@ -2,6 +2,7 @@ DELIMITER $$
 
 DROP FUNCTION IF EXISTS get_invoice_status_id$$
 CREATE FUNCTION get_invoice_status_id(p_status_code VARCHAR(255) CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci) RETURNS INT
+READS SQL DATA
 BEGIN
     DECLARE status_id INT DEFAULT NULL;
 
@@ -13,6 +14,7 @@ END$$
 
 DROP FUNCTION IF EXISTS is_invoice_overdue$$
 CREATE FUNCTION is_invoice_overdue(p_invoice_id INT) RETURNS BOOLEAN
+READS SQL DATA
 BEGIN
     DECLARE due_date DATETIME DEFAULT NULL;
     DECLARE overdue_installments INT DEFAULT 0;
@@ -48,6 +50,7 @@ END$$
 
 DROP FUNCTION IF EXISTS calculate_invoice_status$$
 CREATE FUNCTION calculate_invoice_status(p_invoice_id INT) RETURNS INT
+READS SQL DATA
 BEGIN
     DECLARE current_status INT DEFAULT NULL;
     DECLARE items_quantity INT DEFAULT 0;
