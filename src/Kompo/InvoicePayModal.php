@@ -274,7 +274,7 @@ class InvoicePayModal extends Form
 
     protected function getPaymentInstallments()
     {
-        return PaymentTerm::whereIn('id', $this->model->possible_payment_terms ?? [])->pluck('term_name', 'id');
+        return PaymentTerm::withTrashed()->whereIn('id', $this->model->possible_payment_terms ?? [])->pluck('term_name', 'id');
     }
 
     public function rules()

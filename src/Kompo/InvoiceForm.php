@@ -209,7 +209,7 @@ class InvoiceForm extends Form
         if ($paymentTermType == PaymentTermTypeEnum::COD->value) {
             $paymentTerm = PaymentTerm::where('term_type', PaymentTermTypeEnum::COD->value)->first();
         } elseif ($paymentTermType) {
-            $paymentTerm = PaymentTerm::find(request('possible_payment_terms')[0] ?? null);
+            $paymentTerm = PaymentTerm::withTrashed()->find(request('possible_payment_terms')[0] ?? null);
         }
 
         return $this->dueDateInput(request('invoice_date'), $paymentTerm);

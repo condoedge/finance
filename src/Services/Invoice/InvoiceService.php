@@ -252,7 +252,7 @@ class InvoiceService implements InvoiceServiceInterface
                 $this->updateInvoiceDetails($invoice, $dto->invoiceDetails);
             }
 
-            $originalPaymentTerm = PaymentTerm::find($oldPaymentTermId);
+            $originalPaymentTerm = PaymentTerm::withTrashed()->find($oldPaymentTermId);
             if ($invoice->paymentTerm?->id != $originalPaymentTerm?->id) {
                 PaymentTermService::manageNewPaymentTermIntoInvoice($invoice, $originalPaymentTerm?->term_type);
             }

@@ -12,7 +12,7 @@ trait TermSelectorTrait
         $paymentTermTypes = PaymentTerm::distinct()->pluck('term_type');
         $onChangeCallback = $this->onChangePaymentTerms();
 
-        $paymentTerm = $selectPaymentTermId ? PaymentTerm::find($selectPaymentTermId) : null;
+        $paymentTerm = $selectPaymentTermId ? PaymentTerm::withTrashed()->find($selectPaymentTermId) : null;
         $paymentTermType = $paymentTerm?->term_type;
 
         return _Rows(
@@ -53,14 +53,17 @@ trait TermSelectorTrait
 
         // possible_payment_terms holds terms of every type, so the model must not fill this
         // element: an id that isn't one of the options below comes back unusable from the front.
-        $selectedIds = PaymentTerm::whereIn('id', $this->getDefaultPaymentTerms())
+        $selected = PaymentTerm::whereIn('id', $this->getDefaultPaymentTerms())
+            ->withTrashed()
             ->where('term_type', $paymentTermType->value)
-            ->pluck('id')->all();
+            ->pluck('term_name', 'id');
+
+        $selectedIds = $selected->keys()->all();
 
         $onChangeCallback = $this->onChangePaymentTerms();
 
         return $element->name($paymentTermName, false)
-            ->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->all())
+            ->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->merge($selected))
             ->default($isInstallment ? $selectedIds : ($selectedIds[0] ?? null))
             ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2');
