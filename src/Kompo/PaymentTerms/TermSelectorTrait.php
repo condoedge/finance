@@ -16,7 +16,7 @@ trait TermSelectorTrait
         $paymentTermType = $paymentTerm?->term_type;
 
         return _Rows(
-            _Select('finance-payment-terms')->name('payment_term_type', false)
+            _Select('finance-payment-terms')->name('payment_term_type', false)->required()
             ->options(
                 collect(PaymentTermTypeEnum::cases())->filter(fn ($enum) => $paymentTermTypes->contains($enum))
                 ->mapWithKeys(fn ($enum) => [$enum->value => $enum->label()])->all()

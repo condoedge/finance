@@ -11,6 +11,7 @@ use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Utils\Facades\TeamModel;
 use Condoedge\Utils\Models\ContactInfo\Maps\Address;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Support\Facades\DB;
 use Kompo\Auth\Contracts\Security\ScopedToTeam;
 
@@ -35,7 +36,7 @@ use Kompo\Auth\Contracts\Security\ScopedToTeam;
  * @property-read \Illuminate\Database\Eloquent\Collection|\Condoedge\Finance\Models\CustomerPayment[] $payments
  * @property-read $customable;
  */
-class Customer extends AbstractMainFinanceModel implements EmailCommunicable, SmsCommunicable, DatabaseCommunicable, ScopedToTeam
+class Customer extends AbstractMainFinanceModel implements EmailCommunicable, SmsCommunicable, DatabaseCommunicable, ScopedToTeam, HasLocalePreference
 {
     use \Kompo\Auth\Models\Concerns\Security\BelongsToOneTeam;
     use \Condoedge\Utils\Models\Traits\BelongsToTeamTrait;
@@ -76,7 +77,7 @@ class Customer extends AbstractMainFinanceModel implements EmailCommunicable, Sm
 
     public function customable()
     {
-        return $this->morphTo('customable', 'customable_type', 'customable_id', 'id');
+        return $this->morphTo('customable', 'customable_type', 'customable_id', 'id')->withTrashed();
     }
 
     public function payments()
@@ -87,6 +88,15 @@ class Customer extends AbstractMainFinanceModel implements EmailCommunicable, Sm
     /* ATTRIBUTES */
 
     /* CALCULATED FIELDS */
+    public function preferredLocale()
+    {
+        if (!method_exists($this->customable, 'preferredLocale')) {
+            return config('kompo.force_initial_locale', 'fr');
+        }
+
+        return $this->customable->preferredLocale();
+    }
+
 
 
     /* SCOPES */

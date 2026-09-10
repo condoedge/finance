@@ -4,13 +4,16 @@ namespace Condoedge\Finance\Events;
 
 use Condoedge\Communications\EventsHandling\Contracts\CommunicableEvent;
 use Condoedge\Communications\EventsHandling\Contracts\DatabaseCommunicableEvent;
+use Condoedge\Communications\EventsHandling\Contracts\TeamScopedCommunicableEvent;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 use Condoedge\Communications\Recipients\RecipientOverride;
+use Condoedge\Communications\Models\CommunicationCategory;
+use App\Kompo\Communications\CommunicationTriggerGroupEnum;
 
-class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
+class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent, TeamScopedCommunicableEvent
 {
     use Dispatchable;
     use InteractsWithSockets;
@@ -56,6 +59,21 @@ class InvoiceSent implements CommunicableEvent, DatabaseCommunicableEvent
     public static function validVariablesIds($specificField = null, $context = []): ?array
     {
         return ['invoices.*'];
+    }
+
+    public static function communicationCategory(): CommunicationCategory
+    {
+        return CommunicationCategory::TRANSACTIONAL;
+    }
+
+    public static function communicationGroup(): CommunicationTriggerGroupEnum
+    {
+        return CommunicationTriggerGroupEnum::COMPLIANCE;
+    }
+
+    public function getCommunicationTeams(): array
+    {
+        return [$this->invoice->mainCustomer->team_id];
     }
 
     public static function getValidRoutes(): array
