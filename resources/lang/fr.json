@@ -932,6 +932,8 @@
 	"finance-stripe-price-id": "ID de prix intégré à Stripe",
 	"finance-stripe-price-id-comment": "Créer le prix dans Stripe",
 	"finance-stripe-secure-tag": "Sécurisé par Stripe",
+	"finance-submit-already-done": "Ce formulaire a déjà été soumis et l'enregistrement créé n'est plus disponible. Rafraîchissez la page avant de réessayer.",
+	"finance-submit-still-running": "Cette soumission est encore en traitement. Patientez un instant et rafraîchissez la page — ne soumettez pas de nouveau, l'opération est peut-être déjà enregistrée.",
 	"finance-subscribe-to-this-plan": "Je veux m'abonner a ce forfait",
 	"finance-subscription-cancelled-successfully": "Abonnement annulé avec succès. Vous aurez accès jusqu'à la fin de votre période de facturation.",
 	"finance-subtotal": "Sous-total",

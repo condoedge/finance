@@ -60,7 +60,7 @@ class ApplyPaymentToInvoiceModal extends Modal
         $this->parseApplicable();
 
         // This is validating the information, but we also have a trigger to not allow to apply more than the left amount
-        $paymentService->applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
+        $this->submitOnce(fn () => $paymentService->applyPaymentToInvoices(new CreateAppliesForMultipleInvoiceDto([
             'apply_date' => request('apply_date'),
             'applicable' => $this->applicableModel,
             'applicable_type' => (int) $this->applicableType,
@@ -70,7 +70,7 @@ class ApplyPaymentToInvoiceModal extends Modal
                     'amount_applied' => $amount,
                 ];
             })->all(),
-        ]));
+        ])));
     }
 
     public function body()

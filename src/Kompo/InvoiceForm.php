@@ -19,6 +19,7 @@ use Condoedge\Finance\Models\GlAccount;
 
 class InvoiceForm extends Form
 {
+    use \Condoedge\Finance\Kompo\Common\PreventsDuplicateSubmit;
     use \Condoedge\Finance\Kompo\MorphManyChargeablesSelect;
     use \Condoedge\Finance\Kompo\PaymentTerms\TermSelectorTrait;
 
@@ -74,11 +75,12 @@ class InvoiceForm extends Form
             $invoiceData['customer_id'] = $customer?->id;
         }
 
-        $dtoInvoiceData = $this->model->id ?
-            new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]) :
-            new CreateInvoiceDto($invoiceData);
-
-        $this->model($invoiceService->upsertInvoice($dtoInvoiceData));
+        // Creation is guarded, an update is not: rewriting the same invoice twice lands on
+        // the same figures, while a second create raises a second document — which is what
+        // a retry after a timeout used to do.
+        $this->model($this->model->id
+            ? $invoiceService->upsertInvoice(new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]))
+            : $this->submitOnce(fn () => $invoiceService->upsertInvoice(new CreateInvoiceDto($invoiceData))));
 
         if ($this->modalDesign) {
             return null;

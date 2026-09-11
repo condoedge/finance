@@ -22,12 +22,12 @@ class RefundCreditModal extends Modal
 
     public function handle()
     {
-        PaymentService::refundCredit(new RefundCreditDto([
+        $this->submitOnce(fn () => PaymentService::refundCredit(new RefundCreditDto([
             'credit_id' => $this->model->id,
             'amount' => request('amount'),
             'payment_date' => request('payment_date'),
             'payment_method_id' => request('payment_method_id'),
-        ]));
+        ])));
     }
 
     public function body()

@@ -54,12 +54,14 @@ class CreditNoteForm extends Modal
             'taxesIds' => $detail->invoiceTaxes->pluck('tax_id')->all(),
         ])->values()->all();
 
-        $credit = InvoiceService::createCreditNote(new CreateCreditNoteDto([
+        // Once per rendered form: the retry after a timeout lands on the credit that was
+        // really created instead of raising a second one.
+        $credit = $this->submitOnce(fn () => InvoiceService::createCreditNote(new CreateCreditNoteDto([
             'credited_invoice_id' => $this->invoice->id,
             'invoice_date' => request('invoice_date'),
             'apply_to_invoice' => (bool) request('apply_to_invoice'),
             'lines' => $lines,
-        ]));
+        ])));
 
         return redirect()->route('invoices.show', ['id' => $credit->id]);
     }

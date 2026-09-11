@@ -932,6 +932,8 @@
 	"finance-stripe-price-id": "Stripe price id",
 	"finance-stripe-price-id-comment": "Create the price in Stripe",
 	"finance-stripe-secure-tag": "Stripe secure",
+	"finance-submit-already-done": "This form was already submitted and the record it created is no longer available. Refresh the page before trying again.",
+	"finance-submit-still-running": "This submission is still being processed. Wait a moment and refresh the page — do not submit again, it may already be recorded.",
 	"finance-subscribe-to-this-plan": "Subscribe to this plan",
 	"finance-subscription-cancelled-successfully": "Subscription cancelled successfully. You will have acces until the end of your billing period.",
 	"finance-subtotal": "Subtotal",

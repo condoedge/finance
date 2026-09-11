@@ -44,9 +44,10 @@ class VoidManyInvoicesModal extends Modal
 
     public function handle()
     {
-        InvoiceService::voidMany(new VoidManyInvoicesDto([
+        // Same reason as the single void: every invoice in the batch gets a credit note.
+        $this->submitOnce(fn () => InvoiceService::voidMany(new VoidManyInvoicesDto([
             'invoices_ids' => $this->voidable->pluck('id')->all(),
-        ]));
+        ])));
     }
 
     public function body()

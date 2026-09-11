@@ -27,9 +27,10 @@ class VoidInvoiceModal extends Modal
 
     public function handle()
     {
-        InvoiceService::voidInvoice(new VoidInvoiceDto([
+        // Voiding raises a credit note, so a retry after a timeout would credit twice.
+        $this->submitOnce(fn () => InvoiceService::voidInvoice(new VoidInvoiceDto([
             'invoice_id' => $this->model->id,
-        ]));
+        ])));
     }
 
     public function body()

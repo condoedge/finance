@@ -52,16 +52,18 @@ class PaymentForm extends Modal
             'payment_method_id' => request('payment_method_id'),
         ];
 
+        // Wrapped around the service call rather than the whole handler: the branch below
+        // answers with a modal, and a replay has to reopen it on the payment already made.
         if ($this->invoiceId) {
-            $paymentService->createPaymentAndApplyToInvoice(new CreateCustomerPaymentForInvoiceDto([
+            $this->submitOnce(fn () => $paymentService->createPaymentAndApplyToInvoice(new CreateCustomerPaymentForInvoiceDto([
                 'invoice_id' => $this->invoiceId,
                 ...$applyInformation,
-            ]));
+            ])));
         } else {
-            $payment = $paymentService->createPayment(new CreateCustomerPaymentDto([
+            $payment = $this->submitOnce(fn () => $paymentService->createPayment(new CreateCustomerPaymentDto([
                 'customer_id' => $this->customerId,
                 ...$applyInformation,
-            ]));
+            ])));
 
             if ($this->goToApplyModelAfter) {
                 return new ApplyPaymentToInvoiceModal(null, [

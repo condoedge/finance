@@ -65,14 +65,14 @@ class PaymentEntryForm extends Modal
 
         $this->model->team->checkIfDateAcceptable(request('transacted_at'));
 
-        $this->model->createPayment(
+        $this->submitOnce(fn () => $this->model->createPayment(
             request('gl_account_id'),
             request('transacted_at'),
             request('amount'),
             request('payment_method'),
             request('description'),
             request('write_off'),
-        );
+        ));
 
         return redirect()->route(($this->modelType == 'invoice') ? 'finance.invoice-page' : 'finance.bill-page', [
             'id' => $this->model->id,
@@ -85,7 +85,7 @@ class PaymentEntryForm extends Modal
 
         $this->model->union->checkIfDateAcceptable(date('Y-m-d'));
 
-        $this->model->useCreditNoteAsPayment($creditNote, date('Y-m-d'));
+        $this->submitOnce(fn () => $this->model->useCreditNoteAsPayment($creditNote, date('Y-m-d')));
 
         return redirect()->route('invoices.stage', [
             'id' => $this->model->id,
@@ -98,7 +98,7 @@ class PaymentEntryForm extends Modal
 
         $this->model->union->checkIfDateAcceptable(date('Y-m-d'));
 
-        $this->model->useCreditNoteAsPayment($creditNote, date('Y-m-d'));
+        $this->submitOnce(fn () => $this->model->useCreditNoteAsPayment($creditNote, date('Y-m-d')));
 
         return redirect()->route('bills.stage', [
             'id' => $this->model->id,
