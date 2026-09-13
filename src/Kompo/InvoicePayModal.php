@@ -114,7 +114,8 @@ class InvoicePayModal extends Form
                 _Panel(
                     $this->getPaymentMethodFields($this->model->payment_method_id?->value),
                 )->id('payment-method-fields'),
-                $this->model->address ? null :
+                // Ensuring it has postal code that is required, not just an address
+                $this->model->address?->postal_code ? null :
                     _CanadianPlace(),
             )->class('p-6'),
 
