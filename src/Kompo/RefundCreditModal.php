@@ -49,7 +49,6 @@ class RefundCreditModal extends Modal
             _InputDollar('finance-amount')->name('amount')
                 ->default($this->model->abs_invoice_due_amount->toFloat()),
 
-            _ErrorField()->name('amount', false)->noInputWrapper()->class('!my-0'),
             _ErrorField()->name('credit_id', false)->noInputWrapper()->class('!my-0'),
 
             _FlexEnd(
