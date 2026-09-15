@@ -3,6 +3,8 @@
 namespace Condoedge\Finance\Models;
 
 use Condoedge\Finance\Casts\SafeDecimalCast;
+use Condoedge\Finance\Facades\InvoiceModel;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -52,6 +54,15 @@ class CustomerPayment extends AbstractMainFinanceModel implements ApplicableToIn
     public function paymentMethod()
     {
         return $this->belongsTo(PaymentMethod::class, 'payment_method_id');
+    }
+
+    public function invoices()
+    {
+        return $this->hasManyThrough(InvoiceModel::getClass(), InvoiceApply::class, 'applicable_id', 'id', 'id', 'invoice_id')
+            ->where(
+                'applicable_type', 
+                $this->getMorphClass(),
+            );
     }
 
     // ACTIONS
