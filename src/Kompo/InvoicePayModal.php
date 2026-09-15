@@ -280,9 +280,10 @@ class InvoicePayModal extends Form
 
     public function rules()
     {
+        // render() only shows the inputs the invoice is missing and handle() falls back to the stored values.
         return [
-            'payment_method_id' => ['required_without:payment_term_id', 'exists:fin_payment_methods,id'],
-            'payment_term_id' => ['required_without:payment_method_id', 'exists:fin_payment_terms,id'],
+            'payment_method_id' => [$this->model->payment_method_id ? 'nullable' : 'required', 'exists:fin_payment_methods,id'],
+            'payment_term_id' => [$this->model->payment_term_id ? 'nullable' : 'required', 'exists:fin_payment_terms,id'],
         ];
     }
 }
