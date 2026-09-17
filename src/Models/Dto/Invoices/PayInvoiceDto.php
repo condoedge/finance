@@ -4,6 +4,7 @@ namespace Condoedge\Finance\Models\Dto\Invoices;
 
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Models\Dto\Customers\CreateAddressDto;
+use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Contracts\Validation\Validator;
 use WendellAdriel\ValidatedDTO\Casting\ArrayCast;
 use WendellAdriel\ValidatedDTO\Casting\BooleanCast;
@@ -79,6 +80,12 @@ class PayInvoiceDto extends ValidatedDTO
 
             if (!$invoice->address && !$addressData) {
                 $validator->errors()->add('address', __('finance-address-required'));
+            }
+
+            // Runs before payInvoice saves the choice or calls a gateway: a forged or stale method never reaches one.
+            $method = PaymentMethodEnum::tryFrom((int) ($this->dtoData['payment_method_id'] ?? 0));
+            if ($method && !$invoice->onlinePaymentMethods()->containsStrict($method)) {
+                $validator->errors()->add('payment_method_id', __('finance-payment-method-not-payable-online'));
             }
         }
     }

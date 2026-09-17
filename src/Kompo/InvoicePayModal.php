@@ -34,12 +34,27 @@ class InvoicePayModal extends Form
 
     protected $team;
 
+    protected $onlineMethods;
+    protected $offlineMethods;
+
     public function created()
     {
         // findOrNew hands an empty model for ids the reader cannot see — refuse it.
         abort_if(!$this->model->exists, 404);
 
-        $this->team = $this->model->customer->team;
+        // The issuing team, as InvoiceInfoModal shows it; offline instructions name it.
+        $this->team = $this->model->team;
+
+        $this->onlineMethods = $this->model->onlinePaymentMethods();
+        $this->offlineMethods = $this->model->offlinePaymentMethods();
+    }
+
+    /** The saved choice, while it can still be paid online; otherwise the picker must ask again. */
+    protected function selectedMethod(): ?PaymentMethodEnum
+    {
+        $stored = $this->model->payment_method_id;
+
+        return $stored && $this->onlineMethods->containsStrict($stored) ? $stored : null;
     }
 
     public function handle()
@@ -48,7 +63,7 @@ class InvoicePayModal extends Form
             $result = InvoiceService::payInvoice(new PayInvoiceDto([
                 'pay_next_installment' => $this->justPayingNextInstallment, // If there is a payment installment, it will pay just it, if not it will pay the whole invoice
                 'invoice_id' => $this->model->id,
-                'payment_method_id' => $this->model->payment_method_id ?? request('payment_method_id'),
+                'payment_method_id' => $this->selectedMethod()?->value ?? request('payment_method_id'),
                 'payment_term_id' => $this->model->payment_term_id ?? request('payment_term_id'),
                 'address' => parsePlaceFromRequest('address1'),
                 'request_data' => request()->all()
@@ -85,6 +100,10 @@ class InvoicePayModal extends Form
 
     public function render()
     {
+        if ($this->onlineMethods->isEmpty()) {
+            return $this->nothingPayableOnline();
+        }
+
         $paymentMethods = collect($this->getPaymentMethods());
         $payable = $this->justPayingNextInstallment ? ($this->model->getNextInstallmentPeriod() ?: $this->model) : $this->model;
 
@@ -102,7 +121,7 @@ class InvoicePayModal extends Form
                     )->id('payment-schedule'),
                 ),
             )->class('p-6 mb-6'),
-            $this->model->payment_method_id ? null : _ButtonGroup('finance.pay-with')->name('payment_method_id')
+            $this->selectedMethod() ? null : _ButtonGroup('finance.pay-online-with')->name('payment_method_id')
                 ->options($paymentMethods)
                 ->default($paymentMethods->count() == 1 ? $paymentMethods->first() : null)
                 ->selfGet('getPaymentMethodFields')->inPanel('payment-method-fields')
@@ -112,7 +131,7 @@ class InvoicePayModal extends Form
                 ->selectedClass('bg-warning text-white', 'text-greenmain bg-level4'),
             _CardLevel4(
                 _Panel(
-                    $this->getPaymentMethodFields($this->model->payment_method_id?->value),
+                    $this->getPaymentMethodFields($this->selectedMethod()?->value),
                 )->id('payment-method-fields'),
                 // Ensuring it has postal code that is required, not just an address
                 $this->model->address?->postal_code ? null :
@@ -131,6 +150,38 @@ class InvoicePayModal extends Form
                 ->inPanel('after-pay-invoice')
                 ->class('w-full'),
             _Panel()->id('after-pay-invoice'),
+            $this->offlineMethodsInstructions()?->class('mt-6'),
+        )->class('p-6');
+    }
+
+    protected function nothingPayableOnline()
+    {
+        // Accepted methods that are neither offline nor online are ones whose provider is down right now.
+        $someProviderIsDown = $this->offlineMethods->isEmpty()
+            || $this->model->acceptedPaymentMethods()->count() > $this->offlineMethods->count();
+
+        return _Rows(
+            _Html('finance.pay-invoice')->class('text-center text-2xl font-semibold mb-6'),
+            $someProviderIsDown ? new PaymentUnavailableNotice(null, ['reason' => 'no_healthy_provider']) : null,
+            $this->offlineMethodsInstructions(),
+        )->class('p-6');
+    }
+
+    protected function offlineMethodsInstructions()
+    {
+        if ($this->offlineMethods->isEmpty()) {
+            return null;
+        }
+
+        $teamName = $this->team?->team_name;
+
+        return _CardLevel4(
+            _Html('finance.other-accepted-payment-methods')->class('font-semibold mb-1'),
+            _Html(PaymentMethod::whereIn('id', $this->offlineMethods->map->value)->pluck('name')->implode(', '))
+                ->class('text-lg mb-2'),
+            _Html($teamName
+                ? __('finance.offline-payment-instructions', ['team' => $teamName])
+                : __('finance.offline-payment-instructions-no-team'))->class('text-sm text-gray-600'),
         )->class('p-6');
     }
 
@@ -198,9 +249,9 @@ class InvoicePayModal extends Form
     {
         abort_unless(config('kompo-finance.payment_sandbox'), 403);
 
-        $paymentMethodId = $this->model->payment_method_id?->value ?? request('payment_method_id');
+        $paymentMethodId = $this->selectedMethod()?->value ?? request('payment_method_id');
         $paymentMethod = PaymentMethodEnum::tryFrom((int) $paymentMethodId);
-        abort_unless($paymentMethod, 422, __('finance.select-payment-method'));
+        abort_unless($paymentMethod && $this->onlineMethods->containsStrict($paymentMethod), 422, __('finance.select-payment-method'));
 
         $shouldSucceed = $outcome === 'success';
         // Same payable selection as render()/handle().
@@ -254,23 +305,9 @@ class InvoicePayModal extends Form
 
     protected function getPaymentMethods()
     {
-        // Show only methods the team's providers can actually process. The
-        // resolver enforces provider capability (a method never shows unless a
-        // provider genuinely supports it) and the primary-vs-fallback rule
-        // controlled by config('kompo-finance.offer_fallback_provider_methods').
-        $methods = PaymentMethod::whereIn('id', $this->model->possible_payment_methods ?? [])
-            ->isOnlinePayment()
-            ->get();
-
-        $resolver = app(PaymentGatewayResolverInterface::class);
-
-        return $methods->filter(function (PaymentMethod $method) use ($resolver) {
-            $context = new PaymentContext(
-                payable: $this->model,
-                paymentMethod: PaymentMethodEnum::from($method->id),
-            );
-            return $resolver->isMethodAvailable($context);
-        })->pluck('name', 'id');
+        // Invoice::onlinePaymentMethods() applies provider capability, health and the
+        // primary-vs-fallback rule (config offer_fallback_provider_methods).
+        return PaymentMethod::whereIn('id', $this->onlineMethods->map->value)->pluck('name', 'id');
     }
 
     protected function getPaymentInstallments()
@@ -282,7 +319,7 @@ class InvoicePayModal extends Form
     {
         // render() only shows the inputs the invoice is missing and handle() falls back to the stored values.
         return [
-            'payment_method_id' => [$this->model->payment_method_id ? 'nullable' : 'required', 'exists:fin_payment_methods,id'],
+            'payment_method_id' => [$this->selectedMethod() ? 'nullable' : 'required', 'exists:fin_payment_methods,id'],
             'payment_term_id' => [$this->model->payment_term_id ? 'nullable' : 'required', 'exists:fin_payment_terms,id'],
         ];
     }

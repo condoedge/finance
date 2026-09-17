@@ -4,6 +4,8 @@ namespace Condoedge\Finance\Models;
 
 use Carbon\Carbon;
 use Condoedge\Finance\Billing\Contracts\FinancialPayableInterface;
+use Condoedge\Finance\Billing\Contracts\PaymentGatewayResolverInterface;
+use Condoedge\Finance\Billing\Core\PaymentContext;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Events\InvoiceGenerated;
@@ -382,6 +384,46 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     public function getNextInstallmentPeriod()
     {
         return $this->installmentsPeriods()->where('due_amount', '>', 0)->first();
+    }
+
+    /**
+     * Methods the invoice accepts: its offered options, or the method it was issued with.
+     * @return SupportCollection<int, PaymentMethodEnum>
+     */
+    public function acceptedPaymentMethods(): SupportCollection
+    {
+        $ids = $this->possible_payment_methods ?: array_filter([$this->payment_method_id?->value]);
+
+        return collect($ids)->map(fn ($id) => (int) $id)->unique()
+            ->map(fn (int $id) => PaymentMethodEnum::tryFrom($id))->filter()->values();
+    }
+
+    /**
+     * Accepted methods a provider can take online for this invoice right now.
+     * @return SupportCollection<int, PaymentMethodEnum>
+     */
+    public function onlinePaymentMethods(): SupportCollection
+    {
+        $resolver = app(PaymentGatewayResolverInterface::class);
+
+        return $this->acceptedPaymentMethods()
+            ->filter(fn (PaymentMethodEnum $method) => $method->online()
+                && $resolver->isMethodAvailable(new PaymentContext(payable: $this, paymentMethod: $method)))
+            ->values();
+    }
+
+    /**
+     * Accepted methods no installed provider can process: paid outside and recorded manually.
+     * @return SupportCollection<int, PaymentMethodEnum>
+     */
+    public function offlinePaymentMethods(): SupportCollection
+    {
+        $resolver = app(PaymentGatewayResolverInterface::class);
+
+        return $this->acceptedPaymentMethods()
+            ->reject(fn (PaymentMethodEnum $method) => $method->online()
+                && $resolver->getAvailableGateways(new PaymentContext(payable: $this, paymentMethod: $method)))
+            ->values();
     }
 
     /* ACTIONS */
