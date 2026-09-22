@@ -50,7 +50,7 @@ class CreateInvoiceDto extends ValidatedDTO
     {
         return [
             'customer_id' => 'required|integer|exists:fin_customers,id',
-            'invoice_type_id' => 'nullable|integer|exists:fin_invoice_types,id',
+            'invoice_type_id' => 'required|integer|exists:fin_invoice_types,id',
             'payment_method_id' => 'nullable|integer|in:' . collect(PaymentMethodEnum::getEnumClass()::cases())->pluck('value')->implode(','),
             'payment_term_id' => 'nullable|integer|exists:fin_payment_terms,id',
             'invoice_date' => 'required|date',
