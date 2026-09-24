@@ -1065,6 +1065,7 @@
 	"finance-with-values-credit-note-for-invoice": "Credit note for :reference",
 	"finance-with-values-credited-by": "Credited by :references",
 	"finance-with-values-expense-for-team": "Expense for team <b>:team_name</b>",
+	"finance-with-values-invoices-approved": ":count invoice(s) approved!",
 	"finance-with-values-paying-invoice": "Paying invoice :invoice_reference",
 	"finance-with-values-paying-period-number-of-invoice": "Paying period :installment_number of invoice :invoice_reference",
 	"finance-with-values-payment-installment-for-invoice": "Payment :installment_number of invoice :invoice_reference",

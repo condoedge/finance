@@ -53,7 +53,8 @@ class RefundCreditModal extends Modal
 
             _FlexEnd(
                 _SubmitButton('finance-record-refund')
-                    ->refresh('invoice-page')->closeModal(),
+                    ->refresh('invoice-page')->closeModal()
+                    ->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id),
             ),
         ];
     }

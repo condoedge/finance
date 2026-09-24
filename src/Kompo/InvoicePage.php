@@ -39,9 +39,11 @@ class InvoicePage extends Form
                                 ->selfGet('getCreditNoteModal')->inModal() : null,
                             !$this->model->canBeVoided() ? null : _DropdownLink('finance-void-invoice')
                                 ->selfGet('getVoidInvoiceModal')->inModal()->class('text-danger'),
-                        )->alignRight(),
+                        )->alignRight()
+                        ->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id, returnNullInstead: true),
                     !$this->model->is_draft ? null : _Link('finance-edit-invoice')->outlined()
-                        ->href('invoices.form', ['id' => $this->model->id]),
+                        ->href('invoices.form', ['id' => $this->model->id])
+                        ->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id, returnNullInstead: true),
                 )
             )->class('mb-12'),
             _FlexBetween(
@@ -87,7 +89,8 @@ class InvoicePage extends Form
                             fn ($e) =>
                             $e->selfPost('approveInvoice', ['id' => $this->model->id])
                                 ->inAlert()->refresh()
-                        ),
+                        )
+                        ->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id, returnNullInstead: true),
                 )->class('text-right')
             )->class('mb-4 p-6 bg-white rounded-2xl'),
             !$this->model->canBeSent() ? null : $this->stepBox(
@@ -101,7 +104,8 @@ class InvoicePage extends Form
 
                     _Link('finance-send-invoice')->button()
                         ->selfGet('getSendInvoiceModal', ['id' => $this->model->id])
-                        ->inModal(),
+                        ->inModal()
+                        ->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id, returnNullInstead: true),
                 )
             )->class('mb-4 p-6 bg-white rounded-2xl'),
 
@@ -200,7 +204,7 @@ class InvoicePage extends Form
                     ->selfGet('getApplyCreditModal')->inModal(),
                 _Link('finance-refund-to-customer')->button()
                     ->selfGet('getRefundCreditModal')->inModal(),
-            );
+            )->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id, returnNullInstead: true);
         }
 
         if (!$this->model->canBePaid()) {
@@ -212,7 +216,7 @@ class InvoicePage extends Form
                 ->selfGet('getApplyCreditToInvoiceModal')->inModal(),
             _Link('finance-record-payment')->outlined()
                 ->selfUpdate('getApplyPaymentToInvoiceModal')->inModal(),
-        );
+        )->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id, returnNullInstead: true);
     }
 
     /** Spending this credit: the modal picks which invoices it goes to. */

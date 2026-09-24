@@ -114,7 +114,7 @@ class InvoiceForm extends Form
                 $this->modalDesign ? null : _FlexEnd4(
                     $this->model->id ? _DeleteLink('finance-delete')->outlined()->byKey($this->model)->redirect('invoices.list') : null,
                     _SubmitButton('finance-save'),
-                )
+                )->checkAuthWrite('Invoice', specificTeamId: $this->team?->id, returnNullInstead: true)
             )->class('mb-6 gap-8'),
 
             _Columns(
@@ -196,7 +196,8 @@ class InvoiceForm extends Form
                     _FlexEnd(
                         _SubmitButton('finance-save')
                             ->when($this->modalDesign, fn ($e) => $e->closeModal())
-                            ->when($this->refreshId, fn ($e) => $e->refresh($this->refreshId)),
+                            ->when($this->refreshId, fn ($e) => $e->refresh($this->refreshId))
+                            ->checkAuthWrite('Invoice', specificTeamId: $this->team?->id),
                     ),
                 )->class('w-96'),
             ),

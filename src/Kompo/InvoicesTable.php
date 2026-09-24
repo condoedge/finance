@@ -57,8 +57,10 @@ class InvoicesTable extends WhiteTable
             $query = $query->whereRaw('LEFT(invoice_date, 7) = ?', [request('month_year')]);
         }
 
-        if (request('itemIds')) {
-            $query->whereIn('id', request('itemIds'));
+        // Export only: the table sends the checked ids with every browse, and filtering
+        // on them there left the list showing just the selection after a grouped action.
+        if ($itemIds = $this->prop('item_ids')) {
+            $query->whereIn('id', $itemIds);
         }
 
         return $query->orderByDesc('invoice_date')->orderByDesc('id');
@@ -79,6 +81,7 @@ class InvoicesTable extends WhiteTable
                         )
                         ->alignRight()
                         ->class('relative z-10')
+                        ->checkAuthWrite('Invoice', specificTeamId: $this->teamId, returnNullInstead: true)
                 )->class('mb-4')
             )->class('flex-wrap'),
             _Flex(
@@ -91,12 +94,14 @@ class InvoicesTable extends WhiteTable
                         _DropdownLink('finance-approve')
                             ->selfPost('approveMany')
                             ->config(['withCheckedItemIds' => true])
+                            ->inAlert()
                             ->browse(),
                         _DropdownLink('finance-void-invoices')
                             ->selfPost('getVoidManyModal')->inModal()
                             ->config(['withCheckedItemIds' => true])
                             ->class('text-danger'),
-                    ),
+                    )
+                    ->checkAuthWrite('Invoice', specificTeamId: $this->teamId, returnNullInstead: true),
                 _FlexEnd(
                     _Columns(
                         !$this->viewAsManager ? null : _Select()->placeholder('finance-client')->name('customer_id')
@@ -146,7 +151,7 @@ class InvoicesTable extends WhiteTable
             )->gotoInvoice($invoice->id),
             _Html($invoice->invoice_type_id->label()),
             !$this->viewAsManager ? null : _Html($invoice->customer_label),
-            $invoice->invoice_status_id->pill($invoice),],
+            $invoice->invoice_status_id->pill($invoice)->id($this->cellKey($invoice, 'status')),],
             $this->totalsEls($invoice)
         )))->class('group');
     }
@@ -190,8 +195,18 @@ class InvoicesTable extends WhiteTable
                     _Html('finance-total'),
                     _FinanceCurrency($invoice->abs_invoice_total_amount),
                 )->class('space-x-2 text-sm text-gray-600'),
-            )->class('items-end')
+            )->class('items-end')->id($this->cellKey($invoice, 'totals'))
         ];
+    }
+
+    /**
+     * A browse keeps each row (keyed by invoice id) and each cell (keyed by its id, else its
+     * position), and a kept cell goes on showing what it first rendered. Keying the cells a
+     * grouped action changes on the values they show makes the new status and balance appear.
+     */
+    protected function cellKey($invoice, string $cell): string
+    {
+        return "invoice-{$invoice->id}-{$cell}-{$invoice->invoice_status_id?->value}-{$invoice->invoice_due_amount}";
     }
 
     public function getPaymentForm()
@@ -208,9 +223,11 @@ class InvoicesTable extends WhiteTable
 
     public function approveMany($ids)
     {
-        InvoiceService::approveMany(new ApproveManyInvoicesDto([
+        $approved = InvoiceService::approveMany(new ApproveManyInvoicesDto([
             'invoices_ids' => $ids,
         ]));
+
+        return __('finance-with-values-invoices-approved', ['count' => $approved->count()]);
     }
 
     public function getVoidManyModal()
@@ -230,6 +247,7 @@ class InvoicesTable extends WhiteTable
     {
         return new static([
             'is_export' => true,
+            'item_ids' => request('itemIds'),
         ]);
     }
 }

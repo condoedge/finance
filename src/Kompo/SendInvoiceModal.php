@@ -25,7 +25,8 @@ class SendInvoiceModal extends Modal
             _Flex(
                 _ButtonOutlined('finance-cancel')->closeModal()->class('flex-1'),
                 _SubmitButton()->alert('finance-invoice-sent')->closeModal()
-                    ->refresh('invoice-page')->class('flex-1'),
+                    ->refresh('invoice-page')->class('flex-1')
+                    ->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id),
             )->class('mt-4 gap-4'),
         );
     }

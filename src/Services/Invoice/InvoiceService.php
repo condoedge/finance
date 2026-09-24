@@ -37,6 +37,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
+use Kompo\Auth\Models\Teams\PermissionTypeEnum;
 
 /**
  * Invoice Service Implementation
@@ -186,28 +187,34 @@ class InvoiceService implements InvoiceServiceInterface
         return DB::transaction(function () use ($dto) {
             $invoice = InvoiceModel::query()->lockForUpdate()->findOrFail($dto->invoice_id);
 
+            $this->authorizeInvoiceWrite($invoice);
+
             // Re-checked here: the DTO validated before the row was locked, and a payment
             // landing in between is exactly the case that must not be voided.
             if ($reason = $invoice->voidRefusalReason()) {
                 throw ValidationException::withMessages(['invoice_id' => __($reason)]);
             }
 
-            // Stamped BEFORE the credit note, not after: applying it drives the balance to
-            // zero, and the payment hooks read that balance. The flag is what tells them
-            // the zero is a cancellation rather than money — see Invoice::onCompletePayment.
-            $invoice->voided_at = now();
-            $invoice->voided_by = auth()->id();
-            $invoice->save();
+            // Invoice write is checked above. The reversal also writes the credit note's lines,
+            // taxes, applies and GL entries, which the user needs no permission of their own for.
+            return executeInBypassContext(function () use ($invoice) {
+                // Stamped BEFORE the credit note, not after: applying it drives the balance to
+                // zero, and the payment hooks read that balance. The flag is what tells them
+                // the zero is a cancellation rather than money — see Invoice::onCompletePayment.
+                $invoice->voided_at = now();
+                $invoice->voided_by = auth()->id();
+                $invoice->save();
 
-            if (!$invoice->is_draft) {
-                $this->createCreditNote(new CreateCreditNoteDto([
-                    'credited_invoice_id' => $invoice->id,
-                    'invoice_date' => now(),
-                    'apply_to_invoice' => true,
-                ]));
-            }
+                if (!$invoice->is_draft) {
+                    $this->createCreditNote(new CreateCreditNoteDto([
+                        'credited_invoice_id' => $invoice->id,
+                        'invoice_date' => now(),
+                        'apply_to_invoice' => true,
+                    ]));
+                }
 
-            return $invoice->refresh();
+                return $invoice->refresh();
+            });
         });
     }
 
@@ -295,14 +302,20 @@ class InvoiceService implements InvoiceServiceInterface
         return DB::transaction(function () use ($dto) {
             $invoice = InvoiceModel::findOrFail($dto->invoice_id);
 
-            if ($dto->address) {
-                $this->setAddress($invoice, $dto->address->toArray() ?? []);
-            }
+            $this->authorizeInvoiceWrite($invoice);
 
-            // Apply approval
-            $this->applyApprovalToInvoice($invoice);
+            // Same as voiding: Invoice write is the permission, the address rows and whatever
+            // approval posts alongside the invoice are collateral.
+            return executeInBypassContext(function () use ($invoice, $dto) {
+                if ($dto->address) {
+                    $this->setAddress($invoice, $dto->address->toArray() ?? []);
+                }
 
-            return $invoice;
+                // Apply approval
+                $this->applyApprovalToInvoice($invoice);
+
+                return $invoice;
+            });
         });
     }
 
@@ -396,6 +409,22 @@ class InvoiceService implements InvoiceServiceInterface
     }
 
     /* PROTECTED METHODS - Can be overridden for customization */
+
+    /**
+     * The main permission, checked before an operation runs its collateral writes in bypass.
+     * A caller already in bypass authorized its own operation — sisc approves an inscription's
+     * invoice on the Inscription permission — so it is not asked again here.
+     */
+    protected function authorizeInvoiceWrite(Invoice $invoice): void
+    {
+        if (isInBypassContext()) {
+            return;
+        }
+
+        if (!checkAuthPermission('Invoice', PermissionTypeEnum::WRITE, $invoice->team_id)) {
+            abort(403);
+        }
+    }
 
     /**
      * Auto-select the option when only one is possible.

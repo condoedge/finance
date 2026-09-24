@@ -31,7 +31,8 @@ class SelectMissingInfoInvoice extends Modal
     public function body()
     {
         return _Rows(
-            _SubmitButton('finance-save-and-approve'),
+            _SubmitButton('finance-save-and-approve')
+                ->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id),
         );
     }
 }

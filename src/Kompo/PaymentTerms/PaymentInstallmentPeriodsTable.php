@@ -46,7 +46,8 @@ class PaymentInstallmentPeriodsTable extends Table
             $installmentPeriod->status->pill(),
             _TripleDotsDropdown(
                 _DropdownLink('finance-pay-period')
-                    ->selfPost('getPaymentModal', ['period_id' => $installmentPeriod->id])->inModal(),
+                    ->selfPost('getPaymentModal', ['period_id' => $installmentPeriod->id])->inModal()
+                    ->checkAuthWrite('Invoice', specificTeamId: $installmentPeriod->invoice?->team_id),
             ),
         );
     }

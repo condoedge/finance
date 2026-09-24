@@ -97,7 +97,7 @@ class CreditNoteForm extends Modal
                 _Html('finance-invoice-already-paid-credit-stays-on-account')->class('text-sm text-level1'),
 
             _FlexEnd(
-                _SubmitButton('finance-create-credit-note'),
+                _SubmitButton('finance-create-credit-note')->checkAuthWrite('Invoice'),
             ),
         ];
     }

@@ -55,7 +55,8 @@ class VoidInvoiceModal extends Modal
 
             _FlexEnd(
                 _SubmitButton('finance-void-invoice')->class('!bg-danger text-white')
-                    ->refresh($this->refreshId)->closeModal(),
+                    ->refresh($this->refreshId)->closeModal()
+                    ->checkAuthWrite('Invoice', specificTeamId: $this->model->team_id),
             ),
         ];
     }
