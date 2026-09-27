@@ -76,8 +76,9 @@ class GlTransactionController extends ApiController
         return $this->success([
             'transaction' => $transaction,
             'totals' => [
-                'debits' => $transaction->total_debits,
-                'credits' => $transaction->total_credits,
+                // SafeDecimal has no JSON form of its own, it would encode as {}
+                'debits' => $transaction->total_debits?->__toString(),
+                'credits' => $transaction->total_credits?->__toString(),
                 'is_balanced' => $transaction->is_balanced,
             ],
             'can_modify' => $transaction->canBeModified(),

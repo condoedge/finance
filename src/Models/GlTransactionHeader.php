@@ -3,6 +3,7 @@
 namespace Condoedge\Finance\Models;
 
 use Carbon\Carbon;
+use Condoedge\Finance\Casts\SafeDecimalCast;
 use Condoedge\Finance\Enums\GlTransactionTypeEnum;
 use Condoedge\Finance\Models\Traits\ValidatesFiscalPeriod;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,8 @@ class GlTransactionHeader extends AbstractMainFinanceModel implements ScopedToTe
         'gl_transaction_type' => GlTransactionTypeEnum::class,
         'is_balanced' => 'boolean',
         'is_posted' => 'boolean',
+        'total_debits' => SafeDecimalCast::class,
+        'total_credits' => SafeDecimalCast::class,
     ];
 
     public static function boot()

@@ -41,6 +41,7 @@ class Product extends AbstractMainFinanceModel implements ScopedToTeam
         'product_cost_abs' => SafeDecimalCast::class,
         'product_cost' => SafeDecimalCast::class,
         'product_cost_total' => SafeDecimalCast::class,
+        'product_taxes_amount' => SafeDecimalCast::class,
     ];
 
     protected $table = 'fin_products';

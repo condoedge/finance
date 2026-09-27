@@ -146,7 +146,12 @@ return [
      */
     'payment-related-decimal-scale' => 5,
 
-    'automatic-handle-of-unmanaged-decimals' => !env('SAFE_DECIMAL_DISABLE_HANDLER', env('APP_ENV') != 'production'),
+    /**
+     * Throw when a finance model returns a decimal that is not cast to SafeDecimal.
+     * Strict everywhere but production, so tests and local catch a missing cast.
+     * Production only logs it: the raw value is still exact, a 500 there helps nobody.
+     */
+    'automatic-handle-of-unmanaged-decimals' => env('SAFE_DECIMAL_STRICT', env('APP_ENV') != 'production'),
 
     /*
     |--------------------------------------------------------------------------
