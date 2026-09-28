@@ -22,6 +22,12 @@ class InvoicePage extends Form
 
     public $id = 'invoice-page'; //shared with bill stage form
 
+    public function created()
+    {
+        // findOrNew hands an empty model for ids the reader cannot see — refuse it.
+        abort_if(!$this->model->exists, 404);
+    }
+
     public function render()
     {
         return [
