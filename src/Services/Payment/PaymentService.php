@@ -19,6 +19,7 @@ use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Kompo\Auth\Models\Teams\PermissionTypeEnum;
 
 /**
  * Payment Service Implementation
@@ -49,6 +50,8 @@ class PaymentService implements PaymentServiceInterface
      */
     public function createPaymentAndApplyToInvoice(CreateCustomerPaymentForInvoiceDto $dto): CustomerPayment
     {
+        $this->authorizePaymentEntry([$dto->invoice_id]);
+
         return DB::transaction(function () use ($dto) {
             // Create the payment first
             $payment = $this->createPayment(new CreateCustomerPaymentDto($dto->toArray()));
@@ -117,6 +120,8 @@ class PaymentService implements PaymentServiceInterface
      */
     public function applyPaymentToInvoices(CreateAppliesForMultipleInvoiceDto $data): Collection
     {
+        $this->authorizePaymentEntry(collect($data->amounts_to_apply)->pluck('id')->all());
+
         return DB::transaction(function () use ($data) {
             // Create applications records
             $applies = $this->createPaymentApplicationForManyInvoices($data);
@@ -215,6 +220,23 @@ class PaymentService implements PaymentServiceInterface
         }
 
         return $invoicePayment->refresh();
+    }
+
+    /**
+     * Invoice write on every invoice touched, as InvoiceService::authorizeInvoiceWrite. The gateway
+     * path (createPayment + applyPaymentToInvoice) is not asked: a processor result is the proof.
+     */
+    protected function authorizePaymentEntry(array $invoiceIds): void
+    {
+        if (isInBypassContext()) {
+            return;
+        }
+
+        $teamIds = DB::table('fin_invoices')->whereIn('id', $invoiceIds)->pluck('team_id');
+
+        if (!checkAuthPermission('Invoice', PermissionTypeEnum::WRITE, $teamIds)) {
+            abort(403);
+        }
     }
 
     /**

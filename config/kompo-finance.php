@@ -90,6 +90,12 @@ return [
     'payment_sandbox' => env('PAYMENT_PROVIDER_SANDBOX_ENABLED', false),
 
     /*
+    | Middleware of routes/api.php. The endpoints create invoices, payments and GL
+    | entries, so they need an authenticated caller: `api` alone left them open to anyone.
+    */
+    'api_middleware' => ['api', 'auth:sanctum'],
+
+    /*
     |--------------------------------------------------------------------------
     | Expense report permissions
     |--------------------------------------------------------------------------

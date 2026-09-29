@@ -11,6 +11,8 @@ use Condoedge\Finance\Models\MorphablesEnum;
 use Condoedge\Finance\Models\PaymentInstallmentPeriod;
 use Condoedge\Finance\Models\PaymentMethod;
 use Condoedge\Finance\Services\Payment\PaymentServiceInterface;
+use Illuminate\Support\Facades\DB;
+use Kompo\Auth\Models\Teams\PermissionTypeEnum;
 
 class PaymentForm extends Modal
 {
@@ -42,6 +44,10 @@ class PaymentForm extends Modal
         $this->customerId = $this->prop('customer_id') ?? $this->invoice?->customer_id ?: request('customer_id');
 
         $this->goToApplyModelAfter = $this->prop('go_to_apply_model_after');
+
+        $teamId = $this->invoice?->team_id ?? DB::table('fin_customers')->where('id', $this->customerId)->value('team_id');
+
+        abort_unless(checkAuthPermission('Invoice', PermissionTypeEnum::WRITE, $teamId), 403);
     }
 
     public function handle(PaymentServiceInterface $paymentService)

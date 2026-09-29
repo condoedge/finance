@@ -74,7 +74,9 @@ class CondoedgeFinanceServiceProvider extends ServiceProvider
         // Best way to load routes. This ensures loading at the very end (after fortifies' routes for ex.)
         $this->booted(function () {
             Route::middleware('web')->group(__DIR__.'/../routes/web.php');
-            Route::prefix('api')->middleware('api')->group(__DIR__.'/../routes/api.php');
+            // Webhooks are registered apart (registerPaymentWebhookRoutes) and stay public.
+            Route::prefix('api')->middleware(config('kompo-finance.api_middleware', ['api', 'auth:sanctum']))
+                ->group(__DIR__.'/../routes/api.php');
         });
 
         // Register services for integrity checking
