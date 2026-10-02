@@ -20,9 +20,15 @@ class SafeDecimalRule implements ValidationRule
             return; // Already a SafeDecimal instance, no validation needed
         }
 
-        if (!$this->allowNumeric && !is_numeric($value)) {
-            $fail("The {$attribute} must be a valid positive number.");
+        // Same shapes SafeDecimalCast reads
+        if (is_array($value) && isset($value['safe_decimal_value'])) {
+            $value = $value['safe_decimal_value'];
+        }
+
+        if ($this->allowNumeric && is_numeric($value)) {
             return;
         }
+
+        $fail(__('validation-custom-finance-amount-applied-invalid'));
     }
 }

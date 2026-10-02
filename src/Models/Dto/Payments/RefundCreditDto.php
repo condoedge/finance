@@ -54,6 +54,11 @@ class RefundCreditDto extends ValidatedDTO
 
     public function after(Validator $validator): void
     {
+        // after() runs even when the rules failed, and SafeDecimal throws on a malformed amount
+        if ($validator->errors()->has('amount')) {
+            return;
+        }
+
         $credit = InvoiceModel::find($this->dtoData['credit_id'] ?? null);
 
         if (!$credit) {

@@ -68,8 +68,37 @@ class CreateAppliesForMultipleInvoiceDto extends ValidatedDTO
         parent::after($validator);
 
         $this->validateInvoicesState($validator);
+
+        // after() runs even when the rules failed, and SafeDecimal throws on a malformed amount
+        if (!$this->validateAmountsFormat($validator)) {
+            return;
+        }
+
         $this->validateIndividualAmounts($validator);
         $this->validateTotalApplicableAmount($validator);
+    }
+
+    /**
+     * Validate every amount is a number SafeDecimal can read (a typed "405,00" is not)
+     */
+    protected function validateAmountsFormat(\Illuminate\Validation\Validator $validator): bool
+    {
+        $valid = true;
+
+        foreach ($this->dtoData['amounts_to_apply'] ?? [] as $amountToApply) {
+            $amount = $amountToApply['amount_applied'] ?? null;
+
+            if (is_null($amount) || $amount instanceof SafeDecimal || is_numeric($amount)) {
+                continue; // Null will be validated by rules
+            }
+
+            $valid = false;
+
+            $validator->errors()->add('amount_applied_to_' . ($amountToApply['id'] ?? ''), __('validation-custom-finance-amount-applied-invalid'));
+            $validator->errors()->add('amounts_to_apply', __('validation-custom-finance-amount-applied-invalid'));
+        }
+
+        return $valid;
     }
 
     /**

@@ -1141,6 +1141,7 @@
 	"permissions.payment-providers-management": "Payment providers management",
 	"permissions.payment-providers-management-desc": "Configure which payment providers handle each method, and edit their credentials.",
 	"validation-cannot-delete-active-segment": "Cannot delete an active segment",
+	"validation-custom-finance-amount-applied-invalid": "The amount must be a valid number",
 	"validation-custom-finance-amount-applied-zero": "Amount applied is zero",
 	"validation-custom-finance-applicable-amount-exceeded": "Applicable amount exceeded",
 	"validation-custom-finance-applicable-amount-negative": "Applicable payment cannot be negative",

@@ -62,6 +62,11 @@ class CreateApplyForInvoiceDto extends ValidatedDTO
     {
         parent::after($validator);
 
+        // after() runs even when the rules failed, and SafeDecimal throws on a malformed amount
+        if ($validator->errors()->has('amount_applied')) {
+            return;
+        }
+
         $this->validateInvoiceState($validator);
         $this->validateAmountApplied($validator);
         $this->validateApplicableAmounts($validator);

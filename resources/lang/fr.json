@@ -1141,6 +1141,7 @@
 	"permissions.payment-providers-management": "Gestion des fournisseurs de paiement",
 	"permissions.payment-providers-management-desc": "Configurer quels fournisseurs gèrent chaque mode, et modifier leurs identifiants.",
 	"validation-cannot-delete-active-segment": "Impossible de supprimer un segment actif",
+	"validation-custom-finance-amount-applied-invalid": "Le montant doit être un nombre valide",
 	"validation-custom-finance-amount-applied-zero": "Le montant appliqué est nul",
 	"validation-custom-finance-applicable-amount-exceeded": "Montant applicable dépassé",
 	"validation-custom-finance-applicable-amount-negative": "Le paiement applicable ne peut pas être négatif",

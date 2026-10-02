@@ -50,7 +50,7 @@ class CustomerInvoicesToBeAppliedTable extends WhiteTable
             _HtmlDate($invoice->invoice_date),
             _FinanceCurrency($invoice->abs_invoice_total_amount),
             _FinanceCurrency($invoice->abs_invoice_due_amount),
-            _Input()->name('amount_applied_to_' . $invoice->id)->shareToParentForm()->class('!mb-0'),
+            _Input()->name('amount_applied_to_' . $invoice->id)->type('number')->step(0.01)->shareToParentForm()->class('!mb-0'),
         )->class('text-gray-700');
     }
 }
