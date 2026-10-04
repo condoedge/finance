@@ -580,7 +580,7 @@ class InvoiceService implements InvoiceServiceInterface
         // Guarded here rather than in approveInvoice(): approveMany() and markApproved()
         // both funnel through this method, and a voided draft is still status DRAFT.
         if ($invoice->voided_at) {
-            throw new Exception('finance-cannot-approve-a-voided-invoice');
+            abort(403, __('finance-cannot-approve-a-voided-invoice'));
         }
 
         $invoice->is_draft = false;
