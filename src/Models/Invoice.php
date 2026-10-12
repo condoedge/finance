@@ -454,9 +454,10 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
         });
     }
 
+    // A new invoice has no historical customer yet (the insert trigger writes it), so no team to read through it.
     public function getRelatedTeamIds(): array
     {
-        return array_filter([$this->team?->id]);
+        return array_filter([$this->team?->id ?? $this->team_id]);
     }
 
     /* ELEMENTS */
