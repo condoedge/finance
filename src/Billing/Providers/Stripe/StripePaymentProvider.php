@@ -12,7 +12,6 @@ use Condoedge\Finance\Billing\Core\WebhookProcessor;
 use Condoedge\Finance\Billing\Providers\Stripe\Form\PaymentCanadianBankForm;
 use Condoedge\Finance\Billing\Providers\Stripe\Form\StripeCreditCardForm;
 use Condoedge\Finance\Models\PaymentMethodEnum;
-use Condoedge\Finance\Models\ProviderCredentials;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -36,7 +35,6 @@ class StripePaymentProvider implements PaymentGatewayInterface, SimulatesPayment
 
     protected StripeClient $stripe;
     protected string $webhookSecret;
-    protected ?ProviderCredentials $credentials = null;
 
     /**
      * Current payment context
@@ -71,33 +69,6 @@ class StripePaymentProvider implements PaymentGatewayInterface, SimulatesPayment
     public function getDisplayName(): string
     {
         return 'Stripe';
-    }
-
-    /**
-     * Per-team credential override. Returns a clone with credentials applied so
-     * the registry's shared singleton isn't mutated. Falls back to env config
-     * when no credentials are provided.
-     */
-    public function withCredentials(?ProviderCredentials $creds): static
-    {
-        if (!$creds) {
-            return $this;
-        }
-
-        $copy = clone $this;
-        $copy->credentials = $creds;
-
-        $apiKey = $creds->get('secret_key');
-        if ($apiKey) {
-            $copy->stripe = new StripeClient(['api_key' => $apiKey]);
-        }
-
-        $webhookSecret = $creds->get('webhook_secret');
-        if ($webhookSecret) {
-            $copy->webhookSecret = $webhookSecret;
-        }
-
-        return $copy;
     }
 
     /**

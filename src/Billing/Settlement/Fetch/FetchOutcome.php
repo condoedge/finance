@@ -3,13 +3,11 @@
 namespace Condoedge\Finance\Billing\Settlement\Fetch;
 
 /**
- * Per-team outcome of one fetch run. Aggregated by the command for its
- * exit code and surface area for tests.
+ * Outcome of one fetch run. Drives the command's output and exit code.
  */
-class TeamFetchOutcome
+class FetchOutcome
 {
     public function __construct(
-        public readonly int $teamId,
         public readonly string $providerCode,
         public readonly int $filesDownloaded = 0,
         public readonly int $filesImported = 0,

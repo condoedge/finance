@@ -23,24 +23,23 @@ use Condoedge\Finance\Models\ProviderHealthSnapshot;
  */
 class DefaultProviderHealthChecker implements ProviderHealthCheckerInterface
 {
-    public function isHealthy(string $providerCode, ?int $teamId = null): bool
+    public function isHealthy(string $providerCode): bool
     {
-        return $this->status($providerCode, $teamId)->isUsable();
+        return $this->status($providerCode)->isUsable();
     }
 
-    public function status(string $providerCode, ?int $teamId = null): ProviderHealthStatus
+    public function status(string $providerCode): ProviderHealthStatus
     {
-        $snapshot = $this->snapshot($teamId, $providerCode);
+        $snapshot = ProviderHealthSnapshot::for($providerCode);
 
         if (!$snapshot->exists) {
-            return ProviderHealthStatus::healthy($providerCode, $teamId);
+            return ProviderHealthStatus::healthy($providerCode);
         }
 
         $state = $this->maybeHalfOpen($snapshot);
 
         return new ProviderHealthStatus(
             providerCode: $providerCode,
-            teamId: $teamId,
             state: $state,
             consecutiveFailures: $snapshot->consecutive_failures ?? 0,
             lastFailureAt: $snapshot->last_failure_at,
@@ -48,9 +47,9 @@ class DefaultProviderHealthChecker implements ProviderHealthCheckerInterface
         );
     }
 
-    public function record(string $providerCode, ?int $teamId, PaymentOutcome $outcome): void
+    public function record(string $providerCode, PaymentOutcome $outcome): void
     {
-        $snapshot = $this->snapshot($teamId, $providerCode);
+        $snapshot = ProviderHealthSnapshot::for($providerCode);
 
         if ($outcome->success) {
             $snapshot->consecutive_failures = 0;
@@ -69,11 +68,6 @@ class DefaultProviderHealthChecker implements ProviderHealthCheckerInterface
         $snapshot->last_failure_at = now();
         $snapshot->status = $this->stateFromFailures($snapshot->consecutive_failures)->value;
         $snapshot->save();
-    }
-
-    private function snapshot(?int $teamId, string $providerCode): ProviderHealthSnapshot
-    {
-        return ProviderHealthSnapshot::for($teamId, $providerCode);
     }
 
     private function stateFromFailures(int $failures): ProviderHealthState

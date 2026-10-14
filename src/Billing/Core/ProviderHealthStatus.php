@@ -11,7 +11,6 @@ final class ProviderHealthStatus
 {
     public function __construct(
         public readonly string $providerCode,
-        public readonly ?int $teamId,
         public readonly ProviderHealthState $state,
         public readonly int $consecutiveFailures = 0,
         public readonly ?\DateTimeInterface $lastFailureAt = null,
@@ -29,8 +28,8 @@ final class ProviderHealthStatus
         return $this->state !== ProviderHealthState::DOWN;
     }
 
-    public static function healthy(string $providerCode, ?int $teamId = null): self
+    public static function healthy(string $providerCode): self
     {
-        return new self($providerCode, $teamId, ProviderHealthState::HEALTHY);
+        return new self($providerCode, ProviderHealthState::HEALTHY);
     }
 }

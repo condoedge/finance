@@ -14,14 +14,13 @@ class SettlementFileModelTest extends TestCase
     public function test_find_for_returns_null_when_no_row(): void
     {
         $this->assertNull(
-            SettlementFile::findFor(teamId: 1, providerCode: 'moneris', filename: 'missing.csv')
+            SettlementFile::findFor(providerCode: 'moneris', filename: 'missing.csv')
         );
     }
 
     public function test_mark_fetched_creates_a_row_with_metadata(): void
     {
         $row = SettlementFile::markFetched(
-            teamId: 7,
             providerCode: 'moneris',
             filename: 'SP1_20260525.csv',
             localPath: 'moneris/7/SP1_20260525.csv',
@@ -29,13 +28,12 @@ class SettlementFileModelTest extends TestCase
             sha256: str_repeat('f', 64),
         );
 
-        $this->assertEquals(7, $row->team_id);
         $this->assertEquals('moneris', $row->provider_code);
         $this->assertEquals('SP1_20260525.csv', $row->remote_filename);
         $this->assertNotNull($row->fetched_at);
         $this->assertNull($row->imported_at);
 
-        $found = SettlementFile::findFor(7, 'moneris', 'SP1_20260525.csv');
+        $found = SettlementFile::findFor('moneris', 'SP1_20260525.csv');
         $this->assertNotNull($found);
         $this->assertEquals($row->id, $found->id);
     }
@@ -43,7 +41,6 @@ class SettlementFileModelTest extends TestCase
     public function test_mark_imported_persists_result_json_and_timestamp(): void
     {
         $row = SettlementFile::markFetched(
-            teamId: 7,
             providerCode: 'moneris',
             filename: 'SP1_20260525.csv',
             localPath: 'moneris/7/SP1_20260525.csv',
@@ -71,7 +68,6 @@ class SettlementFileModelTest extends TestCase
     public function test_mark_failed_records_error_without_setting_imported_at(): void
     {
         $row = SettlementFile::markFetched(
-            teamId: 7,
             providerCode: 'moneris',
             filename: 'SP1_20260525.csv',
             localPath: 'moneris/7/SP1_20260525.csv',

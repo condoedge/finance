@@ -29,9 +29,8 @@ class PaymentContext
     }
 
     /**
-     * Team ID for provider/credential lookup. Required for the resolver to
-     * find team_payment_providers rows. Falls back to the current user's
-     * team if both payable and override are null (legacy code path).
+     * Team ID recorded on payment traces and logs. Falls back to the current
+     * user's team if both payable and override are null.
      */
     public function getTeamId(): ?int
     {

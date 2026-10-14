@@ -8,7 +8,7 @@ use Condoedge\Finance\Models\PaymentMethodEnum;
  * Raised when the resolver cannot find any healthy provider for a context.
  *
  * Three subcases via static factories:
- *  - noneConfigured: no provider rows for (team, method) and no config fallback.
+ *  - noneConfigured: the method has no chain in config('kompo-finance.payment_method_providers').
  *  - allDown: providers exist but health checker reports all DOWN.
  *  - allFailed: chain was attempted but every provider raised a fallback-eligible error.
  *
@@ -37,7 +37,7 @@ class NoProviderAvailableException extends \RuntimeException
             reason: 'none_configured',
             teamId: $teamId,
             paymentMethod: $method,
-            message: "No payment provider configured for team {$teamId} method {$method->value}",
+            message: "No payment provider configured for method {$method->value}",
         );
     }
 

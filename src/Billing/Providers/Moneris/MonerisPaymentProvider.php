@@ -10,7 +10,6 @@ use Condoedge\Finance\Billing\Core\PaymentFlowEnum;
 use Condoedge\Finance\Billing\Core\PaymentResult;
 use Condoedge\Finance\Billing\Core\WebhookProcessor;
 use Condoedge\Finance\Models\PaymentMethodEnum;
-use Condoedge\Finance\Models\ProviderCredentials;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Log;
 use Kompo\Elements\BaseElement;
@@ -42,7 +41,6 @@ class MonerisPaymentProvider implements PaymentGatewayInterface
     protected string $apiToken;
     protected string $checkoutId;
     protected bool $isTest;
-    protected ?ProviderCredentials $credentials = null;
 
     // Moneris MCO receipt key for the convenience-fee amount. Verify against a real receipt response.
     private const RECEIPT_CONVENIENCE_FEE_KEY = 'fee_amount';
@@ -75,8 +73,8 @@ class MonerisPaymentProvider implements PaymentGatewayInterface
     {
         // Moneris Checkout (MCO) hosted page handles credit cards and Interac
         // Online. It does NOT do EFT/bank transfer, so BANK_TRANSFER is excluded.
-        // Note: Interac via Moneris only surfaces to customers if Moneris is a
-        // team's primary provider, or offer_fallback_provider_methods is on.
+        // Note: Interac via Moneris only surfaces to customers if Moneris heads
+        // a chain, or offer_fallback_provider_methods is on.
         return [
             PaymentMethodEnum::CREDIT_CARD,
             PaymentMethodEnum::INTERAC,
@@ -89,32 +87,6 @@ class MonerisPaymentProvider implements PaymentGatewayInterface
         // Moneris" submit button; submitting fires the existing payInvoice flow
         // which lands in processPayment() below.
         return null;
-    }
-
-    public function withCredentials(?ProviderCredentials $creds): static
-    {
-        if (!$creds) {
-            return $this;
-        }
-
-        $copy = clone $this;
-        $copy->credentials = $creds;
-
-        if ($host = $creds->get('host')) {
-            $copy->host = $host;
-        }
-        if ($storeId = $creds->get('store_id')) {
-            $copy->storeId = (string) $storeId;
-        }
-        if ($token = $creds->get('api_token')) {
-            $copy->apiToken = (string) $token;
-        }
-        if ($checkoutId = $creds->get('checkout_id')) {
-            $copy->checkoutId = (string) $checkoutId;
-        }
-        $copy->isTest = (bool) ($creds->get('is_test') ?? $copy->isTest);
-
-        return $copy;
     }
 
     /**

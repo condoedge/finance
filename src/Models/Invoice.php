@@ -413,7 +413,7 @@ class Invoice extends AbstractMainFinanceModel implements FinancialPayableInterf
     }
 
     /**
-     * Accepted methods no installed provider can process: paid outside and recorded manually.
+     * Accepted methods with no configured provider (or disabled): paid outside and recorded manually.
      * @return SupportCollection<int, PaymentMethodEnum>
      */
     public function offlinePaymentMethods(): SupportCollection

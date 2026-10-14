@@ -3,7 +3,9 @@
 namespace Tests\Mocks;
 
 use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Core\ErrorClassification;
 use Condoedge\Finance\Billing\Core\PaymentContext;
+use Condoedge\Finance\Billing\Core\PaymentFlowEnum;
 use Condoedge\Finance\Billing\Core\PaymentResult;
 use Condoedge\Finance\Models\PaymentMethodEnum;
 use Illuminate\Routing\Router;
@@ -25,6 +27,21 @@ class MockPaymentGateway implements PaymentGatewayInterface
     public function getCode(): string
     {
         return 'mock_gateway';
+    }
+
+    public function getDisplayName(): string
+    {
+        return 'Mock';
+    }
+
+    public function getCheckoutFlow(): PaymentFlowEnum
+    {
+        return PaymentFlowEnum::INLINE;
+    }
+
+    public function classifyError(\Throwable $e): ErrorClassification
+    {
+        return ErrorClassification::unknown($e->getMessage());
     }
 
     public function processPayment(PaymentContext $context): PaymentResult

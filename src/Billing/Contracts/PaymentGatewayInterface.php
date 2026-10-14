@@ -12,8 +12,8 @@ use Kompo\Elements\BaseElement;
 interface PaymentGatewayInterface
 {
     /**
-     * Provider identifier (slug). Stored in fin_team_payment_providers.provider_code
-     * and fin_payment_traces.payment_provider_code.
+     * Provider identifier (slug). Stored in fin_payment_traces.payment_provider_code
+     * and keys the provider's health snapshot.
      */
     public function getCode(): string;
 
@@ -54,8 +54,8 @@ interface PaymentGatewayInterface
 
     /**
      * Payment methods this provider can handle. The resolver intersects this
-     * with the team's configured providers (fin_team_payment_providers) to
-     * decide eligibility — capability vs enabled-by-admin is separate.
+     * with the configured chain (kompo-finance.payment_method_providers) to
+     * decide eligibility — capability vs enabled-by-config is separate.
      */
     public function getSupportedPaymentMethods(): array;
 

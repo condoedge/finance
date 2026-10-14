@@ -179,7 +179,7 @@ class PaymentProcessor implements PaymentProcessorInterface
 
                 if ($result->success || $result->isPending) {
                     PaymentLog::success($context, $code, $result->transactionId, $latencyMs);
-                    $this->healthChecker->record($code, $context->getTeamId(), PaymentOutcome::success($latencyMs));
+                    $this->healthChecker->record($code, PaymentOutcome::success($latencyMs));
                     $this->recordTraceWithMetrics($context, $result, $latencyMs, $retryCount, null);
                     return $this->managePaymentResult($result, $context);
                 }
@@ -192,7 +192,7 @@ class PaymentProcessor implements PaymentProcessorInterface
                 $errors[] = $classification;
                 $lastResult = $result;
                 PaymentLog::failure($context, $code, $classification, $result->errorMessage, $latencyMs);
-                $this->healthChecker->record($code, $context->getTeamId(), PaymentOutcome::failure($classification, $latencyMs));
+                $this->healthChecker->record($code, PaymentOutcome::failure($classification, $latencyMs));
                 $this->recordTraceWithMetrics($context, $result, $latencyMs, $retryCount, $classification->reasonCode);
 
                 // Provider returned a "soft" failure — surface to user. Don't fallback for declines.
@@ -203,7 +203,7 @@ class PaymentProcessor implements PaymentProcessorInterface
                 $errors[] = $classification;
 
                 PaymentLog::failure($context, $code, $classification, $e->getMessage(), $latencyMs);
-                $this->healthChecker->record($code, $context->getTeamId(), PaymentOutcome::failure($classification, $latencyMs));
+                $this->healthChecker->record($code, PaymentOutcome::failure($classification, $latencyMs));
                 $this->recordExceptionTrace($context, $code, $classification, $latencyMs, $retryCount);
 
                 if (!$classification->shouldFallback()) {

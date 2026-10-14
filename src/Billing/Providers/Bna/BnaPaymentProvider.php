@@ -12,7 +12,6 @@ use Condoedge\Finance\Billing\Core\WebhookProcessor;
 use Condoedge\Finance\Billing\Providers\Bna\Form\InteracExplanationModal;
 use Condoedge\Finance\Billing\Providers\Bna\Form\PaymentCreditCardForm;
 use Condoedge\Finance\Models\PaymentMethodEnum;
-use Condoedge\Finance\Models\ProviderCredentials;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -29,7 +28,6 @@ class BnaPaymentProvider implements PaymentGatewayInterface, PaymentCanReturnMod
     protected string $apiUrl;
     protected string $accessKey;
     protected string $secretKey;
-    protected ?ProviderCredentials $credentials = null;
 
     /**
      * Current payment context
@@ -56,28 +54,6 @@ class BnaPaymentProvider implements PaymentGatewayInterface, PaymentCanReturnMod
     public function getDisplayName(): string
     {
         return 'BNA Smart Payment';
-    }
-
-    public function withCredentials(?ProviderCredentials $creds): static
-    {
-        if (!$creds) {
-            return $this;
-        }
-
-        $copy = clone $this;
-        $copy->credentials = $creds;
-
-        if ($url = $creds->get('api_url')) {
-            $copy->apiUrl = $url;
-        }
-        if ($key = $creds->get('api_key')) {
-            $copy->accessKey = $key;
-        }
-        if ($secret = $creds->get('api_secret')) {
-            $copy->secretKey = $secret;
-        }
-
-        return $copy;
     }
 
     /**

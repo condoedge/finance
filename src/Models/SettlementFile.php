@@ -7,7 +7,7 @@ use Condoedge\Utils\Models\Model;
 
 /**
  * Idempotency ledger for fetched provider settlement reports. One row per
- * (team, provider, remote filename) and per (team, provider, content sha256).
+ * (provider, remote filename) and per (provider, content sha256).
  * `imported_at` distinguishes "downloaded but not yet imported" from "done".
  */
 class SettlementFile extends Model
@@ -15,7 +15,6 @@ class SettlementFile extends Model
     protected $table = 'fin_settlement_files';
 
     protected $fillable = [
-        'team_id',
         'provider_code',
         'remote_filename',
         'local_path',
@@ -28,33 +27,29 @@ class SettlementFile extends Model
     ];
 
     protected $casts = [
-        'team_id' => 'integer',
         'remote_size' => 'integer',
         'fetched_at' => 'datetime',
         'imported_at' => 'datetime',
         'import_result_json' => 'array',
     ];
 
-    public static function findFor(int $teamId, string $providerCode, string $filename): ?self
+    public static function findFor(string $providerCode, string $filename): ?self
     {
         return static::query()
-            ->where('team_id', $teamId)
             ->where('provider_code', $providerCode)
             ->where('remote_filename', $filename)
             ->first();
     }
 
-    public static function findBySha(int $teamId, string $providerCode, string $sha256): ?self
+    public static function findBySha(string $providerCode, string $sha256): ?self
     {
         return static::query()
-            ->where('team_id', $teamId)
             ->where('provider_code', $providerCode)
             ->where('sha256', $sha256)
             ->first();
     }
 
     public static function markFetched(
-        int $teamId,
         string $providerCode,
         string $filename,
         string $localPath,
@@ -62,7 +57,6 @@ class SettlementFile extends Model
         string $sha256,
     ): self {
         $row = new self();
-        $row->team_id = $teamId;
         $row->provider_code = $providerCode;
         $row->remote_filename = $filename;
         $row->local_path = $localPath;

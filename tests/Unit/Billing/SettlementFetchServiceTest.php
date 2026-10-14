@@ -8,11 +8,8 @@ use Condoedge\Finance\Billing\Settlement\Fetch\FetchedFile;
 use Condoedge\Finance\Billing\Settlement\Fetch\SettlementFetchService;
 use Condoedge\Finance\Billing\Settlement\Fetch\SettlementSourceConfig;
 use Condoedge\Finance\Billing\Settlement\SettlementImportResult;
-use Condoedge\Finance\Models\PaymentMethodEnum;
-use Condoedge\Finance\Models\ProviderCredentials;
 use Condoedge\Finance\Models\SettlementFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -29,7 +26,7 @@ class SettlementFetchServiceTest extends TestCase
 
     public function test_downloads_new_file_inserts_ledger_row_and_calls_importer(): void
     {
-        $this->seedMonerisCredsFor(team: 7);
+        $this->configureMonerisSftp();
 
         $fetcher = $this->fetcherWith([
             $this->file('SP1_20260525.csv', 'csv-body-1'),
@@ -37,13 +34,12 @@ class SettlementFetchServiceTest extends TestCase
         $importer = $this->capturingImporter();
 
         $service = new SettlementFetchService(['moneris' => $fetcher], $importer);
-        $outcomes = $service->run('moneris', teamId: 7);
+        $outcome = $service->run('moneris');
 
-        $this->assertCount(1, $outcomes);
-        $this->assertEquals(1, $outcomes[0]->filesDownloaded);
-        $this->assertEquals(1, $outcomes[0]->filesImported);
+        $this->assertEquals(1, $outcome->filesDownloaded);
+        $this->assertEquals(1, $outcome->filesImported);
 
-        $row = SettlementFile::findFor(7, 'moneris', 'SP1_20260525.csv');
+        $row = SettlementFile::findFor('moneris', 'SP1_20260525.csv');
         $this->assertNotNull($row);
         $this->assertNotNull($row->imported_at);
         Storage::disk('settlement-reports')->assertExists($row->local_path);
@@ -52,88 +48,74 @@ class SettlementFetchServiceTest extends TestCase
 
     public function test_run_is_idempotent_second_run_imports_nothing(): void
     {
-        $this->seedMonerisCredsFor(team: 7);
+        $this->configureMonerisSftp();
         $fetcher = $this->fetcherWith([$this->file('A.csv', 'a')]);
         $importer = $this->capturingImporter();
 
         $service = new SettlementFetchService(['moneris' => $fetcher], $importer);
-        $service->run('moneris', teamId: 7);
-        $second = $service->run('moneris', teamId: 7);
+        $service->run('moneris');
+        $second = $service->run('moneris');
 
-        $this->assertEquals(0, $second[0]->filesDownloaded);
-        $this->assertEquals(0, $second[0]->filesImported);
-        $this->assertEquals(1, $second[0]->filesSkipped);
+        $this->assertEquals(0, $second->filesDownloaded);
+        $this->assertEquals(0, $second->filesImported);
+        $this->assertEquals(1, $second->filesSkipped);
         $this->assertCount(1, $importer->calls, 'Importer must not be re-invoked for already-imported files');
     }
 
-    public function test_one_team_failure_does_not_block_others(): void
+    public function test_a_fetch_failure_is_reported_not_thrown(): void
     {
-        $this->seedMonerisCredsFor(team: 11);
-        $this->seedMonerisCredsFor(team: 22);
+        $this->configureMonerisSftp();
 
         $fetcher = new class implements SettlementFetcherInterface {
             public function providerCode(): string { return 'moneris'; }
             public function listAvailable(SettlementSourceConfig $source, ?\DateTimeImmutable $since = null): iterable
             {
-                if ($source->teamId === 11) {
-                    throw new \RuntimeException('SFTP auth failed');
-                }
-                yield new FetchedFile('B.csv', 3, new \DateTimeImmutable(), 'B.csv');
+                throw new \RuntimeException('SFTP auth failed');
             }
             public function downloadTo(SettlementSourceConfig $source, FetchedFile $file, string $localDisk, string $localPath): string
             {
-                Storage::disk($localDisk)->put($localPath, 'body');
-                return hash('sha256', 'body');
+                return '';
             }
         };
 
         $importer = $this->capturingImporter();
-        $service = new SettlementFetchService(['moneris' => $fetcher], $importer);
+        $outcome = (new SettlementFetchService(['moneris' => $fetcher], $importer))->run('moneris');
 
-        $outcomes = $service->run('moneris');
-        $byTeam = [];
-        foreach ($outcomes as $o) { $byTeam[$o->teamId] = $o; }
-
-        $this->assertArrayHasKey(11, $byTeam);
-        $this->assertArrayHasKey(22, $byTeam);
-        $this->assertNotNull($byTeam[11]->error);
-        $this->assertNull($byTeam[22]->error);
-        $this->assertEquals(1, $byTeam[22]->filesImported);
+        $this->assertEquals('SFTP auth failed', $outcome->error);
+        $this->assertCount(0, $importer->calls);
     }
 
-    public function test_missing_credentials_skips_team_with_error_outcome(): void
+    public function test_missing_sftp_config_returns_no_credentials(): void
     {
-        // No creds row for team 99.
         $fetcher = $this->fetcherWith([$this->file('X.csv', 'x')]);
         $importer = $this->capturingImporter();
 
         $service = new SettlementFetchService(['moneris' => $fetcher], $importer);
-        $outcomes = $service->run('moneris', teamId: 99);
+        $outcome = $service->run('moneris');
 
-        $this->assertCount(1, $outcomes);
-        $this->assertEquals('no-credentials', $outcomes[0]->error);
+        $this->assertEquals('no-credentials', $outcome->error);
         $this->assertCount(0, $importer->calls);
     }
 
     public function test_dry_run_does_not_download_or_import(): void
     {
-        $this->seedMonerisCredsFor(team: 7);
+        $this->configureMonerisSftp();
         $fetcher = $this->fetcherWith([$this->file('A.csv', 'a')]);
         $importer = $this->capturingImporter();
 
         $service = new SettlementFetchService(['moneris' => $fetcher], $importer);
-        $outcome = $service->run('moneris', teamId: 7, dryRun: true)[0];
+        $outcome = $service->run('moneris', dryRun: true);
 
         $this->assertEquals(0, $outcome->filesDownloaded);
         $this->assertEquals(0, $outcome->filesImported);
         $this->assertEquals(1, $outcome->filesSkipped);
         $this->assertCount(0, $importer->calls);
-        $this->assertNull(SettlementFile::findFor(7, 'moneris', 'A.csv'));
+        $this->assertNull(SettlementFile::findFor('moneris', 'A.csv'));
     }
 
     public function test_content_duplicate_with_different_name_is_skipped(): void
     {
-        $this->seedMonerisCredsFor(team: 7);
+        $this->configureMonerisSftp();
 
         $fetcher = $this->fetcherWith([
             $this->file('original.csv', 'identical-body'),
@@ -142,7 +124,7 @@ class SettlementFetchServiceTest extends TestCase
         $importer = $this->capturingImporter();
 
         $service = new SettlementFetchService(['moneris' => $fetcher], $importer);
-        $outcome = $service->run('moneris', teamId: 7)[0];
+        $outcome = $service->run('moneris');
 
         $this->assertEquals(1, $outcome->filesDownloaded);
         $this->assertEquals(1, $outcome->filesImported);
@@ -200,32 +182,14 @@ class SettlementFetchServiceTest extends TestCase
         };
     }
 
-    protected function seedMonerisCredsFor(int $team): void
+    protected function configureMonerisSftp(): void
     {
-        $creds = new ProviderCredentials();
-        $creds->team_id = $team;
-        $creds->provider_code = 'moneris';
-        $creds->is_test = false;
-        $creds->credentials = [
-            'store_id' => 'STORE_' . $team,
-            'api_token' => 'token',
-            'sftp_host' => 'reports.moneris.test',
-            'sftp_username' => 'tenant' . $team,
-            'sftp_private_key' => '-----BEGIN KEY-----fake-----END KEY-----',
-            'sftp_host_fingerprint' => 'SHA256:fake',
-            'sftp_remote_path' => '/',
-        ];
-        $creds->save();
-
-        // Mark team as having moneris enabled so the orchestrator's enumeration
-        // picks it up when teamId is not pinned.
-        DB::table('fin_team_payment_providers')->insert([
-            'team_id' => $team,
-            'payment_method_id' => PaymentMethodEnum::CREDIT_CARD->value,
-            'provider_code' => 'moneris',
-            'priority' => 1,
-            'is_active' => true,
-            'mode' => 'single',
+        config()->set('finance-settlement.providers.moneris.sftp', [
+            'host' => 'reports.moneris.test',
+            'username' => 'sisc',
+            'private_key_path' => '/keys/moneris',
+            'host_fingerprint' => 'SHA256:fake',
+            'remote_path' => '/',
         ]);
     }
 }

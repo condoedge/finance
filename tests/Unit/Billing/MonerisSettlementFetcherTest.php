@@ -85,7 +85,6 @@ class MonerisSettlementFetcherTest extends TestCase
     protected function source(int $lookbackDays = 30): SettlementSourceConfig
     {
         return new SettlementSourceConfig(
-            teamId: 7,
             providerCode: 'moneris',
             remotePath: '/',
             auth: [

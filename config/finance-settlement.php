@@ -9,7 +9,7 @@
  * importer reads it and writes processor_fees onto each payment.
  *
  * Each provider entry maps the importer's logical fields to the report's
- * actual columns. Per-team SFTP credentials override the env defaults below.
+ * actual columns. SFTP access comes from the env values below.
  */
 return [
     'providers' => [
@@ -30,9 +30,8 @@ return [
             ],
 
             /*
-             * SFTP defaults. Per-team values in ProviderCredentials override
-             * these. Host fingerprint is mandatory — without it the connector
-             * refuses to open the session.
+             * SFTP access, project-wide. Host fingerprint is mandatory — without
+             * it the connector refuses to open the session.
              */
             'sftp' => [
                 'host' => env('MONERIS_SFTP_HOST'),

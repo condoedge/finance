@@ -15,8 +15,7 @@ interface PaymentGatewayResolverInterface
 
     /**
      * Ordered providers to attempt. Healthy first, then degraded (if any).
-     * DOWN providers are skipped. Single-mode rows return at most 1.
-     * Throws NoProviderAvailableException if empty.
+     * DOWN providers are skipped. Throws NoProviderAvailableException if empty.
      *
      * @return iterable<PaymentGatewayInterface>
      */
@@ -32,9 +31,8 @@ interface PaymentGatewayResolverInterface
     public function previewChain(PaymentContext $context): array;
 
     /**
-     * All providers in the registry whose capabilities (getSupportedPaymentMethods)
-     * include the context's payment method. Ignores team configuration and health.
-     * Primarily useful for admin UIs that list "providers you could enable here".
+     * Providers configured for the context's method that support it, ignoring health.
+     * Empty means the method is not taken online at all (paid outside, recorded by hand).
      */
     public function getAvailableGateways(PaymentContext $context): array;
 
@@ -44,10 +42,10 @@ interface PaymentGatewayResolverInterface
      * True when a healthy provider that genuinely supports the method is
      * resolvable AND either:
      *   - config('kompo-finance.offer_fallback_provider_methods') is on, or
-     *   - a "primary" provider (priority 1 in any team row) serves the method.
+     *   - a "primary" provider (first in any method's chain) serves the method.
      *
      * Drives the payment-method picker in InvoicePayModal so customers only see
-     * methods their team's providers can actually process.
+     * methods the configured providers can actually process.
      */
     public function isMethodAvailable(PaymentContext $context): bool;
 }

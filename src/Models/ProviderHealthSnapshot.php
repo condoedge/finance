@@ -8,17 +8,13 @@ use Condoedge\Utils\Models\Model;
 /**
  * Materialized provider health view. Written by DefaultProviderHealthChecker
  * after each payment attempt; read on every payment-form render. Saves a
- * scan of fin_payment_traces on the hot path.
- *
- * Per-team rows isolate teams with their own credentials; the team_id IS NULL
- * row represents global provider health (shared-credentials providers).
+ * scan of fin_payment_traces on the hot path. One row per provider, project-wide.
  */
 class ProviderHealthSnapshot extends Model
 {
     protected $table = 'fin_provider_health_snapshots';
 
     protected $fillable = [
-        'team_id',
         'provider_code',
         'status',
         'consecutive_failures',
@@ -33,10 +29,10 @@ class ProviderHealthSnapshot extends Model
         'last_success_at' => 'datetime',
     ];
 
-    public static function for(?int $teamId, string $providerCode): self
+    public static function for(string $providerCode): self
     {
         return static::firstOrNew(
-            ['team_id' => $teamId, 'provider_code' => $providerCode],
+            ['provider_code' => $providerCode],
             ['status' => ProviderHealthState::HEALTHY->value, 'consecutive_failures' => 0],
         );
     }

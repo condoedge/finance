@@ -23,11 +23,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Legacy method→provider map
+    | Method → provider chain (project-wide)
     |--------------------------------------------------------------------------
-    | Fallback for teams that have no rows in fin_team_payment_providers.
-    | Resolver consults this only when the new table returns no matches.
-    | Will be deprecated once all teams have explicit rows.
+    | One provider class, or an ordered list tried in turn (fallback chain).
+    | A method left out is not payable online: it is paid outside and recorded.
     */
     'payment_method_providers' => [
         PaymentMethodEnum::CREDIT_CARD->value => StripePaymentProvider::class,
@@ -41,8 +40,8 @@ return [
     |--------------------------------------------------------------------------
     | Controls which payment methods are shown to the customer.
     |
-    | false (default): only methods supported by a team's PRIMARY provider
-    |   (priority 1 in any of its rows) are offered. A method exclusive to a
+    | false (default): only methods supported by a PRIMARY provider
+    |   (first in any method's chain) are offered. A method exclusive to a
     |   fallback-position provider — e.g. Interac when BNA is only a credit-card
     |   fallback — stays hidden.
     | true: methods supported by ANY healthy provider in the chain are offered,
@@ -55,24 +54,9 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Force global provider credentials
-    |--------------------------------------------------------------------------
-    | When true, the resolver ignores the fin_provider_credentials table
-    | entirely (per-team AND team_id=NULL rows) and every provider uses its
-    | env-backed config('kompo-finance.services.*') credentials. The per-team
-    | "credentials" button in PaymentProvidersSettings is also hidden.
-    |
-    | Use this for single-tenant-account installs (e.g. SISC: one Moneris
-    | merchant account shared by every team). Leave false for multi-tenant
-    | installs where each team has its own merchant account.
-    */
-    'force_global_credentials' => env('FIN_FORCE_GLOBAL_CREDENTIALS', false),
-
-    /*
-    |--------------------------------------------------------------------------
     | Provider health-check thresholds
     |--------------------------------------------------------------------------
-    | Sliding-window failure counters per (team, provider). PERMANENT errors
+    | Consecutive-failure counters per provider, project-wide. PERMANENT errors
     | (card declined) are excluded by classification — only TRANSIENT / NETWORK
     | / AUTH / UNKNOWN affect health.
     */

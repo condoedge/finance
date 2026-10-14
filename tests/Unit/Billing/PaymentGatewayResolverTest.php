@@ -3,49 +3,59 @@
 namespace Condoedge\Finance\Tests\Unit\Billing;
 
 use Condoedge\Finance\Billing\Contracts\PayableInterface;
-use Condoedge\Finance\Billing\Contracts\PaymentGatewayInterface;
+use Condoedge\Finance\Billing\Contracts\ProviderHealthCheckerInterface;
 use Condoedge\Finance\Billing\Core\PaymentContext;
-use Condoedge\Finance\Billing\Core\PaymentProviderRegistry;
+use Condoedge\Finance\Billing\Core\PaymentOutcome;
+use Condoedge\Finance\Billing\Core\ProviderHealthState;
+use Condoedge\Finance\Billing\Core\ProviderHealthStatus;
 use Condoedge\Finance\Billing\Core\Resolver\DefaultPaymentGatewayResolver;
-use Condoedge\Finance\Billing\Providers\Stripe\StripePaymentProvider;
+use Condoedge\Finance\Billing\Exceptions\NoProviderAvailableException;
 use Condoedge\Finance\Casts\SafeDecimal;
 use Condoedge\Finance\Models\PaymentMethodEnum;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
-use Mockery\Mock;
 use Tests\Mocks\MockPaymentGateway;
 use Tests\TestCase;
 
+class SecondMockGateway extends MockPaymentGateway
+{
+    public function getCode(): string
+    {
+        return 'second_gateway';
+    }
+
+    public function getSupportedPaymentMethods(): array
+    {
+        return [PaymentMethodEnum::CREDIT_CARD, PaymentMethodEnum::INTERAC];
+    }
+}
+
 class PaymentGatewayResolverTest extends TestCase
 {
-    use RefreshDatabase;
-
     private DefaultPaymentGatewayResolver $resolver;
-    private PaymentProviderRegistry $registry;
-    private MockPaymentGateway $mockGateway;
-    private PaymentGatewayInterface $stripeGateway;
+
+    /** @var array<string, ProviderHealthState> */
+    private array $health = [];
 
     public function setUp(): void
     {
         parent::setUp();
 
-        // Create gateways
-        $this->mockGateway = new MockPaymentGateway();
-        $this->stripeGateway = Mockery::mock(StripePaymentProvider::class);
-        $this->stripeGateway->shouldReceive('getCode')->andReturn('stripe');
-        $this->stripeGateway->shouldReceive('getSupportedPaymentMethods')
-            ->andReturn([PaymentMethodEnum::CREDIT_CARD, PaymentMethodEnum::BANK_TRANSFER]);
+        $health = &$this->health;
+        $checker = new class ($health) implements ProviderHealthCheckerInterface {
+            public function __construct(private array &$states) {}
+            public function isHealthy(string $providerCode): bool
+            {
+                return $this->status($providerCode)->isUsable();
+            }
+            public function status(string $providerCode): ProviderHealthStatus
+            {
+                return new ProviderHealthStatus($providerCode, $this->states[$providerCode] ?? ProviderHealthState::HEALTHY);
+            }
+            public function record(string $providerCode, PaymentOutcome $outcome): void {}
+        };
 
-        // Create registry and register gateways
-        config(['kompo-finance.payment_providers' => [
-            MockPaymentGateway::class,
-            StripePaymentProvider::class,
-        ]]);
-
-        $this->registry = new PaymentProviderRegistry();
-
-        // Create resolver
-        $this->resolver = new DefaultPaymentGatewayResolver($this->registry);
+        $this->resolver = new DefaultPaymentGatewayResolver($checker);
+        config(['kompo-finance.offer_fallback_provider_methods' => false]);
     }
 
     public function tearDown(): void
@@ -54,189 +64,101 @@ class PaymentGatewayResolverTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_it_resolves_correct_gateway_for_payment_method()
+    public function test_a_single_class_is_a_one_provider_chain()
     {
-        // Create mock payable
-        $payable = $this->createMockPayable();
-
-        // Mock the payment method to return our mock gateway
-        $originalGateway = PaymentMethodEnum::CREDIT_CARD->getDefaultPaymentGateway();
-
-        // We need to mock the config to return our mock gateway class
         config(['kompo-finance.payment_method_providers' => [
             PaymentMethodEnum::CREDIT_CARD->value => MockPaymentGateway::class,
         ]]);
 
-        $context = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::CREDIT_CARD
-        );
+        $this->assertSame('mock_gateway', $this->resolver->resolve($this->context(PaymentMethodEnum::CREDIT_CARD))->getCode());
+        $this->assertSame(['mock_gateway'], $this->codes($this->resolver->previewChain($this->context(PaymentMethodEnum::CREDIT_CARD))));
+    }
 
-        // Act
-        $gateway = $this->resolver->resolve($context);
-
-        // Assert
-        $this->assertInstanceOf(PaymentGatewayInterface::class, $gateway);
-        $this->assertEquals('mock_gateway', $gateway->getCode());
-
-        // Restore original config
+    public function test_a_list_is_an_ordered_fallback_chain()
+    {
         config(['kompo-finance.payment_method_providers' => [
-            PaymentMethodEnum::CREDIT_CARD->value => $originalGateway,
-        ]]);
-    }
-
-    public function test_it_returns_available_gateways_for_payment_method()
-    {
-        // Arrange
-        $payable = $this->createMockPayable();
-        $context = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::CREDIT_CARD
-        );
-
-        // Act
-        $availableGateways = $this->resolver->getAvailableGateways($context);
-
-        // Assert
-        $this->assertIsArray($availableGateways);
-        $this->assertCount(2, $availableGateways); // only mock supports credit card
-
-        $codes = array_map(fn ($gateway) => $gateway->getCode(), $availableGateways);
-        $this->assertContains('mock_gateway', $codes);
-        $this->assertContains('stripe', $codes);
-    }
-
-    public function test_it_returns_empty_array_for_unsupported_payment_method()
-    {
-        // Arrange
-        $payable = $this->createMockPayable();
-
-        // Use a payment method not supported by any gateway
-        $context = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::CASH
-        );
-
-        // Act
-        $availableGateways = $this->resolver->getAvailableGateways($context);
-
-        // Assert
-        $this->assertIsArray($availableGateways);
-        $this->assertEmpty($availableGateways);
-    }
-
-    public function test_it_throws_exception_when_no_default_gateway_configured()
-    {
-        // Arrange
-        $payable = $this->createMockPayable();
-
-        // Clear the config for this payment method
-        config(['kompo-finance.payment_method_providers' => [
-            PaymentMethodEnum::INTERAC->value => null,
+            PaymentMethodEnum::CREDIT_CARD->value => [SecondMockGateway::class, MockPaymentGateway::class],
         ]]);
 
-        $context = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::INTERAC
-        );
-
-        // Act & Assert
-        $this->expectException(\Exception::class);
-        $this->resolver->resolve($context);
+        $this->assertSame(['second_gateway', 'mock_gateway'], $this->codes($this->resolver->previewChain($this->context(PaymentMethodEnum::CREDIT_CARD))));
     }
 
-    public function test_it_resolves_different_gateways_for_different_payment_methods()
+    public function test_degraded_providers_go_last_and_down_providers_are_skipped()
     {
-        // Arrange
-        $payable = $this->createMockPayable();
-
-        // Configure different gateways for different payment methods
         config(['kompo-finance.payment_method_providers' => [
-            PaymentMethodEnum::CREDIT_CARD->value => MockPaymentGateway::class,
-            PaymentMethodEnum::BANK_TRANSFER->value => StripePaymentProvider::class,
+            PaymentMethodEnum::CREDIT_CARD->value => [SecondMockGateway::class, MockPaymentGateway::class],
+        ]]);
+        $context = $this->context(PaymentMethodEnum::CREDIT_CARD);
+
+        $this->health['second_gateway'] = ProviderHealthState::DEGRADED;
+        $this->assertSame(['mock_gateway', 'second_gateway'], $this->codes($this->resolver->previewChain($context)));
+
+        $this->health['second_gateway'] = ProviderHealthState::DOWN;
+        $this->assertSame(['mock_gateway'], $this->codes($this->resolver->previewChain($context)));
+        $this->assertSame(['second_gateway', 'mock_gateway'], $this->codes($this->resolver->getAvailableGateways($context)), 'Configured gateways ignore health.');
+    }
+
+    public function test_a_provider_that_cannot_take_the_method_is_dropped()
+    {
+        config(['kompo-finance.payment_method_providers' => [
+            PaymentMethodEnum::INTERAC->value => [MockPaymentGateway::class, SecondMockGateway::class],
         ]]);
 
-        // Act
-        $creditCardContext = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::CREDIT_CARD
-        );
-        $bankTransferContext = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::BANK_TRANSFER
-        );
-
-        $creditCardGateway = $this->resolver->resolve($creditCardContext);
-        $bankTransferGateway = $this->resolver->resolve($bankTransferContext);
-
-        // Assert
-        $this->assertEquals('mock_gateway', $creditCardGateway->getCode());
-        $this->assertEquals('stripe', $bankTransferGateway->getCode());
-        $this->assertNotSame($creditCardGateway, $bankTransferGateway);
+        $this->assertSame(['second_gateway'], $this->codes($this->resolver->getAvailableGateways($this->context(PaymentMethodEnum::INTERAC))));
     }
 
-    public function test_it_filters_available_gateways_correctly()
+    public function test_an_unmapped_method_is_not_configured_and_a_down_chain_is_all_down()
     {
-        // Arrange
-        // Add a gateway that only supports bank transfers
-        $bankOnlyGateway = Mockery::mock(PaymentGatewayInterface::class);
-        $bankOnlyGateway->shouldReceive('getCode')->andReturn('bank_only');
-        $bankOnlyGateway->shouldReceive('getSupportedPaymentMethods')
-            ->andReturn([PaymentMethodEnum::BANK_TRANSFER]);
-
-        $this->registry->register($bankOnlyGateway);
-
-        $payable = $this->createMockPayable();
-
-        // Act - Check available gateways for credit card
-        $creditCardContext = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::CREDIT_CARD
-        );
-        $creditCardGateways = $this->resolver->getAvailableGateways($creditCardContext);
-
-        // Act - Check available gateways for bank transfer
-        $bankTransferContext = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::BANK_TRANSFER
-        );
-        $bankTransferGateways = $this->resolver->getAvailableGateways($bankTransferContext);
-
-        // Assert
-        $creditCardCodes = array_map(fn ($g) => $g->getCode(), $creditCardGateways);
-        $bankTransferCodes = array_map(fn ($g) => $g->getCode(), $bankTransferGateways);
-
-        $this->assertContains('mock_gateway', $creditCardCodes);
-        $this->assertContains('stripe', $creditCardCodes);
-        $this->assertNotContains('bank_only', $creditCardCodes);
-
-        $this->assertContains('mock_gateway', $bankTransferCodes);
-        $this->assertContains('stripe', $bankTransferCodes);
-        $this->assertContains('bank_only', $bankTransferCodes);
-    }
-
-    public function test_it_maintains_singleton_instances_from_registry()
-    {
-        // Arrange
         config(['kompo-finance.payment_method_providers' => [
             PaymentMethodEnum::CREDIT_CARD->value => MockPaymentGateway::class,
         ]]);
 
-        $payable = $this->createMockPayable();
-        $context = new PaymentContext(
-            payable: $payable,
-            paymentMethod: PaymentMethodEnum::CREDIT_CARD
-        );
+        try {
+            $this->resolver->resolveChain($this->context(PaymentMethodEnum::INTERAC));
+            $this->fail('Expected NoProviderAvailableException');
+        } catch (NoProviderAvailableException $e) {
+            $this->assertSame('none_configured', $e->reason);
+        }
 
-        // Act - Resolve multiple times
-        $gateway1 = $this->resolver->resolve($context);
-        $gateway2 = $this->resolver->resolve($context);
-
-        // Assert - Should be the same instance from registry
-        $this->assertSame($gateway1, $gateway2);
+        $this->health['mock_gateway'] = ProviderHealthState::DOWN;
+        try {
+            $this->resolver->resolveChain($this->context(PaymentMethodEnum::CREDIT_CARD));
+            $this->fail('Expected NoProviderAvailableException');
+        } catch (NoProviderAvailableException $e) {
+            $this->assertSame('all_down', $e->reason);
+            $this->assertSame(['mock_gateway'], $e->context['provider_codes']);
+        }
     }
 
-    // Helper methods
+    public function test_a_method_served_only_by_a_fallback_provider_is_hidden_unless_configured_otherwise()
+    {
+        config(['kompo-finance.payment_method_providers' => [
+            PaymentMethodEnum::CREDIT_CARD->value => [MockPaymentGateway::class, SecondMockGateway::class],
+            PaymentMethodEnum::INTERAC->value => [SecondMockGateway::class],
+        ]]);
+        // second_gateway heads the Interac chain, so it is primary.
+        $this->assertTrue($this->resolver->isMethodAvailable($this->context(PaymentMethodEnum::INTERAC)));
+
+        config(['kompo-finance.payment_method_providers' => [
+            PaymentMethodEnum::CREDIT_CARD->value => [MockPaymentGateway::class, SecondMockGateway::class],
+            PaymentMethodEnum::INTERAC->value => [MockPaymentGateway::class, SecondMockGateway::class],
+        ]]);
+        // mock_gateway cannot take Interac; second_gateway heads no chain.
+        $this->assertFalse($this->resolver->isMethodAvailable($this->context(PaymentMethodEnum::INTERAC)));
+
+        config(['kompo-finance.offer_fallback_provider_methods' => true]);
+        $this->assertTrue($this->resolver->isMethodAvailable($this->context(PaymentMethodEnum::INTERAC)));
+    }
+
+    private function codes(array $providers): array
+    {
+        return array_map(fn ($p) => $p->getCode(), $providers);
+    }
+
+    private function context(PaymentMethodEnum $method): PaymentContext
+    {
+        return new PaymentContext(payable: $this->createMockPayable(), paymentMethod: $method);
+    }
 
     private function createMockPayable(): PayableInterface
     {
