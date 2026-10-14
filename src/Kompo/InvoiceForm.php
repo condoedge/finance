@@ -144,7 +144,8 @@ class InvoiceForm extends Form
                 _MultiSelect('finance-payment-types')
                     ->name('possible_payment_methods')
                     ->options(PaymentMethodEnum::optionsWithLabels()),
-                $this->getPaymentTermsSelector($this->model->paymentTerm?->term_type),
+                // Takes a term id, not a type: a draft offering several terms has no payment_term_id yet.
+                $this->getPaymentTermsSelector($this->model->payment_term_id ?: collect($this->model->possible_payment_terms ?? [])->first()),
             ),
 
             _MultiForm()->noLabel()->name('invoiceDetails')

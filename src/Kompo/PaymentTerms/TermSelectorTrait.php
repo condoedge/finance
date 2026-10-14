@@ -63,7 +63,8 @@ trait TermSelectorTrait
         $onChangeCallback = $this->onChangePaymentTerms();
 
         return $element->name($paymentTermName, false)
-            ->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->merge($selected))
+            // union, not merge: merge renumbers the integer keys, and the option values became list positions.
+            ->options(PaymentTerm::where('term_type', $paymentTermType->value)->pluck('term_name', 'id')->union($selected))
             ->default($isInstallment ? $selectedIds : ($selectedIds[0] ?? null))
             ->when($onChangeCallback, fn ($el) => $el->onChange($onChangeCallback))
             ->class('mb-2');
