@@ -55,7 +55,15 @@ function asCurrency(amount)
 		return '-'
 	}
 
-	return '$ '+amount.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+	// Mirrors finance_currency(): rounded to the max decimals, padded to the min, the locale's separators and symbol side.
+	let c = financeCurrency
+	let [int, dec] = Math.abs(amount).toFixed(c.max_number_of_decimals).split('.')
+	dec = (dec || '').replace(/0+$/, '').padEnd(c.min_number_of_decimals, '0')
+
+	let number = (amount < 0 ? '-' : '') + int.replace(/\B(?=(\d{3})+(?!\d))/g, c.thousands_separator)
+		+ (dec ? c.decimal_separator + dec : '')
+
+	return c.position === 'left' ? c.symbol + ' ' + number : number + ' ' + c.symbol
 }
 
 function setRoundedAmount(selector, amount) {
