@@ -23,7 +23,7 @@ class InvoiceForm extends Form
     use \Condoedge\Finance\Kompo\MorphManyChargeablesSelect;
     use \Condoedge\Finance\Kompo\PaymentTerms\TermSelectorTrait;
 
-    protected $needsAuthorization = true;
+    protected $needsAuthentication = true;
 
     public const ID = 'invoice-form';
     public $id = self::ID;
