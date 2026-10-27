@@ -6,7 +6,6 @@ use Condoedge\Finance\Facades\CustomerService;
 use Condoedge\Finance\Facades\InvoiceModel;
 use Condoedge\Finance\Facades\InvoiceTypeEnum;
 use Condoedge\Finance\Facades\PaymentMethodEnum;
-use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
 use Condoedge\Finance\Models\Dto\Invoices\UpdateInvoiceDto;
 use Condoedge\Finance\Models\Invoice;
@@ -68,13 +67,10 @@ class InvoiceForm extends Form
         $invoiceData = $this->parsePossiblePaymentMethods($invoiceData);
         $invoiceData = $this->applyTypeSignToLines($invoiceData);
 
-        if (!$this->model->id) {
-            $customer = CustomerService::ensureCustomerFromTeam(
-                Customer::find(request('customer_id')),
-                $teamId
-            );
+        $isNew = !$this->model->id;
 
-            $invoiceData['customer_id'] = $customer?->id;
+        if ($isNew) {
+            $invoiceData['customer_id'] = CustomerService::resolveInvoiceRecipient(request('customer_id'), $teamId)->id;
         }
 
         // Creation is guarded, an update is not: rewriting the same invoice twice lands on
@@ -83,6 +79,11 @@ class InvoiceForm extends Form
         $this->model($this->model->id
             ? $invoiceService->upsertInvoice(new UpdateInvoiceDto(['id' => $this->model->id, ...$invoiceData]))
             : $this->submitOnce(fn () => $invoiceService->upsertInvoice(new CreateInvoiceDto($invoiceData))));
+
+        // The create DTO carries no address; setAddress also gives it to a customer that has none.
+        if ($isNew && $address = parsePlaceFromRequest('recipient_address')) {
+            $invoiceService->setAddress($this->model, $address);
+        }
 
         if ($this->modalDesign) {
             return null;
@@ -123,14 +124,20 @@ class InvoiceForm extends Form
                 $this->model->id ? null : _Select('finance-transaction-type')
                     ->name('invoice_type_id')
                     ->options(InvoiceTypeEnum::optionsWithLabels()),
+                // Searches people, teams and external customers; the customer row is
+                // resolved at save, so users never create one for someone who exists.
                 // addsRelatedOption binds the CustomerForm modal to this select's own
                 // X-Kompo-Id, so saving it adds the new customer as an option here and
                 // selects it. No DOM simulation, no after-save panel.
-                $this->model->id ? null : _SelectUpdatable('finance-invoiced-to')
-                    ->name('customer_id')->class('!mb-0 [&>.vlFormComment]:!text-end [&>.vlFormComment]:!mt-1')
-                    ->searchOptions(2, 'searchCustomers')
-                    ->addsRelatedOption(CustomerForm::class)
-                    ->addLabel('finance-customer', 'icon-plus', 'text-sm'),
+                $this->model->id ? null : _Rows(
+                    _SelectUpdatable('finance-invoiced-to')
+                        ->name('customer_id')->class('!mb-0 [&>.vlFormComment]:!text-end [&>.vlFormComment]:!mt-1')
+                        ->searchOptions(2, 'searchCustomers')
+                        ->onChange(fn ($e) => $e->selfPost('getRecipientAddressPanel')->withAllFormValues()->inPanel('recipient-address-panel'))
+                        ->addsRelatedOption(CustomerForm::class)
+                        ->addLabel('finance-new-external-customer', 'icon-plus', 'text-sm'),
+                    _Panel()->id('recipient-address-panel'),
+                ),
             ),
 
             _Columns(
@@ -247,16 +254,26 @@ class InvoiceForm extends Form
 
     public function searchCustomers($searchTerm)
     {
-        return Customer::forTeam($this->team->id ?? currentTeamId())
-            ->where('name', 'like', wildcardSpace($searchTerm))
-            ->orderBy('name')
-            ->get()
-            ->unique(fn ($c) => $c->customable_type . '_' . $c->customable_id . '_' . $c->name)
-            ->mapWithKeys(function ($customer) {
-                return [$customer->id => _Rows(
-                    _Html($customer->name)->attr(['data-id' => $customer->id]),
-                )];
-            });
+        return CustomerService::searchInvoiceRecipients((string) $searchTerm, $this->team->id ?? currentTeamId());
+    }
+
+    public function getRecipientAddressPanel()
+    {
+        $entity = rescue(
+            fn () => CustomerService::resolveInvoiceRecipientEntity(request('customer_id'), $this->team->id ?? currentTeamId()),
+            null,
+            false,
+        );
+
+        // Customers and customables both carry MorphManyAddresses.
+        if (!$entity || $entity->getFirstValidAddress()) {
+            return null;
+        }
+
+        return _Rows(
+            _Html('finance-recipient-no-address-hint')->class('text-sm text-gray-600 mb-1'),
+            _CanadianPlace('finance-billing-address')->name('recipient_address', false),
+        );
     }
 
     /**
@@ -329,6 +346,7 @@ class InvoiceForm extends Form
     public function rules()
     {
         return [
+            'customer_id' => $this->model->id ? 'nullable' : 'required',
             // 'invoice_due_date' => 'required',
             // 'invoice_date' => 'required',
             // 'payment_method_id' => 'required',

@@ -2,6 +2,9 @@
 
 namespace Condoedge\Finance\Models\Traits;
 
+use Condoedge\Utils\Facades\TeamModel;
+use Illuminate\Support\Collection;
+
 trait CustomableTeamTrait
 {
     use CanBeFinancialCustomer;
@@ -37,5 +40,19 @@ trait CustomableTeamTrait
         }
 
         return $query->pluck('team_name', 'id');
+    }
+
+    public function scopeInvoiceRecipientsWithin($query, int $teamId)
+    {
+        return $query->whereIn($this->qualifyColumn('id'), TeamModel::findOrFail($teamId)->getDescendants());
+    }
+
+    public static function searchForInvoiceRecipient(string $search, int $teamId): Collection
+    {
+        return static::query()->invoiceRecipientsWithin($teamId)
+            ->where('team_name', 'like', wildcardSpace($search))
+            ->orderBy('team_name')
+            ->take(10)
+            ->get();
     }
 }

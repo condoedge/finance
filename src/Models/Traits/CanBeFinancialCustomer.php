@@ -4,7 +4,9 @@ namespace Condoedge\Finance\Models\Traits;
 
 use Condoedge\Finance\Facades\CustomerModel;
 use Condoedge\Finance\Facades\InvoiceService;
+use Condoedge\Finance\Models\CustomableContract;
 use Condoedge\Finance\Models\Dto\Invoices\CreateInvoiceDto;
+use Illuminate\Support\Collection;
 
 trait CanBeFinancialCustomer
 {
@@ -74,6 +76,43 @@ trait CanBeFinancialCustomer
         }
 
         return $customer;
+    }
+
+    /* INVOICE RECIPIENT */
+
+    /** No perimeter by default: an app that knows its hierarchy narrows it. */
+    public function scopeInvoiceRecipientsWithin($query, int $teamId)
+    {
+        return $query;
+    }
+
+    public static function searchForInvoiceRecipient(string $search, int $teamId): Collection
+    {
+        return static::query()->invoiceRecipientsWithin($teamId)
+            ->whereKey(collect(static::getOptionsForCustomerForm($search))->keys())
+            ->take(10)
+            ->get();
+    }
+
+    public function invoiceRecipientsFor(int $teamId): Collection
+    {
+        return collect([$this]);
+    }
+
+    public function invoiceRecipientName(): string
+    {
+        return (string) $this->fillCustomerFromThisModel(CustomerModel::newModelInstance())->name;
+    }
+
+    public function invoiceRecipientLabel(?CustomableContract $billed)
+    {
+        return _Rows(
+            _Html($this->invoiceRecipientName()),
+            $billed && !$billed->is($this)
+                ? _Html(__('finance-billed-to', ['name' => $billed->invoiceRecipientName()]))->class('text-xs text-gray-500')
+                : null,
+            $billed ? null : _Html('finance-no-one-to-bill')->class('text-xs text-danger'),
+        );
     }
 
     abstract public function fillCustomerFromThisModel($customer);

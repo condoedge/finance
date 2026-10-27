@@ -2,6 +2,7 @@
 
 namespace Condoedge\Finance\Services\Customer;
 
+use Condoedge\Finance\Models\CustomableContract;
 use Condoedge\Finance\Models\Customer;
 use Condoedge\Finance\Models\Dto\Customers\CreateCustomerFromCustomable;
 use Condoedge\Finance\Models\Dto\Customers\CreateOrUpdateCustomerDto;
@@ -39,6 +40,15 @@ interface CustomerServiceInterface
     public function createFromCustomable(CreateCustomerFromCustomable $dto): Customer;
 
     public function ensureCustomerFromTeam(?Customer $customer, $teamId);
+
+    /** Typed option key => label, for the invoice "Invoiced to" search. */
+    public function searchInvoiceRecipients(string $search, int $teamId): Collection;
+
+    /** The entity billed for an option key; throws a customer_id ValidationException if invalid. */
+    public function resolveInvoiceRecipientEntity(?string $key, int $teamId): CustomableContract|Customer;
+
+    /** The customer to put on the invoice, created for the team if needed. */
+    public function resolveInvoiceRecipient(?string $key, int $teamId): Customer;
 
     /**
      * Set default billing address for customer

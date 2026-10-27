@@ -12,6 +12,7 @@ use Condoedge\Utils\Models\ContactInfo\Maps\Address;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Customer Service Implementation
@@ -24,6 +25,9 @@ use Illuminate\Support\Facades\Log;
  */
 class CustomerService implements CustomerServiceInterface
 {
+    /** Option key prefix of customers that belong to no customable. */
+    public const RECIPIENT_EXTERNAL = 'customer';
+
     /**
      * Create or update customer from DTO
      */
@@ -153,6 +157,98 @@ class CustomerService implements CustomerServiceInterface
         $customer = Customer::equalButAnotherTeam($customer, $teamId)->first() ?? $customer->clone($teamId);
 
         return $customer;
+    }
+
+    public function searchInvoiceRecipients(string $search, int $teamId): Collection
+    {
+        $options = collect();
+
+        foreach ($this->getValidCustomableModels() as $morph => $class) {
+            foreach ($class::searchForInvoiceRecipient($search, $teamId) as $subject) {
+                // A subject nobody can be billed for is still listed (unselectable), so the user learns why.
+                foreach ($subject->invoiceRecipientsFor($teamId)->whenEmpty(fn () => collect([null])) as $billed) {
+                    $options[$this->invoiceRecipientKey($morph, $subject, $billed)] = $subject->invoiceRecipientLabel($billed)
+                        ->config(['disabled' => !$billed]);
+                }
+            }
+        }
+
+        // Customers linked to a customable are reached through it, never listed themselves.
+        Customer::forTeam($teamId)
+            ->whereNull('customable_type')
+            ->where('name', 'like', wildcardSpace($search))
+            ->orderBy('name')
+            ->take(10)
+            ->get()
+            ->unique(fn ($c) => mb_strtolower($c->name . '|' . $c->email))
+            ->each(fn ($c) => $options[self::RECIPIENT_EXTERNAL . ':' . $c->id] = _Rows(
+                _Html($c->name),
+                _Html($c->email ?: '')->class('text-xs text-gray-500'),
+            ));
+
+        return $options;
+    }
+
+    public function resolveInvoiceRecipientEntity(?string $key, int $teamId): CustomableContract|Customer
+    {
+        [$type, $id, $billedId] = array_pad(explode(':', (string) $key, 3), 3, null);
+
+        // MySQL casts '12abc' to 12, so ids are checked before reaching a query.
+        $validBilledId = $billedId === null || $billedId === 'none' || ctype_digit($billedId);
+
+        if (!$type || !ctype_digit((string) $id) || !$validBilledId) {
+            $this->invalidInvoiceRecipient();
+        }
+
+        if ($type === self::RECIPIENT_EXTERNAL) {
+            if ($billedId !== null) {
+                $this->invalidInvoiceRecipient();
+            }
+
+            return Customer::forTeam($teamId)->whereNull('customable_type')->find($id)
+                ?? $this->invalidInvoiceRecipient();
+        }
+
+        $class = $this->getValidCustomableModels()->get($type);
+        $subject = $class ? $class::query()->invoiceRecipientsWithin($teamId)->find($id) : null;
+
+        if (!$subject) {
+            $this->invalidInvoiceRecipient();
+        }
+
+        $candidates = $subject->invoiceRecipientsFor($teamId);
+
+        // Re-checked here: the option list is not trusted, and the candidates can change in between.
+        $billed = $billedId === null
+            ? $candidates->first(fn ($c) => $c->is($subject))
+            : $candidates->first(fn ($c) => (string) $c->getKey() === $billedId);
+
+        return $billed ?? $this->invalidInvoiceRecipient($candidates->isEmpty() ? 'finance-no-one-to-bill' : null);
+    }
+
+    public function resolveInvoiceRecipient(?string $key, int $teamId): Customer
+    {
+        $entity = $this->resolveInvoiceRecipientEntity($key, $teamId);
+
+        return $entity instanceof Customer
+            ? $this->ensureCustomerFromTeam($entity, $teamId)
+            : $entity->upsertCustomerFromThisModel($teamId);
+    }
+
+    protected function invoiceRecipientKey(string $morph, CustomableContract $subject, ?CustomableContract $billed): string
+    {
+        $key = $morph . ':' . $subject->getKey();
+
+        if (!$billed) {
+            return $key . ':none';
+        }
+
+        return $billed->is($subject) ? $key : $key . ':' . $billed->getKey();
+    }
+
+    protected function invalidInvoiceRecipient(?string $message = null): never
+    {
+        throw ValidationException::withMessages(['customer_id' => __($message ?? 'finance-invalid-invoice-recipient')]);
     }
 
     /* PROTECTED METHODS - Can be overridden for customization */
