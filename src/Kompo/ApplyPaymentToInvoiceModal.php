@@ -20,6 +20,10 @@ class ApplyPaymentToInvoiceModal extends Modal
 
     public $class = 'max-w-6xl';
 
+    // The rows on screen are submitted as rendered, so a row that comes ticked counts without
+    // being touched. The plugin above still carries what was ticked on another page.
+    public $nestedFields = true;
+
     protected $invoiceId;
     protected $paymentId;
     protected $customerId;
