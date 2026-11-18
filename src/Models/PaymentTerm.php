@@ -46,7 +46,7 @@ class PaymentTerm extends AbstractMainFinanceModel
 
         return match ($this->term_type) {
             PaymentTermTypeEnum::COD => carbon($invoiceDate)->toDateTime(),
-            PaymentTermTypeEnum::NET => (clone carbon($invoiceDate))->addDays($settings['days']),
+            PaymentTermTypeEnum::NET => (clone carbon($invoiceDate))->addDays((int) $settings['days']),
             PaymentTermTypeEnum::INSTALLMENT => (clone carbon($invoiceDate))->add($settings['interval_type'], $settings['interval'] * ($settings['periods'] - 1)),
         };
     }
