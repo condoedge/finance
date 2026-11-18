@@ -406,7 +406,7 @@ class FiscalYearService
             $currentYearFiscalStart->subYear();
         }
 
-        $monthsFromStart = $currentYearFiscalStart->diffInMonths($date) + 1;
+        $monthsFromStart = (int) $currentYearFiscalStart->diffInMonths($date, true) + 1;
 
         return min(max($monthsFromStart, 1), 12); // Ensure between 1-12
     }
